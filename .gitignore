@@ -67,3 +67,28 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+# --- HWControl 2.0 Multi-Language Extension ---
+
+# Go (Bridge)
+/bridge_service/bin/
+/bridge_service/pkg/
+*.test
+
+# Python (AI Analyzer)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Dart/Flutter (GUI)
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+
+# IDE/OS Specifics (Proje genelinde temizlik için)
+.vscode/
+.vs/
+.idea/
+.DS_Store
