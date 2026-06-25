@@ -1,28 +1,36 @@
 #include "../include/engine.h"
 #include "../include/monitor.h"
+#include "../include/bsod_shield.h" // Yeni kalkan
 #include <iostream>
+#include <thread> // Sleep için
 
 int main() {
-    // 1. Modülleri tanımla
     AIEngine ai;
     Monitor monitor;
+    BSODShield shield(5); // AI 5 saniye içinde cevap vermezse "kalkan" devreye girer
 
-    // 2. Modeli hazırla
     if (!ai.init("ai_core/models/gemma-2b-it-q4_k_m.gguf")) {
-        std::cerr << "AI Engine baslatilamadi!" << std::endl;
         return -1;
     }
 
-    // 3. Ana döngü (Sonsuz döngü, sistemi izler)
     while (true) {
         monitor.updateHardwareStatus();
         float temp = monitor.getTemperature();
         
         // AI'ya veriyi gönder
-        ai.processData(temp, 0.0f); // 0.0f = GPU/CPU yükü
+        ai.processData(temp, 0.0f);
 
-        // Burada bir sleep eklenecek (AI'yı sürekli yormamak için)
-        break; // Test için döngüden çıkıyoruz
+        // Kalkanı güncelle (AI canlı ve çalışıyor)
+        shield.heartbeat();
+
+        // Kalkanı kontrol et (Eğer AI 5 saniyedir cevap vermediyse burası hata verir)
+        if (!shield.isSystemHealthy()) {
+            std::cerr << "BSOD SHIELD: Sistem dondu! Güvenli moda geçiliyor..." << std::endl;
+            break; 
+        }
+
+        // AI'yı çok yormamak için kısa bir mola
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 
     return 0;
