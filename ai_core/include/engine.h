@@ -1,12 +1,22 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
-class Engine {
+#include "llama.h"
+
+class AIEngine {
 public:
-    void initModel(const char* modelPath);
-    void processHardwareData(float temp);
+    AIEngine();
+    ~AIEngine();
+
+    // Modeli başlat ve belleğe yükle
+    bool init(const char* modelPath);
+
+    // Donanım verisini AI'ya gönder ve yanıt al
+    void processData(float temp, float load);
+
 private:
-    // Model pointer'ları buraya gelecek
+    llama_model* model;
+    llama_context* ctx;
 };
 
 #endif
