@@ -7,6 +7,6 @@ void Monitor::updateHardwareStatus() {
     std::cout << "Monitor: Donanim verileri guncellendi..." << std::endl;
 }
 
-float Monitor::getTemperature() {
+float Monitor::getTemperature() const {
     return 65.5f; // Örnek veri: Sensörden gelecek değer
 }
