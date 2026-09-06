@@ -1,28 +1,19 @@
-name: Publish release
+name: Publish platform release
 
 on:
   push:
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-linux'
+      - 'v[0-9]+.[0-9]+.[0-9]+-windows'
+      - 'v[0-9]+.[0-9]+.[0-9]+-macos'
 
 permissions:
   contents: write
 
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-24.04
-            platform: Linux-x64
-          - os: macos-13
-            platform: macOS-Intel-x64
-          - os: macos-14
-            platform: macOS-AppleSilicon-arm64
-          - os: windows-2022
-            platform: Windows-x64
-    runs-on: ${{ matrix.os }}
+  build-linux:
+    if: endsWith(github.ref_name, '-linux')
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,59 +22,93 @@ jobs:
         with:
           go-version-file: bridge_service/go.mod
           cache: false
-      - name: Configure C++
-        shell: bash
+      - name: Build Linux package
         run: |
-          if [ "${{ matrix.os }}" = "windows-2022" ]; then
-            cmake -S . -B build-windows -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
-          else
-            cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
-          fi
-      - name: Build C++ engine
-        shell: bash
-        run: |
-          if [ "${{ matrix.os }}" = "windows-2022" ]; then
-            cmake --build build-windows --config Release --parallel 2
-          else
-            cmake --build build --parallel 2
-          fi
-      - name: Build and package applications
-        shell: bash
-        run: |
-          package_dir="package/hwcontrol-${{ matrix.platform }}"
+          cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
+          cmake --build build --parallel 2
+          package_dir="package/HWControl-${{ github.ref_name }}-Linux-x64"
           mkdir -p "$package_dir"
-          if [ "${{ matrix.os }}" = "windows-2022" ]; then
-            cp build-windows/ai_core/Release/ai_engine.exe "$package_dir/ai_engine.exe"
-            go build -trimpath -ldflags="-s -w" -o "$package_dir/bridge-service.exe" ./bridge_service/src
-          else
-            cp build/ai_core/ai_engine "$package_dir/ai_engine"
-            go build -trimpath -ldflags="-s -w" -o "$package_dir/bridge-service" ./bridge_service/src
-          fi
+          cp build/ai_core/ai_engine "$package_dir/ai_engine"
+          go build -trimpath -ldflags="-s -w" -o "$package_dir/bridge-service" ./bridge_service/src
           cp README.md SECURITY.md "$package_dir/"
-          tar -czf "HWControl-${{ github.ref_name }}-${{ matrix.platform }}.tar.gz" -C package "hwcontrol-${{ matrix.platform }}"
-      - name: Upload platform package
+          tar -czf "HWControl-${{ github.ref_name }}-Linux-x64.tar.gz" -C package "HWControl-${{ github.ref_name }}-Linux-x64"
+      - name: Upload Linux package
         uses: actions/upload-artifact@v4
         with:
-          name: HWControl-${{ github.ref_name }}-${{ matrix.platform }}
-          path: HWControl-${{ github.ref_name }}-${{ matrix.platform }}.tar.gz
+          name: HWControl-${{ github.ref_name }}-Linux-x64
+          path: HWControl-${{ github.ref_name }}-Linux-x64.tar.gz
+
+  build-windows:
+    if: endsWith(github.ref_name, '-windows')
+    runs-on: windows-2022
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: bridge_service/go.mod
+          cache: false
+      - name: Build Windows package
+        shell: pwsh
+        run: |
+          cmake -S . -B build-windows -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
+          cmake --build build-windows --config Release --parallel 2
+          $packageDir = "package/HWControl-${{ github.ref_name }}-Windows-x64"
+          New-Item -ItemType Directory -Force -Path $packageDir | Out-Null
+          Copy-Item build-windows/ai_core/Release/ai_engine.exe "$packageDir/ai_engine.exe"
+          go build -trimpath -ldflags="-s -w" -o "$packageDir/bridge-service.exe" ./bridge_service/src
+          Copy-Item README.md, SECURITY.md $packageDir
+          Compress-Archive -Path "$packageDir/*" -DestinationPath "HWControl-${{ github.ref_name }}-Windows-x64.zip"
+      - name: Upload Windows package
+        uses: actions/upload-artifact@v4
+        with:
+          name: HWControl-${{ github.ref_name }}-Windows-x64
+          path: HWControl-${{ github.ref_name }}-Windows-x64.zip
+
+  build-macos:
+    if: endsWith(github.ref_name, '-macos')
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: bridge_service/go.mod
+          cache: false
+      - name: Build macOS package
+        run: |
+          cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
+          cmake --build build --parallel 2
+          package_dir="package/HWControl-${{ github.ref_name }}-macOS-AppleSilicon"
+          mkdir -p "$package_dir"
+          cp build/ai_core/ai_engine "$package_dir/ai_engine"
+          go build -trimpath -ldflags="-s -w" -o "$package_dir/bridge-service" ./bridge_service/src
+          cp README.md SECURITY.md "$package_dir/"
+          hdiutil create -volname "HWControl ${{ github.ref_name }}" -srcfolder "$package_dir" -ov -format UDZO "HWControl-${{ github.ref_name }}-macOS-AppleSilicon.dmg"
+      - name: Upload macOS package
+        uses: actions/upload-artifact@v4
+        with:
+          name: HWControl-${{ github.ref_name }}-macOS-AppleSilicon
+          path: HWControl-${{ github.ref_name }}-macOS-AppleSilicon.dmg
 
   release:
-    needs: build
+    needs: [build-linux, build-windows, build-macos]
+    if: always() && (needs.build-linux.result == 'success' || needs.build-windows.result == 'success' || needs.build-macos.result == 'success')
     runs-on: ubuntu-24.04
     steps:
-      - name: Download platform packages
+      - name: Download package
         uses: actions/download-artifact@v4
         with:
           path: dist
-      - name: Create GitHub release with packages
+      - name: Create operating-system release
         uses: softprops/action-gh-release@v2
         with:
+          name: HWControl ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
           generate_release_notes: true
-          body: |
-            Platform packages:
-            - `HWControl-${{ github.ref_name }}-Windows-x64.tar.gz` = Windows 64-bit
-            - `HWControl-${{ github.ref_name }}-Linux-x64.tar.gz` = Linux 64-bit
-            - `HWControl-${{ github.ref_name }}-macOS-Intel-x64.tar.gz` = macOS Intel
-            - `HWControl-${{ github.ref_name }}-macOS-AppleSilicon-arm64.tar.gz` = macOS Apple Silicon (M1/M2/M3/M4)
-          files: dist/**/*.tar.gz
+          files: |
+            dist/**/*.tar.gz
+            dist/**/*.zip
+            dist/**/*.dmg

@@ -45,16 +45,15 @@ Analyze the Flutter dashboard:
 Releases
 --------
 
-Releases use Semantic Versioning. Create and push a tag such as `v0.1.0`:
+Releases use Semantic Versioning with an operating-system suffix. Create and push one of these tags:
 
-	git tag -a v0.1.0 -m "Release v0.1.0"
-	git push origin v0.1.0
+	git tag -a v0.1.4-linux -m "Release v0.1.4 for Linux"
+	git push origin v0.1.4-linux
 
 The release workflow creates clearly named platform packages automatically:
 
-- `HWControl-vX.Y.Z-Windows-x64.tar.gz` = Windows 64-bit
-- `HWControl-vX.Y.Z-Linux-x64.tar.gz` = Linux 64-bit
-- `HWControl-vX.Y.Z-macOS-Intel-x64.tar.gz` = macOS Intel
-- `HWControl-vX.Y.Z-macOS-AppleSilicon-arm64.tar.gz` = macOS Apple Silicon
+- `vX.Y.Z-windows` -> `HWControl-vX.Y.Z-windows-Windows-x64.zip` = Windows 64-bit
+- `vX.Y.Z-linux` -> `HWControl-vX.Y.Z-linux-Linux-x64.tar.gz` = Linux 64-bit
+- `vX.Y.Z-macos` -> `HWControl-vX.Y.Z-macos-macOS-AppleSilicon.dmg` = macOS Apple Silicon
 
-Merge changes to `main` through pull requests and publish only `vMAJOR.MINOR.PATCH` tags.
+Eski `v0.1.x` tag’leri geriye dönük olarak korunur. Yeni yayınlarda tag sonuna mutlaka `-windows`, `-linux` veya `-macos` eklenmelidir.
