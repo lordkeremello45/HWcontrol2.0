@@ -9,12 +9,55 @@ permissions:
   contents: write
 
 jobs:
-  release:
-    runs-on: ubuntu-24.04
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            platform: linux-x64
+          - os: macos-13
+            platform: macos-x64
+          - os: macos-14
+            platform: macos-arm64
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Create GitHub release
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: bridge_service/go.mod
+          cache: false
+      - name: Configure C++
+        run: cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
+      - name: Build C++ engine
+        run: cmake --build build --parallel 2
+      - name: Build and package applications
+        run: |
+          package_dir="package/hwcontrol-${{ matrix.platform }}"
+          mkdir -p "$package_dir"
+          cp build/ai_core/ai_engine "$package_dir/ai_engine"
+          go build -trimpath -ldflags="-s -w" -o "$package_dir/bridge-service" ./bridge_service/src
+          cp README.md SECURITY.md "$package_dir/"
+          tar -czf "hwcontrol-${{ matrix.platform }}.tar.gz" -C package "hwcontrol-${{ matrix.platform }}"
+      - name: Upload platform package
+        uses: actions/upload-artifact@v4
+        with:
+          name: hwcontrol-${{ matrix.platform }}
+          path: hwcontrol-${{ matrix.platform }}.tar.gz
+
+  release:
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download platform packages
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+      - name: Create GitHub release with packages
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.ref_name }}
           generate_release_notes: true
+          files: dist/**/*.tar.gz
