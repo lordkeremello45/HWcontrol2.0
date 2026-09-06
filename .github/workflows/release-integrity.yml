@@ -1,0 +1,89 @@
+name: Release integrity
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to verify (for example v0.2.0-windows)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  verify-and-publish:
+    name: Verify release assets and publish SHA256SUMS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve release tag
+        id: release
+        env:
+          EVENT_TAG: ${{ github.event.release.tag_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          TAG="$EVENT_TAG"
+          if [ -z "$TAG" ]; then TAG="$INPUT_TAG"; fi
+          test -n "$TAG"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Download release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          mkdir -p release-assets
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir release-assets --pattern '*' --clobber
+
+      - name: Verify individual SHA256 files
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          cd release-assets
+          shopt -s nullglob
+          found=0
+          for checksum in *.sha256; do
+            found=1
+            asset="${checksum%.sha256}"
+            test -f "$asset" || { echo "Missing asset for $checksum"; exit 1; }
+            expected=$(awk '{print $1}' "$checksum")
+            actual=$(sha256sum "$asset" | awk '{print $1}')
+            test "$expected" = "$actual" || { echo "SHA256 mismatch: $asset"; exit 1; }
+            echo "Verified: $asset"
+          done
+          if [ "$found" -eq 0 ]; then
+            echo "No individual .sha256 files found; continuing with release-wide manifest."
+          fi
+
+      - name: Validate expected platform package
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          cd release-assets
+          case "$TAG" in
+            *-windows) compgen -G '*.msi' >/dev/null || compgen -G '*.zip' >/dev/null || { echo 'Windows release has no MSI or ZIP asset'; exit 1; } ;;
+            *-macos) compgen -G '*.pkg' >/dev/null || compgen -G '*.dmg' >/dev/null || { echo 'macOS release has no PKG or DMG asset'; exit 1; } ;;
+            *-linux) compgen -G '*.deb' >/dev/null || compgen -G '*.tar.gz' >/dev/null || compgen -G '*.tar.zst' >/dev/null || { echo 'Linux release has no DEB/TAR asset'; exit 1; } ;;
+            *) echo "Generic/unified tag: package-specific validation skipped." ;;
+          esac
+
+      - name: Generate release-wide SHA256SUMS.txt
+        run: |
+          cd release-assets
+          rm -f SHA256SUMS.txt
+          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' ! -name '*.sha256' -print0 \
+            | sort -z \
+            | xargs -0 sha256sum > SHA256SUMS.txt
+          test -s SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Upload SHA256SUMS.txt to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          gh release upload "$TAG" release-assets/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
