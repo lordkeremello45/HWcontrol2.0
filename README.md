@@ -82,6 +82,8 @@ Uninstallers are shipped beside the service helpers. Linux/macOS: `./deploy/<pla
 
 The bridge accepts `HWCONTROL_PORT` (default `8080`) and `HWCONTROL_LOG` (default `hwcontrol.log`). Crash recovery and connection panics are written to the log with restricted file permissions where the platform supports them.
 
+Windows release sources include `deploy/windows/HWControl.wxs` for WiX MSI packaging. CI validates the portable ZIP; MSI signing/building is enabled only when the repository has the required Windows signing/tooling secrets.
+
 The native engine now reads CPU usage and thermal sensor values when available. On NVIDIA systems, the bridge also reads GPU temperature, utilization, fan percentage, power draw, and voltage through the fixed `nvidia-smi` query. A fan percentage is never mislabeled as RPM; unsupported sensors use safe zero-value fallbacks instead of invented readings.
 
 On Windows, the bridge first reads LibreHardwareMonitor WMI sensors (`root\\LibreHardwareMonitor`) when LibreHardwareMonitor is installed and running. It falls back to Windows ACPI/WMI for CPU temperature, fan and voltage probes. NVIDIA uses `nvidia-smi`; AMD adapters are identified through the WMI sensor source when available. Sensor availability depends on the installed vendor driver and hardware permissions.

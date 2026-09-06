@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="HWControl" Manufacturer="HWControl contributors" Version="$(var.Version)" UpgradeCode="6E0E6A5E-69A0-4B2A-9C89-8F2507A1D890">
+    <MajorUpgrade DowngradeErrorMessage="A newer HWControl version is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+    <Feature Id="MainFeature" Title="HWControl" Level="1">
+      <ComponentGroupRef Id="ApplicationFiles" />
+    </Feature>
+  </Package>
+
+  <Fragment>
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <Directory Id="INSTALLFOLDER" Name="HWControl" />
+    </StandardDirectory>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="ApplicationFiles" Directory="INSTALLFOLDER">
+      <Files Include="$(var.PackageDir)\**" />
+    </ComponentGroup>
+  </Fragment>
+</Wix>

@@ -1,0 +1,22 @@
+HWControl 2.0 third-party notices
+=================================
+
+This file records the external components used by HWControl. Each component
+keeps its own license; this notice does not relicense third-party material.
+
+- llama.cpp / ggml: fetched at CMake configure time from
+  https://github.com/ggerganov/llama.cpp
+  Verify the license and bundled notices for the pinned revision before
+  redistributing a binary package.
+- Gemma GGUF model: distributed separately from this repository and remains
+  subject to Google's Gemma terms. The model is not included in release
+  packages.
+- Go gopsutil/v3: https://github.com/shirou/gopsutil
+  License and copyright notices are available in the module source and
+  go.sum identifies the resolved version.
+- Flutter/Dart packages: crypto, http, url_launcher and the Flutter SDK.
+  Their original license notices are available from pub.dev and the Flutter
+  SDK distribution.
+
+For a release-specific inventory, use the generated SBOM artifact from the
+GitHub Actions workflow and retain the corresponding package checksum.

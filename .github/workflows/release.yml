@@ -45,6 +45,7 @@ jobs:
           (cd bridge_service && go build -trimpath -ldflags="-s -w" -o "../$package_dir/bridge-service" ./src)
           cp -R gui_dashboard/build/linux/x64/release/bundle "$package_dir/dashboard"
           cp README.md SECURITY.md "$package_dir/"
+          cp THIRD_PARTY_NOTICES "$package_dir/"
           cp -R deploy/linux "$package_dir/deploy"
           tar -czf "HWControl-${{ github.ref_name }}-Linux-x64.tar.gz" -C package "HWControl-${{ github.ref_name }}-Linux-x64"
           deb_root="package/deb"
@@ -62,6 +63,9 @@ jobs:
           EOF
           dpkg-deb --build "$deb_root" "HWControl-${{ github.ref_name }}-Linux-x64.deb"
           sha256sum "HWControl-${{ github.ref_name }}-Linux-x64.tar.gz" "HWControl-${{ github.ref_name }}-Linux-x64.deb" > "HWControl-${{ github.ref_name }}-Linux-x64.sha256"
+          tar -tzf "HWControl-${{ github.ref_name }}-Linux-x64.tar.gz" >/dev/null
+          dpkg-deb --info "HWControl-${{ github.ref_name }}-Linux-x64.deb" >/dev/null
+          sha256sum -c "HWControl-${{ github.ref_name }}-Linux-x64.sha256"
       - name: Upload Linux package
         uses: actions/upload-artifact@v4
         with:
@@ -107,9 +111,18 @@ jobs:
           go build -trimpath -ldflags="-s -w" -o "../$packageDir/bridge-service.exe" ./src
           Pop-Location
           Copy-Item README.md, SECURITY.md $packageDir
+          Copy-Item THIRD_PARTY_NOTICES $packageDir
           Copy-Item -Recurse deploy/windows "$packageDir/deploy"
           Compress-Archive -Path "$packageDir/*" -DestinationPath "HWControl-${{ github.ref_name }}-Windows-x64.zip"
           (Get-FileHash "HWControl-${{ github.ref_name }}-Windows-x64.zip" -Algorithm SHA256).Hash.ToLower() + "  HWControl-${{ github.ref_name }}-Windows-x64.zip" | Set-Content "HWControl-${{ github.ref_name }}-Windows-x64.sha256"
+          Expand-Archive -Path "HWControl-${{ github.ref_name }}-Windows-x64.zip" -DestinationPath verify-zip -Force
+          if (-not (Test-Path "verify-zip/$packageDir/dashboard")) { throw "dashboard missing from Windows package" }
+          $actual = (Get-FileHash "HWControl-${{ github.ref_name }}-Windows-x64.zip" -Algorithm SHA256).Hash.ToLower()
+          $expected = (Get-Content "HWControl-${{ github.ref_name }}-Windows-x64.sha256").Split()[0]
+          if ($actual -ne $expected) { throw "Windows checksum mismatch" }
+          choco install wixtoolset --no-progress -y
+          $version = "${{ github.ref_name }}" -replace '^v', '' -replace '-windows$', ''
+          wix build deploy/windows/HWControl.wxs -d Version=$version -d PackageDir=$packageDir -o "HWControl-${{ github.ref_name }}-Windows-x64.msi"
       - name: Upload Windows package
         uses: actions/upload-artifact@v4
         with:
@@ -117,6 +130,7 @@ jobs:
           path: |
             HWControl-${{ github.ref_name }}-Windows-x64.zip
             HWControl-${{ github.ref_name }}-Windows-x64.sha256
+            HWControl-${{ github.ref_name }}-Windows-x64.msi
 
   build-macos:
     if: endsWith(github.ref_name, '-macos')
@@ -150,9 +164,12 @@ jobs:
           (cd bridge_service && go build -trimpath -ldflags="-s -w" -o "../$package_dir/bridge-service" ./src)
           cp -R gui_dashboard/build/macos/Build/Products/Release/hwcontrol_dashboard.app "$package_dir/dashboard.app"
           cp README.md SECURITY.md "$package_dir/"
+          cp THIRD_PARTY_NOTICES "$package_dir/"
           cp -R deploy/macos "$package_dir/deploy"
           hdiutil create -volname "HWControl ${{ github.ref_name }}" -srcfolder "$package_dir" -ov -format UDZO "HWControl-${{ github.ref_name }}-macOS-AppleSilicon.dmg"
           shasum -a 256 "HWControl-${{ github.ref_name }}-macOS-AppleSilicon.dmg" > "HWControl-${{ github.ref_name }}-macOS-AppleSilicon.sha256"
+          hdiutil verify "HWControl-${{ github.ref_name }}-macOS-AppleSilicon.dmg"
+          shasum -a 256 -c "HWControl-${{ github.ref_name }}-macOS-AppleSilicon.sha256"
       - name: Upload macOS package
         uses: actions/upload-artifact@v4
         with:
@@ -182,3 +199,4 @@ jobs:
             dist/**/*.dmg
             dist/**/*.deb
             dist/**/*.sha256
+            dist/**/*.msi

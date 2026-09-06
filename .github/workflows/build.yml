@@ -40,6 +40,13 @@ jobs:
         run: |
           go test ./...
           go build -o bridge-service.exe ./src
+      - name: Validate Windows sensor adapter binary
+        working-directory: bridge_service
+        run: |
+          $env:GOOS = "windows"
+          $env:GOARCH = "amd64"
+          $env:CGO_ENABLED = "0"
+          go build -o sensor-adapter-check.exe ./src
 
   bridge:
     runs-on: ubuntu-24.04
