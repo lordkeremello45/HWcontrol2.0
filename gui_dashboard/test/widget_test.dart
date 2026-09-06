@@ -1,9 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hwcontrol_dashboard/main.dart';
+import 'package:hwcontrol_dashboard/installer_main.dart';
 
 void main() {
-  testWidgets('dashboard starts without rendering errors', (tester) async {
-    await tester.pumpWidget(const HWControlApp());
-    expect(find.byType(HWControlApp), findsOneWidget);
+  testWidgets('installer wizard renders without starting bridge network', (tester) async {
+    await tester.pumpWidget(const InstallerApp());
+    expect(find.text('HWControl Kurulum Sihirbazı'), findsOneWidget);
+    expect(find.text('Windows'), findsNothing);
   });
 }
