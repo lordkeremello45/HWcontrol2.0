@@ -5,10 +5,11 @@ on:
     types: [published]
   workflow_dispatch:
     inputs:
-      release_tag:
-        description: 'Release tag to sync, e.g. v0.2.1-windows'
-        required: true
-        type: string
+      refresh:
+        description: 'Refresh the latest Windows, macOS and Linux installers'
+        required: false
+        default: true
+        type: boolean
 
 permissions:
   contents: write
@@ -23,63 +24,84 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Resolve release tag
-        id: release
+      - name: Resolve latest platform releases
+        id: releases
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          if [ "${{ github.event_name }}" = "release" ]; then
-            echo "tag=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "tag=${{ inputs.release_tag }}" >> "$GITHUB_OUTPUT"
-          fi
+          releases="$(gh api --paginate repos/$GITHUB_REPOSITORY/releases --jq '.[] | select(.draft == false) | [.tag_name,.published_at] | @tsv')"
+          windows="$(printf '%s\n' "$releases" | awk -F '\t' '$1 ~ /-windows$/ {print $1; exit}')"
+          macos="$(printf '%s\n' "$releases" | awk -F '\t' '$1 ~ /-macos$/ {print $1; exit}')"
+          linux="$(printf '%s\n' "$releases" | awk -F '\t' '$1 ~ /-linux$/ {print $1; exit}')"
+          [ -n "$windows" ] && [ -n "$macos" ] && [ -n "$linux" ] || { echo 'Could not resolve all three platform releases.' >&2; exit 1; }
+          echo "windows=$windows" >> "$GITHUB_OUTPUT"
+          echo "macos=$macos" >> "$GITHUB_OUTPUT"
+          echo "linux=$linux" >> "$GITHUB_OUTPUT"
+          printf 'Windows: %s\nmacOS: %s\nLinux: %s\n' "$windows" "$macos" "$linux"
 
-      - name: Download release installers
+      - name: Download latest Windows installer
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ steps.release.outputs.tag }}
+          TAG: ${{ steps.releases.outputs.windows }}
         run: |
           set -euo pipefail
-          mkdir -p installer/.incoming
-          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern '*.msi' --pattern '*.pkg' --pattern '*.deb' --pattern '*.dmg' --dir installer/.incoming
+          mkdir -p installer/.incoming/windows
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern '*.msi' --pattern '*.sha256' --dir installer/.incoming/windows
+
+      - name: Download latest macOS installers
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.releases.outputs.macos }}
+        run: |
+          set -euo pipefail
+          mkdir -p installer/.incoming/macos
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern '*.pkg' --pattern '*.dmg' --pattern '*.sha256' --dir installer/.incoming/macos
+
+      - name: Download latest Linux installer
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.releases.outputs.linux }}
+        run: |
+          set -euo pipefail
+          mkdir -p installer/.incoming/linux
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern '*.deb' --pattern '*.sha256' --dir installer/.incoming/linux
 
       - name: Extract macOS application bundle
-        env:
-          TAG: ${{ steps.release.outputs.tag }}
         run: |
           set -euo pipefail
-          dmg="$(find installer/.incoming -maxdepth 1 -type f -name '*.dmg' | head -n 1 || true)"
+          dmg="$(find installer/.incoming/macos -maxdepth 1 -type f -name '*.dmg' | head -n 1)"
           rm -rf installer/macos/HWControl.app
           mkdir -p installer/macos
-          if [ -n "$dmg" ]; then
-            mountpoint="$(mktemp -d /tmp/hwcontrol-dmg.XXXXXX)"
-            hdiutil attach "$dmg" -nobrowse -readonly -mountpoint "$mountpoint" >/dev/null
-            app="$(find "$mountpoint" -maxdepth 2 -type d -name 'HWControl.app' | head -n 1 || true)"
-            if [ -n "$app" ]; then
-              ditto "$app" installer/macos/HWControl.app
-            else
-              echo 'HWControl.app was not found in the DMG.' >&2
-              hdiutil detach "$mountpoint" >/dev/null || true
-              exit 1
-            fi
-            hdiutil detach "$mountpoint" >/dev/null
+          mountpoint="$(mktemp -d /tmp/hwcontrol-dmg.XXXXXX)"
+          hdiutil attach "$dmg" -nobrowse -readonly -mountpoint "$mountpoint" >/dev/null
+          app="$(find "$mountpoint" -maxdepth 2 -type d -name 'HWControl.app' | head -n 1 || true)"
+          if [ -z "$app" ]; then
+            hdiutil detach "$mountpoint" >/dev/null || true
+            echo 'HWControl.app was not found in the latest macOS DMG.' >&2
+            exit 1
           fi
+          ditto "$app" installer/macos/HWControl.app
+          hdiutil detach "$mountpoint" >/dev/null
 
-      - name: Replace previous installer binaries
+      - name: Replace installer snapshot
         env:
-          TAG: ${{ steps.release.outputs.tag }}
+          WINDOWS_TAG: ${{ steps.releases.outputs.windows }}
+          MACOS_TAG: ${{ steps.releases.outputs.macos }}
+          LINUX_TAG: ${{ steps.releases.outputs.linux }}
         run: |
           set -euo pipefail
           rm -rf installer/releases
-          mkdir -p installer/releases
-          find installer/.incoming -maxdepth 1 -type f \( -name '*.msi' -o -name '*.pkg' -o -name '*.deb' -o -name '*.sha256' \) -exec cp {} installer/releases/ \;
-          printf '%s\n' "$TAG" > installer/releases/VERSION
+          mkdir -p installer/releases/windows installer/releases/macos installer/releases/linux
+          cp installer/.incoming/windows/* installer/releases/windows/
+          cp installer/.incoming/macos/*.pkg installer/releases/macos/
+          cp installer/.incoming/macos/*.dmg installer/releases/macos/
+          cp installer/.incoming/macos/*.sha256 installer/releases/macos/ || true
+          cp installer/.incoming/linux/* installer/releases/linux/
+          printf 'Windows=%s\nmacOS=%s\nLinux=%s\n' "$WINDOWS_TAG" "$MACOS_TAG" "$LINUX_TAG" > installer/releases/VERSIONS
           rm -rf installer/.incoming
 
       - name: Commit installer snapshot to main
-        env:
-          TAG: ${{ steps.release.outputs.tag }}
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
@@ -89,5 +111,5 @@ jobs:
             echo 'Installer snapshot is already current.'
             exit 0
           fi
-          git commit -m "chore(installer): sync $TAG release assets [skip ci]"
+          git commit -m "chore(installer): sync latest platform releases [skip ci]"
           git push origin main
