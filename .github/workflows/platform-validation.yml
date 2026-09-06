@@ -1,0 +1,136 @@
+name: Cross-platform package validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: bridge_service/go.mod
+          cache: false
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Install build dependencies
+        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev dpkg-dev
+      - name: Build native engine
+        run: |
+          cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
+          cmake --build build --parallel 2
+      - name: Build bridge and dashboard
+        run: |
+          (cd bridge_service && go test ./... && go build -trimpath -ldflags='-s -w' -o ../bridge-service ./src)
+          (cd gui_dashboard && flutter create --platforms=linux . && flutter pub get && flutter analyze && flutter build linux --release)
+      - name: Build and install Debian package
+        run: |
+          set -euo pipefail
+          root="$PWD/package/deb"
+          mkdir -p "$root/DEBIAN" "$root/opt/hwcontrol/dashboard"
+          install -m 0755 build/ai_core/ai_engine "$root/opt/hwcontrol/ai_engine"
+          install -m 0755 bridge-service "$root/opt/hwcontrol/bridge-service"
+          cp -a gui_dashboard/build/linux/x64/release/bundle/. "$root/opt/hwcontrol/dashboard/"
+          install -m 0644 deploy/linux/hwcontrol-bridge.service "$root/opt/hwcontrol/hwcontrol-bridge.service"
+          cat > "$root/DEBIAN/control" <<'EOF'
+          Package: hwcontrol
+          Version: 0.0.0
+          Section: utils
+          Priority: optional
+          Architecture: amd64
+          Maintainer: HWControl maintainers
+          Description: HWControl hardware monitoring and control suite
+          EOF
+          dpkg-deb --build "$root" hwcontrol-test.deb
+          sudo dpkg -i ./hwcontrol-test.deb
+          test -x /opt/hwcontrol/bridge-service
+          test -x /opt/hwcontrol/ai_engine
+          test -x /opt/hwcontrol/dashboard/hwcontrol_dashboard
+          sudo dpkg -r hwcontrol
+
+  windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: bridge_service/go.mod
+          cache: false
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Build native engine, bridge and dashboard
+        shell: pwsh
+        run: |
+          cmake -S . -B build-windows -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
+          cmake --build build-windows --config Release --parallel 2
+          Push-Location bridge_service
+          go test ./...
+          go build -trimpath -ldflags='-s -w' -o ../bridge-service.exe ./src
+          Pop-Location
+          Push-Location gui_dashboard
+          flutter create --platforms=windows .
+          flutter pub get
+          flutter analyze
+          flutter build windows --release
+          Pop-Location
+      - name: Build MSI and install it
+        shell: pwsh
+        run: |
+          choco install wixtoolset --no-progress -y
+          $packageDir = "$PWD/package/HWControl-test-Windows-x64"
+          New-Item -ItemType Directory -Force -Path $packageDir | Out-Null
+          Copy-Item build-windows/ai_core/Release/ai_engine.exe "$packageDir/ai_engine.exe"
+          Copy-Item bridge-service.exe "$packageDir/bridge-service.exe"
+          Copy-Item -Recurse gui_dashboard/build/windows/x64/runner/Release "$packageDir/dashboard"
+          Copy-Item deploy/windows/install-bridge-service.ps1 "$packageDir/install-bridge-service.ps1"
+          Copy-Item deploy/windows/remove-hwcontrol.ps1 "$packageDir/remove-hwcontrol.ps1"
+          wix build deploy/windows/HWControl.wxs -d Version=0.0.0 -d PackageDir=$packageDir -o HWControl-test.msi
+          Start-Process msiexec.exe -ArgumentList '/i', "$PWD/HWControl-test.msi", '/qn', '/norestart' -Wait -PassThru | Out-Null
+          if (-not (Test-Path "$env:ProgramFiles\HWControl\bridge-service.exe")) { throw 'MSI did not install bridge-service.exe' }
+          if (-not (Test-Path "$env:ProgramFiles\HWControl\dashboard")) { throw 'MSI did not install dashboard' }
+          Start-Process msiexec.exe -ArgumentList '/x', "$PWD/HWControl-test.msi", '/qn', '/norestart' -Wait | Out-Null
+
+  macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: bridge_service/go.mod
+          cache: false
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Build native engine, bridge and dashboard
+        run: |
+          cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
+          cmake --build build --parallel 2
+          (cd bridge_service && go test ./... && go build -trimpath -ldflags='-s -w' -o ../bridge-service ./src)
+          (cd gui_dashboard && flutter create --platforms=macos . && flutter pub get && flutter analyze && flutter build macos --release)
+      - name: Build and install macOS PKG
+        run: |
+          set -euo pipefail
+          root="$PWD/package/HWControl"
+          mkdir -p "$root"
+          cp build/ai_core/ai_engine "$root/ai_engine"
+          cp bridge-service "$root/bridge-service"
+          cp -R gui_dashboard/build/macos/Build/Products/Release/hwcontrol_dashboard.app "$root/HWControl.app"
+          pkgbuild --root "$root" --identifier com.hwcontrol.app --version 0.0.0 --install-location /Applications/HWControl --scripts deploy/macos --output HWControl-test.pkg
+          sudo installer -pkg HWControl-test.pkg -target /
+          test -x /Applications/HWControl/bridge-service
+          test -x /Applications/HWControl/ai_engine
+          test -d /Applications/HWControl/HWControl.app
+          sudo rm -rf /Applications/HWControl
