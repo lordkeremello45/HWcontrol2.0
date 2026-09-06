@@ -24,7 +24,7 @@ public:
     float getTemperature() const;
 
 private:
-    HardwareStatus currentStatus;
+    HardwareStatus currentStatus{};
 };
 
 #endif // MONITOR_H

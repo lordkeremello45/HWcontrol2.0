@@ -3,7 +3,7 @@
 #define BSOD_SHIELD_H
 
 #include <chrono>
-#include <atomic>
+#include <mutex>
 
 class BSODShield {
 public:
@@ -13,7 +13,8 @@ public:
 
 private:
     std::chrono::steady_clock::time_point last_heartbeat;
-    int timeout_limit;
+    const std::chrono::seconds timeout_limit;
+    mutable std::mutex heartbeat_mutex;
 };
 
 #endif

@@ -21,3 +21,33 @@ Cross-Platform Ready: Designed with a modular structure to support future extens
 
 Security Policy
 We take the security of our users and their systems seriously. Please refer to our SECURITY.md file for information on supported versions and the vulnerability reporting process.
+
+Build and test
+--------------
+
+Build the C++ engine without CPU-specific instructions:
+
+	cmake -S . -B build -DGGML_NATIVE=OFF
+	cmake --build build --parallel 2
+
+Test and build the Go bridge:
+
+	cd bridge_service
+	go test ./...
+	go build -o bridge-service ./src
+
+Analyze the Flutter dashboard:
+
+	cd gui_dashboard
+	flutter pub get
+	flutter analyze
+
+Releases
+--------
+
+Releases use Semantic Versioning. Create and push a tag such as `v0.1.0`:
+
+	git tag -a v0.1.0 -m "Release v0.1.0"
+	git push origin v0.1.0
+
+The release workflow creates the GitHub Release automatically. Merge changes to `main` through pull requests and publish only `vMAJOR.MINOR.PATCH` tags.

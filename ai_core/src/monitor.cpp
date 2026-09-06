@@ -1,6 +1,9 @@
 #include "../include/monitor.h"
 #include <iostream>
 
+Monitor::Monitor()
+    : currentStatus{65.5f, 0.0f, 0.0f, true} {}
+
 // Donanım verisini okuyan/formatlayan sınıf
 void Monitor::updateHardwareStatus() {
     // Burada ileride 'bridge_service'den gelen veriyi parse edeceğiz
@@ -8,5 +11,5 @@ void Monitor::updateHardwareStatus() {
 }
 
 float Monitor::getTemperature() const {
-    return 65.5f; // Örnek veri: Sensörden gelecek değer
+    return currentStatus.temperature;
 }

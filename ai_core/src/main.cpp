@@ -3,13 +3,19 @@
 #include "../include/bsod_shield.h" // Yeni kalkan
 #include <iostream>
 #include <thread> // Sleep için
+#include <filesystem>
 
-int main() {
+int main(int argc, char* argv[]) {
     AIEngine ai;
     Monitor monitor;
     BSODShield shield(5); // AI 5 saniye içinde cevap vermezse "kalkan" devreye girer
 
-    if (!ai.init("ai_core/models/gemma-2b-it-q4_k_m.gguf")) {
+    const std::filesystem::path modelPath = argc > 1
+        ? argv[1]
+        : std::filesystem::path("ai_core/models/gemma-2b-it-q4_k_m.gguf");
+
+    if (!ai.init(modelPath.string().c_str())) {
+        std::cerr << "AI modeli baslatilamadi: " << modelPath << std::endl;
         return -1;
     }
 

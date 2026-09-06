@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 void main() => runApp(const HWControlApp());
@@ -35,8 +36,10 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   Socket? _socket;
-  String _status = "Bağlı Değil";
+  StreamIterator<String>? _responses;
+  String _status = 'Bağlı Değil';
   bool _isConnected = false;
+  bool _isSending = false;
 
   @override
   void initState() {
@@ -47,22 +50,63 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // Go Bridge Servisine Bağlan
   Future<void> _connectToBridge() async {
     try {
-      _socket = await Socket.connect('127.0.0.1', 8080);
+      final socket = await Socket.connect('127.0.0.1', 8080,
+          timeout: const Duration(seconds: 3));
+      _socket = socket;
+      _responses = StreamIterator(
+        socket.transform(utf8.decoder).transform(const LineSplitter()),
+      );
+      socket.done.whenComplete(() {
+        if (!mounted) return;
+        setState(() {
+          _isConnected = false;
+          _status = 'Bağlantı Koptu';
+        });
+      });
+      if (!mounted) return;
       setState(() {
         _isConnected = true;
-        _status = "Bridge Aktif";
+        _status = 'Bridge Aktif';
       });
     } catch (e) {
-      setState(() => _status = "Bağlantı Hatası: $e");
+      if (!mounted) return;
+      setState(() => _status = 'Bağlantı Hatası');
     }
   }
 
   // Komut Gönder
-  void _sendCommand(String action, double value) {
-    if (_socket != null) {
-      final cmd = jsonEncode({'action': action, 'value': value});
-      _socket!.writeln(cmd);
+  Future<void> _sendCommand(String action, double value) async {
+    final socket = _socket;
+    if (!_isConnected || socket == null) {
+      setState(() => _status = 'Bridge bağlı değil');
+      return;
     }
+    if (_isSending) return;
+
+    setState(() => _isSending = true);
+    try {
+      socket.write('${jsonEncode({'action': action, 'value': value})}\n');
+      final responses = _responses;
+      if (responses == null || !await responses.moveNext().timeout(const Duration(seconds: 3))) {
+        throw StateError('Bridge response missing');
+      }
+      final response = responses.current;
+      final payload = jsonDecode(response) as Map<String, dynamic>;
+      if (!mounted) return;
+      setState(() => _status = payload['message'] as String? ?? 'Yanıt alındı');
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _status = 'Bridge yanıt vermedi');
+    } finally {
+      if (mounted) setState(() => _isSending = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _responses?.cancel();
+    _socket?.destroy();
+    super.dispose();
   }
 
   @override
@@ -79,8 +123,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             _buildStatusCard(),
             const SizedBox(height: 20),
-            _buildControlCard("Fan Hızı", Icons. вентилятор, 50.0),
-            _buildControlCard("AI İşlem Gücü", Icons.memory, 80.0),
+            _buildControlCard('Fan Hızı', Icons.air, 50.0),
+            _buildControlCard('AI İşlem Gücü', Icons.memory, 80.0),
           ],
         ),
       ),
@@ -109,7 +153,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Icon(icon, color: Colors.cyanAccent),
             Text(title, style: const TextStyle(fontSize: 18, color: Colors.white)),
             ElevatedButton(
-              onPressed: () => _sendCommand(title, value),
+              onPressed: _isSending ? null : () => _sendCommand(title, value),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.cyanAccent, foregroundColor: Colors.black),
               child: const Text("Uygula"),
             ),

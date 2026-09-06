@@ -1,0 +1,14 @@
+name: hwcontrol_dashboard
+description: HWControl 2.0 hardware monitoring dashboard.
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

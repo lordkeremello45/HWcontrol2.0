@@ -3,6 +3,7 @@
 add_executable(ai_engine 
     src/main.cpp 
     src/engine.cpp 
+    src/bsod_shield.cpp
     src/monitor.cpp
 )
 

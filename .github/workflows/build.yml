@@ -1,59 +1,56 @@
-name: Build HWControl Suite
+name: Build and test HWControl
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [main]
   pull_request:
-    branches: [ "main", "master" ]
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
-  build:
-    runs-on: windows-2022 # Kernel stabilitesi için belirli bir sürüm kullanmak daha güvenlidir
+  native:
+    runs-on: ubuntu-24.04
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          submodules: recursive # llama.cpp gibi bağımlılıkları otomatik çeker
+      - name: Configure C++
+        run: cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
+      - name: Build C++ engine
+        run: cmake --build build --parallel 2
 
-      - name: Setup Go Environment
+  bridge:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: bridge_service
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.21' # Kullandığınız Go sürümünü buraya yazın
-          cache: true        # Go modüllerini önbelleğe alarak build süresini hızlandırır
+          go-version-file: bridge_service/go.mod
+          cache: false
+      - name: Test bridge
+        run: go test ./...
+      - name: Build bridge
+        run: go build -o bridge-service ./src
 
-      - name: Install Windows Driver Kit (WDK)
-        run: choco install windowsdriverkit -y
-        # WDK, windows-latest üzerinde varsayılan gelmez. Chocolatey ile kuruyoruz.
-
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
-
-      - name: Build Kernel Driver (ai_core)
-        run: msbuild HWcontrol.sln /p:Configuration=Release /p:Platform=x64
-
-      - name: Build Bridge Service (Go)
-        # -ldflags="-s -w" ile Go binary dosyasının boyutunu küçültüyor ve debug bilgilerini siliyoruz (Güvenlik için)
-        run: |
-          mkdir -p build/Release
-          go build -ldflags="-s -w" -o build/Release/bridge.exe ./bridge_service/main.go
-
-      - name: Generate SHA-256 Checksums
-        shell: powershell
-        run: |
-          # Hem sürücü hem de köprü uygulaması için ayrı ayrı hash hesaplıyoruz
-          $driverHash = (Get-FileHash build/Release/HWcontrol.sys -Algorithm SHA256).Hash
-          $bridgeHash = (Get-FileHash build/Release/bridge.exe -Algorithm SHA256).Hash
-          
-          "HWcontrol.sys: $driverHash" | Out-File build/Release/checksums.txt -Encoding utf8
-          "bridge.exe: $bridgeHash" | Out-File build/Release/checksums.txt -Append -Encoding utf8
-          
-          Write-Host "Sürücü Hash: $driverHash"
-          Write-Host "Bridge Hash: $bridgeHash"
-
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
+  dashboard:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: gui_dashboard
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
-          name: HWControl-Production-Build
-          path: build/Release/
-          retention-days: 14 # Dosyaları GitHub sunucularında 14 gün saklar
+          channel: stable
+          cache: true
+      - name: Analyze dashboard
+        run: flutter analyze

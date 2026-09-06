@@ -3,8 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"net"
 	"os"
+	"strings"
+	"time"
 )
 
 // UI'dan (Dart) gelen komut yapısı
@@ -19,15 +22,36 @@ type Response struct {
 	Message string `json:"message"`
 }
 
+func validateCommand(cmd Command) error {
+	if strings.TrimSpace(cmd.Action) == "" {
+		return fmt.Errorf("action is required")
+	}
+	if math.IsNaN(cmd.Value) || math.IsInf(cmd.Value, 0) || cmd.Value < 0 || cmd.Value > 100 {
+		return fmt.Errorf("value must be between 0 and 100")
+	}
+	switch cmd.Action {
+	case "Fan Hızı", "AI İşlem Gücü":
+		return nil
+	default:
+		return fmt.Errorf("unsupported action: %s", cmd.Action)
+	}
+}
+
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 	decoder := json.NewDecoder(conn)
 	encoder := json.NewEncoder(conn)
 
 	for {
+		_ = conn.SetReadDeadline(time.Now().Add(30 * time.Second))
 		var cmd Command
 		if err := decoder.Decode(&cmd); err != nil {
 			return // Bağlantı koptu
+		}
+
+		if err := validateCommand(cmd); err != nil {
+			_ = encoder.Encode(Response{Status: "ERROR", Message: err.Error()})
+			continue
 		}
 
 		fmt.Printf("Komut alındı: %s, Değer: %.2f\n", cmd.Action, cmd.Value)
@@ -35,7 +59,9 @@ func handleConnection(conn net.Conn) {
 		// Burada C++ tarafına veya donanım API'sine yönlendirme yapılacak
 		// Şimdilik sadece "OK" dönüyoruz
 		resp := Response{Status: "SUCCESS", Message: "Komut işlendi"}
-		encoder.Encode(resp)
+		if err := encoder.Encode(resp); err != nil {
+			return
+		}
 	}
 }
 

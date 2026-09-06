@@ -72,7 +72,11 @@ Testing/
 # Go (Bridge)
 /bridge_service/bin/
 /bridge_service/pkg/
+!/bridge_service/go.mod
 *.test
+
+# Downloaded AI models
+/ai_core/models/
 
 # Python (AI Analyzer)
 __pycache__/
