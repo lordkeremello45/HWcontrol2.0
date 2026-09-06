@@ -84,6 +84,8 @@ The bridge accepts `HWCONTROL_PORT` (default `8080`) and `HWCONTROL_LOG` (defaul
 
 The native engine now reads CPU usage and thermal sensor values when available. On NVIDIA systems, the bridge also reads GPU temperature, utilization, fan percentage, power draw, and voltage through the fixed `nvidia-smi` query. A fan percentage is never mislabeled as RPM; unsupported sensors use safe zero-value fallbacks instead of invented readings.
 
+On Windows, the bridge first reads LibreHardwareMonitor WMI sensors (`root\\LibreHardwareMonitor`) when LibreHardwareMonitor is installed and running. It falls back to Windows ACPI/WMI for CPU temperature, fan and voltage probes. NVIDIA uses `nvidia-smi`; AMD adapters are identified through the WMI sensor source when available. Sensor availability depends on the installed vendor driver and hardware permissions.
+
 The in-app update panel reads `updates/check.json`, checks the official GitHub release API over HTTPS, and displays only releases with a `.sha256` integrity asset. It opens the official release page for a user-confirmed download; it never executes a downloaded file automatically. Verify the checksum before launching any package.
 
 Eski `v0.1.x` tag’leri geriye dönük olarak korunur. Yeni yayınlarda tag sonuna mutlaka `-windows`, `-linux` veya `-macos` eklenmelidir.

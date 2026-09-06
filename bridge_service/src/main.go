@@ -68,12 +68,15 @@ type HardwareMetrics struct {
 	GPUTemperature float64 `json:"gpuTemperature"`
 	GPUUsage       float64 `json:"gpuUsage"`
 	FanPercent     float64 `json:"fanPercent"`
+	FanRPM         float64 `json:"fanRpm"`
 	MemoryUsage    float64 `json:"memoryUsage"`
 	DiskUsage      float64 `json:"diskUsage"`
 	PowerWatts     float64 `json:"powerWatts"`
 	Voltage        float64 `json:"voltage"`
 	UptimeSeconds  uint64  `json:"uptimeSeconds"`
 	Platform       string  `json:"platform"`
+	GPUVendor      string  `json:"gpuVendor"`
+	SensorSource   string  `json:"sensorSource"`
 }
 
 func collectMetrics() HardwareMetrics {
@@ -107,8 +110,11 @@ func collectMetrics() HardwareMetrics {
 			metrics.FanPercent, _ = strconv.ParseFloat(strings.TrimSpace(parts[2]), 64)
 			metrics.PowerWatts, _ = strconv.ParseFloat(strings.TrimSpace(parts[3]), 64)
 			metrics.Voltage, _ = strconv.ParseFloat(strings.TrimSpace(parts[4]), 64)
+			metrics.GPUVendor = "NVIDIA"
+			metrics.SensorSource = "nvidia-smi"
 		}
 	}
+	mergePlatformMetrics(&metrics)
 	if _, err := load.Avg(); err == nil {
 		// load.Avg is intentionally queried to validate host metric access.
 	}
