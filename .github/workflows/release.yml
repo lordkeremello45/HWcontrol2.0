@@ -194,6 +194,9 @@ jobs:
           cp -R gui_dashboard/build/macos/Build/Products/Release/hwcontrol_dashboard.app "$package_dir/HWControl.app"
           cp README.md SECURITY.md THIRD_PARTY_NOTICES "$package_dir/"
           cp -R deploy/macos "$package_dir/deploy"
+          chmod 0755 deploy/macos/pkg-scripts/preinstall deploy/macos/pkg-scripts/postinstall
+          test -x deploy/macos/pkg-scripts/preinstall
+          test -x deploy/macos/pkg-scripts/postinstall
 
           pkgbuild --root "$package_dir" --identifier com.hwcontrol.app --version "$version" --install-location /Applications/HWControl --scripts deploy/macos/pkg-scripts "HWControl-${GITHUB_REF_NAME}-macOS-AppleSilicon.pkg"
           hdiutil create -volname "HWControl $GITHUB_REF_NAME" -srcfolder "$package_dir" -ov -format UDZO "HWControl-${GITHUB_REF_NAME}-macOS-AppleSilicon.dmg"
