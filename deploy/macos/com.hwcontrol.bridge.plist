@@ -6,7 +6,7 @@
     <string>com.hwcontrol.bridge</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/Applications/HWControl.app/Contents/Resources/bridge-service</string>
+        <string>/Applications/HWControl/bridge-service</string>
     </array>
     <key>EnvironmentVariables</key>
     <dict>
