@@ -221,6 +221,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  Future<void> _applyPreset(String name, double fan, double ai) async {
+    if (_isSending) return;
+    setState(() {
+      _fanValue = fan;
+      _aiValue = ai;
+      _lastAction = '$name profili hazırlanıyor';
+    });
+    await _sendCommand('Fan Hızı', fan);
+    await _sendCommand('AI İşlem Gücü', ai);
+    if (mounted) setState(() => _lastAction = '$name profili  •  fan %${fan.round()}  •  AI %${ai.round()}');
+  }
+
+  void _resetControls() {
+    setState(() {
+      _fanValue = 50;
+      _aiValue = 80;
+      _lastAction = 'Varsayılan değerler yüklendi';
+    });
+  }
+
   @override
   void dispose() {
     _responses?.cancel();
@@ -290,7 +310,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: const Icon(Icons.bolt, color: Color(0xFF64D8CB)),
         ),
         const SizedBox(width: 14),
-        const Expanded(
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -417,11 +437,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           _sectionTitle('Kontroller', 'Güvenli kullanıcı alanı ayarları'),
           const SizedBox(height: 20),
+          _buildPresetRow(),
+          const SizedBox(height: 14),
           _buildSliderControl('Fan Hızı', Icons.air, _fanValue, (value) => setState(() => _fanValue = value), const Color(0xFF64D8CB)),
           Divider(color: Theme.of(context).colorScheme.onSurface.withAlpha(20), height: 30),
           _buildSliderControl('AI İşlem Gücü', Icons.auto_awesome, _aiValue, (value) => setState(() => _aiValue = value), const Color(0xFF8FA7FF)),
         ],
       ),
+    );
+  }
+
+  Widget _buildPresetRow() {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        _presetButton('Sessiz', Icons.volume_off_outlined, 25, 45, const Color(0xFF64D8CB)),
+        _presetButton('Dengeli', Icons.tune, 50, 80, const Color(0xFFFFB454)),
+        _presetButton('Performans', Icons.speed, 85, 100, const Color(0xFFFF7B7B)),
+        TextButton.icon(onPressed: _isSending ? null : _resetControls, icon: const Icon(Icons.restart_alt, size: 16), label: const Text('Sıfırla')),
+      ],
+    );
+  }
+
+  Widget _presetButton(String label, IconData icon, double fan, double ai, Color color) {
+    return OutlinedButton.icon(
+      onPressed: _isSending ? null : () => _applyPreset(label, fan, ai),
+      icon: Icon(icon, size: 16),
+      label: Text(label),
+      style: OutlinedButton.styleFrom(foregroundColor: color, side: BorderSide(color: color.withAlpha(100))),
     );
   }
 

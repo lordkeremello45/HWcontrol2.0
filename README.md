@@ -74,6 +74,8 @@ Packaged desktop apps read `HWCONTROL_KEY` from the environment at runtime. The 
 
 Dashboard preferences include dark/light mode and an animation toggle in the top bar. Turning animations off uses instant state transitions without removing any controls.
 
+The control panel also provides `Sessiz`, `Dengeli`, and `Performans` presets, plus a `Sıfırla` action for quickly returning to default values. Presets still use the signed HMAC command path.
+
 The in-app update panel reads `updates/check.json`, checks the official GitHub release API over HTTPS, and displays only releases with a `.sha256` integrity asset. It opens the official release page for a user-confirmed download; it never executes a downloaded file automatically. Verify the checksum before launching any package.
 
 Eski `v0.1.x` tag’leri geriye dönük olarak korunur. Yeni yayınlarda tag sonuna mutlaka `-windows`, `-linux` veya `-macos` eklenmelidir.
