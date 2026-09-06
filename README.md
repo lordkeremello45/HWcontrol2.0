@@ -1,6 +1,22 @@
 # HWcontrol2.0
 HWControl 2.0 is a high-performance, kernel-level hardware management and control suite designed for precision and stability. Built with a focus on low-latency communication and secure system interaction, this project provides a robust bridge between user-space applications and kernel-mode operations.
 
+## Supported operating systems
+
+| Platform | Supported target | Release format | Architecture | Status |
+|---|---|---|---|---|
+| Windows | Windows 10 / Windows 11 | `.msi` + portable `.zip` | x64 | Supported |
+| macOS | macOS 14 Sonoma and newer release targets | `.pkg` + `.dmg` containing `.app` | Apple Silicon / arm64 | Supported |
+| Linux | Debian/Ubuntu-family x64 targets | `.deb` + `.tar.gz` / `.tar.zst` | x64 | Supported |
+
+> **OS compatibility note:** Windows releases are currently packaged for 64-bit Intel/AMD systems. Windows ARM64 is not shipped as a release package. macOS releases are currently built and validated on Apple Silicon; an Intel (`x86_64`) macOS package is not provided. The macOS package is currently built on a macOS 14 runner, so macOS 14+ is the supported release target. Linux packaging remains x64 and is unchanged by the Windows/macOS installer fixes.
+
+## Installer hub
+
+The `installer/` directory is the source-controlled installer entry point. It contains the platform installer launchers and documentation, while the large signed/releasable binaries remain GitHub Release assets instead of inflating the Git repository. The release pipeline publishes the native Windows `.msi`, macOS `.pkg`/`.dmg`, and Linux `.deb` packages.
+
+For users who want the graphical application bundle on macOS, the `.app` is included in the macOS package/DMG; it is not maintained as a second copy in Git.
+
 Architecture
 The project is built on a multi-layer architecture:
 
@@ -66,9 +82,9 @@ Releases use Semantic Versioning with an operating-system suffix. Create and pus
 
 The release workflow creates clearly named platform packages automatically. Each package includes the native engine, Go bridge and Flutter dashboard:
 
-- `vX.Y.Z-windows` -> `HWControl-vX.Y.Z-windows-Windows-x64.zip` = Windows 64-bit + `.exe`
+- `vX.Y.Z-windows` -> `HWControl-vX.Y.Z-windows-Windows-x64.zip` + `.msi` = Windows 64-bit
 - `vX.Y.Z-linux` -> `HWControl-vX.Y.Z-linux-Linux-x64.tar.gz` and `.deb` = Linux 64-bit
-- `vX.Y.Z-macos` -> `HWControl-vX.Y.Z-macos-macOS-AppleSilicon.dmg` + `.app` = macOS Apple Silicon
+- `vX.Y.Z-macos` -> `HWControl-vX.Y.Z-macos-macOS-AppleSilicon.dmg` + `.pkg` = macOS Apple Silicon; the `.dmg` contains `HWControl.app`
 
 Packaged desktop apps read `HWCONTROL_KEY` from the environment at runtime. The key is intentionally not included in release files.
 
@@ -82,7 +98,7 @@ Uninstallers are shipped beside the service helpers. Linux/macOS: `./deploy/<pla
 
 The bridge accepts `HWCONTROL_PORT` (default `8080`) and `HWCONTROL_LOG` (default `hwcontrol.log`). Crash recovery and connection panics are written to the log with restricted file permissions where the platform supports them.
 
-Windows release sources include `deploy/windows/HWControl.wxs` for WiX MSI packaging. CI validates the portable ZIP; MSI signing/building is enabled only when the repository has the required Windows signing/tooling secrets.
+Windows release sources include `deploy/windows/HWControl.wxs` for WiX MSI packaging. CI validates the portable ZIP and the native x64 MSI installer.
 
 The native engine now reads CPU usage and thermal sensor values when available. On NVIDIA systems, the bridge also reads GPU temperature, utilization, fan percentage, power draw, and voltage through the fixed `nvidia-smi` query. A fan percentage is never mislabeled as RPM; unsupported sensors use safe zero-value fallbacks instead of invented readings.
 
