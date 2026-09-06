@@ -2,6 +2,7 @@
 #define ENGINE_H
 
 #include "llama.h"
+#include <string>
 
 class AIEngine {
 public:
@@ -11,12 +12,13 @@ public:
     // Modeli başlat ve belleğe yükle
     bool init(const char* modelPath);
 
-    // Donanım verisini AI'ya gönder ve yanıt al
-    void processData(float temp, float load);
+    // Donanım verisini AI'ya gönder ve kısa yanıt al
+    std::string processData(float temp, float load);
 
 private:
     llama_model* model;
     llama_context* ctx;
+    llama_sampler* sampler;
 };
 
 #endif

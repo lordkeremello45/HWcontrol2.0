@@ -45,6 +45,7 @@ jobs:
           (cd bridge_service && go build -trimpath -ldflags="-s -w" -o "../$package_dir/bridge-service" ./src)
           cp -R gui_dashboard/build/linux/x64/release/bundle "$package_dir/dashboard"
           cp README.md SECURITY.md "$package_dir/"
+          cp -R deploy/linux "$package_dir/deploy"
           tar -czf "HWControl-${{ github.ref_name }}-Linux-x64.tar.gz" -C package "HWControl-${{ github.ref_name }}-Linux-x64"
           deb_root="package/deb"
           mkdir -p "$deb_root/DEBIAN" "$deb_root/opt/hwcontrol"
@@ -106,6 +107,7 @@ jobs:
           go build -trimpath -ldflags="-s -w" -o "../$packageDir/bridge-service.exe" ./src
           Pop-Location
           Copy-Item README.md, SECURITY.md $packageDir
+          Copy-Item -Recurse deploy/windows "$packageDir/deploy"
           Compress-Archive -Path "$packageDir/*" -DestinationPath "HWControl-${{ github.ref_name }}-Windows-x64.zip"
           (Get-FileHash "HWControl-${{ github.ref_name }}-Windows-x64.zip" -Algorithm SHA256).Hash.ToLower() + "  HWControl-${{ github.ref_name }}-Windows-x64.zip" | Set-Content "HWControl-${{ github.ref_name }}-Windows-x64.sha256"
       - name: Upload Windows package
@@ -148,6 +150,7 @@ jobs:
           (cd bridge_service && go build -trimpath -ldflags="-s -w" -o "../$package_dir/bridge-service" ./src)
           cp -R gui_dashboard/build/macos/Build/Products/Release/hwcontrol_dashboard.app "$package_dir/dashboard.app"
           cp README.md SECURITY.md "$package_dir/"
+          cp -R deploy/macos "$package_dir/deploy"
           hdiutil create -volname "HWControl ${{ github.ref_name }}" -srcfolder "$package_dir" -ov -format UDZO "HWControl-${{ github.ref_name }}-macOS-AppleSilicon.dmg"
           shasum -a 256 "HWControl-${{ github.ref_name }}-macOS-AppleSilicon.dmg" > "HWControl-${{ github.ref_name }}-macOS-AppleSilicon.sha256"
       - name: Upload macOS package

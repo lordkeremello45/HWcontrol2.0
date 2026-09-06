@@ -76,6 +76,10 @@ Dashboard preferences include dark/light mode and an animation toggle in the top
 
 The control panel also provides `Sessiz`, `Dengeli`, and `Performans` presets, plus a `Sıfırla` action for quickly returning to default values. Presets still use the signed HMAC command path.
 
+Platform service helpers are included under `deploy/`. Linux uses `systemd`, macOS uses `launchd`, and Windows uses `install-bridge-service.ps1`. Replace the `replace-me` key before enabling a service; the installers do not generate or publish a secret automatically.
+
+The native engine now reads Linux CPU usage and thermal sensor values when available. Gemma inference runs periodically with a bounded response length so monitoring remains responsive; unsupported platforms use safe zero-value fallbacks until native sensor adapters are added.
+
 The in-app update panel reads `updates/check.json`, checks the official GitHub release API over HTTPS, and displays only releases with a `.sha256` integrity asset. It opens the official release page for a user-confirmed download; it never executes a downloaded file automatically. Verify the checksum before launching any package.
 
 Eski `v0.1.x` tag’leri geriye dönük olarak korunur. Yeni yayınlarda tag sonuna mutlaka `-windows`, `-linux` veya `-macos` eklenmelidir.

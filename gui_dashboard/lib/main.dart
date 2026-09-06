@@ -74,6 +74,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _updateStatus = 'Güncellemeler kontrol edilmedi';
   double _fanValue = 50;
   double _aiValue = 80;
+  double _temperatureLimit = 85;
+  bool _notificationsEnabled = true;
 
   String get _sharedKey =>
       Platform.environment['HWCONTROL_KEY'] ?? _compileTimeKey;
@@ -144,6 +146,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final uri = Uri.parse(info.releaseUrl);
     if (!uri.isScheme('https') || uri.host != 'github.com') return;
     await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  Future<void> _openSettings() async {
+    var notificationsEnabled = _notificationsEnabled;
+    var temperatureLimit = _temperatureLimit;
+    await showDialog<void>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Kullanıcı ayarları'),
+          content: SizedBox(
+            width: 420,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Bildirimleri etkinleştir'),
+                  value: notificationsEnabled,
+                  onChanged: (value) => setDialogState(() => notificationsEnabled = value),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Expanded(child: Text('Sıcaklık uyarı eşiği')),
+                    Text('${temperatureLimit.round()} °C', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700)),
+                  ],
+                ),
+                Slider(
+                  value: temperatureLimit,
+                  min: 60,
+                  max: 100,
+                  divisions: 16,
+                  label: '${temperatureLimit.round()} °C',
+                  onChanged: (value) => setDialogState(() => temperatureLimit = value),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('İptal')),
+            FilledButton(
+              onPressed: () {
+                setState(() {
+                  _notificationsEnabled = notificationsEnabled;
+                  _temperatureLimit = temperatureLimit;
+                });
+                Navigator.pop(context);
+              },
+              child: const Text('Kaydet'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _connectToBridge() async {
@@ -329,6 +386,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           onPressed: () => widget.onAnimationsChanged(!widget.animationsEnabled),
           icon: Icon(widget.animationsEnabled ? Icons.animation : Icons.animation_outlined),
         ),
+        IconButton(tooltip: 'Kullanıcı ayarları', onPressed: _openSettings, icon: const Icon(Icons.settings_outlined)),
         _buildConnectionBadge(),
       ],
     );
@@ -503,6 +561,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 20),
           _statusRow('Bridge', _isConnected ? 'Bağlı' : 'Bağlı değil', _isConnected),
           _statusRow('Güvenlik', _sharedKey.isEmpty ? 'Anahtar bekleniyor' : 'HMAC-SHA-256', _sharedKey.isNotEmpty),
+          _statusRow('Uyarı eşiği', '${_temperatureLimit.round()} °C', _notificationsEnabled),
           _statusRow('Son işlem', _lastAction, true),
           const SizedBox(height: 18),
           Container(

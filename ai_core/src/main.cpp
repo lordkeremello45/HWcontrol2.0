@@ -19,12 +19,16 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
+    int sample_count = 0;
     while (true) {
         monitor.updateHardwareStatus();
         float temp = monitor.getTemperature();
-        
-        // AI'ya veriyi gönder
-        ai.processData(temp, 0.0f);
+
+        if (++sample_count >= 10) {
+            sample_count = 0;
+            const std::string analysis = ai.processData(temp, monitor.getStatus().cpuLoad);
+            std::cout << "AI: " << analysis << std::endl;
+        }
 
         // Kalkanı güncelle (AI canlı ve çalışıyor)
         shield.heartbeat();
