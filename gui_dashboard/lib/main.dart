@@ -9,31 +9,51 @@ import 'package:url_launcher/url_launcher.dart';
 
 void main() => runApp(const HWControlApp());
 
-class HWControlApp extends StatelessWidget {
+class HWControlApp extends StatefulWidget {
   const HWControlApp({super.key});
 
   @override
+  State<HWControlApp> createState() => _HWControlAppState();
+}
+
+class _HWControlAppState extends State<HWControlApp> {
+  bool _darkMode = true;
+  bool _animationsEnabled = true;
+
+  @override
   Widget build(BuildContext context) {
-    const background = Color(0xFF0A0E12);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: background,
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF64D8CB),
-          secondary: Color(0xFFFFB454),
-          surface: Color(0xFF121920),
-        ),
-        useMaterial3: true,
+      theme: _buildTheme(_darkMode),
+      home: DashboardScreen(
+        darkMode: _darkMode,
+        animationsEnabled: _animationsEnabled,
+        onThemeChanged: (value) => setState(() => _darkMode = value),
+        onAnimationsChanged: (value) => setState(() => _animationsEnabled = value),
       ),
-      home: const DashboardScreen(),
+    );
+  }
+
+  ThemeData _buildTheme(bool darkMode) {
+    final colors = darkMode
+        ? const ColorScheme.dark(primary: Color(0xFF64D8CB), secondary: Color(0xFFFFB454), surface: Color(0xFF121920))
+        : const ColorScheme.light(primary: Color(0xFF087F78), secondary: Color(0xFFB56800), surface: Color(0xFFFFFFFF));
+    return ThemeData(
+      brightness: darkMode ? Brightness.dark : Brightness.light,
+      colorScheme: colors,
+      scaffoldBackgroundColor: darkMode ? const Color(0xFF0A0E12) : const Color(0xFFF0F4F3),
+      useMaterial3: true,
     );
   }
 }
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+  const DashboardScreen({super.key, required this.darkMode, required this.animationsEnabled, required this.onThemeChanged, required this.onAnimationsChanged});
+
+  final bool darkMode;
+  final bool animationsEnabled;
+  final ValueChanged<bool> onThemeChanged;
+  final ValueChanged<bool> onAnimationsChanged;
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -275,9 +295,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('HWControl', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
-              Text('Precision hardware control', style: TextStyle(color: Colors.white54, fontSize: 12)),
+              Text('Precision hardware control', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withAlpha(140), fontSize: 12)),
             ],
           ),
+        ),
+        IconButton(
+          tooltip: widget.darkMode ? 'Light mode' : 'Dark mode',
+          onPressed: () => widget.onThemeChanged(!widget.darkMode),
+          icon: Icon(widget.darkMode ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
+        ),
+        IconButton(
+          tooltip: widget.animationsEnabled ? 'Animasyonları kapat' : 'Animasyonları aç',
+          onPressed: () => widget.onAnimationsChanged(!widget.animationsEnabled),
+          icon: Icon(widget.animationsEnabled ? Icons.animation : Icons.animation_outlined),
         ),
         _buildConnectionBadge(),
       ],
@@ -286,7 +316,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildConnectionBadge() {
     final color = _isConnected ? const Color(0xFF64D8CB) : const Color(0xFFFF6B6B);
-    return Container(
+    return AnimatedSwitcher(
+      duration: widget.animationsEnabled ? const Duration(milliseconds: 220) : Duration.zero,
+      child: Container(
+      key: ValueKey(_isConnected),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: color.withAlpha(24),
@@ -301,13 +334,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Text(_isConnected ? 'BRIDGE ONLINE' : 'OFFLINE', style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700)),
         ],
       ),
+      ),
     );
   }
 
   Widget _buildUpdateCard() {
     final available = _updateInfo != null;
     final color = available ? const Color(0xFFFFB454) : const Color(0xFF64D8CB);
-    return _Panel(
+    return AnimatedSwitcher(
+      duration: widget.animationsEnabled ? const Duration(milliseconds: 220) : Duration.zero,
+      child: _Panel(
+      key: ValueKey('$_updateStatus-${_updateInfo?.tag}'),
       padding: const EdgeInsets.fromLTRB(18, 14, 14, 14),
       child: Row(
         children: [
@@ -317,6 +354,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           if (available) TextButton.icon(onPressed: _openUpdate, icon: const Icon(Icons.download, size: 17), label: const Text('Release’i aç')),
           IconButton(tooltip: 'Güncellemeleri kontrol et', onPressed: _isCheckingUpdate ? null : _checkForUpdate, icon: const Icon(Icons.refresh)),
         ],
+      ),
       ),
     );
   }
@@ -352,17 +390,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(metric.label, style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                Text(metric.label, style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withAlpha(150), fontSize: 12)),
                 const SizedBox(height: 4),
                 RichText(
                   text: TextSpan(
                     text: metric.value,
-                    style: const TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.w700),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 25, fontWeight: FontWeight.w700),
                     children: [TextSpan(text: ' ${metric.unit}', style: TextStyle(color: metric.color, fontSize: 13, fontWeight: FontWeight.w600))],
                   ),
                 ),
                 const SizedBox(height: 7),
-                LinearProgressIndicator(value: metric.progress, minHeight: 3, backgroundColor: Colors.white10, color: metric.color),
+                LinearProgressIndicator(value: metric.progress, minHeight: 3, backgroundColor: Theme.of(context).colorScheme.onSurface.withAlpha(20), color: metric.color),
               ],
             ),
           ),
@@ -380,7 +418,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _sectionTitle('Kontroller', 'Güvenli kullanıcı alanı ayarları'),
           const SizedBox(height: 20),
           _buildSliderControl('Fan Hızı', Icons.air, _fanValue, (value) => setState(() => _fanValue = value), const Color(0xFF64D8CB)),
-          const Divider(color: Colors.white10, height: 30),
+          Divider(color: Theme.of(context).colorScheme.onSurface.withAlpha(20), height: 30),
           _buildSliderControl('AI İşlem Gücü', Icons.auto_awesome, _aiValue, (value) => setState(() => _aiValue = value), const Color(0xFF8FA7FF)),
         ],
       ),
@@ -425,12 +463,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(color: Colors.white.withAlpha(8), borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(color: Theme.of(context).colorScheme.onSurface.withAlpha(8), borderRadius: BorderRadius.circular(10)),
             child: Row(
               children: [
-                const Icon(Icons.info_outline, color: Colors.white54, size: 18),
+                Icon(Icons.info_outline, color: Theme.of(context).colorScheme.onSurface.withAlpha(140), size: 18),
                 const SizedBox(width: 10),
-                Expanded(child: Text(_status, style: const TextStyle(color: Colors.white70, fontSize: 12))),
+                Expanded(child: Text(_status, style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withAlpha(190), fontSize: 12))),
               ],
             ),
           ),
@@ -447,7 +485,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       children: [
         Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
         const SizedBox(height: 3),
-        Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+        Text(subtitle, style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withAlpha(140), fontSize: 12)),
       ],
     );
   }
@@ -460,7 +498,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           Icon(Icons.circle, size: 7, color: color),
           const SizedBox(width: 10),
-          Expanded(child: Text(label, style: const TextStyle(color: Colors.white60, fontSize: 13))),
+          Expanded(child: Text(label, style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withAlpha(150), fontSize: 13))),
           Flexible(child: Text(value, textAlign: TextAlign.right, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600))),
         ],
       ),
@@ -485,7 +523,7 @@ class UpdateInfo {
 }
 
 class _Panel extends StatelessWidget {
-  const _Panel({required this.child, this.padding = const EdgeInsets.all(18)});
+  const _Panel({super.key, required this.child, this.padding = const EdgeInsets.all(18)});
   final Widget child;
   final EdgeInsets padding;
 
@@ -494,9 +532,9 @@ class _Panel extends StatelessWidget {
     return Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: const Color(0xFF121920),
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withAlpha(12)),
+        border: Border.all(color: Theme.of(context).colorScheme.onSurface.withAlpha(18)),
       ),
       child: child,
     );
