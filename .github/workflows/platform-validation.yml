@@ -114,7 +114,9 @@ jobs:
       - name: Build MSI and validate EXE package
         shell: pwsh
         run: |
-          choco install wixtoolset --no-progress -y
+          dotnet tool install --global wix --version 6.0.2 --add-source https://api.nuget.org/v3/index.json
+          $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
+          wix --version
           $packageDir = "$PWD/package/HWControl-test-Windows-x64"
           New-Item -ItemType Directory -Force -Path $packageDir | Out-Null
           Copy-Item build-windows/ai_core/Release/ai_engine.exe "$packageDir/ai_engine.exe"
@@ -124,7 +126,8 @@ jobs:
           Copy-Item deploy/windows/install-bridge-service.ps1 "$packageDir/install-bridge-service.ps1"
           Copy-Item deploy/windows/remove-hwcontrol.ps1 "$packageDir/remove-hwcontrol.ps1"
           if (-not (Test-Path "$packageDir/HWControl.exe")) { throw 'Windows executable was not produced' }
-          wix build deploy/windows/HWControl.wxs -d Version=0.0.0 -d PackageDir=$packageDir -o HWControl-test.msi
+          wix build deploy/windows/HWControl.wxs -arch x64 -d Version=0.0.0 -d PackageDir=$packageDir -o HWControl-test.msi
+          if (-not (Test-Path "$PWD/HWControl-test.msi")) { throw 'MSI was not produced' }
           Start-Process msiexec.exe -ArgumentList '/i', "$PWD/HWControl-test.msi", '/qn', '/norestart' -Wait
           if (-not (Test-Path "$env:ProgramFiles\HWControl\bridge-service.exe")) { throw 'MSI did not install bridge-service.exe' }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\dashboard")) { throw 'MSI did not install dashboard' }
@@ -158,17 +161,20 @@ jobs:
         run: |
           set -euo pipefail
           root="$PWD/package/HWControl"
+          rm -rf "$root"
           mkdir -p "$root"
           cp build/ai_core/ai_engine "$root/ai_engine"
           cp bridge-service "$root/bridge-service"
           cp -R gui_dashboard/build/macos/Build/Products/Release/hwcontrol_dashboard.app "$root/HWControl.app"
           cp deploy/macos/com.hwcontrol.bridge.plist "$root/com.hwcontrol.bridge.plist"
-          pkgbuild --root "$root" --identifier com.hwcontrol.app --version 0.0.0 --install-location /Applications/HWControl --scripts deploy/macos/pkg-scripts --output HWControl-test.pkg
+          pkgbuild --root "$root" --identifier com.hwcontrol.app --version 0.0.0 --install-location /Applications/HWControl --scripts deploy/macos/pkg-scripts HWControl-test.pkg
           hdiutil create -volname HWControl -srcfolder "$root/HWControl.app" -ov -format UDZO HWControl-test.dmg
           test -d "$root/HWControl.app"
           test -x "$root/bridge-service"
+          test -f HWControl-test.pkg
           sudo installer -pkg HWControl-test.pkg -target /
           test -x /Applications/HWControl/bridge-service
           test -x /Applications/HWControl/ai_engine
           test -d /Applications/HWControl/HWControl.app
           sudo rm -rf /Applications/HWControl
+          sudo rm -f /Library/LaunchDaemons/com.hwcontrol.bridge.plist
