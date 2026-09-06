@@ -114,7 +114,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (!await file.exists()) return;
       final decoded = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
       if (!mounted) return;
-      setState(() => _profiles = decoded.map((key, value) => MapEntry(key, Map<String, double>.from((value as Map).map((k, v) => MapEntry(k.toString(), (v as num).toDouble())))));
+      final profiles = <String, Map<String, double>>{};
+      for (final entry in decoded.entries) {
+        final values = entry.value as Map;
+        profiles[entry.key] = {
+          'fan': (values['fan'] as num).toDouble(),
+          'ai': (values['ai'] as num).toDouble(),
+        };
+      }
+      setState(() => _profiles = profiles);
     } catch (_) {
       _addEvent('Profil dosyası okunamadı');
     }
@@ -798,8 +806,8 @@ class _HistoryPainter extends CustomPainter {
     final range = (maximum - minimum).abs() < 0.1 ? 1.0 : maximum - minimum;
     final path = Path();
     for (var index = 0; index < samples.length; index++) {
-      final x = samples.length == 1 ? 0 : size.width * index / (samples.length - 1);
-      final y = size.height - ((samples[index].temperature - minimum) / range * (size.height - 8)) - 4;
+      final x = samples.length == 1 ? 0.0 : size.width * index / (samples.length - 1);
+      final y = (size.height - ((samples[index].temperature - minimum) / range * (size.height - 8)) - 4).toDouble();
       if (index == 0) {
         path.moveTo(x, y);
       } else {
