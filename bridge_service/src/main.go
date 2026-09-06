@@ -67,7 +67,7 @@ type HardwareMetrics struct {
 	CPUTemperature float64 `json:"cpuTemperature"`
 	GPUTemperature float64 `json:"gpuTemperature"`
 	GPUUsage       float64 `json:"gpuUsage"`
-	FanRPM         float64 `json:"fanRpm"`
+	FanPercent     float64 `json:"fanPercent"`
 	MemoryUsage    float64 `json:"memoryUsage"`
 	DiskUsage      float64 `json:"diskUsage"`
 	PowerWatts     float64 `json:"powerWatts"`
@@ -99,14 +99,14 @@ func collectMetrics() HardwareMetrics {
 			}
 		}
 	}
-	if output, err := exec.Command("nvidia-smi", "--query-gpu=temperature.gpu,utilization.gpu,fan.speed,power.draw", "--format=csv,noheader,nounits").Output(); err == nil {
+	if output, err := exec.Command("nvidia-smi", "--query-gpu=temperature.gpu,utilization.gpu,fan.speed,power.draw,voltage.gpu", "--format=csv,noheader,nounits").Output(); err == nil {
 		parts := strings.Split(strings.TrimSpace(string(output)), ",")
-		if len(parts) >= 4 {
+		if len(parts) >= 5 {
 			metrics.GPUTemperature, _ = strconv.ParseFloat(strings.TrimSpace(parts[0]), 64)
 			metrics.GPUUsage, _ = strconv.ParseFloat(strings.TrimSpace(parts[1]), 64)
-			fanPercent, _ := strconv.ParseFloat(strings.TrimSpace(parts[2]), 64)
-			metrics.FanRPM = fanPercent
+			metrics.FanPercent, _ = strconv.ParseFloat(strings.TrimSpace(parts[2]), 64)
 			metrics.PowerWatts, _ = strconv.ParseFloat(strings.TrimSpace(parts[3]), 64)
+			metrics.Voltage, _ = strconv.ParseFloat(strings.TrimSpace(parts[4]), 64)
 		}
 	}
 	if _, err := load.Avg(); err == nil {

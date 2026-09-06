@@ -82,7 +82,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   double _memoryUsage = 0;
   double _diskUsage = 0;
   double _gpuUsage = 0;
-  double _fanRpm = 0;
+  double _fanPercent = 0;
   String _modelDigest = 'Kontrol edilmedi';
   final List<_MetricSample> _history = <_MetricSample>[];
   final List<String> _events = <String>[];
@@ -166,7 +166,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _memoryUsage = (data['memoryUsage'] as num?)?.toDouble() ?? 0;
       _diskUsage = (data['diskUsage'] as num?)?.toDouble() ?? 0;
       _gpuUsage = (data['gpuUsage'] as num?)?.toDouble() ?? 0;
-      _fanRpm = (data['fanRpm'] as num?)?.toDouble() ?? 0;
+      _fanPercent = (data['fanPercent'] as num?)?.toDouble() ?? 0;
       _history.add(_MetricSample(DateTime.now(), temperature));
       if (_history.length > 720) _history.removeAt(0);
       if (thresholdExceeded) {
@@ -549,7 +549,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _MetricData('RAM kullanımı', _memoryUsage.toStringAsFixed(0), '%', Icons.storage, const Color(0xFF8FA7FF), (_memoryUsage / 100).clamp(0, 1)),
       _MetricData('Disk kullanımı', _diskUsage.toStringAsFixed(0), '%', Icons.save, const Color(0xFFB995FF), (_diskUsage / 100).clamp(0, 1)),
       _MetricData('GPU kullanımı', _gpuUsage.toStringAsFixed(0), '%', Icons.graphic_eq, const Color(0xFFFF8C69), (_gpuUsage / 100).clamp(0, 1)),
-      _MetricData('Fan', _fanRpm.toStringAsFixed(0), 'RPM', Icons.air, const Color(0xFF64D8CB), (_fanRpm / 3000).clamp(0, 1)),
+      _MetricData('Fan', _fanPercent.toStringAsFixed(0), '%', Icons.air, const Color(0xFF64D8CB), (_fanPercent / 100).clamp(0, 1)),
     ];
     return GridView.builder(
       shrinkWrap: true,
