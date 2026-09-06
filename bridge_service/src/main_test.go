@@ -38,3 +38,12 @@ func TestAuthenticateCommand(t *testing.T) {
 		t.Fatal("expected modified command authentication to fail")
 	}
 }
+
+func TestExecuteHardwareCommandFailsClosed(t *testing.T) {
+	for _, action := range []string{"Fan Hızı", "AI İşlem Gücü"} {
+		err := executeHardwareCommand(Command{Action: action, Value: 50})
+		if err == nil {
+			t.Fatalf("expected %q to fail without a hardware backend", action)
+		}
+	}
+}
