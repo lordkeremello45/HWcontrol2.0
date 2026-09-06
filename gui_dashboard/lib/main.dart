@@ -54,7 +54,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           timeout: const Duration(seconds: 3));
       _socket = socket;
       _responses = StreamIterator(
-        socket.transform(utf8.decoder).transform(const LineSplitter()),
+        socket.map(utf8.decode).transform(const LineSplitter()),
       );
       socket.done.whenComplete(() {
         if (!mounted) return;

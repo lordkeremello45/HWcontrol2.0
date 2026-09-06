@@ -21,6 +21,26 @@ jobs:
       - name: Build C++ engine
         run: cmake --build build --parallel 2
 
+  windows:
+    runs-on: windows-2022
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: bridge_service/go.mod
+          cache: false
+      - name: Configure C++ with MSVC
+        run: cmake -S . -B build-windows -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
+      - name: Build C++ engine with MSVC
+        run: cmake --build build-windows --config Release --parallel 2
+      - name: Test and build bridge
+        working-directory: bridge_service
+        run: |
+          go test ./...
+          go build -o bridge-service.exe ./src
+
   bridge:
     runs-on: ubuntu-24.04
     defaults:
