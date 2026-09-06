@@ -22,6 +22,17 @@ jobs:
         with:
           go-version-file: bridge_service/go.mod
           cache: false
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Build Linux dashboard
+        working-directory: gui_dashboard
+        run: |
+          flutter create --platforms=linux .
+          flutter pub get
+          flutter build linux --release
       - name: Build Linux package
         run: |
           cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
@@ -30,13 +41,30 @@ jobs:
           mkdir -p "$package_dir"
           cp build/ai_core/ai_engine "$package_dir/ai_engine"
           (cd bridge_service && go build -trimpath -ldflags="-s -w" -o "../$package_dir/bridge-service" ./src)
+          cp -R gui_dashboard/build/linux/x64/release/bundle "$package_dir/dashboard"
           cp README.md SECURITY.md "$package_dir/"
           tar -czf "HWControl-${{ github.ref_name }}-Linux-x64.tar.gz" -C package "HWControl-${{ github.ref_name }}-Linux-x64"
+          deb_root="package/deb"
+          mkdir -p "$deb_root/DEBIAN" "$deb_root/opt/hwcontrol"
+          cp -R "$package_dir/." "$deb_root/opt/hwcontrol/"
+          version="${GITHUB_REF_NAME#v}"
+          cat > "$deb_root/DEBIAN/control" <<EOF
+          Package: hwcontrol
+          Version: $version
+          Section: utils
+          Priority: optional
+          Architecture: amd64
+          Maintainer: HWControl maintainers
+          Description: HWControl hardware monitoring and control suite
+          EOF
+          dpkg-deb --build "$deb_root" "HWControl-${{ github.ref_name }}-Linux-x64.deb"
       - name: Upload Linux package
         uses: actions/upload-artifact@v4
         with:
           name: HWControl-${{ github.ref_name }}-Linux-x64
-          path: HWControl-${{ github.ref_name }}-Linux-x64.tar.gz
+          path: |
+            HWControl-${{ github.ref_name }}-Linux-x64.tar.gz
+            HWControl-${{ github.ref_name }}-Linux-x64.deb
 
   build-windows:
     if: endsWith(github.ref_name, '-windows')
@@ -49,6 +77,18 @@ jobs:
         with:
           go-version-file: bridge_service/go.mod
           cache: false
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Build Windows dashboard
+        working-directory: gui_dashboard
+        shell: pwsh
+        run: |
+          flutter create --platforms=windows .
+          flutter pub get
+          flutter build windows --release
       - name: Build Windows package
         shell: pwsh
         run: |
@@ -57,6 +97,7 @@ jobs:
           $packageDir = "package/HWControl-${{ github.ref_name }}-Windows-x64"
           New-Item -ItemType Directory -Force -Path $packageDir | Out-Null
           Copy-Item build-windows/ai_core/Release/ai_engine.exe "$packageDir/ai_engine.exe"
+          Copy-Item -Recurse gui_dashboard/build/windows/x64/runner/Release "$packageDir/dashboard"
           Push-Location bridge_service
           go build -trimpath -ldflags="-s -w" -o "../$packageDir/bridge-service.exe" ./src
           Pop-Location
@@ -79,6 +120,17 @@ jobs:
         with:
           go-version-file: bridge_service/go.mod
           cache: false
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Build macOS dashboard
+        working-directory: gui_dashboard
+        run: |
+          flutter create --platforms=macos .
+          flutter pub get
+          flutter build macos --release
       - name: Build macOS package
         run: |
           cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
@@ -87,6 +139,7 @@ jobs:
           mkdir -p "$package_dir"
           cp build/ai_core/ai_engine "$package_dir/ai_engine"
           (cd bridge_service && go build -trimpath -ldflags="-s -w" -o "../$package_dir/bridge-service" ./src)
+          cp -R gui_dashboard/build/macos/Build/Products/Release/hwcontrol_dashboard.app "$package_dir/dashboard.app"
           cp README.md SECURITY.md "$package_dir/"
           hdiutil create -volname "HWControl ${{ github.ref_name }}" -srcfolder "$package_dir" -ov -format UDZO "HWControl-${{ github.ref_name }}-macOS-AppleSilicon.dmg"
       - name: Upload macOS package

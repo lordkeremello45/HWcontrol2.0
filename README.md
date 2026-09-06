@@ -41,6 +41,7 @@ Analyze the Flutter dashboard:
 	cd gui_dashboard
 	flutter pub get
 	flutter analyze
+	flutter run --dart-define=HWCONTROL_KEY="replace-with-a-long-random-secret"
 
 Security key
 ------------
@@ -63,10 +64,12 @@ Releases use Semantic Versioning with an operating-system suffix. Create and pus
 	git tag -a v0.1.4-linux -m "Release v0.1.4 for Linux"
 	git push origin v0.1.4-linux
 
-The release workflow creates clearly named platform packages automatically:
+The release workflow creates clearly named platform packages automatically. Each package includes the native engine, Go bridge and Flutter dashboard:
 
-- `vX.Y.Z-windows` -> `HWControl-vX.Y.Z-windows-Windows-x64.zip` = Windows 64-bit
-- `vX.Y.Z-linux` -> `HWControl-vX.Y.Z-linux-Linux-x64.tar.gz` = Linux 64-bit
-- `vX.Y.Z-macos` -> `HWControl-vX.Y.Z-macos-macOS-AppleSilicon.dmg` = macOS Apple Silicon
+- `vX.Y.Z-windows` -> `HWControl-vX.Y.Z-windows-Windows-x64.zip` = Windows 64-bit + `.exe`
+- `vX.Y.Z-linux` -> `HWControl-vX.Y.Z-linux-Linux-x64.tar.gz` and `.deb` = Linux 64-bit
+- `vX.Y.Z-macos` -> `HWControl-vX.Y.Z-macos-macOS-AppleSilicon.dmg` + `.app` = macOS Apple Silicon
+
+Packaged desktop apps read `HWCONTROL_KEY` from the environment at runtime. The key is intentionally not included in release files.
 
 Eski `v0.1.x` tag’leri geriye dönük olarak korunur. Yeni yayınlarda tag sonuna mutlaka `-windows`, `-linux` veya `-macos` eklenmelidir.
