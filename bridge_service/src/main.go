@@ -154,6 +154,15 @@ func validateCommand(cmd Command) error {
 	}
 }
 
+func executeHardwareCommand(cmd Command) error {
+	switch cmd.Action {
+	case "Fan Hızı", "AI İşlem Gücü":
+		return fmt.Errorf("hardware control backend is not available on this build")
+	default:
+		return fmt.Errorf("action cannot be executed: %s", cmd.Action)
+	}
+}
+
 func handleConnection(conn net.Conn, secret string) {
 	defer conn.Close()
 	defer func() {
@@ -197,11 +206,11 @@ func handleConnection(conn net.Conn, secret string) {
 			continue
 		}
 
-		// Burada C++ tarafına veya donanım API'sine yönlendirme yapılacak
-		// Şimdilik sadece "OK" dönüyoruz
-		resp := Response{Status: "SUCCESS", Message: "Komut işlendi"}
-		if err := encoder.Encode(resp); err != nil {
-			return
+		if err := executeHardwareCommand(cmd); err != nil {
+			if err := encoder.Encode(Response{Status: "ERROR", Message: err.Error()}); err != nil {
+				return
+			}
+			continue
 		}
 	}
 }
