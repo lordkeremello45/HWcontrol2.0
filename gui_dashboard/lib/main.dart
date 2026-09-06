@@ -76,15 +76,110 @@ class _DashboardScreenState extends State<DashboardScreen> {
   double _aiValue = 80;
   double _temperatureLimit = 85;
   bool _notificationsEnabled = true;
+  Timer? _metricsTimer;
+  double _cpuUsage = 0;
+  double _cpuTemperature = 0;
+  double _memoryUsage = 0;
+  double _diskUsage = 0;
+  double _gpuUsage = 0;
+  double _fanRpm = 0;
+  String _modelDigest = 'Kontrol edilmedi';
+  final List<_MetricSample> _history = <_MetricSample>[];
+  final List<String> _events = <String>[];
+  Map<String, Map<String, double>> _profiles = {};
 
   String get _sharedKey =>
       Platform.environment['HWCONTROL_KEY'] ?? _compileTimeKey;
+
+  int get _bridgePort => int.tryParse(Platform.environment['HWCONTROL_PORT'] ?? '8080') ?? 8080;
 
   @override
   void initState() {
     super.initState();
     _connectToBridge();
     _checkForUpdate();
+    _refreshSecurity();
+    _loadProfiles();
+    _metricsTimer = Timer.periodic(const Duration(seconds: 5), (_) => _refreshMetrics());
+  }
+
+  Future<File> get _profilesFile async => File('hwcontrol_profiles.json');
+
+  Future<void> _loadProfiles() async {
+    try {
+      final file = await _profilesFile;
+      if (!await file.exists()) return;
+      final decoded = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
+      if (!mounted) return;
+      setState(() => _profiles = decoded.map((key, value) => MapEntry(key, Map<String, double>.from((value as Map).map((k, v) => MapEntry(k.toString(), (v as num).toDouble())))));
+    } catch (_) {
+      _addEvent('Profil dosyası okunamadı');
+    }
+  }
+
+  Future<void> _saveProfile(String name) async {
+    _profiles[name] = {'fan': _fanValue, 'ai': _aiValue};
+    try {
+      final file = await _profilesFile;
+      await file.writeAsString(jsonEncode(_profiles));
+      _addEvent('$name profili kaydedildi');
+    } catch (_) {
+      _addEvent('Profil kaydedilemedi');
+    }
+  }
+
+  void _addEvent(String message) {
+    if (!mounted) return;
+    setState(() {
+      _events.insert(0, '${DateTime.now().toLocal().toString().substring(11, 19)}  $message');
+      if (_events.length > 20) _events.removeLast();
+    });
+  }
+
+  Future<Map<String, dynamic>?> _requestBridgeData(String action) async {
+    final socket = _socket;
+    if (!_isConnected || socket == null || _sharedKey.isEmpty || _isSending) return null;
+    _isSending = true;
+    try {
+      final payload = '$action\n0.000000';
+      final auth = Hmac(sha256, utf8.encode(_sharedKey)).convert(utf8.encode(payload)).toString();
+      socket.write('${jsonEncode({'action': action, 'value': 0.0, 'auth': auth})}\n');
+      final responses = _responses;
+      if (responses == null || !await responses.moveNext().timeout(const Duration(seconds: 4))) return null;
+      final response = jsonDecode(responses.current) as Map<String, dynamic>;
+      return response['data'] as Map<String, dynamic>?;
+    } catch (_) {
+      return null;
+    } finally {
+      _isSending = false;
+    }
+  }
+
+  Future<void> _refreshMetrics() async {
+    final data = await _requestBridgeData('Get Status');
+    if (!mounted || data == null) return;
+    final temperature = (data['cpuTemperature'] as num?)?.toDouble() ?? 0;
+    final thresholdExceeded = _notificationsEnabled && temperature >= _temperatureLimit;
+    setState(() {
+      _cpuUsage = (data['cpuUsage'] as num?)?.toDouble() ?? 0;
+      _cpuTemperature = temperature;
+      _memoryUsage = (data['memoryUsage'] as num?)?.toDouble() ?? 0;
+      _diskUsage = (data['diskUsage'] as num?)?.toDouble() ?? 0;
+      _gpuUsage = (data['gpuUsage'] as num?)?.toDouble() ?? 0;
+      _fanRpm = (data['fanRpm'] as num?)?.toDouble() ?? 0;
+      _history.add(_MetricSample(DateTime.now(), temperature));
+      if (_history.length > 720) _history.removeAt(0);
+      if (thresholdExceeded) {
+        _status = 'Sıcaklık uyarısı: ${temperature.toStringAsFixed(1)} °C';
+      }
+    });
+    if (thresholdExceeded) _addEvent('CPU sıcaklığı eşik üstünde');
+  }
+
+  Future<void> _refreshSecurity() async {
+    final data = await _requestBridgeData('Get Security');
+    if (!mounted || data == null) return;
+    setState(() => _modelDigest = data['modelSha256'] as String? ?? 'unavailable');
   }
 
   Future<void> _checkForUpdate() async {
@@ -122,6 +217,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _updateInfo = newest != null && _isNewerVersion(newest.tag, _appVersion) ? newest : null;
         _updateStatus = newest == null ? 'Güncel release bulunamadı' : _updateInfo == null ? 'Uygulama güncel' : 'Yeni sürüm hazır';
       });
+      _addEvent('Bridge bağlantısı aktif');
     } catch (_) {
       if (mounted) setState(() => _updateStatus = 'Güncelleme kontrolü başarısız');
     } finally {
@@ -207,7 +303,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final socket = await Socket.connect(
         '127.0.0.1',
-        8080,
+        _bridgePort,
         timeout: const Duration(seconds: 3),
       );
       _socket = socket;
@@ -226,6 +322,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _isConnected = true;
         _status = 'Bridge aktif';
       });
+      _addEvent('Bridge bağlantısı kurulamadı');
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -285,6 +382,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _aiValue = ai;
       _lastAction = '$name profili hazırlanıyor';
     });
+    if (_profiles.containsKey(name)) {
+      fan = _profiles[name]!['fan'] ?? fan;
+      ai = _profiles[name]!['ai'] ?? ai;
+      setState(() { _fanValue = fan; _aiValue = ai; });
+    }
     await _sendCommand('Fan Hızı', fan);
     await _sendCommand('AI İşlem Gücü', ai);
     if (mounted) setState(() => _lastAction = '$name profili  •  fan %${fan.round()}  •  AI %${ai.round()}');
@@ -300,6 +402,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   void dispose() {
+    _metricsTimer?.cancel();
     _responses?.cancel();
     _socket?.destroy();
     super.dispose();
@@ -325,6 +428,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _buildUpdateCard(),
                       const SizedBox(height: 18),
                       _buildOverview(compact),
+                      const SizedBox(height: 18),
+                      _buildHistoryCard(),
                       const SizedBox(height: 18),
                       if (compact)
                         Column(
@@ -439,9 +544,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildOverview(bool compact) {
     final cards = [
-      _MetricData('CPU sıcaklığı', '65.5', '°C', Icons.thermostat, const Color(0xFFFFB454), 0.66),
-      _MetricData('CPU kullanımı', '42', '%', Icons.memory, const Color(0xFF64D8CB), 0.42),
-      _MetricData('GPU kullanımı', '58', '%', Icons.graphic_eq, const Color(0xFF8FA7FF), 0.58),
+      _MetricData('CPU sıcaklığı', _cpuTemperature.toStringAsFixed(1), '°C', Icons.thermostat, const Color(0xFFFFB454), (_cpuTemperature / 100).clamp(0, 1)),
+      _MetricData('CPU kullanımı', _cpuUsage.toStringAsFixed(0), '%', Icons.memory, const Color(0xFF64D8CB), (_cpuUsage / 100).clamp(0, 1)),
+      _MetricData('RAM kullanımı', _memoryUsage.toStringAsFixed(0), '%', Icons.storage, const Color(0xFF8FA7FF), (_memoryUsage / 100).clamp(0, 1)),
+      _MetricData('Disk kullanımı', _diskUsage.toStringAsFixed(0), '%', Icons.save, const Color(0xFFB995FF), (_diskUsage / 100).clamp(0, 1)),
+      _MetricData('GPU kullanımı', _gpuUsage.toStringAsFixed(0), '%', Icons.graphic_eq, const Color(0xFFFF8C69), (_gpuUsage / 100).clamp(0, 1)),
+      _MetricData('Fan', _fanRpm.toStringAsFixed(0), 'RPM', Icons.air, const Color(0xFF64D8CB), (_fanRpm / 3000).clamp(0, 1)),
     ];
     return GridView.builder(
       shrinkWrap: true,
@@ -487,6 +595,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _buildHistoryCard() {
+    final maximum = _history.isEmpty ? 0 : _history.map((sample) => sample.temperature).reduce((a, b) => a > b ? a : b);
+    return _Panel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: _sectionTitle('Sıcaklık geçmişi', 'Son 1 saat')),
+              Text('Maks. ${maximum.toStringAsFixed(1)} °C', style: const TextStyle(color: Color(0xFFFFB454), fontSize: 12, fontWeight: FontWeight.w700)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(height: 130, child: _history.isEmpty ? const Center(child: Text('Bridge metrikleri bekleniyor', style: TextStyle(color: Colors.white54, fontSize: 12))) : CustomPaint(painter: _HistoryPainter(_history, Theme.of(context).colorScheme.primary))),
+        ],
+      ),
+    );
+  }
+
   Widget _buildControls() {
     return _Panel(
       padding: const EdgeInsets.fromLTRB(22, 20, 22, 16),
@@ -514,7 +641,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _presetButton('Sessiz', Icons.volume_off_outlined, 25, 45, const Color(0xFF64D8CB)),
         _presetButton('Dengeli', Icons.tune, 50, 80, const Color(0xFFFFB454)),
         _presetButton('Performans', Icons.speed, 85, 100, const Color(0xFFFF7B7B)),
+        _presetButton('Oyun', Icons.sports_esports_outlined, 75, 95, const Color(0xFFB995FF)),
+        _presetButton('Manuel', Icons.edit_outlined, _fanValue, _aiValue, const Color(0xFF8FA7FF)),
         TextButton.icon(onPressed: _isSending ? null : _resetControls, icon: const Icon(Icons.restart_alt, size: 16), label: const Text('Sıfırla')),
+        TextButton.icon(onPressed: () => _saveProfile('Manuel'), icon: const Icon(Icons.save_outlined, size: 16), label: const Text('Profili kaydet')),
       ],
     );
   }
@@ -561,7 +691,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 20),
           _statusRow('Bridge', _isConnected ? 'Bağlı' : 'Bağlı değil', _isConnected),
           _statusRow('Güvenlik', _sharedKey.isEmpty ? 'Anahtar bekleniyor' : 'HMAC-SHA-256', _sharedKey.isNotEmpty),
+          _statusRow('Model SHA-256', _modelDigest == 'unavailable' ? 'Bulunamadı' : (_modelDigest.length > 12 ? '${_modelDigest.substring(0, 12)}...' : _modelDigest), _modelDigest != 'unavailable' && _modelDigest != 'Kontrol edilmedi'),
           _statusRow('Uyarı eşiği', '${_temperatureLimit.round()} °C', _notificationsEnabled),
+          _statusRow('Son sıcaklık', '${_cpuTemperature.toStringAsFixed(1)} °C', _cpuTemperature < _temperatureLimit || _cpuTemperature == 0),
           _statusRow('Son işlem', _lastAction, true),
           const SizedBox(height: 18),
           Container(
@@ -578,8 +710,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: 14),
           OutlinedButton.icon(onPressed: _isConnected ? null : _connectToBridge, icon: const Icon(Icons.refresh, size: 17), label: const Text('Yeniden bağlan')),
+          const SizedBox(height: 18),
+          _buildEvents(),
         ],
       ),
+    );
+  }
+
+  Widget _buildEvents() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle('Sistem olayları', 'Son 20 kayıt'),
+        const SizedBox(height: 10),
+        if (_events.isEmpty) const Text('Henüz olay yok', style: TextStyle(color: Colors.white54, fontSize: 12)),
+        for (final event in _events.take(5)) Padding(padding: const EdgeInsets.only(bottom: 6), child: Text(event, style: const TextStyle(fontSize: 11, color: Colors.white60))),
+      ],
     );
   }
 
@@ -618,6 +764,45 @@ class _MetricData {
   final IconData icon;
   final Color color;
   final double progress;
+}
+
+class _MetricSample {
+  const _MetricSample(this.time, this.temperature);
+  final DateTime time;
+  final double temperature;
+}
+
+class _HistoryPainter extends CustomPainter {
+  const _HistoryPainter(this.samples, this.color);
+  final List<_MetricSample> samples;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final line = Paint()..color = color..strokeWidth = 2..style = PaintingStyle.stroke;
+    final grid = Paint()..color = color.withAlpha(25)..strokeWidth = 1;
+    for (var index = 1; index < 4; index++) {
+      final y = size.height * index / 4;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), grid);
+    }
+    final minimum = samples.map((sample) => sample.temperature).reduce((a, b) => a < b ? a : b);
+    final maximum = samples.map((sample) => sample.temperature).reduce((a, b) => a > b ? a : b);
+    final range = (maximum - minimum).abs() < 0.1 ? 1.0 : maximum - minimum;
+    final path = Path();
+    for (var index = 0; index < samples.length; index++) {
+      final x = samples.length == 1 ? 0 : size.width * index / (samples.length - 1);
+      final y = size.height - ((samples[index].temperature - minimum) / range * (size.height - 8)) - 4;
+      if (index == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+    canvas.drawPath(path, line);
+  }
+
+  @override
+  bool shouldRepaint(covariant _HistoryPainter oldDelegate) => oldDelegate.samples != samples || oldDelegate.color != color;
 }
 
 class UpdateInfo {

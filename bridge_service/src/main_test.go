@@ -12,6 +12,8 @@ func TestValidateCommand(t *testing.T) {
 		{"unknown action", Command{Action: "shutdown", Value: 50}, false},
 		{"out of range", Command{Action: "Fan Hızı", Value: 101}, false},
 		{"missing action", Command{Value: 20}, false},
+		{"status command", Command{Action: "Get Status"}, true},
+		{"security command", Command{Action: "Get Security"}, true},
 	}
 
 	for _, test := range tests {

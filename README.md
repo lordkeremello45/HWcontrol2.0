@@ -78,6 +78,8 @@ The control panel also provides `Sessiz`, `Dengeli`, and `Performans` presets, p
 
 Platform service helpers are included under `deploy/`. Linux uses `systemd`, macOS uses `launchd`, and Windows uses `install-bridge-service.ps1`. Replace the `replace-me` key before enabling a service; the installers do not generate or publish a secret automatically.
 
+The bridge accepts `HWCONTROL_PORT` (default `8080`) and `HWCONTROL_LOG` (default `hwcontrol.log`). Crash recovery and connection panics are written to the log with restricted file permissions where the platform supports them.
+
 The native engine now reads Linux CPU usage and thermal sensor values when available. Gemma inference runs periodically with a bounded response length so monitoring remains responsive; unsupported platforms use safe zero-value fallbacks until native sensor adapters are added.
 
 The in-app update panel reads `updates/check.json`, checks the official GitHub release API over HTTPS, and displays only releases with a `.sha256` integrity asset. It opens the official release page for a user-confirmed download; it never executes a downloaded file automatically. Verify the checksum before launching any package.
