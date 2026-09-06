@@ -1,0 +1,14 @@
+#!/bin/sh
+set -eu
+
+APP_DIR="/Applications/HWControl"
+PLIST_SRC="$APP_DIR/com.hwcontrol.bridge.plist"
+PLIST_DST="/Library/LaunchDaemons/com.hwcontrol.bridge.plist"
+
+if [ -f "$PLIST_SRC" ]; then
+  cp "$PLIST_SRC" "$PLIST_DST"
+  chown root:wheel "$PLIST_DST"
+  chmod 644 "$PLIST_DST"
+fi
+
+exit 0
