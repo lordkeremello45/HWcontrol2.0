@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Install Linux desktop dependencies
+        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev dpkg-dev
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
@@ -58,6 +60,7 @@ jobs:
           Description: HWControl hardware monitoring and control suite
           EOF
           dpkg-deb --build "$deb_root" "HWControl-${{ github.ref_name }}-Linux-x64.deb"
+          sha256sum "HWControl-${{ github.ref_name }}-Linux-x64.tar.gz" "HWControl-${{ github.ref_name }}-Linux-x64.deb" > "HWControl-${{ github.ref_name }}-Linux-x64.sha256"
       - name: Upload Linux package
         uses: actions/upload-artifact@v4
         with:
@@ -65,6 +68,7 @@ jobs:
           path: |
             HWControl-${{ github.ref_name }}-Linux-x64.tar.gz
             HWControl-${{ github.ref_name }}-Linux-x64.deb
+            HWControl-${{ github.ref_name }}-Linux-x64.sha256
 
   build-windows:
     if: endsWith(github.ref_name, '-windows')
@@ -103,11 +107,14 @@ jobs:
           Pop-Location
           Copy-Item README.md, SECURITY.md $packageDir
           Compress-Archive -Path "$packageDir/*" -DestinationPath "HWControl-${{ github.ref_name }}-Windows-x64.zip"
+          (Get-FileHash "HWControl-${{ github.ref_name }}-Windows-x64.zip" -Algorithm SHA256).Hash.ToLower() + "  HWControl-${{ github.ref_name }}-Windows-x64.zip" | Set-Content "HWControl-${{ github.ref_name }}-Windows-x64.sha256"
       - name: Upload Windows package
         uses: actions/upload-artifact@v4
         with:
           name: HWControl-${{ github.ref_name }}-Windows-x64
-          path: HWControl-${{ github.ref_name }}-Windows-x64.zip
+          path: |
+            HWControl-${{ github.ref_name }}-Windows-x64.zip
+            HWControl-${{ github.ref_name }}-Windows-x64.sha256
 
   build-macos:
     if: endsWith(github.ref_name, '-macos')
@@ -142,11 +149,14 @@ jobs:
           cp -R gui_dashboard/build/macos/Build/Products/Release/hwcontrol_dashboard.app "$package_dir/dashboard.app"
           cp README.md SECURITY.md "$package_dir/"
           hdiutil create -volname "HWControl ${{ github.ref_name }}" -srcfolder "$package_dir" -ov -format UDZO "HWControl-${{ github.ref_name }}-macOS-AppleSilicon.dmg"
+          shasum -a 256 "HWControl-${{ github.ref_name }}-macOS-AppleSilicon.dmg" > "HWControl-${{ github.ref_name }}-macOS-AppleSilicon.sha256"
       - name: Upload macOS package
         uses: actions/upload-artifact@v4
         with:
           name: HWControl-${{ github.ref_name }}-macOS-AppleSilicon
-          path: HWControl-${{ github.ref_name }}-macOS-AppleSilicon.dmg
+          path: |
+            HWControl-${{ github.ref_name }}-macOS-AppleSilicon.dmg
+            HWControl-${{ github.ref_name }}-macOS-AppleSilicon.sha256
 
   release:
     needs: [build-linux, build-windows, build-macos]
@@ -167,3 +177,5 @@ jobs:
             dist/**/*.tar.gz
             dist/**/*.zip
             dist/**/*.dmg
+            dist/**/*.deb
+            dist/**/*.sha256

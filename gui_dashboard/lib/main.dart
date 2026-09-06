@@ -4,6 +4,8 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 void main() => runApp(const HWControlApp());
 
@@ -39,12 +41,17 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   static const _compileTimeKey = String.fromEnvironment('HWCONTROL_KEY');
+  static const _appVersion = '0.1.8';
+  static const _checkFileUrl = 'https://raw.githubusercontent.com/lordkeremello45/HWcontrol2.0/main/updates/check.json';
   Socket? _socket;
   StreamIterator<String>? _responses;
   String _status = 'Bridge bekleniyor';
   String _lastAction = 'Henüz komut gönderilmedi';
   bool _isConnected = false;
   bool _isSending = false;
+  bool _isCheckingUpdate = false;
+  UpdateInfo? _updateInfo;
+  String _updateStatus = 'Güncellemeler kontrol edilmedi';
   double _fanValue = 50;
   double _aiValue = 80;
 
@@ -55,6 +62,68 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     _connectToBridge();
+    _checkForUpdate();
+  }
+
+  Future<void> _checkForUpdate() async {
+    if (_isCheckingUpdate) return;
+    setState(() => _isCheckingUpdate = true);
+    try {
+      final manifestResponse = await http.get(Uri.parse(_checkFileUrl)).timeout(const Duration(seconds: 6));
+      if (manifestResponse.statusCode != 200) throw StateError('manifest unavailable');
+      final manifest = jsonDecode(manifestResponse.body) as Map<String, dynamic>;
+      if (manifest['schema'] != 1 || manifest['repository'] != 'lordkeremello45/HWcontrol2.0') {
+        throw StateError('untrusted update manifest');
+      }
+      final apiUrl = manifest['releases_api'] as String?;
+      if (apiUrl == null || !apiUrl.startsWith('https://api.github.com/repos/lordkeremello45/HWcontrol2.0/')) {
+        throw StateError('untrusted update endpoint');
+      }
+      final releasesResponse = await http.get(Uri.parse(apiUrl), headers: {'Accept': 'application/vnd.github+json'}).timeout(const Duration(seconds: 6));
+      if (releasesResponse.statusCode != 200) throw StateError('release check failed');
+      final releases = jsonDecode(releasesResponse.body) as List<dynamic>;
+      final suffix = Platform.isWindows ? '-windows' : Platform.isMacOS ? '-macos' : '-linux';
+      UpdateInfo? newest;
+      for (final item in releases) {
+        final release = item as Map<String, dynamic>;
+        final tag = release['tag_name'] as String? ?? '';
+        final url = release['html_url'] as String? ?? '';
+        if (!RegExp(r'^v[0-9]+\.[0-9]+\.[0-9]+-(linux|windows|macos)$').hasMatch(tag) || !tag.endsWith(suffix) || !url.startsWith('https://github.com/lordkeremello45/HWcontrol2.0/releases/')) continue;
+        final assets = (release['assets'] as List<dynamic>? ?? const []).whereType<Map<String, dynamic>>();
+        final hasChecksum = assets.any((asset) => (asset['name'] as String? ?? '').endsWith('.sha256'));
+        if (!hasChecksum) continue;
+        newest = UpdateInfo(tag: tag, releaseUrl: url);
+        break;
+      }
+      if (!mounted) return;
+      setState(() {
+        _updateInfo = newest != null && _isNewerVersion(newest.tag, _appVersion) ? newest : null;
+        _updateStatus = newest == null ? 'Güncel release bulunamadı' : _updateInfo == null ? 'Uygulama güncel' : 'Yeni sürüm hazır';
+      });
+    } catch (_) {
+      if (mounted) setState(() => _updateStatus = 'Güncelleme kontrolü başarısız');
+    } finally {
+      if (mounted) setState(() => _isCheckingUpdate = false);
+    }
+  }
+
+  bool _isNewerVersion(String tag, String current) {
+    final candidate = RegExp(r'^v([0-9]+)\.([0-9]+)\.([0-9]+)-').firstMatch(tag);
+    final currentParts = current.split('.').map(int.parse).toList();
+    if (candidate == null) return false;
+    final nextParts = [int.parse(candidate.group(1)!), int.parse(candidate.group(2)!), int.parse(candidate.group(3)!)];
+    for (var index = 0; index < 3; index++) {
+      if (nextParts[index] != currentParts[index]) return nextParts[index] > currentParts[index];
+    }
+    return false;
+  }
+
+  Future<void> _openUpdate() async {
+    final info = _updateInfo;
+    if (info == null) return;
+    final uri = Uri.parse(info.releaseUrl);
+    if (!uri.isScheme('https') || uri.host != 'github.com') return;
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   Future<void> _connectToBridge() async {
@@ -156,6 +225,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       _buildHeader(),
                       const SizedBox(height: 28),
+                      _buildUpdateCard(),
+                      const SizedBox(height: 18),
                       _buildOverview(compact),
                       const SizedBox(height: 18),
                       if (compact)
@@ -228,6 +299,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Icon(Icons.circle, size: 8, color: color),
           const SizedBox(width: 8),
           Text(_isConnected ? 'BRIDGE ONLINE' : 'OFFLINE', style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUpdateCard() {
+    final available = _updateInfo != null;
+    final color = available ? const Color(0xFFFFB454) : const Color(0xFF64D8CB);
+    return _Panel(
+      padding: const EdgeInsets.fromLTRB(18, 14, 14, 14),
+      child: Row(
+        children: [
+          Icon(available ? Icons.system_update_alt : Icons.verified_user_outlined, color: color),
+          const SizedBox(width: 12),
+          Expanded(child: Text(available ? '${_updateInfo!.tag} hazır' : _updateStatus, style: TextStyle(color: color, fontWeight: FontWeight.w600))),
+          if (available) TextButton.icon(onPressed: _openUpdate, icon: const Icon(Icons.download, size: 17), label: const Text('Release’i aç')),
+          IconButton(tooltip: 'Güncellemeleri kontrol et', onPressed: _isCheckingUpdate ? null : _checkForUpdate, icon: const Icon(Icons.refresh)),
         ],
       ),
     );
@@ -388,6 +476,12 @@ class _MetricData {
   final IconData icon;
   final Color color;
   final double progress;
+}
+
+class UpdateInfo {
+  const UpdateInfo({required this.tag, required this.releaseUrl});
+  final String tag;
+  final String releaseUrl;
 }
 
 class _Panel extends StatelessWidget {

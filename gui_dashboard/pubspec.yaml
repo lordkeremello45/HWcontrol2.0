@@ -1,15 +1,17 @@
 name: hwcontrol_dashboard
 description: HWControl 2.0 hardware monitoring dashboard.
 publish_to: 'none'
-version: 0.1.0
+version: 0.1.8
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
 
 dependencies:
   crypto: ^3.0.3
+  http: ^1.2.2
   flutter:
     sdk: flutter
+  url_launcher: ^6.3.1
 
 flutter:
   uses-material-design: true
