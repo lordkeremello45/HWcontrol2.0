@@ -78,6 +78,8 @@ The control panel also provides `Sessiz`, `Dengeli`, and `Performans` presets, p
 
 Platform service helpers are included under `deploy/`. Linux uses `systemd`, macOS uses `launchd`, and Windows uses `install-bridge-service.ps1`. Replace the `replace-me` key before enabling a service; the installers do not generate or publish a secret automatically.
 
+Uninstallers are shipped beside the service helpers. Linux/macOS: `./deploy/<platform>/remove-hwcontrol.sh --dry-run`, then run it again to remove the HWControl app, its service, config, profiles and logs; Linux may require `sudo`. Windows: `powershell -ExecutionPolicy Bypass -File .\deploy\windows\remove-hwcontrol.ps1 -DryRun`, then run without `-DryRun`. The remover uses an explicit allowlist of HWControl paths and never scans or removes other applications. Use the optional Windows `-PurgeSecret` flag only when you also want to delete the machine-level `HWCONTROL_KEY`.
+
 The bridge accepts `HWCONTROL_PORT` (default `8080`) and `HWCONTROL_LOG` (default `hwcontrol.log`). Crash recovery and connection panics are written to the log with restricted file permissions where the platform supports them.
 
 The native engine now reads CPU usage and thermal sensor values when available. On NVIDIA systems, the bridge also reads GPU temperature, utilization, fan percentage, power draw, and voltage through the fixed `nvidia-smi` query. A fan percentage is never mislabeled as RPM; unsupported sensors use safe zero-value fallbacks instead of invented readings.
