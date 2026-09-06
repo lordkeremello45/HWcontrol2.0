@@ -50,4 +50,11 @@ Releases use Semantic Versioning. Create and push a tag such as `v0.1.0`:
 	git tag -a v0.1.0 -m "Release v0.1.0"
 	git push origin v0.1.0
 
-The release workflow creates the GitHub Release automatically. Merge changes to `main` through pull requests and publish only `vMAJOR.MINOR.PATCH` tags.
+The release workflow creates clearly named platform packages automatically:
+
+- `HWControl-vX.Y.Z-Windows-x64.tar.gz` = Windows 64-bit
+- `HWControl-vX.Y.Z-Linux-x64.tar.gz` = Linux 64-bit
+- `HWControl-vX.Y.Z-macOS-Intel-x64.tar.gz` = macOS Intel
+- `HWControl-vX.Y.Z-macOS-AppleSilicon-arm64.tar.gz` = macOS Apple Silicon
+
+Merge changes to `main` through pull requests and publish only `vMAJOR.MINOR.PATCH` tags.

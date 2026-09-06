@@ -15,11 +15,13 @@ jobs:
       matrix:
         include:
           - os: ubuntu-24.04
-            platform: linux-x64
+            platform: Linux-x64
           - os: macos-13
-            platform: macos-x64
+            platform: macOS-Intel-x64
           - os: macos-14
-            platform: macos-arm64
+            platform: macOS-AppleSilicon-arm64
+          - os: windows-2022
+            platform: Windows-x64
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -30,22 +32,40 @@ jobs:
           go-version-file: bridge_service/go.mod
           cache: false
       - name: Configure C++
-        run: cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
+        shell: bash
+        run: |
+          if [ "${{ matrix.os }}" = "windows-2022" ]; then
+            cmake -S . -B build-windows -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
+          else
+            cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
+          fi
       - name: Build C++ engine
-        run: cmake --build build --parallel 2
+        shell: bash
+        run: |
+          if [ "${{ matrix.os }}" = "windows-2022" ]; then
+            cmake --build build-windows --config Release --parallel 2
+          else
+            cmake --build build --parallel 2
+          fi
       - name: Build and package applications
+        shell: bash
         run: |
           package_dir="package/hwcontrol-${{ matrix.platform }}"
           mkdir -p "$package_dir"
-          cp build/ai_core/ai_engine "$package_dir/ai_engine"
-          go build -trimpath -ldflags="-s -w" -o "$package_dir/bridge-service" ./bridge_service/src
+          if [ "${{ matrix.os }}" = "windows-2022" ]; then
+            cp build-windows/ai_core/Release/ai_engine.exe "$package_dir/ai_engine.exe"
+            go build -trimpath -ldflags="-s -w" -o "$package_dir/bridge-service.exe" ./bridge_service/src
+          else
+            cp build/ai_core/ai_engine "$package_dir/ai_engine"
+            go build -trimpath -ldflags="-s -w" -o "$package_dir/bridge-service" ./bridge_service/src
+          fi
           cp README.md SECURITY.md "$package_dir/"
-          tar -czf "hwcontrol-${{ matrix.platform }}.tar.gz" -C package "hwcontrol-${{ matrix.platform }}"
+          tar -czf "HWControl-${{ github.ref_name }}-${{ matrix.platform }}.tar.gz" -C package "hwcontrol-${{ matrix.platform }}"
       - name: Upload platform package
         uses: actions/upload-artifact@v4
         with:
-          name: hwcontrol-${{ matrix.platform }}
-          path: hwcontrol-${{ matrix.platform }}.tar.gz
+          name: HWControl-${{ github.ref_name }}-${{ matrix.platform }}
+          path: HWControl-${{ github.ref_name }}-${{ matrix.platform }}.tar.gz
 
   release:
     needs: build
@@ -60,4 +80,10 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           generate_release_notes: true
+          body: |
+            Platform packages:
+            - `HWControl-${{ github.ref_name }}-Windows-x64.tar.gz` = Windows 64-bit
+            - `HWControl-${{ github.ref_name }}-Linux-x64.tar.gz` = Linux 64-bit
+            - `HWControl-${{ github.ref_name }}-macOS-Intel-x64.tar.gz` = macOS Intel
+            - `HWControl-${{ github.ref_name }}-macOS-AppleSilicon-arm64.tar.gz` = macOS Apple Silicon (M1/M2/M3/M4)
           files: dist/**/*.tar.gz
