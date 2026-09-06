@@ -61,7 +61,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   static const _compileTimeKey = String.fromEnvironment('HWCONTROL_KEY');
-  static const _appVersion = '0.1.8';
+  static const _appVersion = '0.2.2';
   static const _checkFileUrl = 'https://raw.githubusercontent.com/lordkeremello45/HWcontrol2.0/main/updates/check.json';
   Socket? _socket;
   StreamIterator<String>? _responses;

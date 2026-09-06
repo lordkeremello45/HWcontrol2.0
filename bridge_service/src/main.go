@@ -11,6 +11,7 @@ import (
 	"math"
 	"net"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -88,6 +89,25 @@ func collectMetrics() HardwareMetrics {
 	}
 	if uptime, err := host.Uptime(); err == nil {
 		metrics.UptimeSeconds = uptime
+	}
+	if temperatures, err := host.SensorsTemperatures(); err == nil {
+		for _, sensor := range temperatures {
+			key := strings.ToLower(sensor.SensorKey)
+			if strings.Contains(key, "cpu") || strings.Contains(key, "package") || strings.Contains(key, "core") {
+				metrics.CPUTemperature = sensor.Temperature
+				break
+			}
+		}
+	}
+	if output, err := exec.Command("nvidia-smi", "--query-gpu=temperature.gpu,utilization.gpu,fan.speed,power.draw", "--format=csv,noheader,nounits").Output(); err == nil {
+		parts := strings.Split(strings.TrimSpace(string(output)), ",")
+		if len(parts) >= 4 {
+			metrics.GPUTemperature, _ = strconv.ParseFloat(strings.TrimSpace(parts[0]), 64)
+			metrics.GPUUsage, _ = strconv.ParseFloat(strings.TrimSpace(parts[1]), 64)
+			fanPercent, _ := strconv.ParseFloat(strings.TrimSpace(parts[2]), 64)
+			metrics.FanRPM = fanPercent
+			metrics.PowerWatts, _ = strconv.ParseFloat(strings.TrimSpace(parts[3]), 64)
+		}
 	}
 	if _, err := load.Avg(); err == nil {
 		// load.Avg is intentionally queried to validate host metric access.

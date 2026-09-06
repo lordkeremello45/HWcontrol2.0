@@ -80,7 +80,7 @@ Platform service helpers are included under `deploy/`. Linux uses `systemd`, mac
 
 The bridge accepts `HWCONTROL_PORT` (default `8080`) and `HWCONTROL_LOG` (default `hwcontrol.log`). Crash recovery and connection panics are written to the log with restricted file permissions where the platform supports them.
 
-The native engine now reads Linux CPU usage and thermal sensor values when available. Gemma inference runs periodically with a bounded response length so monitoring remains responsive; unsupported platforms use safe zero-value fallbacks until native sensor adapters are added.
+The native engine now reads CPU usage and thermal sensor values when available. On NVIDIA systems, the bridge also reads GPU temperature, utilization, fan percentage, and power draw through the fixed `nvidia-smi` query. Gemma inference runs periodically with a bounded response length so monitoring remains responsive; unsupported sensors use safe zero-value fallbacks instead of invented readings.
 
 The in-app update panel reads `updates/check.json`, checks the official GitHub release API over HTTPS, and displays only releases with a `.sha256` integrity asset. It opens the official release page for a user-confirmed download; it never executes a downloaded file automatically. Verify the checksum before launching any package.
 
