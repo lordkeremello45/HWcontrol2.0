@@ -1,11 +1,15 @@
 package main
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -14,6 +18,30 @@ import (
 type Command struct {
 	Action string  `json:"action"`
 	Value  float64 `json:"value"`
+	Auth   string  `json:"auth"`
+}
+
+func commandPayload(cmd Command) string {
+	return cmd.Action + "\n" + strconv.FormatFloat(cmd.Value, 'f', 6, 64)
+}
+
+func signCommand(cmd Command, secret string) string {
+	digest := hmac.New(sha256.New, []byte(secret))
+	_, _ = digest.Write([]byte(commandPayload(cmd)))
+	return hex.EncodeToString(digest.Sum(nil))
+}
+
+func authenticateCommand(cmd Command, secret string) bool {
+	if secret == "" || cmd.Auth == "" {
+		return false
+	}
+	provided, err := hex.DecodeString(cmd.Auth)
+	if err != nil {
+		return false
+	}
+	digest := hmac.New(sha256.New, []byte(secret))
+	_, _ = digest.Write([]byte(commandPayload(cmd)))
+	return hmac.Equal(digest.Sum(nil), provided)
 }
 
 // AI Engine'e veya Sürücüye gönderilecek cevap yapısı
@@ -37,7 +65,7 @@ func validateCommand(cmd Command) error {
 	}
 }
 
-func handleConnection(conn net.Conn) {
+func handleConnection(conn net.Conn, secret string) {
 	defer conn.Close()
 	decoder := json.NewDecoder(conn)
 	encoder := json.NewEncoder(conn)
@@ -53,6 +81,10 @@ func handleConnection(conn net.Conn) {
 			_ = encoder.Encode(Response{Status: "ERROR", Message: err.Error()})
 			continue
 		}
+		if !authenticateCommand(cmd, secret) {
+			_ = encoder.Encode(Response{Status: "ERROR", Message: "authentication failed"})
+			continue
+		}
 
 		fmt.Printf("Komut alındı: %s, Değer: %.2f\n", cmd.Action, cmd.Value)
 
@@ -66,6 +98,12 @@ func handleConnection(conn net.Conn) {
 }
 
 func main() {
+	secret := os.Getenv("HWCONTROL_KEY")
+	if strings.TrimSpace(secret) == "" {
+		fmt.Println("Bridge baslatilamadi: HWCONTROL_KEY ayarlanmamis")
+		os.Exit(1)
+	}
+
 	// 8080 portunu dinle
 	listener, err := net.Listen("tcp", "127.0.0.1:8080")
 	if err != nil {
@@ -81,6 +119,6 @@ func main() {
 		if err != nil {
 			continue
 		}
-		go handleConnection(conn) // Her bağlantı için ayrı bir rutin (çoklu işlem)
+		go handleConnection(conn, secret) // Her bağlantı için ayrı bir rutin (çoklu işlem)
 	}
 }

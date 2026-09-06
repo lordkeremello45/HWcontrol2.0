@@ -22,3 +22,17 @@ func TestValidateCommand(t *testing.T) {
 		})
 	}
 }
+
+func TestAuthenticateCommand(t *testing.T) {
+	command := Command{Action: "Fan Hızı", Value: 50}
+	secret := "test-secret"
+	command.Auth = signCommand(command, secret)
+
+	if !authenticateCommand(command, secret) {
+		t.Fatal("expected command authentication to succeed")
+	}
+	command.Value = 51
+	if authenticateCommand(command, secret) {
+		t.Fatal("expected modified command authentication to fail")
+	}
+}

@@ -42,6 +42,19 @@ Analyze the Flutter dashboard:
 	flutter pub get
 	flutter analyze
 
+Security key
+------------
+
+The bridge and dashboard use the same HMAC-SHA-256 key. The bridge refuses to start without `HWCONTROL_KEY`; the dashboard receives the key at build time and sends only command signatures.
+
+Start the bridge with an environment variable:
+
+	HWCONTROL_KEY="replace-with-a-long-random-secret" ./bridge-service
+
+Run the dashboard with the same key without putting it in source control:
+
+	flutter run --dart-define=HWCONTROL_KEY="replace-with-a-long-random-secret"
+
 Releases
 --------
 

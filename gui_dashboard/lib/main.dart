@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 
 void main() => runApp(const HWControlApp());
@@ -35,6 +36,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  static const _sharedKey = String.fromEnvironment('HWCONTROL_KEY');
   Socket? _socket;
   StreamIterator<String>? _responses;
   String _status = 'Bağlı Değil';
@@ -82,10 +84,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return;
     }
     if (_isSending) return;
+    if (_sharedKey.isEmpty) {
+      setState(() => _status = 'Güvenlik anahtarı ayarlı değil');
+      return;
+    }
 
     setState(() => _isSending = true);
     try {
-      socket.write('${jsonEncode({'action': action, 'value': value})}\n');
+      final payload = '$action\n${value.toStringAsFixed(6)}';
+      final auth = Hmac(sha256, utf8.encode(_sharedKey))
+          .convert(utf8.encode(payload))
+          .toString();
+      socket.write('${jsonEncode({
+        'action': action,
+        'value': value,
+        'auth': auth,
+      })}\n');
       final responses = _responses;
       if (responses == null || !await responses.moveNext().timeout(const Duration(seconds: 3))) {
         throw StateError('Bridge response missing');
