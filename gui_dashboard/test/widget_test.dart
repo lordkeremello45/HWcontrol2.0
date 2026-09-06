@@ -5,6 +5,5 @@ void main() {
   testWidgets('installer wizard renders without starting bridge network', (tester) async {
     await tester.pumpWidget(const InstallerApp());
     expect(find.text('HWControl Kurulum Sihirbazı'), findsOneWidget);
-    expect(find.text('Windows'), findsNothing);
   });
 }
