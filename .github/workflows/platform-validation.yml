@@ -10,6 +10,9 @@ on:
 permissions:
   contents: read
 
+env:
+  FLUTTER_CHANNEL: stable
+
 jobs:
   linux:
     runs-on: ubuntu-24.04
@@ -21,7 +24,7 @@ jobs:
           cache: false
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          channel: ${{ env.FLUTTER_CHANNEL }}
           cache: true
       - name: Install build dependencies
         run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev dpkg-dev
@@ -32,7 +35,7 @@ jobs:
       - name: Build bridge and dashboard
         run: |
           (cd bridge_service && go test ./... && go build -trimpath -ldflags='-s -w' -o ../bridge-service ./src)
-          (cd gui_dashboard && flutter create --platforms=linux . && flutter pub get && flutter analyze && flutter build linux --release)
+          (cd gui_dashboard && flutter pub get && flutter analyze && flutter test && flutter build linux --release)
       - name: Build and install Debian package
         run: |
           set -euo pipefail
@@ -68,7 +71,7 @@ jobs:
           cache: false
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          channel: ${{ env.FLUTTER_CHANNEL }}
           cache: true
       - name: Build native engine, bridge and dashboard
         shell: pwsh
@@ -80,9 +83,9 @@ jobs:
           go build -trimpath -ldflags='-s -w' -o ../bridge-service.exe ./src
           Pop-Location
           Push-Location gui_dashboard
-          flutter create --platforms=windows .
           flutter pub get
           flutter analyze
+          flutter test
           flutter build windows --release
           Pop-Location
       - name: Build MSI and install it
@@ -112,14 +115,14 @@ jobs:
           cache: false
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          channel: ${{ env.FLUTTER_CHANNEL }}
           cache: true
       - name: Build native engine, bridge and dashboard
         run: |
           cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
           cmake --build build --parallel 2
           (cd bridge_service && go test ./... && go build -trimpath -ldflags='-s -w' -o ../bridge-service ./src)
-          (cd gui_dashboard && flutter create --platforms=macos . && flutter pub get && flutter analyze && flutter build macos --release)
+          (cd gui_dashboard && flutter pub get && flutter analyze && flutter test && flutter build macos --release)
       - name: Build and install macOS PKG
         run: |
           set -euo pipefail
