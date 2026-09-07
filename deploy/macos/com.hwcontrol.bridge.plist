@@ -10,8 +10,8 @@
     </array>
     <key>EnvironmentVariables</key>
     <dict>
-        <key>HWCONTROL_KEY</key>
-        <string>replace-me</string>
+        <key>HWCONTROL_KEY_FILE</key>
+        <string>/Library/Application Support/HWControl/bridge.key</string>
     </dict>
     <key>RunAtLoad</key>
     <true/>
