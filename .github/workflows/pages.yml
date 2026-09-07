@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'website/**'
+      - 'scripts/website-release-test.mjs'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -30,15 +31,20 @@ jobs:
       - name: Validate website JavaScript
         run: node --check website/app.js
 
+      - name: Validate release manifest
+        run: |
+          node scripts/website-release-test.mjs website/release.json
+
       - name: Verify release-aware download selector
         run: |
           node - <<'NODE'
           const fs = require('fs');
           const source = fs.readFileSync('website/app.js', 'utf8');
-          for (const token of ["endsWith('-setup.exe')", "Setup · recommended", '.msi', '.zip']) {
-            if (!source.includes(token)) throw new Error(`Missing website installer integration token: ${token}`);
+          const tokens = ["const MANIFEST='./release.json';", 'state.manifest', 'checksum_sha256_url', "fetch(`${MANIFEST}?t=${Date.now()}`"];
+          for (const token of tokens) {
+            if (!source.includes(token)) throw new Error(`Missing release manifest integration token: ${token}`);
           }
-          console.log('Website Windows installer integration: OK');
+          console.log('Website release manifest integration: OK');
           NODE
 
       - name: Configure Pages
