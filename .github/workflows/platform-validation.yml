@@ -10,12 +10,17 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: package-validation-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
-  FLUTTER_CHANNEL: stable
+  FLUTTER_VERSION: 3.47.2
 
 jobs:
   linux:
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -24,7 +29,7 @@ jobs:
           cache: false
       - uses: subosito/flutter-action@v2
         with:
-          channel: ${{ env.FLUTTER_CHANNEL }}
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
       - name: Prepare Flutter Linux project
         working-directory: gui_dashboard
@@ -37,10 +42,21 @@ jobs:
         run: |
           cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
           cmake --build build --parallel 2
-      - name: Build bridge and dashboard
-        run: |
-          (cd bridge_service && go test ./... && go build -trimpath -ldflags='-s -w' -o ../bridge-service ./src)
-          (cd gui_dashboard && flutter pub get && flutter analyze && flutter test && flutter build linux --release -t lib/installer_main.dart)
+      - name: Test bridge
+        working-directory: bridge_service
+        run: go test -count=1 ./...
+      - name: Build bridge
+        working-directory: bridge_service
+        run: go build -trimpath -ldflags='-s -w' -o ../bridge-service ./src
+      - name: Analyze dashboard
+        working-directory: gui_dashboard
+        run: flutter pub get && flutter analyze
+      - name: Test dashboard
+        working-directory: gui_dashboard
+        run: flutter test --no-pub
+      - name: Build dashboard
+        working-directory: gui_dashboard
+        run: flutter build linux --release -t lib/installer_main.dart
       - name: Build and install Debian package
         run: |
           set -euo pipefail
@@ -80,6 +96,7 @@ jobs:
 
   windows:
     runs-on: windows-2022
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -88,7 +105,7 @@ jobs:
           cache: false
       - uses: subosito/flutter-action@v2
         with:
-          channel: ${{ env.FLUTTER_CHANNEL }}
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
       - name: Prepare Flutter Windows project
         working-directory: gui_dashboard
@@ -96,21 +113,27 @@ jobs:
         run: |
           flutter create --platforms=windows --no-pub .
           git restore pubspec.yaml test/widget_test.dart
-      - name: Build native engine, bridge and dashboard
+      - name: Configure native engine
         shell: pwsh
-        run: |
-          cmake -S . -B build-windows -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
-          cmake --build build-windows --config Release --parallel 2
-          Push-Location bridge_service
-          go test ./...
-          go build -trimpath -ldflags='-s -w' -o ../bridge-service.exe ./src
-          Pop-Location
-          Push-Location gui_dashboard
-          flutter pub get
-          flutter analyze
-          flutter test
-          flutter build windows --release -t lib/installer_main.dart
-          Pop-Location
+        run: cmake -S . -B build-windows -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
+      - name: Build native engine
+        shell: pwsh
+        run: cmake --build build-windows --config Release --parallel 2
+      - name: Test bridge
+        working-directory: bridge_service
+        run: go test -count=1 ./...
+      - name: Build bridge
+        working-directory: bridge_service
+        run: go build -trimpath -ldflags='-s -w' -o ../bridge-service.exe ./src
+      - name: Analyze dashboard
+        working-directory: gui_dashboard
+        run: flutter pub get && flutter analyze
+      - name: Test dashboard
+        working-directory: gui_dashboard
+        run: flutter test --no-pub
+      - name: Build dashboard
+        working-directory: gui_dashboard
+        run: flutter build windows --release -t lib/installer_main.dart
       - name: Build MSI and validate EXE package
         shell: pwsh
         run: |
@@ -158,12 +181,13 @@ jobs:
           if ($service.Status -ne 'Running') { throw "HWControlBridge is not running after Setup.exe install: $($service.Status)" }
           $probe = Test-NetConnection 127.0.0.1 -Port 8080 -WarningAction SilentlyContinue
           if (-not $probe.TcpTestSucceeded) { throw 'HWControlBridge is not listening after Setup.exe install' }
-          $setupUninstall = Start-Process -FilePath "$PWD/HWControl-test-Setup.exe" -ArgumentList '/uninstall', '/quiet', '/norestart' -Wait -PassThru
+          $setupUninstall = Start-Process -FilePath "$PWD\HWControl-test-Setup.exe" -ArgumentList '/uninstall', '/quiet', '/norestart' -Wait -PassThru
           if ($setupUninstall.ExitCode -ne 0) { throw "Setup.exe uninstall failed with exit code $($setupUninstall.ExitCode)" }
           if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge service still exists after Setup.exe uninstall' }
 
   macos:
     runs-on: macos-14
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -172,19 +196,32 @@ jobs:
           cache: false
       - uses: subosito/flutter-action@v2
         with:
-          channel: ${{ env.FLUTTER_CHANNEL }}
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
       - name: Prepare Flutter macOS project
         working-directory: gui_dashboard
         run: |
           flutter create --platforms=macos --no-pub .
           git restore pubspec.yaml test/widget_test.dart
-      - name: Build native engine, bridge and dashboard
+      - name: Build native engine
         run: |
           cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
           cmake --build build --parallel 2
-          (cd bridge_service && go test ./... && go build -trimpath -ldflags='-s -w' -o ../bridge-service ./src)
-          (cd gui_dashboard && flutter pub get && flutter analyze && flutter test && flutter build macos --release -t lib/installer_main.dart)
+      - name: Test bridge
+        working-directory: bridge_service
+        run: go test -count=1 ./...
+      - name: Build bridge
+        working-directory: bridge_service
+        run: go build -trimpath -ldflags='-s -w' -o ../bridge-service ./src
+      - name: Analyze dashboard
+        working-directory: gui_dashboard
+        run: flutter pub get && flutter analyze
+      - name: Test dashboard
+        working-directory: gui_dashboard
+        run: flutter test --no-pub
+      - name: Build dashboard
+        working-directory: gui_dashboard
+        run: flutter build macos --release -t lib/installer_main.dart
       - name: Build and install macOS PKG plus DMG
         run: |
           set -euo pipefail
