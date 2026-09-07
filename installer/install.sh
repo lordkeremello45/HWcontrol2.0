@@ -16,14 +16,17 @@ case " $ID $ID_LIKE " in
   *' arch '*|*' manjaro '*|*' endeavouros '*|*' garuda '*) family='arch' ;;
 esac
 echo "Distribution family: $family"
+command -v curl >/dev/null || { echo 'curl is required.' >&2; exit 1; }
+command -v python3 >/dev/null || { echo 'Python 3 is required to safely parse the GitHub release metadata. Install python3 and rerun.' >&2; exit 1; }
 release_json="$(curl -fsSL -H 'Accept: application/vnd.github+json' -H 'User-Agent: HWControl-Installer' "$API")"
-release_json="$(printf '%s' "$release_json" | python3 -c 'import json,sys; r=json.load(sys.stdin); print(json.dumps(next(x for x in r if x["tag_name"].endswith("-linux") and not x["draft"] and not x["prerelease"])))')"
+release_json="$(printf '%s' "$release_json" | python3 -c 'import json,sys; r=json.load(sys.stdin); candidates=[x for x in r if x.get("tag_name","").endswith("-linux") and not x.get("draft") and not x.get("prerelease")]; candidates.sort(key=lambda x:x.get("published_at") or x.get("created_at") or "", reverse=True); print(json.dumps(candidates[0]) if candidates else "")')"
+[ -n "$release_json" ] || { echo 'No stable Linux release is currently available.' >&2; exit 1; }
 tag="$(printf '%s' "$release_json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["tag_name"])')"
 asset_url(){ printf '%s' "$release_json" | python3 -c 'import json,sys; r=json.load(sys.stdin); s=sys.argv[1]; print(next((a["browser_download_url"] for a in r["assets"] if a["name"].endswith(s)), ""))' "$1"; }
 asset_name(){ printf '%s' "$release_json" | python3 -c 'import json,sys; r=json.load(sys.stdin); s=sys.argv[1]; print(next((a["name"] for a in r["assets"] if a["name"].endswith(s)), ""))' "$1"; }
-sha_url="$(asset_url '.sha256')"; deb_url="$(asset_url '.deb')"; rpm_url="$(asset_url '.rpm')"; arch_url="$(asset_url '.pkg.tar.zst')"; zst_url="$(asset_url '.tar.zst')"; gz_url="$(asset_url '.tar.gz')"
-[ -n "$sha_url" ] || { echo "The latest Linux release ($tag) has no SHA-256 manifest. Installation is blocked." >&2; exit 1; }
-sha_name="$(asset_name '.sha256')"; [ -n "$sha_name" ] || exit 1
+sha_url="$(asset_url '-Linux-x64.sha256')"; deb_url="$(asset_url '.deb')"; rpm_url="$(asset_url '.rpm')"; arch_url="$(asset_url '.pkg.tar.zst')"; zst_url="$(asset_url '.tar.zst')"; gz_url="$(asset_url '.tar.gz')"
+[ -n "$sha_url" ] || { echo "The latest Linux release ($tag) has no primary Linux SHA-256 manifest. Installation is blocked." >&2; exit 1; }
+sha_name="$(asset_name '-Linux-x64.sha256')"; [ -n "$sha_name" ] || exit 1
 sha_file="$TMP_DIR/$sha_name"; curl -fL -o "$sha_file" "$sha_url"
 verify_sha(){ local file="$1" base expected actual; base="$(basename "$file")"; expected="$(awk -v f="$base" '$2 == f || $2 == "*" f {print $1; exit}' "$sha_file")"; [ -n "$expected" ] || { echo "No SHA-256 entry for $base was found." >&2; exit 1; }; actual="$(sha256sum "$file"|awk '{print $1}')"; [ "$actual" = "$expected" ] || { echo "SHA-256 verification failed for $base." >&2; exit 1; }; echo "SHA-256 verification: OK ($base)"; }
 install_deb(){ local file="$1"; verify_sha "$file"; $SUDO apt-get install -y "$file"; }
