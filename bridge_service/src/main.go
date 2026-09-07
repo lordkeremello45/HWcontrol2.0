@@ -73,19 +73,21 @@ type HardwareMetrics struct {
 	PowerWatts           float64 `json:"powerWatts"`
 	Voltage               float64 `json:"voltage"`
 	UptimeSeconds        uint64  `json:"uptimeSeconds"`
-	Platform               string `json:"platform"`
-	GPUVendor              string `json:"gpuVendor"`
-	GPUName                string `json:"gpuName"`
-	GPUDriver              string `json:"gpuDriver"`
-	GPUDriverProvider      string `json:"gpuDriverProvider"`
-	GPUDriverVersion       string `json:"gpuDriverVersion"`
-	GPUDriverStatus        string `json:"gpuDriverStatus"`
-	GPUDriverSource        string `json:"gpuDriverSource"`
-	GPUMemoryUsedBytes     uint64  `json:"gpuMemoryUsedBytes"`
-	GPUMemoryTotalBytes    uint64  `json:"gpuMemoryTotalBytes"`
-	GPUCoreClockMHz        float64 `json:"gpuCoreClockMHz"`
-	GPUMemoryClockMHz      float64 `json:"gpuMemoryClockMHz"`
-	SensorSource            string `json:"sensorSource"`
+	Platform             string  `json:"platform"`
+	GPUVendor            string  `json:"gpuVendor"`
+	GPUName              string  `json:"gpuName"`
+	GPUDriver             string  `json:"gpuDriver"`
+	GPUDriverProvider     string  `json:"gpuDriverProvider"`
+	GPUDriverVersion      string  `json:"gpuDriverVersion"`
+	GPUDriverStatus       string  `json:"gpuDriverStatus"`
+	GPUDriverSource       string  `json:"gpuDriverSource"`
+	GPUDriverAction       string  `json:"gpuDriverAction"`
+	GPUDriverReason       string  `json:"gpuDriverReason"`
+	GPUMemoryUsedBytes    uint64  `json:"gpuMemoryUsedBytes"`
+	GPUMemoryTotalBytes   uint64  `json:"gpuMemoryTotalBytes"`
+	GPUCoreClockMHz       float64 `json:"gpuCoreClockMHz"`
+	GPUMemoryClockMHz     float64 `json:"gpuMemoryClockMHz"`
+	SensorSource          string  `json:"sensorSource"`
 }
 
 const bridgeVersion = "2.1.0"
@@ -138,6 +140,7 @@ func collectMetrics() HardwareMetrics {
 	}
 	mergePlatformMetrics(&metrics)
 	mergeDriverInfo(&metrics)
+	applyCompatibilityPolicy(&metrics)
 	if _, err := load.Avg(); err == nil {
 	}
 	metrics.Platform = runtime.GOOS
