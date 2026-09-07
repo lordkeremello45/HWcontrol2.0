@@ -59,7 +59,6 @@ jobs:
           tar -cf "HWControl-${{ github.ref_name }}-Linux-x64.tar" -C package "HWControl-${{ github.ref_name }}-Linux-x64"
           zstd -f "HWControl-${{ github.ref_name }}-Linux-x64.tar" -o "HWControl-${{ github.ref_name }}-Linux-x64.tar.zst"
           rm -f "HWControl-${{ github.ref_name }}-Linux-x64.tar"
-
           deb_root="package/deb"
           mkdir -p "$deb_root/DEBIAN" "$deb_root/opt/hwcontrol"
           cp -R "$package_dir/." "$deb_root/opt/hwcontrol/"
@@ -133,7 +132,6 @@ jobs:
           flutter test
           flutter build windows --release -t lib/installer_main.dart
           Pop-Location
-
           $packageDir = "package/HWControl-${{ github.ref_name }}-Windows-x64"
           New-Item -ItemType Directory -Force -Path $packageDir | Out-Null
           Copy-Item build-windows/ai_core/Release/ai_engine.exe "$packageDir/ai_engine.exe"
@@ -146,17 +144,12 @@ jobs:
           Expand-Archive -Path "HWControl-${{ github.ref_name }}-Windows-x64.zip" -DestinationPath verify-zip -Force
           if (-not (Test-Path "verify-zip/$packageDir/dashboard")) { throw "dashboard missing from Windows package" }
           if (-not (Test-Path "verify-zip/$packageDir/HWControl.exe")) { throw "HWControl.exe missing from Windows package" }
-
           dotnet tool install --global wix --version 6.0.2 --add-source https://api.nuget.org/v3/index.json
           $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
           wix --version
           $version = "${{ github.ref_name }}" -replace '^v', '' -replace '-windows$', ''
           wix build deploy/windows/HWControl.wxs -arch x64 -d Version=$version -d PackageDir=$packageDir -o "HWControl-${{ github.ref_name }}-Windows-x64.msi"
           if (-not (Test-Path "HWControl-${{ github.ref_name }}-Windows-x64.msi")) { throw "MSI was not produced" }
-
-          (Get-FileHash "HWControl-${{ github.ref_name }}-Windows-x64.zip" -Algorithm SHA256).Hash.ToLower() + "  HWControl-${{ github.ref_name }}-Windows-x64.zip" | Set-Content "HWControl-${{ github.ref_name }}-Windows-x64.sha256"
-          (Get-FileHash "HWControl-${{ github.ref_name }}-Windows-x64.msi" -Algorithm SHA256).Hash.ToLower() + "  HWControl-${{ github.ref_name }}-Windows-x64.msi" | Add-Content "HWControl-${{ github.ref_name }}-Windows-x64.sha256"
-          (Get-FileHash "HWControl-${{ github.ref_name }}-Windows-x64.zip" -Algorithm SHA256).Hash.ToLower() + "  HWControl-${{ github.ref_name }}-Windows-x64.zip" | Set-Content "HWControl-${{ github.ref_name }}-Windows-x64.sha256"
           $zipHash = (Get-FileHash "HWControl-${{ github.ref_name }}-Windows-x64.zip" -Algorithm SHA256).Hash.ToLower()
           $msiHash = (Get-FileHash "HWControl-${{ github.ref_name }}-Windows-x64.msi" -Algorithm SHA256).Hash.ToLower()
           Set-Content "HWControl-${{ github.ref_name }}-Windows-x64.sha256" @(
@@ -209,7 +202,6 @@ jobs:
           cmake --build build --parallel 2
           (cd bridge_service && go test ./... && go build -trimpath -ldflags="-s -w" -o ../bridge-service ./src)
           (cd gui_dashboard && flutter analyze && flutter test && flutter build macos --release -t lib/installer_main.dart)
-
           version="${GITHUB_REF_NAME#v}"
           version="${version%-macos}"
           package_dir="package/HWControl-${GITHUB_REF_NAME}-macOS-AppleSilicon"
@@ -223,7 +215,6 @@ jobs:
           chmod 0755 deploy/macos/pkg-scripts/preinstall deploy/macos/pkg-scripts/postinstall
           test -x deploy/macos/pkg-scripts/preinstall
           test -x deploy/macos/pkg-scripts/postinstall
-
           pkgbuild --root "$package_dir" --identifier com.hwcontrol.app --version "$version" --install-location /Applications/HWControl --scripts deploy/macos/pkg-scripts "HWControl-${GITHUB_REF_NAME}-macOS-AppleSilicon.pkg"
           hdiutil create -volname "HWControl $GITHUB_REF_NAME" -srcfolder "$package_dir" -ov -format UDZO "HWControl-${GITHUB_REF_NAME}-macOS-AppleSilicon.dmg"
           shasum -a 256 "HWControl-${GITHUB_REF_NAME}-macOS-AppleSilicon.pkg" "HWControl-${GITHUB_REF_NAME}-macOS-AppleSilicon.dmg" > "HWControl-${GITHUB_REF_NAME}-macOS-AppleSilicon.sha256"
