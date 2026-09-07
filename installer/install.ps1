@@ -32,16 +32,49 @@ Write-Host "Downloading $($artifact.name) ($kind)..."
 Invoke-WebRequest -Uri $artifact.browser_download_url -Headers $headers -OutFile $temp
 Invoke-WebRequest -Uri $sha.browser_download_url -Headers $headers -OutFile $shaTemp
 
-$expected = Get-Content $shaTemp | ForEach-Object {
-  if ($_ -match '^([0-9a-fA-F]{64})\s+\*?(.+)$') {
-    [PSCustomObject]@{ Hash = $matches[1].ToLower(); File = [IO.Path]::GetFileName($matches[2]) }
+function Get-ManifestHash([string]$Manifest, [string]$Name, [int]$Length) {
+  if (-not (Test-Path -LiteralPath $Manifest -PathType Leaf)) { return $null }
+  foreach ($line in Get-Content -LiteralPath $Manifest) {
+    if ($line -match "^([0-9A-Fa-f]{$Length})\s+\*?(.+)$" -and [IO.Path]::GetFileName($Matches[2].Trim()) -eq $Name) {
+      return $Matches[1].ToLowerInvariant()
+    }
   }
-} | Where-Object { $_.File -eq $artifact.name } | Select-Object -First 1
-if (-not $expected) { throw "No SHA-256 entry for $($artifact.name) was found. Installation is blocked." }
+  return $null
+}
 
-$actual = (Get-FileHash $temp -Algorithm SHA256).Hash.ToLower()
-if ($actual -ne $expected.Hash) { throw 'SHA-256 verification failed. The installer was not launched.' }
+$expected = Get-ManifestHash $shaTemp $artifact.name 64
+if (-not $expected) { throw "No SHA-256 entry for $($artifact.name) was found. Installation is blocked." }
+$actual = (Get-FileHash $temp -Algorithm SHA256).Hash.ToLowerInvariant()
+if ($actual -ne $expected) { throw 'SHA-256 verification failed. The installer was not launched.' }
 Write-Host 'SHA-256 verification: OK' -ForegroundColor Green
+
+# SHA-512 is an optional compatibility check. Older releases may not publish it.
+$sha512 = $release.assets | Where-Object { $_.name -eq 'SHA512SUMS.txt' -or $_.name -match '-Windows-x64-Setup\.sha512$' -or $_.name -match '-Windows-x64\.sha512$' } | Select-Object -First 1
+if ($sha512) {
+  $sha512Temp = Join-Path $env:TEMP $sha512.name
+  Invoke-WebRequest -Uri $sha512.browser_download_url -Headers $headers -OutFile $sha512Temp
+  $expected512 = Get-ManifestHash $sha512Temp $artifact.name 128
+  if ($expected512) {
+    $actual512 = (Get-FileHash $temp -Algorithm SHA512).Hash.ToLowerInvariant()
+    if ($actual512 -ne $expected512) { throw 'SHA-512 verification failed. The installer was not launched.' }
+    Write-Host 'SHA-512 verification: OK' -ForegroundColor Green
+  } else { Write-Host 'SHA-512 entry unavailable; continuing with SHA-256.' }
+} else { Write-Host 'SHA-512 manifest unavailable; continuing with SHA-256.' }
+
+# SHA3-512 is optional and uses OpenSSL when available on Windows.
+$sha3 = $release.assets | Where-Object { $_.name -eq 'SHA3-512SUMS.txt' } | Select-Object -First 1
+$openssl = Get-Command openssl -ErrorAction SilentlyContinue
+if ($sha3 -and $openssl) {
+  $sha3Temp = Join-Path $env:TEMP $sha3.name
+  Invoke-WebRequest -Uri $sha3.browser_download_url -Headers $headers -OutFile $sha3Temp
+  $expected3 = Get-ManifestHash $sha3Temp $artifact.name 128
+  if ($expected3) {
+    $actual3 = ((& $openssl.Source dgst -sha3-512 -r -- $temp) -split '\s+')[0].ToLowerInvariant()
+    if ($actual3 -ne $expected3) { throw 'SHA3-512 verification failed. The installer was not launched.' }
+    Write-Host 'SHA3-512 verification: OK' -ForegroundColor Green
+  } else { Write-Host 'SHA3-512 entry unavailable; continuing with previous checks.' }
+} elseif ($sha3) { Write-Host 'OpenSSL unavailable for SHA3-512; continuing with previous checks.' }
+else { Write-Host 'SHA3-512 manifest unavailable; continuing with previous checks.' }
 
 if ($kind -eq 'Setup') {
   Write-Host "Starting HWControl $($release.tag_name) Setup..."
