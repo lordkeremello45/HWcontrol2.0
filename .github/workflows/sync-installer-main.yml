@@ -24,17 +24,20 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Resolve latest platform releases
+      - name: Resolve latest stable platform releases
         id: releases
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          releases="$(gh api --paginate repos/$GITHUB_REPOSITORY/releases --jq '.[] | select(.draft == false) | [.tag_name,.published_at] | @tsv')"
-          windows="$(printf '%s\n' "$releases" | awk -F '\t' '$1 ~ /-windows$/ {print $1; exit}')"
-          macos="$(printf '%s\n' "$releases" | awk -F '\t' '$1 ~ /-macos$/ {print $1; exit}')"
-          linux="$(printf '%s\n' "$releases" | awk -F '\t' '$1 ~ /-linux$/ {print $1; exit}')"
-          [ -n "$windows" ] && [ -n "$macos" ] && [ -n "$linux" ] || { echo 'Could not resolve all three platform releases.' >&2; exit 1; }
+          releases="$(gh api --paginate repos/$GITHUB_REPOSITORY/releases --jq '.[] | select(.draft == false and .prerelease == false) | [.tag_name,.published_at] | @tsv')"
+          latest_for() {
+            printf '%s\n' "$releases" | awk -F '\t' -v suffix="$1" '$1 ~ suffix "$"' | sort -t $'\t' -k2,2r | head -n1 | cut -f1
+          }
+          windows="$(latest_for '-windows')"
+          macos="$(latest_for '-macos')"
+          linux="$(latest_for '-linux')"
+          [ -n "$windows" ] && [ -n "$macos" ] && [ -n "$linux" ] || { echo 'Could not resolve all three stable platform releases.' >&2; exit 1; }
           echo "windows=$windows" >> "$GITHUB_OUTPUT"
           echo "macos=$macos" >> "$GITHUB_OUTPUT"
           echo "linux=$linux" >> "$GITHUB_OUTPUT"
@@ -48,6 +51,8 @@ jobs:
           set -euo pipefail
           mkdir -p installer/.incoming/windows
           gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern '*.msi' --pattern '*.sha256' --dir installer/.incoming/windows
+          test -n "$(find installer/.incoming/windows -maxdepth 1 -type f -name '*.msi' -print -quit)"
+          test -n "$(find installer/.incoming/windows -maxdepth 1 -type f -name '*.sha256' -print -quit)"
 
       - name: Download latest macOS installers
         env:
@@ -57,15 +62,20 @@ jobs:
           set -euo pipefail
           mkdir -p installer/.incoming/macos
           gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern '*.pkg' --pattern '*.dmg' --pattern '*.sha256' --dir installer/.incoming/macos
+          test -n "$(find installer/.incoming/macos -maxdepth 1 -type f -name '*.pkg' -print -quit)"
+          test -n "$(find installer/.incoming/macos -maxdepth 1 -type f -name '*.dmg' -print -quit)"
+          test -n "$(find installer/.incoming/macos -maxdepth 1 -type f -name '*.sha256' -print -quit)"
 
-      - name: Download latest Linux installer
+      - name: Download latest Linux installers
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.releases.outputs.linux }}
         run: |
           set -euo pipefail
           mkdir -p installer/.incoming/linux
-          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern '*.deb' --pattern '*.sha256' --dir installer/.incoming/linux
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern '*.deb' --pattern '*.rpm' --pattern '*.pkg.tar.zst' --pattern '*.tar.zst' --pattern '*.tar.gz' --pattern '*.sha256' --dir installer/.incoming/linux
+          test -n "$(find installer/.incoming/linux -maxdepth 1 -type f -name '*.deb' -print -quit)"
+          test -n "$(find installer/.incoming/linux -maxdepth 1 -type f -name '*.sha256' -print -quit)"
 
       - name: Extract macOS application bundle
         run: |
@@ -75,14 +85,14 @@ jobs:
           mkdir -p installer/macos
           mountpoint="$(mktemp -d /tmp/hwcontrol-dmg.XXXXXX)"
           hdiutil attach "$dmg" -nobrowse -readonly -mountpoint "$mountpoint" >/dev/null
+          cleanup() { hdiutil detach "$mountpoint" >/dev/null 2>&1 || true; }
+          trap cleanup EXIT
           app="$(find "$mountpoint" -maxdepth 2 -type d -name 'HWControl.app' | head -n 1 || true)"
           if [ -z "$app" ]; then
-            hdiutil detach "$mountpoint" >/dev/null || true
             echo 'HWControl.app was not found in the latest macOS DMG.' >&2
             exit 1
           fi
           ditto "$app" installer/macos/HWControl.app
-          hdiutil detach "$mountpoint" >/dev/null
 
       - name: Replace installer snapshot
         env:
@@ -93,10 +103,11 @@ jobs:
           set -euo pipefail
           rm -rf installer/releases
           mkdir -p installer/releases/windows installer/releases/macos installer/releases/linux
-          cp installer/.incoming/windows/* installer/releases/windows/
+          cp installer/.incoming/windows/*.msi installer/releases/windows/
+          cp installer/.incoming/windows/*.sha256 installer/releases/windows/
           cp installer/.incoming/macos/*.pkg installer/releases/macos/
           cp installer/.incoming/macos/*.dmg installer/releases/macos/
-          cp installer/.incoming/macos/*.sha256 installer/releases/macos/ || true
+          cp installer/.incoming/macos/*.sha256 installer/releases/macos/
           cp installer/.incoming/linux/* installer/releases/linux/
           printf 'Windows=%s\nmacOS=%s\nLinux=%s\n' "$WINDOWS_TAG" "$MACOS_TAG" "$LINUX_TAG" > installer/releases/VERSIONS
           rm -rf installer/.incoming
