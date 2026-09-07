@@ -10,6 +10,18 @@
 
 Security fixes and release-integrity improvements are applied to the currently supported release line.
 
+## Telemetry and privacy
+
+HWControl follows a **local-first telemetry model**.
+
+- Hardware and system metrics are collected on the user's PC by the local bridge service and consumed locally by the dashboard.
+- The application does **not intentionally collect or transmit unnecessary telemetry, usage analytics, advertising identifiers, or behavioral tracking data**.
+- Routine monitoring data such as CPU/GPU utilization, temperatures, memory, disk usage, fan state, driver information, uptime, and related hardware diagnostics remains on the local machine unless the user explicitly exports or shares it.
+- Bridge communication is bound to `127.0.0.1` by default, so the dashboard-to-bridge telemetry path is local to the PC.
+- Update checking is a separate HTTPS request to the allowlisted GitHub release infrastructure; this is not a telemetry upload channel.
+
+This privacy model describes the intended application behavior. It does not claim that the operating system, GPU drivers, GitHub, or other third-party software on the user's machine collect no data of their own.
+
 ## Runtime safety — BSOD Shield
 
 HWControl includes a **BSOD Shield** safety layer in the AI/core runtime. The shield monitors the core execution loop and can stop processing when its health/heartbeat checks indicate that the runtime is no longer healthy. This is a **risk-reduction mechanism**, not a guarantee that Windows can never crash.
