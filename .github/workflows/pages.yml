@@ -31,9 +31,14 @@ jobs:
       - name: Validate website JavaScript
         run: node --check website/app.js
 
-      - name: Validate release manifest
+      - name: Validate release manifest when present
         run: |
-          node scripts/website-release-test.mjs website/release.json
+          set -euo pipefail
+          if [ -f website/release.json ]; then
+            node scripts/website-release-test.mjs website/release.json
+          else
+            echo 'release.json is not present yet; website will use the GitHub Releases API fallback.'
+          fi
 
       - name: Verify release-aware download selector
         run: |
