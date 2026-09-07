@@ -12,7 +12,8 @@ printf '%s\n' 'Resolving the latest stable Apple Silicon release...'
 release_json="$(curl -fsSL -H 'Accept: application/vnd.github+json' -H 'User-Agent: HWControl-Installer' "$API")"
 tag="$(printf '%s' "$release_json" | python3 -c 'import json,sys; r=json.load(sys.stdin); print(next(x["tag_name"] for x in r if x["tag_name"].endswith("-macos") and not x["draft"] and not x["prerelease"]))')"
 asset_info="$(printf '%s' "$release_json" | python3 -c 'import json,sys; r=json.load(sys.stdin); x=next(x for x in r if x["tag_name"]==sys.argv[1]); p=next((a for a in x["assets"] if a["name"].endswith(".pkg")),None); s=next((a for a in x["assets"] if a["name"].endswith(".sha256")),None); print((p["name"] if p else "")+"\t"+(p["browser_download_url"] if p else "")+"\t"+(s["name"] if s else "")+"\t"+(s["browser_download_url"] if s else ""))' "$tag")"
-IFS='\t' read -r pkg_name pkg_url sha_name sha_url <<EOF
+TAB=$(printf '\t')
+IFS="$TAB" read -r pkg_name pkg_url sha_name sha_url <<EOF
 $asset_info
 EOF
 
