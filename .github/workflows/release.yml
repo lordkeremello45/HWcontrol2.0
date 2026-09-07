@@ -118,7 +118,7 @@ jobs:
           flutter create --platforms=windows --no-pub .
           git restore pubspec.yaml test/widget_test.dart
           flutter pub get
-      - name: Build Windows dashboard and package
+      - name: Build Windows binaries
         shell: pwsh
         run: |
           cmake -S . -B build-windows -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
@@ -140,16 +140,79 @@ jobs:
           Copy-Item bridge-service.exe "$packageDir/bridge-service.exe"
           Copy-Item README.md, SECURITY.md, THIRD_PARTY_NOTICES $packageDir
           Copy-Item -Recurse deploy/windows "$packageDir/deploy"
+          if (-not (Test-Path "$packageDir/HWControl.exe")) { throw 'HWControl.exe missing from Windows package' }
+          if (-not (Test-Path "$packageDir/bridge-service.exe")) { throw 'bridge-service.exe missing from Windows package' }
+          if (-not (Test-Path "$packageDir/ai_engine.exe")) { throw 'ai_engine.exe missing from Windows package' }
+      - name: Locate SignTool
+        id: signtool
+        if: ${{ env.WINDOWS_CERTIFICATE_B64 != '' && env.WINDOWS_CERTIFICATE_PASSWORD != '' }}
+        env:
+          WINDOWS_CERTIFICATE_B64: ${{ secrets.WINDOWS_CERTIFICATE_B64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        shell: pwsh
+        run: |
+          $tool = Get-Command signtool.exe -ErrorAction SilentlyContinue
+          if (-not $tool) {
+            $tool = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\bin' -Filter signtool.exe -Recurse -ErrorAction SilentlyContinue |
+              Where-Object { $_.FullName -match '\\x64\\signtool\.exe$' } |
+              Sort-Object FullName -Descending |
+              Select-Object -First 1
+          }
+          if (-not $tool) { throw 'SignTool was not found on the Windows runner.' }
+          "path=$($tool.Source ?? $tool.FullName)" >> $env:GITHUB_OUTPUT
+      - name: Sign Windows binaries
+        if: ${{ env.WINDOWS_CERTIFICATE_B64 != '' && env.WINDOWS_CERTIFICATE_PASSWORD != '' }}
+        env:
+          WINDOWS_CERTIFICATE_B64: ${{ secrets.WINDOWS_CERTIFICATE_B64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+          SIGNTOOL: ${{ steps.signtool.outputs.path }}
+        shell: pwsh
+        run: |
+          $cert = Join-Path $env:RUNNER_TEMP 'hwcontrol-code-signing.pfx'
+          [IO.File]::WriteAllBytes($cert, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE_B64))
+          $packageDir = "package/HWControl-${{ github.ref_name }}-Windows-x64"
+          $files = Get-ChildItem $packageDir -Recurse -File | Where-Object { $_.Extension -in '.exe', '.dll' }
+          if (-not $files) { throw 'No Windows PE files were found to sign.' }
+          foreach ($file in $files) {
+            & $env:SIGNTOOL sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f $cert /p $env:WINDOWS_CERTIFICATE_PASSWORD /d 'HWControl' $file.FullName
+            if ($LASTEXITCODE -ne 0) { throw "Signing failed: $($file.FullName)" }
+            & $env:SIGNTOOL verify /pa /all /v $file.FullName
+            if ($LASTEXITCODE -ne 0) { throw "Signature verification failed: $($file.FullName)" }
+          }
+          Remove-Item $cert -Force
+      - name: Package Windows release
+        shell: pwsh
+        run: |
+          $packageDir = "package/HWControl-${{ github.ref_name }}-Windows-x64"
           Compress-Archive -Path "$packageDir/*" -DestinationPath "HWControl-${{ github.ref_name }}-Windows-x64.zip"
           Expand-Archive -Path "HWControl-${{ github.ref_name }}-Windows-x64.zip" -DestinationPath verify-zip -Force
-          if (-not (Test-Path "verify-zip/$packageDir/dashboard")) { throw "dashboard missing from Windows package" }
-          if (-not (Test-Path "verify-zip/$packageDir/HWControl.exe")) { throw "HWControl.exe missing from Windows package" }
+          if (-not (Test-Path "verify-zip/$packageDir/dashboard")) { throw 'dashboard missing from Windows package' }
+          if (-not (Test-Path "verify-zip/$packageDir/HWControl.exe")) { throw 'HWControl.exe missing from Windows package' }
           dotnet tool install --global wix --version 6.0.2 --add-source https://api.nuget.org/v3/index.json
           $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
           wix --version
           $version = "${{ github.ref_name }}" -replace '^v', '' -replace '-windows$', ''
           wix build deploy/windows/HWControl.wxs -arch x64 -d Version=$version -d PackageDir=$packageDir -o "HWControl-${{ github.ref_name }}-Windows-x64.msi"
-          if (-not (Test-Path "HWControl-${{ github.ref_name }}-Windows-x64.msi")) { throw "MSI was not produced" }
+          if (-not (Test-Path "HWControl-${{ github.ref_name }}-Windows-x64.msi")) { throw 'MSI was not produced' }
+      - name: Sign Windows MSI
+        if: ${{ env.WINDOWS_CERTIFICATE_B64 != '' && env.WINDOWS_CERTIFICATE_PASSWORD != '' }}
+        env:
+          WINDOWS_CERTIFICATE_B64: ${{ secrets.WINDOWS_CERTIFICATE_B64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+          SIGNTOOL: ${{ steps.signtool.outputs.path }}
+        shell: pwsh
+        run: |
+          $cert = Join-Path $env:RUNNER_TEMP 'hwcontrol-code-signing.pfx'
+          [IO.File]::WriteAllBytes($cert, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE_B64))
+          $msi = "HWControl-${{ github.ref_name }}-Windows-x64.msi"
+          & $env:SIGNTOOL sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f $cert /p $env:WINDOWS_CERTIFICATE_PASSWORD /d 'HWControl' $msi
+          if ($LASTEXITCODE -ne 0) { throw 'MSI signing failed.' }
+          & $env:SIGNTOOL verify /pa /all /v $msi
+          if ($LASTEXITCODE -ne 0) { throw 'MSI signature verification failed.' }
+          Remove-Item $cert -Force
+      - name: Generate Windows checksums
+        shell: pwsh
+        run: |
           $zipHash = (Get-FileHash "HWControl-${{ github.ref_name }}-Windows-x64.zip" -Algorithm SHA256).Hash.ToLower()
           $msiHash = (Get-FileHash "HWControl-${{ github.ref_name }}-Windows-x64.msi" -Algorithm SHA256).Hash.ToLower()
           Set-Content "HWControl-${{ github.ref_name }}-Windows-x64.sha256" @(
@@ -157,7 +220,7 @@ jobs:
             "$msiHash  HWControl-${{ github.ref_name }}-Windows-x64.msi"
           )
           $shaCheck = Get-Content "HWControl-${{ github.ref_name }}-Windows-x64.sha256"
-          if ($shaCheck.Count -ne 2) { throw "Windows checksum manifest must contain ZIP and MSI entries" }
+          if ($shaCheck.Count -ne 2) { throw 'Windows checksum manifest must contain ZIP and MSI entries' }
       - name: Generate Windows package provenance
         uses: actions/attest@v4
         with:
