@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   verify-and-publish:
-    name: Verify release assets and publish SHA256SUMS
+    name: Verify release assets and publish SHA256/SHA512 manifests
     runs-on: ubuntu-24.04
     steps:
       - name: Resolve release tag
@@ -94,13 +94,32 @@ jobs:
               test -f "$asset" || { echo "Missing asset for $checksum: $asset"; exit 1; }
               actual=$(sha256sum "$asset" | awk '{print $1}')
               test "$expected" = "$actual" || { echo "SHA256 mismatch: $asset"; exit 1; }
-              echo "Verified: $asset"
+              echo "Verified SHA256: $asset"
             done
           done
           if [ "$found" -eq 0 ]; then
             echo 'No individual .sha256 files found.' >&2
             exit 1
           fi
+
+      - name: Verify individual SHA512 files when present
+        run: |
+          set -euo pipefail
+          cd release-assets
+          shopt -s nullglob
+          for checksum in *.sha512; do
+            mapfile -t entries < <(awk 'NF >= 2 {print $1 "\t" $2}' "$checksum")
+            test "${#entries[@]}" -gt 0 || { echo "Empty SHA512 manifest: $checksum"; exit 1; }
+            for entry in "${entries[@]}"; do
+              expected="${entry%%$'\t'*}"
+              asset="${entry#*$'\t'}"
+              asset="${asset#\*}"
+              test -f "$asset" || { echo "Missing asset for $checksum: $asset"; exit 1; }
+              actual=$(sha512sum "$asset" | awk '{print $1}')
+              test "$expected" = "$actual" || { echo "SHA512 mismatch: $asset"; exit 1; }
+              echo "Verified SHA512: $asset"
+            done
+          done
 
       - name: Validate expected platform packages
         env:
@@ -134,11 +153,22 @@ jobs:
           set -euo pipefail
           cd release-assets
           rm -f SHA256SUMS.txt
-          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' ! -name '*.sha256' -print0 \
+          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' ! -name 'SHA512SUMS.txt' ! -name '*.sha256' ! -name '*.sha512' -print0 \
             | sort -z \
             | xargs -0 sha256sum > SHA256SUMS.txt
           test -s SHA256SUMS.txt
           cat SHA256SUMS.txt
+
+      - name: Generate release-wide SHA512SUMS.txt
+        run: |
+          set -euo pipefail
+          cd release-assets
+          rm -f SHA512SUMS.txt
+          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' ! -name 'SHA512SUMS.txt' ! -name '*.sha256' ! -name '*.sha512' -print0 \
+            | sort -z \
+            | xargs -0 sha512sum > SHA512SUMS.txt
+          test -s SHA512SUMS.txt
+          cat SHA512SUMS.txt
 
       - name: Upload SHA256SUMS.txt to release
         env:
@@ -147,5 +177,15 @@ jobs:
         run: |
           set -euo pipefail
           gh release upload "$TAG" release-assets/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+
+      - name: Upload SHA512SUMS.txt to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" release-assets/SHA512SUMS.txt \
             --repo "$GITHUB_REPOSITORY" \
             --clobber
