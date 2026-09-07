@@ -11,7 +11,6 @@
 
     <Component Id="BridgeServiceComponent" Directory="INSTALLFOLDER">
       <File Id="BridgeServiceExe" Source="$(var.PackageDir)\bridge-service.exe" KeyPath="yes" />
-      <Environment Id="RemoveHwControlKey" Name="HWCONTROL_KEY" Action="remove" System="yes" />
       <ServiceInstall Id="BridgeServiceInstall" Name="HWControlBridge" DisplayName="HWControl Bridge" Description="HWControl local authenticated bridge service" ErrorControl="normal" Start="auto" Type="ownProcess" Vital="yes" />
       <ServiceControl Id="BridgeServiceControl" Name="HWControlBridge" Start="install" Stop="both" Remove="uninstall" Wait="yes" />
     </Component>
