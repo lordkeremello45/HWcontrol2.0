@@ -43,6 +43,48 @@ actual="$(shasum -a 256 "$pkg" | awk '{print $1}')"
 [ "$actual" = "$expected" ] || { echo 'SHA-256 verification failed. The installer was not launched.' >&2; exit 1; }
 echo 'SHA-256 verification: OK'
 
+verify_extra_hashes(){
+  base="$(basename "$pkg")"
+  sha512_url="$(printf '%s' "$release_json" | python3 -c 'import json,sys; r=json.load(sys.stdin); x=next(x for x in r if x["tag_name"]==sys.argv[1]); print(next((a["browser_download_url"] for a in x["assets"] if a["name"]=="SHA512SUMS.txt"), ""))' "$tag")"
+  sha3_url="$(printf '%s' "$release_json" | python3 -c 'import json,sys; r=json.load(sys.stdin); x=next(x for x in r if x["tag_name"]==sys.argv[1]); print(next((a["browser_download_url"] for a in x["assets"] if a["name"]=="SHA3-512SUMS.txt"), ""))' "$tag")"
+
+  if [ -n "$sha512_url" ]; then
+    sha512_file="$TMP_DIR/SHA512SUMS.txt"
+    curl -fL -o "$sha512_file" "$sha512_url"
+    expected="$(awk -v f="$base" '$2 == f || $2 == "*" f {print $1; exit}' "$sha512_file")"
+    if [ -n "$expected" ]; then
+      actual="$(shasum -a 512 "$pkg" | awk '{print $1}')"
+      [ "$actual" = "$expected" ] || { echo 'SHA-512 verification failed. The installer was not launched.' >&2; exit 1; }
+      echo 'SHA-512 verification: OK'
+    else
+      echo "SHA-512 manifest has no entry for $base; continuing."
+    fi
+  else
+    echo 'SHA-512 manifest: not published; continuing with SHA-256.'
+  fi
+
+  if [ -n "$sha3_url" ]; then
+    if ! command -v openssl >/dev/null; then
+      echo 'SHA3-512 verification skipped: OpenSSL is not available.'
+      return 0
+    fi
+    sha3_file="$TMP_DIR/SHA3-512SUMS.txt"
+    curl -fL -o "$sha3_file" "$sha3_url"
+    expected="$(awk -v f="$base" '$2 == f || $2 == "*" f {print $1; exit}' "$sha3_file")"
+    if [ -n "$expected" ]; then
+      actual="$(openssl dgst -sha3-512 -r "$pkg" | awk '{print $1}')"
+      [ "$actual" = "$expected" ] || { echo 'SHA3-512 verification failed. The installer was not launched.' >&2; exit 1; }
+      echo 'SHA3-512 verification: OK'
+    else
+      echo "SHA3-512 manifest has no entry for $base; continuing."
+    fi
+  else
+    echo 'SHA3-512 manifest: not published; continuing with SHA-256.'
+  fi
+}
+
+verify_extra_hashes
+
 echo "Starting HWControl $tag installer..."
 sudo installer -pkg "$pkg" -target /
 echo 'HWControl installation finished.'
