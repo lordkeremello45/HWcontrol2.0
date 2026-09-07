@@ -16,6 +16,8 @@ env:
 
 jobs:
   build-extra:
+    # Release packages must only be built from a Linux release tag.
+    if: github.ref_type == 'tag' && endsWith(github.ref_name, '-linux')
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -65,10 +67,12 @@ BuildArch: x86_64
 %description
 HWControl hardware monitoring and control suite.
 %prep
-%setup -q -c
+rm -rf source
+mkdir -p source
+tar -xzf %{SOURCE0} -C source --strip-components=1
 %install
 mkdir -p %{buildroot}/opt/hwcontrol
-cp -a ./* %{buildroot}/opt/hwcontrol/
+cp -a source/. %{buildroot}/opt/hwcontrol/
 %files
 /opt/hwcontrol
 EOF
