@@ -201,21 +201,40 @@ jobs:
           ED25519_PRIVATE_KEY_B64: ${{ secrets.ED25519_PRIVATE_KEY_B64 }}
         run: |
           set -euo pipefail
+          key="$RUNNER_TEMP/hwcontrol-release-ed25519.pem"
+          derived_pub="$RUNNER_TEMP/hwcontrol-release-ed25519.pub"
+          committed_pub="$GITHUB_WORKSPACE/release-assets/SHA256SUMS.txt.pub"
+          sig="$GITHUB_WORKSPACE/release-assets/SHA256SUMS.txt.sig"
+          cleanup() { rm -f "$key" "$derived_pub"; }
+          trap cleanup EXIT
+
           if [ -z "${ED25519_PRIVATE_KEY_B64:-}" ]; then
             echo 'enabled=false' >> "$GITHUB_OUTPUT"
             echo 'Ed25519 signing is not configured; publishing unsigned checksum manifests.'
             exit 0
           fi
-          key="$RUNNER_TEMP/hwcontrol-release-ed25519.pem"
-          pub="$GITHUB_WORKSPACE/release-assets/SHA256SUMS.txt.pub"
-          sig="$GITHUB_WORKSPACE/release-assets/SHA256SUMS.txt.sig"
+
+          test -s "$committed_pub" || { echo 'Missing committed Ed25519 public key: SHA256SUMS.txt.pub' >&2; exit 1; }
           printf '%s' "$ED25519_PRIVATE_KEY_B64" | base64 --decode > "$key"
           chmod 600 "$key"
-          openssl pkey -in "$key" -pubout -out "$pub"
-          openssl pkeyutl -sign -rawin -inkey "$key" -in "$GITHUB_WORKSPACE/release-assets/SHA256SUMS.txt" -out "$sig"
-          openssl pkeyutl -verify -rawin -pubin -inkey "$pub" -in "$GITHUB_WORKSPACE/release-assets/SHA256SUMS.txt" -sigfile "$sig"
+
+          openssl pkey -in "$key" -pubout -out "$derived_pub"
+          cmp -s "$derived_pub" "$committed_pub" || {
+            echo 'Ed25519 public-key mismatch: GitHub Secret does not match SHA256SUMS.txt.pub' >&2
+            echo 'Refusing to sign the release with an untrusted key.' >&2
+            exit 1
+          }
+
+          openssl pkeyutl -sign -rawin -inkey "$key" \
+            -in "$GITHUB_WORKSPACE/release-assets/SHA256SUMS.txt" \
+            -out "$sig"
+          openssl pkeyutl -verify -rawin -pubin -inkey "$committed_pub" \
+            -in "$GITHUB_WORKSPACE/release-assets/SHA256SUMS.txt" \
+            -sigfile "$sig"
+
+          test -s "$sig"
+          echo 'Ed25519 manifest signature verified against committed public key.'
           echo 'enabled=true' >> "$GITHUB_OUTPUT"
-          rm -f "$key"
 
       - name: Sign SHA256 release manifest with HWControl GPG
         id: gpg
@@ -232,6 +251,8 @@ jobs:
           export GNUPGHOME="$RUNNER_TEMP/hwcontrol-gnupg"
           mkdir -m 700 -p "$GNUPGHOME"
           key="$RUNNER_TEMP/hwcontrol-release-gpg.asc"
+          cleanup() { rm -f "$key"; rm -rf "$GNUPGHOME"; }
+          trap cleanup EXIT
           expected='12DCBEC4A22481A8DBACA6956F1C5F7B37229F37'
           printf '%s' "$HWCONTROL_GPG_PRIVATE_KEY_B64" | base64 --decode > "$key"
           chmod 600 "$key"
@@ -242,7 +263,6 @@ jobs:
           gpg --batch --verify release-assets/SHA256SUMS.txt.asc release-assets/SHA256SUMS.txt
           gpg --batch --armor --export "$expected" > release-assets/HWControl-GPG-public.asc
           printf '%s\n' "$expected" > release-assets/HWControl-GPG-fingerprint.txt
-          rm -f "$key"
           echo "HWControl GPG fingerprint verified: $expected"
           echo 'enabled=true' >> "$GITHUB_OUTPUT"
 
