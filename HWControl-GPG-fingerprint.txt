@@ -1,0 +1,6 @@
+HWControl Release GPG primary key fingerprint
+12DCBEC4A22481A8DBACA6956F1C5F7B37229F37
+
+Identity: HWControl Release (Release Signing) <release@hwcontrol.dev>
+
+Use this fingerprint as the trust anchor when verifying SHA256SUMS.txt.asc.
