@@ -59,24 +59,24 @@ jobs:
           mkdir -p rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
           cp bundle.tar.gz "rpmbuild/SOURCES/HWControl-${version}.tar.gz"
           cat > rpmbuild/SPECS/hwcontrol.spec <<EOF
-Name: hwcontrol
-Version: ${version}
-Release: 1
-Summary: HWControl hardware monitoring and control suite
-License: GPL-3.0-or-later
-BuildArch: x86_64
-%description
-HWControl hardware monitoring and control suite.
-%prep
-rm -rf source
-mkdir -p source
-tar -xzf %{SOURCE0} -C source --strip-components=1
-%install
-mkdir -p %{buildroot}/opt/hwcontrol
-cp -a source/. %{buildroot}/opt/hwcontrol/
-%files
-/opt/hwcontrol
-EOF
+          Name: hwcontrol
+          Version: ${version}
+          Release: 1
+          Summary: HWControl hardware monitoring and control suite
+          License: GPL-3.0-or-later
+          BuildArch: x86_64
+          %description
+          HWControl hardware monitoring and control suite.
+          %prep
+          rm -rf source
+          mkdir -p source
+          tar -xzf %{SOURCE0} -C source --strip-components=1
+          %install
+          mkdir -p %{buildroot}/opt/hwcontrol
+          cp -a source/. %{buildroot}/opt/hwcontrol/
+          %files
+          /opt/hwcontrol
+          EOF
           docker run --rm -v "$PWD/rpmbuild:/rpmbuild" fedora:42 bash -lc 'dnf install -y rpm-build tar gzip >/dev/null && rpmbuild --define "_topdir /rpmbuild" -bb /rpmbuild/SPECS/hwcontrol.spec'
           cp rpmbuild/RPMS/x86_64/*.rpm "HWControl-${GITHUB_REF_NAME}-Linux-x64.rpm"
           rpm -qip "HWControl-${GITHUB_REF_NAME}-Linux-x64.rpm" >/dev/null
@@ -87,21 +87,21 @@ EOF
           rm -rf arch-build && mkdir -p arch-build
           cp bundle.tar.zst arch-build/hwcontrol-bundle.tar.zst
           cat > arch-build/PKGBUILD <<EOF
-pkgname=hwcontrol
-pkgver=${version}
-pkgrel=1
-pkgdesc='HWControl hardware monitoring and control suite'
-arch=('x86_64')
-license=('GPL3')
-source=('hwcontrol-bundle.tar.zst')
-sha256sums=('SKIP')
-package() {
-  install -dm755 "\$pkgdir/opt/hwcontrol"
-  local root="\$(tar -tf "\$srcdir/hwcontrol-bundle.tar.zst" | head -n1 | cut -d/ -f1)"
-  tar --use-compress-program=zstd -xf "\$srcdir/hwcontrol-bundle.tar.zst" -C "\$srcdir"
-  cp -a "\$srcdir/\$root/." "\$pkgdir/opt/hwcontrol/"
-}
-EOF
+          pkgname=hwcontrol
+          pkgver=${version}
+          pkgrel=1
+          pkgdesc='HWControl hardware monitoring and control suite'
+          arch=('x86_64')
+          license=('GPL3')
+          source=('hwcontrol-bundle.tar.zst')
+          sha256sums=('SKIP')
+          package() {
+            install -dm755 "\$pkgdir/opt/hwcontrol"
+            local root="\$(tar -tf "\$srcdir/hwcontrol-bundle.tar.zst" | head -n1 | cut -d/ -f1)"
+            tar --use-compress-program=zstd -xf "\$srcdir/hwcontrol-bundle.tar.zst" -C "\$srcdir"
+            cp -a "\$srcdir/\$root/." "\$pkgdir/opt/hwcontrol/"
+          }
+          EOF
           docker run --rm -v "$PWD/arch-build:/build" archlinux:base bash -lc 'pacman -Sy --noconfirm base-devel zstd >/dev/null && useradd -m builder && chown -R builder:builder /build && cd /build && su builder -c "makepkg --nodeps --noconfirm"'
           cp arch-build/*.pkg.tar.zst "HWControl-${GITHUB_REF_NAME}-Linux-x64.pkg.tar.zst"
       - name: Checksums and validation
