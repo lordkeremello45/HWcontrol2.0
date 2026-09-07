@@ -221,9 +221,10 @@ jobs:
         id: gpg
         env:
           HWCONTROL_GPG_PRIVATE_KEY_B64: ${{ secrets.HWCONTROL_GPG_PRIVATE_KEY_B64 }}
+          HWCONTROL_GPG_PASSPHRASE: ${{ secrets.HWCONTROL_GPG_PASSPHRASE }}
         run: |
           set -euo pipefail
-          if [ -z "${HWCONTROL_GPG_PRIVATE_KEY_B64:-}" ]; then
+          if [ -z "${HWCONTROL_GPG_PRIVATE_KEY_B64:-}" ] || [ -z "${HWCONTROL_GPG_PASSPHRASE:-}" ]; then
             echo 'enabled=false' >> "$GITHUB_OUTPUT"
             echo 'HWControl GPG signing is not configured; publishing without a GPG signature.'
             exit 0
@@ -231,17 +232,18 @@ jobs:
           export GNUPGHOME="$RUNNER_TEMP/hwcontrol-gnupg"
           mkdir -m 700 -p "$GNUPGHOME"
           key="$RUNNER_TEMP/hwcontrol-release-gpg.asc"
+          expected='12DCBEC4A22481A8DBACA6956F1C5F7B37229F37'
           printf '%s' "$HWCONTROL_GPG_PRIVATE_KEY_B64" | base64 --decode > "$key"
           chmod 600 "$key"
-          gpg --batch --import "$key"
-          fingerprint="$(gpg --batch --with-colons --list-secret-keys | awk -F: '$1 == "fpr" {print $10; exit}')"
-          test -n "$fingerprint"
-          gpg --batch --yes --local-user "$fingerprint" --armor --detach-sign --output release-assets/SHA256SUMS.txt.asc release-assets/SHA256SUMS.txt
+          gpg --batch --quiet --import "$key"
+          actual="$(gpg --batch --with-colons --list-secret-keys | awk -F: '$1 == "fpr" {print $10; exit}')"
+          test "$actual" = "$expected" || { echo "Unexpected HWControl GPG signing key fingerprint: $actual" >&2; exit 1; }
+          printf '%s' "$HWCONTROL_GPG_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --local-user "$expected" --armor --detach-sign --output release-assets/SHA256SUMS.txt.asc release-assets/SHA256SUMS.txt
           gpg --batch --verify release-assets/SHA256SUMS.txt.asc release-assets/SHA256SUMS.txt
-          gpg --batch --armor --export "$fingerprint" > release-assets/HWControl-GPG-public.asc
-          printf '%s\n' "$fingerprint" > release-assets/HWControl-GPG-fingerprint.txt
+          gpg --batch --armor --export "$expected" > release-assets/HWControl-GPG-public.asc
+          printf '%s\n' "$expected" > release-assets/HWControl-GPG-fingerprint.txt
           rm -f "$key"
-          echo "HWControl GPG fingerprint: $fingerprint"
+          echo "HWControl GPG fingerprint verified: $expected"
           echo 'enabled=true' >> "$GITHUB_OUTPUT"
 
       - name: Upload SHA256SUMS.txt to release
