@@ -11,7 +11,7 @@
 
     <Variable
       Name="InstallFolder"
-      Type="string"
+      Type="formatted"
       Value="[ProgramFiles64Folder]HWControl"
       bal:Overridable="yes" />
 
