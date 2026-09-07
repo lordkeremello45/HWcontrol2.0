@@ -78,6 +78,54 @@ jobs:
           tar --zstd -tf hwcontrol-test-linux.tar.zst | grep -F 'HWControl/bin/bridge-service'
           tar --zstd -tf hwcontrol-test-linux.tar.zst | grep -F 'HWControl/dashboard/hwcontrol_dashboard'
 
+  linux-installer:
+    name: Linux installer end-to-end (Ubuntu)
+    runs-on: ubuntu-24.04
+    needs: linux
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install installer prerequisites
+        run: sudo apt-get update && sudo apt-get install -y curl python3 ca-certificates
+      - name: Run production Linux installer
+        run: |
+          set -euo pipefail
+          chmod +x installer/install.sh
+          installer/install.sh
+      - name: Validate installed Linux package
+        run: |
+          set -euo pipefail
+          dpkg-query -W -f='${Status}\n' hwcontrol | grep -F 'install ok installed'
+          test -x /opt/hwcontrol/bridge-service
+          test -x /opt/hwcontrol/ai_engine
+          test -x /opt/hwcontrol/dashboard/hwcontrol_dashboard
+      - name: Cleanup installer test
+        if: always()
+        run: |
+          sudo dpkg -r hwcontrol || true
+          sudo rm -rf /opt/hwcontrol
+
+  website-linux:
+    name: Website Linux download flow
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate live Linux download flow
+        run: |
+          set -euo pipefail
+          curl -fsSL https://lordkeremello45.github.io/HWcontrol2.0/ -o /tmp/hwcontrol-index.html
+          curl -fsSL https://lordkeremello45.github.io/HWcontrol2.0/app.js -o /tmp/hwcontrol-app.js
+          python3 - <<'PY'
+          from pathlib import Path
+          index = Path('/tmp/hwcontrol-index.html').read_text()
+          app = Path('/tmp/hwcontrol-app.js').read_text()
+          assert 'data-platform="linux"' in index, 'Linux platform button is missing from live site'
+          assert 'Install for Linux' in index, 'Linux installer label is missing from live site'
+          assert 'linux.*x64|linux.*amd64' in app, 'Linux x64 asset matcher is missing'
+          assert '.deb|.tar.zst|.tar.gz' in app, 'Linux package matcher is missing'
+          assert "'.deb'" in app and "'.tar.zst'" in app and "'.tar.gz'" in app, 'Linux package priorities are missing'
+          print('Live Linux website flow: OK')
+          PY
+
   windows:
     runs-on: windows-2022
     steps:
