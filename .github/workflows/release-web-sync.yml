@@ -31,7 +31,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" > "$RUNNER_TEMP/releases.json"
+          gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+            | jq 'add' > "$RUNNER_TEMP/releases.json"
           python3 - "$RUNNER_TEMP/releases.json" <<'PY'
           import json
           import sys
@@ -60,4 +61,5 @@ jobs:
             exit 0
           fi
           git commit -m 'chore(web): sync latest stable release metadata'
+          git pull --rebase origin main
           git push origin main
