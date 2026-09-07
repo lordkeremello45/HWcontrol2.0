@@ -128,11 +128,13 @@ jobs:
           if (-not (Test-Path "$packageDir/HWControl.exe")) { throw 'Windows executable was not produced' }
           wix build deploy/windows/HWControl.wxs -arch x64 -d Version=0.0.0 -d PackageDir=$packageDir -o HWControl-test.msi
           if (-not (Test-Path "$PWD/HWControl-test.msi")) { throw 'MSI was not produced' }
-          Start-Process msiexec.exe -ArgumentList '/i', "$PWD/HWControl-test.msi", '/qn', '/norestart' -Wait
+          $install = Start-Process msiexec.exe -ArgumentList '/i', "$PWD/HWControl-test.msi", '/qn', '/norestart' -Wait -PassThru
+          if ($install.ExitCode -ne 0) { throw "MSI install failed with exit code $($install.ExitCode)" }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\bridge-service.exe")) { throw 'MSI did not install bridge-service.exe into Program Files' }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\dashboard")) { throw 'MSI did not install dashboard' }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\HWControl.exe")) { throw 'MSI did not install HWControl.exe' }
-          Start-Process msiexec.exe -ArgumentList '/x', "$PWD/HWControl-test.msi", '/qn', '/norestart' -Wait
+          $uninstall = Start-Process msiexec.exe -ArgumentList '/x', "$PWD/HWControl-test.msi", '/qn', '/norestart' -Wait -PassThru
+          if ($uninstall.ExitCode -ne 0) { throw "MSI uninstall failed with exit code $($uninstall.ExitCode)" }
 
   macos:
     runs-on: macos-14
