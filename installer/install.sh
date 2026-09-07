@@ -2,6 +2,8 @@
 set -euo pipefail
 REPO='lordkeremello45/HWcontrol2.0'
 API="https://api.github.com/repos/$REPO/releases"
+GPG_PUBLIC_KEY_URL="https://raw.githubusercontent.com/$REPO/main/HWControl-GPG-public.asc"
+GPG_FINGERPRINT='12DCBEC4A22481A8DBACA6956F1C5F7B37229F37'
 TMP_DIR="${TMPDIR:-/tmp}/hwcontrol-installer"
 INSTALL_DIR="/opt/hwcontrol"
 KEY_FILE="/var/lib/hwcontrol/bridge.key"
@@ -26,10 +28,29 @@ tag="$(printf '%s' "$release_json" | python3 -c 'import json,sys; print(json.loa
 asset_url(){ printf '%s' "$release_json" | python3 -c 'import json,sys; r=json.load(sys.stdin); s=sys.argv[1]; print(next((a["browser_download_url"] for a in r["assets"] if a["name"] == s or a["name"].endswith(s)), ""))' "$1"; }
 asset_name(){ printf '%s' "$release_json" | python3 -c 'import json,sys; r=json.load(sys.stdin); s=sys.argv[1]; print(next((a["name"] for a in r["assets"] if a["name"] == s or a["name"].endswith(s)), ""))' "$1"; }
 sha_url="$(asset_url '-Linux-x64.sha256')"; deb_url="$(asset_url '.deb')"; rpm_url="$(asset_url '.rpm')"; arch_url="$(asset_url '.pkg.tar.zst')"; zst_url="$(asset_url '.tar.zst')"; gz_url="$(asset_url '.tar.gz')"
-sha512_url="$(asset_url 'SHA512SUMS.txt')"; sha3_url="$(asset_url 'SHA3-512SUMS.txt')"
+sha512_url="$(asset_url 'SHA512SUMS.txt')"; sha3_url="$(asset_url 'SHA3-512SUMS.txt')"; gpg_sig_url="$(asset_url 'SHA256SUMS.txt.asc')"
 [ -n "$sha_url" ] || { echo "The latest Linux release ($tag) has no primary Linux SHA-256 manifest. Installation is blocked." >&2; exit 1; }
 sha_name="$(asset_name '-Linux-x64.sha256')"; [ -n "$sha_name" ] || exit 1
 sha_file="$TMP_DIR/$sha_name"; curl -fL -o "$sha_file" "$sha_url"
+
+verify_gpg_manifest(){
+  if [ -z "$gpg_sig_url" ]; then
+    echo 'GPG release signature: not published; continuing with SHA-256 compatibility mode.'
+    return 0
+  fi
+  command -v gpg >/dev/null || { echo 'GPG release signature is present but gpg is not installed. Installation is blocked.' >&2; exit 1; }
+  local gpg_home="$TMP_DIR/gnupg" key_file="$TMP_DIR/HWControl-GPG-public.asc" sig_file="$TMP_DIR/SHA256SUMS.txt.asc" actual_fingerprint
+  rm -rf "$gpg_home"
+  mkdir -m 700 -p "$gpg_home"
+  curl -fL -o "$key_file" "$GPG_PUBLIC_KEY_URL"
+  curl -fL -o "$sig_file" "$gpg_sig_url"
+  GNUPGHOME="$gpg_home" gpg --batch --quiet --import "$key_file"
+  actual_fingerprint="$(GNUPGHOME="$gpg_home" gpg --batch --with-colons --fingerprint "$GPG_FINGERPRINT" | awk -F: '$1 == "fpr" {print $10; exit}')"
+  [ "$actual_fingerprint" = "$GPG_FINGERPRINT" ] || { echo 'Pinned HWControl GPG fingerprint verification failed. Installation is blocked.' >&2; exit 1; }
+  GNUPGHOME="$gpg_home" gpg --batch --status-fd 1 --verify "$sig_file" "$sha_file" 2>/dev/null | grep -q '^\[GNUPG:\] GOODSIG ' || { echo 'HWControl GPG signature verification failed. Installation is blocked.' >&2; exit 1; }
+  echo "GPG release signature: OK ($GPG_FINGERPRINT)"
+  rm -rf "$gpg_home"
+}
 
 verify_sha(){
   local file="$1" base expected actual
@@ -39,24 +60,6 @@ verify_sha(){
   actual="$(sha256sum "$file" | awk '{print $1}')"
   [ "$actual" = "$expected" ] || { echo "SHA-256 verification failed for $base." >&2; exit 1; }
   echo "SHA-256 verification: OK ($base)"
-}
-
-verify_optional_manifest(){
-  local algorithm="$1" url="$2" file="$3" base="$4" expected actual
-  [ -n "$url" ] || { echo "$algorithm manifest: not published; continuing with SHA-256."; return 0; }
-  curl -fL -o "$file" "$url"
-  expected="$(awk -v f="$base" '$2 == f || $2 == "*" f {print $1; exit}' "$file")"
-  [ -n "$expected" ] || { echo "$algorithm manifest has no entry for $base; continuing with SHA-256."; return 0; }
-  case "$algorithm" in
-    SHA-512) actual="$(sha512sum "$base" | awk '{print $1}')" ;;
-    SHA3-512)
-      command -v openssl >/dev/null || { echo 'SHA3-512 verification skipped: OpenSSL is not available.'; return 0; }
-      actual="$(openssl dgst -sha3-512 -r "$base" | awk '{print $1}')"
-      ;;
-    *) return 0 ;;
-  esac
-  [ "$actual" = "$expected" ] || { echo "$algorithm verification failed for $base." >&2; exit 1; }
-  echo "$algorithm verification: OK ($base)"
 }
 
 verify_extra_hashes(){
@@ -95,6 +98,8 @@ verify_extra_hashes(){
     echo 'SHA3-512 manifest: not published; continuing with SHA-256.'
   fi
 }
+
+verify_gpg_manifest
 
 install_deb(){ local file="$1"; verify_sha "$file"; verify_extra_hashes "$file"; $SUDO apt-get install -y "$file"; }
 install_rpm(){ local file="$1"; verify_sha "$file"; verify_extra_hashes "$file"; if command -v dnf >/dev/null; then $SUDO dnf install -y "$file"; elif command -v yum >/dev/null; then $SUDO yum install -y "$file"; else echo 'dnf/yum is required for RPM installation.' >&2; exit 1; fi; }
