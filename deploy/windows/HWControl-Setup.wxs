@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+      xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal">
+  <Bundle
+    Name="HWControl Setup"
+    Manufacturer="HWControl contributors"
+    Version="$(var.Version)"
+    UpgradeCode="A5DBD2F2-5E65-4E1D-8A58-2D8B4A3E7D21"
+    Compressed="yes"
+    Condition="VersionNT64">
+
+    <Variable
+      Name="InstallFolder"
+      Type="string"
+      Value="[ProgramFiles64Folder]HWControl"
+      bal:Overridable="yes" />
+
+    <BootstrapperApplication>
+      <bal:WixStandardBootstrapperApplication
+        Theme="hyperlinkSidebarLicense"
+        LicenseUrl=""
+        ShowVersion="yes"
+        SuppressRepair="no"
+        SuppressOptionsUI="no"
+        LaunchTarget="[InstallFolder]\HWControl.exe" />
+    </BootstrapperApplication>
+
+    <Chain>
+      <MsiPackage
+        Id="HWControlMsi"
+        SourceFile="$(var.MsiPath)"
+        DisplayName="HWControl"
+        Description="HWControl dashboard, AI engine and authenticated bridge service"
+        Vital="yes"
+        Compressed="yes"
+        ForcePerMachine="yes">
+        <MsiProperty Name="INSTALLFOLDER" Value="[InstallFolder]" />
+      </MsiPackage>
+    </Chain>
+  </Bundle>
+</Wix>
