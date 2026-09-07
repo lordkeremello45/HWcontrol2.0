@@ -9,6 +9,8 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 env:
   FLUTTER_CHANNEL: stable
@@ -77,6 +79,13 @@ jobs:
           zstd -t "HWControl-${{ github.ref_name }}-Linux-x64.tar.zst"
           dpkg-deb --info "HWControl-${{ github.ref_name }}-Linux-x64.deb" >/dev/null
           sha256sum -c "HWControl-${{ github.ref_name }}-Linux-x64.sha256"
+      - name: Generate Linux package provenance
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            HWControl-${{ github.ref_name }}-Linux-x64.tar.gz
+            HWControl-${{ github.ref_name }}-Linux-x64.tar.zst
+            HWControl-${{ github.ref_name }}-Linux-x64.deb
       - name: Upload Linux package
         uses: actions/upload-artifact@v4
         with:
@@ -134,7 +143,6 @@ jobs:
           Copy-Item README.md, SECURITY.md, THIRD_PARTY_NOTICES $packageDir
           Copy-Item -Recurse deploy/windows "$packageDir/deploy"
           Compress-Archive -Path "$packageDir/*" -DestinationPath "HWControl-${{ github.ref_name }}-Windows-x64.zip"
-          (Get-FileHash "HWControl-${{ github.ref_name }}-Windows-x64.zip" -Algorithm SHA256).Hash.ToLower() + "  HWControl-${{ github.ref_name }}-Windows-x64.zip" | Set-Content "HWControl-${{ github.ref_name }}-Windows-x64.sha256"
           Expand-Archive -Path "HWControl-${{ github.ref_name }}-Windows-x64.zip" -DestinationPath verify-zip -Force
           if (-not (Test-Path "verify-zip/$packageDir/dashboard")) { throw "dashboard missing from Windows package" }
           if (-not (Test-Path "verify-zip/$packageDir/HWControl.exe")) { throw "HWControl.exe missing from Windows package" }
@@ -145,6 +153,24 @@ jobs:
           $version = "${{ github.ref_name }}" -replace '^v', '' -replace '-windows$', ''
           wix build deploy/windows/HWControl.wxs -arch x64 -d Version=$version -d PackageDir=$packageDir -o "HWControl-${{ github.ref_name }}-Windows-x64.msi"
           if (-not (Test-Path "HWControl-${{ github.ref_name }}-Windows-x64.msi")) { throw "MSI was not produced" }
+
+          (Get-FileHash "HWControl-${{ github.ref_name }}-Windows-x64.zip" -Algorithm SHA256).Hash.ToLower() + "  HWControl-${{ github.ref_name }}-Windows-x64.zip" | Set-Content "HWControl-${{ github.ref_name }}-Windows-x64.sha256"
+          (Get-FileHash "HWControl-${{ github.ref_name }}-Windows-x64.msi" -Algorithm SHA256).Hash.ToLower() + "  HWControl-${{ github.ref_name }}-Windows-x64.msi" | Add-Content "HWControl-${{ github.ref_name }}-Windows-x64.sha256"
+          (Get-FileHash "HWControl-${{ github.ref_name }}-Windows-x64.zip" -Algorithm SHA256).Hash.ToLower() + "  HWControl-${{ github.ref_name }}-Windows-x64.zip" | Set-Content "HWControl-${{ github.ref_name }}-Windows-x64.sha256"
+          $zipHash = (Get-FileHash "HWControl-${{ github.ref_name }}-Windows-x64.zip" -Algorithm SHA256).Hash.ToLower()
+          $msiHash = (Get-FileHash "HWControl-${{ github.ref_name }}-Windows-x64.msi" -Algorithm SHA256).Hash.ToLower()
+          Set-Content "HWControl-${{ github.ref_name }}-Windows-x64.sha256" @(
+            "$zipHash  HWControl-${{ github.ref_name }}-Windows-x64.zip",
+            "$msiHash  HWControl-${{ github.ref_name }}-Windows-x64.msi"
+          )
+          $shaCheck = Get-Content "HWControl-${{ github.ref_name }}-Windows-x64.sha256"
+          if ($shaCheck.Count -ne 2) { throw "Windows checksum manifest must contain ZIP and MSI entries" }
+      - name: Generate Windows package provenance
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            HWControl-${{ github.ref_name }}-Windows-x64.zip
+            HWControl-${{ github.ref_name }}-Windows-x64.msi
       - name: Upload Windows package
         uses: actions/upload-artifact@v4
         with:
@@ -210,6 +236,12 @@ jobs:
           test -d /Applications/HWControl/HWControl.app
           sudo rm -rf /Applications/HWControl
           sudo rm -f /Library/LaunchDaemons/com.hwcontrol.bridge.plist
+      - name: Generate macOS package provenance
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            HWControl-${{ github.ref_name }}-macOS-AppleSilicon.pkg
+            HWControl-${{ github.ref_name }}-macOS-AppleSilicon.dmg
       - name: Upload macOS package
         uses: actions/upload-artifact@v4
         with:
