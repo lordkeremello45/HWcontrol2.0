@@ -17,7 +17,6 @@ else
   SUDO='sudo'
 fi
 
-# Detect distro family without requiring lsb_release.
 ID=''
 ID_LIKE=''
 if [ -r /etc/os-release ]; then
@@ -54,29 +53,31 @@ deb_url="$(asset_url '.deb')"
 zst_url="$(asset_url '.tar.zst')"
 gz_url="$(asset_url '.tar.gz')"
 
+if [ -z "$sha_url" ]; then
+  echo "The latest Linux release ($tag) has no SHA-256 manifest. Installation is blocked." >&2
+  exit 1
+fi
 if [ -z "$deb_url" ] && [ -z "$zst_url" ] && [ -z "$gz_url" ]; then
   echo "No supported Linux package (.deb, .tar.zst, or .tar.gz) is available in $tag." >&2
   exit 1
 fi
 
 sha_file="$TMP_DIR/HWControl-$tag.sha256"
-if [ -n "$sha_url" ]; then
-  curl -fL -o "$sha_file" "$sha_url"
-fi
+curl -fL -o "$sha_file" "$sha_url"
 
 verify_sha() {
   local file="$1"
   local basename_file
   basename_file="$(basename "$file")"
-  if [ -s "$sha_file" ]; then
-    local expected actual
-    expected="$(awk -v f="$basename_file" '$0 ~ f {print $1; exit}' "$sha_file")"
-    if [ -n "$expected" ]; then
-      actual="$(sha256sum "$file" | awk '{print $1}')"
-      [ "$actual" = "$expected" ] || { echo "SHA-256 verification failed for $basename_file. Nothing was installed." >&2; exit 1; }
-      echo "SHA-256 verification: OK"
-    fi
+  local expected actual
+  expected="$(awk -v f="$basename_file" '$0 ~ f {print $1; exit}' "$sha_file")"
+  if [ -z "$expected" ]; then
+    echo "No SHA-256 entry for $basename_file was found. Installation is blocked." >&2
+    exit 1
   fi
+  actual="$(sha256sum "$file" | awk '{print $1}')"
+  [ "$actual" = "$expected" ] || { echo "SHA-256 verification failed for $basename_file. Nothing was installed." >&2; exit 1; }
+  echo "SHA-256 verification: OK ($basename_file)"
 }
 
 install_deb() {
@@ -133,7 +134,6 @@ install_archive() {
   fi
 }
 
-# Prefer the native package when it matches the detected distro family.
 case "$family" in
   debian)
     if [ -n "$deb_url" ]; then
@@ -146,7 +146,6 @@ case "$family" in
     ;;
 esac
 
-# Arch, Fedora/RHEL, and generic Linux use the compressed portable bundle.
 if [ -n "$zst_url" ]; then
   file="$TMP_DIR/HWControl-$tag.tar.zst"
   curl -fL -o "$file" "$zst_url"
@@ -163,7 +162,6 @@ if [ -n "$gz_url" ]; then
   exit 0
 fi
 
-# Last-resort Debian fallback for a non-Debian host only when no archive exists.
 if [ -n "$deb_url" ] && command -v apt-get >/dev/null 2>&1; then
   file="$TMP_DIR/HWControl-$tag.deb"
   curl -fL -o "$file" "$deb_url"
