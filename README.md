@@ -9,7 +9,7 @@ HWControl 2.0 is a high-performance, kernel-level hardware management and contro
 
 | Platform | Supported target | Release format | Architecture | Status |
 |---|---|---|---|---|
-| Windows | Windows 10 / Windows 11 | `.msi` + portable `.zip` | x64 | Supported |
+| Windows | Windows 10 / Windows 11 | Guided `Setup.exe` + `.msi` + portable `.zip` | x64 | Supported |
 | macOS | macOS 14 Sonoma and newer release targets | `.pkg` + `.dmg` containing `.app` | Apple Silicon / arm64 | Supported |
 | Linux | Debian/Ubuntu-family x64 targets | `.deb` + `.tar.gz` / `.tar.zst` | x64 | Supported |
 
@@ -17,9 +17,13 @@ HWControl 2.0 is a high-performance, kernel-level hardware management and contro
 
 ## Installer hub
 
-The `installer/` directory is the source-controlled installer entry point. It contains the platform installer launchers and documentation, while the large signed/releasable binaries remain GitHub Release assets instead of inflating the Git repository. The release pipeline publishes the native Windows `.msi`, macOS `.pkg`/`.dmg`, and Linux `.deb` packages.
+The `installer/` directory is the source-controlled installer entry point. It contains the platform installer launchers and documentation, while the large releasable binaries remain GitHub Release assets instead of inflating the Git repository. The Windows release provides a guided `Setup.exe` for normal users, the `.msi` for enterprise/IT deployment, and a portable `.zip` for advanced users. macOS and Linux keep their native package formats.
 
 For users who want the graphical application bundle on macOS, the `.app` is included in the macOS package/DMG; it is not maintained as a second copy in Git.
+
+## Windows installation
+
+The recommended Windows path is the guided `HWControl-...-Setup.exe`. It installs the MSI-backed product, lets the user choose the installation directory, requests elevation when needed, and preserves a single source of truth for the Windows service, security key provisioning, dashboard, and AI engine. The standalone `.msi` remains available for silent/managed deployment, while the portable `.zip` is intentionally kept for users who do not want an installed Windows service.
 
 ## Website
 
