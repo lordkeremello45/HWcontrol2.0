@@ -1,0 +1,55 @@
+name: Validate website release integration
+
+on:
+  pull_request:
+    paths:
+      - 'website/**'
+      - 'scripts/generate-release-manifest.py'
+      - 'scripts/website-release-test.mjs'
+      - '.github/workflows/release-web-sync.yml'
+      - '.github/workflows/pages.yml'
+      - '.github/workflows/website-validation.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'website/**'
+      - 'scripts/generate-release-manifest.py'
+      - 'scripts/website-release-test.mjs'
+      - '.github/workflows/release-web-sync.yml'
+      - '.github/workflows/pages.yml'
+      - '.github/workflows/website-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate JavaScript
+        run: node --check website/app.js
+
+      - name: Validate Python manifest generator
+        run: python3 -m py_compile scripts/generate-release-manifest.py
+
+      - name: Validate release manifest when present
+        run: |
+          set -euo pipefail
+          if [ -f website/release.json ]; then
+            node scripts/website-release-test.mjs website/release.json
+          else
+            echo 'release.json is not present in this revision; generator will create it after release publication.'
+          fi
+
+      - name: Validate required website integration
+        run: |
+          set -euo pipefail
+          grep -Fq "const MANIFEST='./release.json';" website/app.js
+          grep -Fq 'checksum_sha256_url' website/app.js
+          grep -Fq 'state.manifest' website/app.js
+          grep -Fq 'release-web-sync' .github/workflows/release-web-sync.yml
+          echo 'Website release integration: OK'
