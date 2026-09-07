@@ -91,6 +91,11 @@ jobs:
         run: |
           $enabled = (-not [string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE_B64)) -and (-not [string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE_PASSWORD))
           "enabled=$($enabled.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          if ($enabled) {
+            Write-Host 'Windows Authenticode signing is enabled.'
+          } else {
+            Write-Host 'Windows Authenticode signing is not configured; release remains unsigned.'
+          }
 
       - name: Locate SignTool
         id: signtool
@@ -118,15 +123,18 @@ jobs:
         shell: pwsh
         run: |
           $cert = Join-Path $env:RUNNER_TEMP 'hwcontrol-code-signing.pfx'
-          [IO.File]::WriteAllBytes($cert, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE_B64))
-          $setup = "HWControl-$($env:RELEASE_TAG)-Windows-x64-Setup.exe"
-          & $env:SIGNTOOL sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f $cert /p $env:WINDOWS_CERTIFICATE_PASSWORD /d 'HWControl Setup' $setup
-          if ($LASTEXITCODE -ne 0) { throw 'Setup.exe signing failed.' }
-          & $env:SIGNTOOL verify /pa /all /v $setup
-          if ($LASTEXITCODE -ne 0) { throw 'Setup.exe signature verification failed.' }
-          Remove-Item $cert -Force
+          try {
+            [IO.File]::WriteAllBytes($cert, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE_B64))
+            $setup = "HWControl-$($env:RELEASE_TAG)-Windows-x64-Setup.exe"
+            & $env:SIGNTOOL sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f $cert /p $env:WINDOWS_CERTIFICATE_PASSWORD /d 'HWControl Setup' $setup
+            if ($LASTEXITCODE -ne 0) { throw 'Setup.exe signing failed.' }
+            & $env:SIGNTOOL verify /pa /all /v $setup
+            if ($LASTEXITCODE -ne 0) { throw 'Setup.exe signature verification failed.' }
+          } finally {
+            Remove-Item $cert -Force -ErrorAction SilentlyContinue
+          }
 
-      - name: Generate Setup checksum
+      - name: Generate Setup checksum and signing status
         env:
           RELEASE_TAG: ${{ github.event.workflow_run.head_branch }}
         shell: pwsh
@@ -134,6 +142,13 @@ jobs:
           $setup = "HWControl-$($env:RELEASE_TAG)-Windows-x64-Setup.exe"
           $hash = (Get-FileHash $setup -Algorithm SHA256).Hash.ToLower()
           Set-Content "HWControl-$($env:RELEASE_TAG)-Windows-x64-Setup.sha256" "$hash  $setup"
+          $status = if ('${{ steps.signing.outputs.enabled }}' -eq 'true') { 'AUTHENTICODE_SIGNED=true' } else { 'AUTHENTICODE_SIGNED=false' }
+          @(
+            "HWCONTROL_RELEASE=$($env:RELEASE_TAG)",
+            $status,
+            'MICROSOFT_HARDWARE_DEV_CENTER_SIGNING=NOT_CONFIGURED',
+            'NOTE=SHA256_AND_GITHUB_ATTESTATION_DO_NOT_REPLACE_OS_TRUSTED_CODE_SIGNING'
+          ) | Set-Content "HWControl-$($env:RELEASE_TAG)-Windows-x64-signing-status.txt"
 
       - name: Attest Setup.exe
         uses: actions/attest@v4
@@ -150,4 +165,5 @@ jobs:
           files: |
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64-Setup.exe
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64-Setup.sha256
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64-signing-status.txt
           fail_on_unmatched_files: true
