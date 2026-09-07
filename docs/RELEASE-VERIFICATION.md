@@ -64,24 +64,63 @@ openssl dgst -sha3-512 -r .\HWControl-<package>.zip
 
 SHA3-512 is an additional integrity layer, not a publisher signature.
 
-## 4. GitHub artifact attestations
+## 4. Ed25519 manifest signature
 
-Build workflows publish GitHub artifact attestations for release packages. Where an attestation is available, verify the artifact with the GitHub CLI:
+When the repository secret `ED25519_PRIVATE_KEY_B64` is configured, the release-integrity workflow signs the release-wide `SHA256SUMS.txt` with Ed25519 and publishes:
+
+- `SHA256SUMS.txt.sig` — detached Ed25519 signature.
+- `SHA256SUMS.txt.pub` — corresponding public key in PEM/SPKI format.
+
+The private key is never published. The workflow performs a signature verification before uploading the signature.
+
+Verify the signature with OpenSSL 3:
+
+```bash
+openssl pkeyutl -verify -rawin -pubin \
+  -inkey SHA256SUMS.txt.pub \
+  -in SHA256SUMS.txt \
+  -sigfile SHA256SUMS.txt.sig
+```
+
+**Important:** a public key downloaded from the same release is useful for consistency checking, but it is not an independent trust anchor. For real signer authentication, pin the expected public-key fingerprint through a trusted channel and compare it before accepting the signature.
+
+### Generate the long-lived signing key
+
+Generate the Ed25519 key pair on a trusted machine. Never commit the private key:
+
+```bash
+openssl genpkey -algorithm ED25519 -out hwcontrol-release-ed25519.pem
+openssl pkey -in hwcontrol-release-ed25519.pem -pubout -out hwcontrol-release-ed25519.pub
+```
+
+Create the GitHub Actions secret from the base64-encoded private PEM. On Linux:
+
+```bash
+base64 -w0 hwcontrol-release-ed25519.pem
+```
+
+Store the resulting value as the repository secret `ED25519_PRIVATE_KEY_B64`. Keep the private PEM offline/secure and use the same key for future releases so the signer identity remains stable.
+
+## 5. GitHub artifact attestations
+
+Build workflows publish GitHub artifact attestations for the release packages. The release build workflow grants the required `id-token` and `attestations` permissions and uses GitHub's attestation action for the generated packages.
+
+Where an attestation is available, verify the artifact with the GitHub CLI:
 
 ```bash
 gh attestation verify HWControl-<package> -R lordkeremello45/HWcontrol2.0
 ```
 
-An attestation provides provenance information tied to the GitHub Actions workflow. It is not the same thing as a Windows Authenticode or Apple Developer ID signature.
+An attestation provides build provenance tied to the GitHub Actions workflow and repository context. It is not the same thing as an Ed25519 signer identity, Windows Authenticode, or Apple Developer ID signature.
 
-## 5. Publisher signatures
+## 6. Publisher signatures
 
 OS-trusted publisher signatures remain a separate layer:
 
 - Windows: Authenticode certificate and, for production kernel drivers, the applicable Microsoft signing/attestation process.
 - macOS: Developer ID Application/Installer plus Apple notarization.
 
-Unsigned Windows artifacts must never be presented as publisher-signed merely because their SHA-256, SHA-512, or SHA3-512 digest matches.
+Unsigned Windows artifacts must never be presented as publisher-signed merely because their SHA-256, SHA-512, SHA3-512, Ed25519, or GitHub attestation checks pass.
 
 ## Trust model
 
@@ -94,13 +133,24 @@ Downloaded artifact
        |
        +--> SHA3-512 match --------> independent integrity
        |
+       +--> Ed25519 signature -----> release-manifest authenticity*
+       |
        +--> GitHub attestation ----> build provenance
        |
        +--> OS publisher signature -> publisher/OS trust
+
+* Requires a trusted/pinned public-key fingerprint.
 ```
 
-A checksum does not authenticate the publisher by itself. For the strongest verification, obtain the release from the official GitHub repository and verify both the digest and the available provenance/signature evidence.
+The layers answer different questions:
+
+- **Hashes:** Did the downloaded bytes change?
+- **Ed25519:** Was the release manifest signed by the expected private signing key?
+- **GitHub attestation:** Was the artifact produced by the expected GitHub Actions build provenance?
+- **OS signature:** Does the operating system recognize the publisher identity?
+
+No checksum, attestation, or Ed25519 signature bypasses Windows SmartScreen, Windows Protected View, macOS Gatekeeper, or other OS trust decisions.
 
 ## Private key policy
 
-Private signing keys must never be committed to this repository. If a future static Ed25519/Minisign release key is introduced, only its public verification key and fingerprint belong in the repository; the private key must remain in a protected signing environment or GitHub secret.
+Private signing keys must never be committed to this repository, included in release assets, or printed in workflow logs. Store the Ed25519 private key only in a protected signing environment/GitHub Actions secret. Rotate the key if compromise is suspected and publish the new public-key fingerprint through a trusted channel.
