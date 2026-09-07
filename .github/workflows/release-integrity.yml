@@ -153,7 +153,7 @@ jobs:
           set -euo pipefail
           cd release-assets
           rm -f SHA256SUMS.txt
-          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' ! -name 'SHA512SUMS.txt' ! -name 'SHA3-512SUMS.txt' ! -name 'SHA256SUMS.txt.sig' ! -name 'SHA256SUMS.txt.pub' ! -name '*.sha256' ! -name '*.sha512' ! -name '*.sha3-512' -print0 \
+          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' ! -name 'SHA512SUMS.txt' ! -name 'SHA3-512SUMS.txt' ! -name 'SHA256SUMS.txt.sig' ! -name 'SHA256SUMS.txt.pub' ! -name 'SHA256SUMS.txt.asc' ! -name 'HWControl-GPG-public.asc' ! -name 'HWControl-GPG-fingerprint.txt' ! -name '*.sha256' ! -name '*.sha512' ! -name '*.sha3-512' -print0 \
             | sort -z \
             | xargs -0 sha256sum > SHA256SUMS.txt
           test -s SHA256SUMS.txt
@@ -164,7 +164,7 @@ jobs:
           set -euo pipefail
           cd release-assets
           rm -f SHA512SUMS.txt
-          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' ! -name 'SHA512SUMS.txt' ! -name 'SHA3-512SUMS.txt' ! -name 'SHA256SUMS.txt.sig' ! -name 'SHA256SUMS.txt.pub' ! -name '*.sha256' ! -name '*.sha512' ! -name '*.sha3-512' -print0 \
+          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' ! -name 'SHA512SUMS.txt' ! -name 'SHA3-512SUMS.txt' ! -name 'SHA256SUMS.txt.sig' ! -name 'SHA256SUMS.txt.pub' ! -name 'SHA256SUMS.txt.asc' ! -name 'HWControl-GPG-public.asc' ! -name 'HWControl-GPG-fingerprint.txt' ! -name '*.sha256' ! -name '*.sha512' ! -name '*.sha3-512' -print0 \
             | sort -z \
             | xargs -0 sha512sum > SHA512SUMS.txt
           test -s SHA512SUMS.txt
@@ -175,7 +175,7 @@ jobs:
           set -euo pipefail
           cd release-assets
           rm -f SHA3-512SUMS.txt
-          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' ! -name 'SHA512SUMS.txt' ! -name 'SHA3-512SUMS.txt' ! -name 'SHA256SUMS.txt.sig' ! -name 'SHA256SUMS.txt.pub' ! -name '*.sha256' ! -name '*.sha512' ! -name '*.sha3-512' -print0 \
+          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' ! -name 'SHA512SUMS.txt' ! -name 'SHA3-512SUMS.txt' ! -name 'SHA256SUMS.txt.sig' ! -name 'SHA256SUMS.txt.pub' ! -name 'SHA256SUMS.txt.asc' ! -name 'HWControl-GPG-public.asc' ! -name 'HWControl-GPG-fingerprint.txt' ! -name '*.sha256' ! -name '*.sha512' ! -name '*.sha3-512' -print0 \
             | sort -z \
             | while IFS= read -r -d '' file; do
                 printf '%s  %s\n' "$(openssl dgst -sha3-512 -r "$file" | awk '{print $1}')" "${file#./}"
@@ -217,6 +217,33 @@ jobs:
           echo 'enabled=true' >> "$GITHUB_OUTPUT"
           rm -f "$key"
 
+      - name: Sign SHA256 release manifest with HWControl GPG
+        id: gpg
+        env:
+          HWCONTROL_GPG_PRIVATE_KEY_B64: ${{ secrets.HWCONTROL_GPG_PRIVATE_KEY_B64 }}
+        run: |
+          set -euo pipefail
+          if [ -z "${HWCONTROL_GPG_PRIVATE_KEY_B64:-}" ]; then
+            echo 'enabled=false' >> "$GITHUB_OUTPUT"
+            echo 'HWControl GPG signing is not configured; publishing without a GPG signature.'
+            exit 0
+          fi
+          export GNUPGHOME="$RUNNER_TEMP/hwcontrol-gnupg"
+          mkdir -m 700 -p "$GNUPGHOME"
+          key="$RUNNER_TEMP/hwcontrol-release-gpg.asc"
+          printf '%s' "$HWCONTROL_GPG_PRIVATE_KEY_B64" | base64 --decode > "$key"
+          chmod 600 "$key"
+          gpg --batch --import "$key"
+          fingerprint="$(gpg --batch --with-colons --list-secret-keys | awk -F: '$1 == "fpr" {print $10; exit}')"
+          test -n "$fingerprint"
+          gpg --batch --yes --local-user "$fingerprint" --armor --detach-sign --output release-assets/SHA256SUMS.txt.asc release-assets/SHA256SUMS.txt
+          gpg --batch --verify release-assets/SHA256SUMS.txt.asc release-assets/SHA256SUMS.txt
+          gpg --batch --armor --export "$fingerprint" > release-assets/HWControl-GPG-public.asc
+          printf '%s\n' "$fingerprint" > release-assets/HWControl-GPG-fingerprint.txt
+          rm -f "$key"
+          echo "HWControl GPG fingerprint: $fingerprint"
+          echo 'enabled=true' >> "$GITHUB_OUTPUT"
+
       - name: Upload SHA256SUMS.txt to release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -237,6 +264,20 @@ jobs:
           gh release upload "$TAG" \
             release-assets/SHA256SUMS.txt.sig \
             release-assets/SHA256SUMS.txt.pub \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+
+      - name: Upload GPG signature, public key and fingerprint
+        if: steps.gpg.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" \
+            release-assets/SHA256SUMS.txt.asc \
+            release-assets/HWControl-GPG-public.asc \
+            release-assets/HWControl-GPG-fingerprint.txt \
             --repo "$GITHUB_REPOSITORY" \
             --clobber
 
