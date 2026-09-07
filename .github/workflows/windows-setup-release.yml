@@ -1,0 +1,126 @@
+name: Publish Windows Setup bootstrapper
+
+on:
+  workflow_run:
+    workflows: ["Publish platform release"]
+    types: [completed]
+
+permissions:
+  contents: write
+  actions: read
+  id-token: write
+  attestations: write
+
+jobs:
+  build-setup:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_branch, 'v') &&
+      endsWith(github.event.workflow_run.head_branch, '-windows')
+    runs-on: windows-2022
+    steps:
+      - name: Checkout tagged source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Download Windows MSI artifact
+        uses: actions/download-artifact@v4
+        with:
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+          name: HWControl-${{ github.event.workflow_run.head_branch }}-Windows-x64
+          path: package-from-release
+
+      - name: Locate MSI
+        id: msi
+        shell: pwsh
+        run: |
+          $msi = Get-ChildItem package-from-release -Recurse -Filter '*.msi' | Select-Object -First 1
+          if (-not $msi) { throw 'Windows MSI artifact was not found in the completed release workflow.' }
+          "path=$($msi.FullName)" >> $env:GITHUB_OUTPUT
+          "name=$($msi.Name)" >> $env:GITHUB_OUTPUT
+
+      - name: Setup WiX
+        shell: pwsh
+        run: |
+          dotnet tool install --global wix --version 6.0.2 --add-source https://api.nuget.org/v3/index.json
+          $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
+          wix --version
+
+      - name: Build Setup.exe
+        shell: pwsh
+        run: |
+          $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
+          $tag = '${{ github.event.workflow_run.head_branch }}'
+          $version = $tag -replace '^v', '' -replace '-windows$', ''
+          wix build deploy/windows/HWControl-Setup.wxs -ext WixToolset.BootstrapperApplications.wixext -arch x64 -d Version=$version -d MsiPath="${{ steps.msi.outputs.path }}" -o "HWControl-${tag}-Windows-x64-Setup.exe"
+          if (-not (Test-Path "HWControl-${tag}-Windows-x64-Setup.exe")) { throw 'HWControl Setup.exe was not produced.' }
+
+      - name: Check Windows signing configuration
+        id: signing
+        env:
+          WINDOWS_CERTIFICATE_B64: ${{ secrets.WINDOWS_CERTIFICATE_B64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        shell: pwsh
+        run: |
+          $enabled = (-not [string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE_B64)) -and (-not [string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE_PASSWORD))
+          "enabled=$($enabled.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+
+      - name: Locate SignTool
+        id: signtool
+        if: steps.signing.outputs.enabled == 'true'
+        shell: pwsh
+        run: |
+          $tool = Get-Command signtool.exe -ErrorAction SilentlyContinue
+          if (-not $tool) {
+            $tool = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\bin' -Filter signtool.exe -Recurse -ErrorAction SilentlyContinue |
+              Where-Object { $_.FullName -match '\\x64\\signtool\.exe$' } |
+              Sort-Object FullName -Descending |
+              Select-Object -First 1
+          }
+          if (-not $tool) { throw 'SignTool was not found on the Windows runner.' }
+          $path = if ($tool.PSObject.Properties.Name -contains 'Source') { $tool.Source } else { $tool.FullName }
+          "path=$path" >> $env:GITHUB_OUTPUT
+
+      - name: Sign Setup.exe
+        if: steps.signing.outputs.enabled == 'true'
+        env:
+          WINDOWS_CERTIFICATE_B64: ${{ secrets.WINDOWS_CERTIFICATE_B64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+          SIGNTOOL: ${{ steps.signtool.outputs.path }}
+        shell: pwsh
+        run: |
+          $cert = Join-Path $env:RUNNER_TEMP 'hwcontrol-code-signing.pfx'
+          [IO.File]::WriteAllBytes($cert, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE_B64))
+          $tag = '${{ github.event.workflow_run.head_branch }}'
+          $setup = "HWControl-${tag}-Windows-x64-Setup.exe"
+          & $env:SIGNTOOL sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f $cert /p $env:WINDOWS_CERTIFICATE_PASSWORD /d 'HWControl Setup' $setup
+          if ($LASTEXITCODE -ne 0) { throw 'Setup.exe signing failed.' }
+          & $env:SIGNTOOL verify /pa /all /v $setup
+          if ($LASTEXITCODE -ne 0) { throw 'Setup.exe signature verification failed.' }
+          Remove-Item $cert -Force
+
+      - name: Generate Setup checksum
+        shell: pwsh
+        run: |
+          $tag = '${{ github.event.workflow_run.head_branch }}'
+          $setup = "HWControl-${tag}-Windows-x64-Setup.exe"
+          $hash = (Get-FileHash $setup -Algorithm SHA256).Hash.ToLower()
+          Set-Content "HWControl-${tag}-Windows-x64-Setup.sha256" "$hash  $setup"
+
+      - name: Attest Setup.exe
+        uses: actions/attest@v4
+        with:
+          subject-path: HWControl-${{ github.event.workflow_run.head_branch }}-Windows-x64-Setup.exe
+
+      - name: Publish Setup.exe to existing release
+        uses: softprops/action-gh-release@v2
+        with:
+          repository: ${{ github.repository }}
+          tag_name: ${{ github.event.workflow_run.head_branch }}
+          files: |
+            HWControl-${{ github.event.workflow_run.head_branch }}-Windows-x64-Setup.exe
+            HWControl-${{ github.event.workflow_run.head_branch }}-Windows-x64-Setup.sha256
+          fail_on_unmatched_files: true
