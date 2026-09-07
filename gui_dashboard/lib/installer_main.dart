@@ -8,20 +8,24 @@ import 'main.dart' show HWControlApp;
 void main() => runApp(const InstallerApp());
 
 class InstallerApp extends StatelessWidget {
-  const InstallerApp({super.key});
+  const InstallerApp({super.key, this.initialize = true});
+
+  final bool initialize;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(useMaterial3: true),
-      home: const InstallerWizard(),
+      home: InstallerWizard(initialize: initialize),
     );
   }
 }
 
 class InstallerWizard extends StatefulWidget {
-  const InstallerWizard({super.key});
+  const InstallerWizard({super.key, this.initialize = true});
+
+  final bool initialize;
 
   @override
   State<InstallerWizard> createState() => _InstallerWizardState();
@@ -35,7 +39,6 @@ class _InstallerWizardState extends State<InstallerWizard> {
 
   int _step = 0;
   bool _checking = true;
-  bool _ready = false;
   bool _modelReady = false;
   bool _modelDownloading = false;
   String? _modelError;
@@ -60,7 +63,12 @@ class _InstallerWizardState extends State<InstallerWizard> {
   @override
   void initState() {
     super.initState();
-    _inspectInstallation();
+    if (widget.initialize) {
+      _inspectInstallation();
+    } else {
+      _checking = false;
+      _details = 'Test modu: kurulum ve model indirme atlandı.';
+    }
   }
 
   Future<Directory> _modelDirectory() async {
@@ -156,7 +164,6 @@ class _InstallerWizardState extends State<InstallerWizard> {
       final completed = await marker.exists();
       if (!mounted) return;
       setState(() {
-        _ready = bridgePresent && _modelReady;
         _details = completed
             ? 'Kurulum daha önce tamamlandı. Model cache ve bileşenler yeniden doğrulandı.'
             : 'Platform: $_platformName\nPaket: $_packageFormats\nBridge: ${bridgePresent ? 'bulundu' : 'paketlenmiş kurulumdan bekleniyor'}\nModel: ${_modelReady ? 'SHA-256 doğrulandı' : 'hazır değil'}\nCache: ${_modelFile?.path ?? 'oluşturulamadı'}';
@@ -166,7 +173,6 @@ class _InstallerWizardState extends State<InstallerWizard> {
       if (!mounted) return;
       setState(() {
         _checking = false;
-        _ready = false;
         _modelReady = false;
         _modelError = 'Model kurulumu başlatılamadı.\n$error';
         _details = 'Kurulum denetimi tamamlanamadı: $error';
