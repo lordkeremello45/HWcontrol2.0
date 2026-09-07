@@ -27,6 +27,15 @@ The Windows `Setup.exe` is a WiX Burn bootstrapper around the signed/releasable 
 
 The chosen setup directory is passed into the MSI so the dashboard, bridge, and AI engine are installed consistently. The MSI itself remains suitable for managed/silent deployment with `msiexec`. The portable ZIP remains available for users who specifically do not want a Windows service installation.
 
+### Cross-platform release verification
+
+All three installer entry points use **SHA-256 as the required baseline integrity check**. When the release publishes the release-wide manifests, the installers also verify:
+
+- **SHA-512** via the native `sha512sum` (Linux) or `shasum -a 512` (macOS).
+- **SHA3-512** via OpenSSL when OpenSSL is available.
+
+The additional algorithms are compatibility layers, not substitutes for publisher signatures or GitHub artifact attestations. A published SHA-512/SHA3-512 entry that does not match the downloaded package blocks installation. If an optional manifest is not present, the installer continues with the required SHA-256 verification so older releases remain installable.
+
 ### Linux installer behavior
 
 `install.sh` detects the Linux distribution family from `/etc/os-release` and chooses the best package that actually exists in the latest Linux release:
@@ -36,7 +45,7 @@ The chosen setup directory is passed into the MSI so the dashboard, bridge, and 
 3. **Other x64 Linux:** prefer `.tar.zst`, then `.tar.gz`.
 4. **Fallback:** a `.deb` can be used only when `apt-get` is available and no archive package exists.
 
-The archive installer also registers the included `hwcontrol-bridge.service` with systemd when present and exposes the dashboard executable as `/usr/local/bin/hwcontrol` when the release contains it. SHA-256 is verified before installation whenever the release publishes a checksum file.
+The archive installer also registers the included `hwcontrol-bridge.service` with systemd when present and exposes the dashboard executable as `/usr/local/bin/hwcontrol` when the release contains it. SHA-256 is verified before installation whenever the release publishes a checksum file; SHA-512 and SHA3-512 are then checked when their release-wide manifests are available.
 
 This is intentionally a distro-aware installer, not a claim that HWControl has native Arch/RPM package metadata. Arch/Fedora installation uses the upstream portable archive until native `.pkg.tar.zst` / `.rpm` packages are published.
 
