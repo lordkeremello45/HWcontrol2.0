@@ -25,24 +25,32 @@ For users who want the graphical application bundle on macOS, the `.app` is incl
 
 The recommended Windows path is the guided `HWControl-...-Setup.exe`. It installs the MSI-backed product, lets the user choose the installation directory, requests elevation when needed, and preserves a single source of truth for the Windows service, security key provisioning, dashboard, and AI engine. The standalone `.msi` remains available for silent/managed deployment, while the portable `.zip` is intentionally kept for users who do not want an installed Windows service.
 
+## Bridge diagnostics
+
+The local bridge exposes a signed `Get Diagnostics` command alongside `Get Status` and `Get Security`. The diagnostics snapshot reports the bridge version, operating system/architecture, Go runtime, key-file location and configuration state, model presence/digest, sensor and GPU-driver state, loopback listen address, uptime, and whether the current build includes the hardware-control backend.
+
+The bridge remains loopback-only (`127.0.0.1`) and requires the existing HMAC authentication for diagnostics, so diagnostic data is not exposed as an unauthenticated network endpoint.
+
 ## Website
 
 The official project website provides the platform-specific installer selector and dynamically resolves the latest GitHub Release assets:
 
 **https://lordkeremello45.github.io/HWcontrol2.0/**
 
-Architecture
+## Architecture
+
 The project is built on a multi-layer architecture:
 
-ai_core (C++): The heart of the system, handling kernel-mode drivers and hardware-level operations.
+**ai_core (C++):** The heart of the system, handling kernel-mode drivers and hardware-level operations.
 
-bridge_service (Go): A high-concurrency service that manages the secure communication bridge between the kernel-core and the UI.
+**bridge_service (Go):** A high-concurrency service that manages the secure communication bridge between the kernel-core and the UI.
 
-gui_dashboard (Dart/Flutter): A responsive and intuitive dashboard for real-time hardware monitoring and configuration.
+**gui_dashboard (Dart/Flutter):** A responsive and intuitive dashboard for real-time hardware monitoring and configuration.
 
-Key Features
-Kernel-Level Control: Direct interaction with hardware drivers for maximum efficiency.
+## Key Features
 
-BSOD Shield: Built-in safeguards to prevent system instability and kernel panics.
+**Kernel-Level Control:** Direct interaction with hardware drivers for maximum efficiency.
 
-Secure Communication: Implements SHA-256 verification to ensure the integrity of driver modules.
+**BSOD Shield:** Built-in safeguards to prevent system instability and kernel panics.
+
+**Secure Communication:** Implements SHA-256 verification to ensure the integrity of driver modules.
