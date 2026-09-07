@@ -3,44 +3,70 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="HWControl 2.0 — modern hardware monitoring and control suite for Windows, macOS and Linux.">
+  <meta name="description" content="HWControl 2.0 — open-source hardware monitoring and control for Windows, macOS and Linux, with a secure local bridge and release integrity checks.">
+  <meta name="theme-color" content="#17202a">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://lordkeremello45.github.io/HWcontrol2.0/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="HWControl 2.0 — Hardware Control, Simplified">
+  <meta property="og:description" content="Open-source hardware monitoring and control for Windows, macOS and Linux.">
+  <meta property="og:url" content="https://lordkeremello45.github.io/HWcontrol2.0/">
+  <meta property="og:site_name" content="HWControl 2.0">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="HWControl 2.0 — Hardware Control, Simplified">
+  <meta name="twitter:description" content="Open-source hardware monitoring and control for Windows, macOS and Linux.">
   <title>HWControl 2.0 — Hardware Control, Simplified</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="nav shell">
     <a class="brand" href="#top" aria-label="HWControl home"><span class="brand-mark">H</span><span>HWControl <b>2.0</b></span></a>
-    <nav><a href="#features">Features</a><a href="#download">Download</a><a href="https://github.com/lordkeremello45/HWcontrol2.0" target="_blank" rel="noreferrer">GitHub ↗</a></nav>
+    <nav aria-label="Primary navigation"><a href="#features">Features</a><a href="#security">Security</a><a href="#download">Download</a><a href="https://github.com/lordkeremello45/HWcontrol2.0" target="_blank" rel="noopener noreferrer">GitHub ↗</a></nav>
   </header>
   <main id="top">
     <section class="hero shell">
       <div class="eyebrow"><span></span> OPEN SOURCE · CROSS-PLATFORM</div>
       <h1>Hardware control,<br><em>without the clutter.</em></h1>
       <p class="lead">HWControl 2.0 brings hardware monitoring, performance controls and a secure local bridge into one clean desktop experience.</p>
-      <div class="hero-actions"><a class="btn primary" href="#download">Download HWControl <span>↓</span></a><a class="btn ghost" href="https://github.com/lordkeremello45/HWcontrol2.0" target="_blank" rel="noreferrer">View source ↗</a></div>
-      <div class="hero-meta"><span id="latestBadge">Latest release · checking…</span><span>Windows · macOS · Linux</span></div>
+      <div class="hero-actions"><a class="btn primary" href="#download">Download HWControl <span>↓</span></a><a class="btn ghost" href="https://github.com/lordkeremello45/HWcontrol2.0" target="_blank" rel="noopener noreferrer">View source ↗</a></div>
+      <div class="hero-meta"><span id="latestBadge">Latest release · checking…</span><span>Windows · macOS · Linux</span><span>SHA-256 · GitHub provenance</span></div>
     </section>
+
     <section id="features" class="section shell">
       <div class="section-head"><div><div class="eyebrow">WHY HWCONTROL</div><h2>Focused tools. <span>Zero noise.</span></h2></div><p>Designed as a practical desktop control layer, not another overloaded dashboard.</p></div>
       <div class="cards">
         <article class="card"><div class="icon">◉</div><h3>Hardware monitoring</h3><p>Keep an eye on system sensors and performance from a single interface.</p></article>
         <article class="card"><div class="icon">⌁</div><h3>Performance control</h3><p>Profiles and controls built around fast, predictable desktop workflows.</p></article>
-        <article class="card"><div class="icon">⌑</div><h3>Secure bridge</h3><p>A local bridge connects the UI to system-level capabilities without unnecessary exposure.</p></article>
-        <article class="card"><div class="icon">✦</div><h3>AMD + NVIDIA GPU telemetry</h3><p>Expanded Windows and Linux GPU monitoring for vendor, load, temperature, memory, power, clocks and fan telemetry where the driver exposes it.</p></article>
+        <article class="card"><div class="icon">⌑</div><h3>Secure local bridge</h3><p>The UI communicates with system-level capabilities through a loopback-only local bridge with authenticated requests.</p></article>
+        <article class="card"><div class="icon">✦</div><h3>AMD + NVIDIA telemetry</h3><p>Expanded Windows and Linux GPU monitoring for vendor, load, temperature, memory, power, clocks and fan telemetry where the driver exposes it.</p></article>
       </div>
     </section>
+
+    <section id="security" class="trust shell">
+      <div class="section-head"><div><div class="eyebrow">SECURITY &amp; TRUST</div><h2>Transparent by design.</h2></div><p>Trust the process, verify the files, and inspect the source.</p></div>
+      <div class="trust-grid">
+        <article class="trust-card"><span class="trust-number">01</span><h3>Local-only bridge</h3><p>The bridge is designed around loopback communication rather than unnecessary network exposure, with authenticated communication between components.</p></article>
+        <article class="trust-card"><span class="trust-number">02</span><h3>Release integrity</h3><p>Release workflows publish SHA-256 checksums and GitHub artifact attestations where configured. Verify the checksum before installing a downloaded package.</p></article>
+        <article class="trust-card"><span class="trust-number">03</span><h3>Open source</h3><p>Review the implementation, report vulnerabilities responsibly, and inspect the release workflow instead of relying on marketing claims.</p></article>
+        <article class="trust-card warning"><span class="trust-number">04</span><h3>Windows signing status</h3><p>Windows binaries are currently unsigned unless a release is explicitly built with the project's signing secrets. An unsigned build will not carry a commercial publisher certificate.</p></article>
+      </div>
+      <div class="trust-links"><a href="https://github.com/lordkeremello45/HWcontrol2.0/blob/main/SECURITY.md" target="_blank" rel="noopener noreferrer">Security policy ↗</a><a href="https://github.com/lordkeremello45/HWcontrol2.0/blob/main/docs/RELEASE-SIGNING.md" target="_blank" rel="noopener noreferrer">Release signing ↗</a><a href="https://github.com/lordkeremello45/HWcontrol2.0/releases" target="_blank" rel="noopener noreferrer">Release history ↗</a></div>
+    </section>
+
     <section id="download" class="download shell">
-      <div class="download-copy"><div class="eyebrow">INSTALL HWCONTROL</div><h2>Choose your platform.</h2><p>Start with your operating system, then choose the package that fits your installation method.</p></div>
+      <div class="download-copy"><div class="eyebrow">INSTALL HWCONTROL</div><h2>Choose your platform.</h2><p>Start with your operating system, then choose the package that fits your installation method. Package metadata and checksum links are read directly from the latest stable GitHub release.</p></div>
       <div class="platforms">
-        <button class="platform active" data-platform="windows"><span class="platform-icon">▦</span><span><b>Install for Windows</b><small>Windows 10 / 11 · x64</small></span><strong>→</strong></button>
-        <button class="platform" data-platform="macos"><span class="platform-icon">⌘</span><span><b>Install for macOS</b><small>macOS 14+ · Apple Silicon</small></span><strong>→</strong></button>
-        <button class="platform" data-platform="linux"><span class="platform-icon">◌</span><span><b>Install for Linux</b><small>Ubuntu · Debian · Arch · Fedora</small></span><strong>→</strong></button>
+        <button class="platform active" data-platform="windows" type="button"><span class="platform-icon">▦</span><span><b>Install for Windows</b><small>Windows 10 / 11 · x64</small></span><strong>→</strong></button>
+        <button class="platform" data-platform="macos" type="button"><span class="platform-icon">⌘</span><span><b>Install for macOS</b><small>macOS 14+ · Apple Silicon</small></span><strong>→</strong></button>
+        <button class="platform" data-platform="linux" type="button"><span class="platform-icon">◌</span><span><b>Install for Linux</b><small>Linux · x64</small></span><strong>→</strong></button>
       </div>
-      <div class="package-panel" id="packagePanel" aria-live="polite"><div class="package-title"><div><span class="eyebrow">WINDOWS PACKAGE</span><h3>Pick your installer</h3></div><span class="detected" id="detected">Latest release</span></div><div id="packages" class="packages"><div class="loading">Loading release assets…</div></div><p class="integrity">Downloads are served directly from the official GitHub release. SHA-256 files are provided where available.</p></div>
+      <div class="package-panel" id="packagePanel" aria-live="polite"><div class="package-title"><div><span class="eyebrow">WINDOWS PACKAGE</span><h3>Pick your installer</h3></div><span class="detected" id="detected">Latest stable release</span></div><div id="packages" class="packages"><div class="loading">Loading release assets…</div></div><div class="release-actions"><a id="releaseLink" href="https://github.com/lordkeremello45/HWcontrol2.0/releases" target="_blank" rel="noopener noreferrer">Open release ↗</a><a id="checksumsLink" class="hidden" href="#" target="_blank" rel="noopener noreferrer">SHA-256 manifest ↗</a></div><p class="integrity">Downloads are served directly from the official GitHub release. When a matching checksum asset is published, use “Verify SHA-256” before installation.</p></div>
+      <div class="windows-note" id="windowsNote"><strong>Windows note:</strong> current Windows builds may be unsigned. That affects publisher verification and SmartScreen reputation; it is separate from the published checksum and release provenance. <a href="https://github.com/lordkeremello45/HWcontrol2.0/blob/main/docs/RELEASE-SIGNING.md" target="_blank" rel="noopener noreferrer">Learn more ↗</a></div>
     </section>
-    <section class="install-flow shell"><div class="flow-intro"><div class="eyebrow">SIMPLE FLOW</div><h2>From click to desktop.</h2></div><div class="flow"><div><span>01</span><b>Choose OS</b><p>Windows, macOS or Linux.</p></div><i>→</i><div><span>02</span><b>Choose package</b><p>MSI, ZIP, APP/DMG or distro package.</p></div><i>→</i><div><span>03</span><b>Download</b><p>Get the matching official release asset.</p></div><i>→</i><div><span>04</span><b>Install</b><p>Run the platform installer or archive.</p></div></div></section>
+
+    <section class="install-flow shell"><div class="flow-intro"><div class="eyebrow">SIMPLE FLOW</div><h2>From click to desktop.</h2></div><div class="flow"><div><span>01</span><b>Choose OS</b><p>Windows, macOS or Linux.</p></div><i>→</i><div><span>02</span><b>Choose package</b><p>Installer, application image or archive.</p></div><i>→</i><div><span>03</span><b>Verify</b><p>Check the SHA-256 manifest when available.</p></div><i>→</i><div><span>04</span><b>Install</b><p>Run the platform installer or archive.</p></div></div></section>
   </main>
-  <footer class="footer shell"><div class="brand"><span class="brand-mark">H</span><span>HWControl <b>2.0</b></span></div><span>GPL-3.0 · Open source</span><a href="https://github.com/lordkeremello45/HWcontrol2.0/releases" target="_blank" rel="noreferrer">All releases ↗</a></footer>
+  <footer class="footer shell"><div class="brand"><span class="brand-mark">H</span><span>HWControl <b>2.0</b></span></div><span>GPL-3.0 · Open source</span><a href="https://github.com/lordkeremello45/HWcontrol2.0/releases" target="_blank" rel="noopener noreferrer">All releases ↗</a></footer>
   <script src="app.js"></script>
 </body>
 </html>
