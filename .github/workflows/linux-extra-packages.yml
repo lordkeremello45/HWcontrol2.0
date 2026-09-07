@@ -2,8 +2,9 @@ name: Linux extra packages
 
 on:
   push:
+    branches: []
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+-linux'
+      - 'v*-linux'
   workflow_dispatch:
 
 permissions:
@@ -16,8 +17,8 @@ env:
 
 jobs:
   build-extra:
-    # Release packages must only be built from a Linux release tag.
-    if: github.ref_type == 'tag' && endsWith(github.ref_name, '-linux')
+    # Release packages are built from Linux release tags or an explicit manual run.
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref_type == 'tag' && endsWith(github.ref_name, '-linux'))
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
