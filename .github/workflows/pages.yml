@@ -30,6 +30,17 @@ jobs:
       - name: Validate website JavaScript
         run: node --check website/app.js
 
+      - name: Verify release-aware download selector
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const source = fs.readFileSync('website/app.js', 'utf8');
+          for (const token of ["endsWith('-setup.exe')", "Setup · recommended", '.msi', '.zip']) {
+            if (!source.includes(token)) throw new Error(`Missing website installer integration token: ${token}`);
+          }
+          console.log('Website Windows installer integration: OK');
+          NODE
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
