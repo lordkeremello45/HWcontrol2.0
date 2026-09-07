@@ -91,8 +91,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final List<String> _events = <String>[];
   Map<String, Map<String, double>> _profiles = {};
 
-  String get _sharedKey =>
-      Platform.environment['HWCONTROL_KEY'] ?? _compileTimeKey;
+  String get _sharedKey => Platform.environment['HWCONTROL_KEY'] ?? _compileTimeKey;
 
   int get _bridgePort => int.tryParse(Platform.environment['HWCONTROL_PORT'] ?? '8080') ?? 8080;
 
@@ -321,9 +320,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         timeout: const Duration(seconds: 3),
       );
       _socket = socket;
-      _responses = StreamIterator(
-        socket.map(utf8.decode).transform(const LineSplitter()),
-      );
+      _responses = StreamIterator(socket.map(utf8.decode).transform(const LineSplitter()));
       socket.done.whenComplete(() {
         if (!mounted) return;
         setState(() {
@@ -336,7 +333,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _isConnected = true;
         _status = 'Bridge aktif';
       });
-      _addEvent('Bridge bağlantısı kurulamadı');
+      _addEvent('Bridge bağlantısı kuruldu');
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -361,9 +358,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() => _isSending = true);
     try {
       final payload = '$action\n${value.toStringAsFixed(6)}';
-      final auth = Hmac(sha256, utf8.encode(_sharedKey))
-          .convert(utf8.encode(payload))
-          .toString();
+      final auth = Hmac(sha256, utf8.encode(_sharedKey)).convert(utf8.encode(payload)).toString();
       socket.write('${jsonEncode({
         'action': action,
         'value': value,
@@ -371,8 +366,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       })}\n');
 
       final responses = _responses;
-      if (responses == null ||
-          !await responses.moveNext().timeout(const Duration(seconds: 3))) {
+      if (responses == null || !await responses.moveNext().timeout(const Duration(seconds: 3))) {
         throw StateError('Bridge response missing');
       }
       final response = jsonDecode(responses.current) as Map<String, dynamic>;
@@ -516,21 +510,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return AnimatedSwitcher(
       duration: widget.animationsEnabled ? const Duration(milliseconds: 220) : Duration.zero,
       child: Container(
-      key: ValueKey(_isConnected),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: color.withAlpha(24),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withAlpha(90)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.circle, size: 8, color: color),
-          const SizedBox(width: 8),
-          Text(_isConnected ? 'BRIDGE ONLINE' : 'OFFLINE', style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700)),
-        ],
-      ),
+        key: ValueKey(_isConnected),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: color.withAlpha(24),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withAlpha(90)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.circle, size: 8, color: color),
+            const SizedBox(width: 8),
+            Text(_isConnected ? 'BRIDGE ONLINE' : 'OFFLINE', style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700)),
+          ],
+        ),
       ),
     );
   }
@@ -541,17 +535,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return AnimatedSwitcher(
       duration: widget.animationsEnabled ? const Duration(milliseconds: 220) : Duration.zero,
       child: _Panel(
-      key: ValueKey('$_updateStatus-${_updateInfo?.tag}'),
-      padding: const EdgeInsets.fromLTRB(18, 14, 14, 14),
-      child: Row(
-        children: [
-          Icon(available ? Icons.system_update_alt : Icons.verified_user_outlined, color: color),
-          const SizedBox(width: 12),
-          Expanded(child: Text(available ? '${_updateInfo!.tag} hazır' : _updateStatus, style: TextStyle(color: color, fontWeight: FontWeight.w600))),
-          if (available) TextButton.icon(onPressed: _openUpdate, icon: const Icon(Icons.download, size: 17), label: const Text('Release’i aç')),
-          IconButton(tooltip: 'Güncellemeleri kontrol et', onPressed: _isCheckingUpdate ? null : _checkForUpdate, icon: const Icon(Icons.refresh)),
-        ],
-      ),
+        key: ValueKey('$_updateStatus-${_updateInfo?.tag}'),
+        padding: const EdgeInsets.fromLTRB(18, 14, 14, 14),
+        child: Row(
+          children: [
+            Icon(available ? Icons.system_update_alt : Icons.verified_user_outlined, color: color),
+            const SizedBox(width: 12),
+            Expanded(child: Text(available ? '${_updateInfo!.tag} hazır' : _updateStatus, style: TextStyle(color: color, fontWeight: FontWeight.w600))),
+            if (available) TextButton.icon(onPressed: _openUpdate, icon: const Icon(Icons.download, size: 17), label: const Text('Release’i aç')),
+            IconButton(tooltip: 'Güncellemeleri kontrol et', onPressed: _isCheckingUpdate ? null : _checkForUpdate, icon: const Icon(Icons.refresh)),
+          ],
+        ),
       ),
     );
   }
@@ -804,9 +798,14 @@ class _HistoryPainter extends CustomPainter {
     final minimum = samples.map((sample) => sample.temperature).reduce((a, b) => a < b ? a : b);
     final maximum = samples.map((sample) => sample.temperature).reduce((a, b) => a > b ? a : b);
     final range = (maximum - minimum).abs() < 0.1 ? 1.0 : maximum - minimum;
+    final start = samples.first.time;
+    final end = samples.last.time;
+    final duration = end.difference(start).inMilliseconds.toDouble();
     final path = Path();
     for (var index = 0; index < samples.length; index++) {
-      final x = samples.length == 1 ? 0.0 : size.width * index / (samples.length - 1);
+      final x = duration <= 0
+          ? (samples.length == 1 ? 0.0 : size.width * index / (samples.length - 1))
+          : size.width * samples[index].time.difference(start).inMilliseconds / duration;
       final y = (size.height - ((samples[index].temperature - minimum) / range * (size.height - 8)) - 4).toDouble();
       if (index == 0) {
         path.moveTo(x, y);
