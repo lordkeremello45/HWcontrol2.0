@@ -1,0 +1,19 @@
+[Unit]
+Description=HWControl bridge service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/hwcontrol
+Environment=HWCONTROL_KEY=replace-me
+ExecStart=/opt/hwcontrol/bridge-service
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/hwcontrol
+
+[Install]
+WantedBy=multi-user.target

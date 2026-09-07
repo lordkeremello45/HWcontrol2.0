@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "model": "gemma-2b-it-q4_k_m.gguf",
+  "provider": "second-state/Gemma-2b-it-GGUF",
+  "license": "gemma-terms-of-use",
+  "url": "https://huggingface.co/second-state/Gemma-2b-it-GGUF/resolve/main/gemma-2b-it-Q4_K_M.gguf?download=true",
+  "sha256": "4d736aa91fa06bb4d72a9e9017ad4e5c6a8fc16fb01b748c9b8332293c855402",
+  "size": 1495095008
+}
