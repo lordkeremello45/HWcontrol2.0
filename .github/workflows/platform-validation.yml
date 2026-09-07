@@ -142,6 +142,25 @@ jobs:
           $uninstall = Start-Process msiexec.exe -ArgumentList '/x', "$PWD/HWControl-test.msi", '/qn', '/norestart' -Wait -PassThru
           if ($uninstall.ExitCode -ne 0) { throw "MSI uninstall failed with exit code $($uninstall.ExitCode)" }
           if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge service still exists after uninstall' }
+      - name: Build and smoke-test guided Setup.exe
+        shell: pwsh
+        run: |
+          $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
+          wix build deploy/windows/HWControl-Setup.wxs -ext WixToolset.BootstrapperApplications.wixext -arch x64 -d Version=0.0.0 -d MsiPath="$PWD/HWControl-test.msi" -o HWControl-test-Setup.exe
+          if (-not (Test-Path "$PWD/HWControl-test-Setup.exe")) { throw 'Setup.exe was not produced' }
+          $testDir = Join-Path $env:RUNNER_TEMP 'HWControl-Setup-Test'
+          if (Test-Path $testDir) { Remove-Item $testDir -Recurse -Force }
+          $setupInstall = Start-Process -FilePath "$PWD/HWControl-test-Setup.exe" -ArgumentList '/quiet', '/norestart', "InstallFolder=$testDir" -Wait -PassThru
+          if ($setupInstall.ExitCode -ne 0) { throw "Setup.exe install failed with exit code $($setupInstall.ExitCode)" }
+          if (-not (Test-Path "$testDir\HWControl.exe")) { throw 'Setup.exe did not honor the selected installation directory' }
+          if (-not (Test-Path "$testDir\bridge-service.exe")) { throw 'Setup.exe did not install bridge-service.exe' }
+          $service = Get-Service -Name HWControlBridge -ErrorAction Stop
+          if ($service.Status -ne 'Running') { throw "HWControlBridge is not running after Setup.exe install: $($service.Status)" }
+          $probe = Test-NetConnection 127.0.0.1 -Port 8080 -WarningAction SilentlyContinue
+          if (-not $probe.TcpTestSucceeded) { throw 'HWControlBridge is not listening after Setup.exe install' }
+          $setupUninstall = Start-Process -FilePath "$PWD/HWControl-test-Setup.exe" -ArgumentList '/uninstall', '/quiet', '/norestart' -Wait -PassThru
+          if ($setupUninstall.ExitCode -ne 0) { throw "Setup.exe uninstall failed with exit code $($setupUninstall.ExitCode)" }
+          if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge service still exists after Setup.exe uninstall' }
 
   macos:
     runs-on: macos-14
