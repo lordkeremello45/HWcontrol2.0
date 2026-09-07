@@ -27,43 +27,44 @@ permissions:
 jobs:
   distro-smoke:
     name: ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: Ubuntu 22.04
-            os: ubuntu-22.04
+            container: ubuntu:22.04
           - name: Ubuntu 24.04
-            os: ubuntu-24.04
+            container: ubuntu:24.04
           - name: Debian 12
-            os: debian-12
+            container: debian:12
           - name: Fedora 42
-            os: ubuntu-24.04
             container: fedora:42
           - name: Arch Linux
-            os: ubuntu-24.04
             container: archlinux:base
           - name: openSUSE Tumbleweed
-            os: ubuntu-24.04
             container: opensuse/tumbleweed:latest
 
-    container: ${{ matrix.container || '' }}
+    container: ${{ matrix.container }}
 
     steps:
       - name: Install base tooling
         shell: bash
         run: |
+          set -euo pipefail
           if command -v apt-get >/dev/null 2>&1; then
             apt-get update
-            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates curl git cmake build-essential pkg-config
+            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates curl git cmake build-essential pkg-config file
           elif command -v dnf >/dev/null 2>&1; then
-            dnf install -y ca-certificates curl git cmake gcc-c++ make pkgconf-pkg-config
+            dnf install -y ca-certificates curl git cmake gcc-c++ make pkgconf-pkg-config file
           elif command -v pacman >/dev/null 2>&1; then
-            pacman -Sy --noconfirm ca-certificates curl git cmake base-devel pkgconf
+            pacman -Sy --noconfirm ca-certificates curl git cmake base-devel pkgconf file
           elif command -v zypper >/dev/null 2>&1; then
             zypper --non-interactive refresh
-            zypper --non-interactive install -y ca-certificates curl git cmake gcc-c++ make pkg-config
+            zypper --non-interactive install -y ca-certificates curl git cmake gcc-c++ make pkg-config file
+          else
+            echo 'Unsupported container distribution.' >&2
+            exit 1
           fi
 
       - name: Checkout
@@ -81,7 +82,11 @@ jobs:
       - name: Install Go
         shell: bash
         run: |
-          if command -v go >/dev/null 2>&1; then exit 0; fi
+          set -euo pipefail
+          if command -v go >/dev/null 2>&1; then
+            go version
+            exit 0
+          fi
           curl -fsSL https://go.dev/dl/go1.24.6.linux-amd64.tar.gz -o /tmp/go.tgz
           rm -rf /usr/local/go
           tar -C /usr/local -xzf /tmp/go.tgz
@@ -93,16 +98,21 @@ jobs:
         working-directory: bridge_service
         run: |
           go test ./...
-          go build -o bridge-service ./src
+          go build -trimpath -o bridge-service ./src
 
       - name: Validate runtime dependencies
         shell: bash
         run: |
           set -euo pipefail
-          for binary in bridge_service/bridge-service build/*; do
-            if [ -f "$binary" ] && file "$binary" 2>/dev/null | grep -q ELF; then
-              if command -v ldd >/dev/null 2>&1; then
-                ldd "$binary" | grep 'not found' && exit 1 || true
+          found=0
+          while IFS= read -r -d '' binary; do
+            found=1
+            if command -v ldd >/dev/null 2>&1; then
+              if ldd "$binary" 2>&1 | grep -q 'not found'; then
+                echo "Missing runtime dependency: $binary" >&2
+                ldd "$binary" >&2 || true
+                exit 1
               fi
             fi
-          done
+          done < <(find bridge_service build -type f -perm -111 -print0 2>/dev/null)
+          test "$found" -eq 1
