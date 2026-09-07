@@ -94,13 +94,13 @@ jobs:
           cd release-assets
           case "$TAG" in
             *-windows)
-              test -f *.msi 2>/dev/null || test -f *.zip 2>/dev/null || { echo 'Windows release has no MSI or ZIP asset'; exit 1; }
+              compgen -G '*.msi' >/dev/null || compgen -G '*.zip' >/dev/null || { echo 'Windows release has no MSI or ZIP asset'; exit 1; }
               ;;
             *-macos)
-              test -f *.pkg 2>/dev/null || test -f *.dmg 2>/dev/null || { echo 'macOS release has no PKG or DMG asset'; exit 1; }
+              compgen -G '*.pkg' >/dev/null || compgen -G '*.dmg' >/dev/null || { echo 'macOS release has no PKG or DMG asset'; exit 1; }
               ;;
             *-linux)
-              test -f *.deb || test -f *.tar.gz || test -f *.tar.zst || { echo 'Linux release has no DEB/TAR asset'; exit 1; }
+              compgen -G '*.deb' >/dev/null || compgen -G '*.tar.gz' >/dev/null || compgen -G '*.tar.zst' >/dev/null || { echo 'Linux release has no DEB/TAR asset'; exit 1; }
               test -f "HWControl-${TAG}-Linux-x64.rpm"
               test -f "HWControl-${TAG}-Linux-x64.pkg.tar.zst"
               ;;
