@@ -6,10 +6,12 @@
     <Feature Id="MainFeature" Title="HWControl" Level="1">
       <ComponentGroupRef Id="ApplicationFiles" />
       <ComponentRef Id="BridgeServiceComponent" />
+      <ComponentRef Id="BridgeDataComponent" />
     </Feature>
 
     <Component Id="BridgeServiceComponent" Directory="INSTALLFOLDER">
       <File Id="BridgeServiceExe" Source="$(var.PackageDir)\bridge-service.exe" KeyPath="yes" />
+      <Environment Id="RemoveHwControlKey" Name="HWCONTROL_KEY" Action="remove" System="yes" />
       <ServiceInstall Id="BridgeServiceInstall" Name="HWControlBridge" DisplayName="HWControl Bridge" Description="HWControl local authenticated bridge service" ErrorControl="normal" Start="auto" Type="ownProcess" Vital="yes" />
       <ServiceControl Id="BridgeServiceControl" Name="HWControlBridge" Start="install" Stop="both" Remove="uninstall" Wait="yes" />
     </Component>
@@ -19,9 +21,18 @@
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="INSTALLFOLDER" Name="HWControl" />
     </StandardDirectory>
+    <StandardDirectory Id="CommonAppDataFolder">
+      <Directory Id="HWCONTROL_DATA" Name="HWControl" />
+    </StandardDirectory>
   </Fragment>
 
   <Fragment>
+    <Component Id="BridgeDataComponent" Directory="HWCONTROL_DATA">
+      <CreateFolder />
+      <RemoveFile Id="RemoveBridgeKey" Name="bridge.key" On="uninstall" />
+      <RegistryValue Root="HKLM" Key="Software\HWControl" Name="BridgeDataInstalled" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+
     <ComponentGroup Id="ApplicationFiles" Directory="INSTALLFOLDER">
       <Files Include="$(var.PackageDir)\**">
         <Exclude Files="$(var.PackageDir)\bridge-service.exe" />
