@@ -4,6 +4,7 @@ REPO='lordkeremello45/HWcontrol2.0'
 API="https://api.github.com/repos/$REPO/releases"
 TMP_DIR="${TMPDIR:-/tmp}/hwcontrol-installer"
 INSTALL_DIR="/opt/hwcontrol"
+KEY_FILE="/var/lib/hwcontrol/bridge.key"
 mkdir -p "$TMP_DIR"
 printf '\nHWControl Linux Installer\nDetecting Linux distribution and latest stable compatible package...\n'
 if [ "$(id -u)" -eq 0 ]; then SUDO=''; else SUDO='sudo'; fi
@@ -32,11 +33,18 @@ verify_sha(){ local file="$1" base expected actual; base="$(basename "$file")"; 
 install_deb(){ local file="$1"; verify_sha "$file"; $SUDO apt-get install -y "$file"; }
 install_rpm(){ local file="$1"; verify_sha "$file"; if command -v dnf >/dev/null; then $SUDO dnf install -y "$file"; elif command -v yum >/dev/null; then $SUDO yum install -y "$file"; else echo 'dnf/yum is required for RPM installation.' >&2; exit 1; fi; }
 install_arch(){ local file="$1"; verify_sha "$file"; command -v pacman >/dev/null || { echo 'pacman is required for Arch package installation.' >&2; exit 1; }; $SUDO pacman -U --noconfirm "$file"; }
-install_archive(){ local file="$1" format="$2" stage="$TMP_DIR/stage" source_dir dashboard_bin; rm -rf "$stage"; mkdir -p "$stage"; verify_sha "$file"; case "$format" in zst) command -v zstd >/dev/null || { echo 'zstd is required.' >&2; exit 1; }; tar --use-compress-program=zstd -xf "$file" -C "$stage";; gz) tar -xzf "$file" -C "$stage";; *) exit 1;; esac; source_dir="$(find "$stage" -mindepth 1 -maxdepth 1 -type d | head -n1)"; [ -n "$source_dir" ] || { echo 'Invalid HWControl archive layout.' >&2; exit 1; }; $SUDO rm -rf "$INSTALL_DIR"; $SUDO mkdir -p "$INSTALL_DIR"; $SUDO cp -a "$source_dir/." "$INSTALL_DIR/"; $SUDO chmod 0755 "$INSTALL_DIR/bridge-service" "$INSTALL_DIR/ai_engine" 2>/dev/null || true; if [ -f "$INSTALL_DIR/deploy/hwcontrol-bridge.service" ]; then $SUDO install -m0644 "$INSTALL_DIR/deploy/hwcontrol-bridge.service" /etc/systemd/system/hwcontrol-bridge.service; $SUDO systemctl daemon-reload; $SUDO systemctl enable hwcontrol-bridge.service >/dev/null; fi; if [ -d "$INSTALL_DIR/dashboard" ]; then dashboard_bin="$(find "$INSTALL_DIR/dashboard" -type f -name hwcontrol_dashboard -executable | head -n1)"; [ -n "$dashboard_bin" ] && $SUDO ln -sf "$dashboard_bin" /usr/local/bin/hwcontrol; fi; }
+configure_runtime(){ $SUDO mkdir -p "$(dirname "$KEY_FILE")"; if [ ! -s "$KEY_FILE" ]; then $SUDO umask 077; $SUDO mkdir -p "$(dirname "$KEY_FILE")"; $SUDO sh -c 'umask 077; head -c 32 /dev/urandom | od -An -tx1 | tr -d " \n" > /var/lib/hwcontrol/bridge.key'; fi; if [ -f "$INSTALL_DIR/deploy/hwcontrol-bridge.service" ]; then $SUDO install -m0644 "$INSTALL_DIR/deploy/hwcontrol-bridge.service" /etc/systemd/system/hwcontrol-bridge.service; $SUDO systemctl daemon-reload; $SUDO systemctl enable hwcontrol-bridge.service >/dev/null; $SUDO systemctl restart hwcontrol-bridge.service; fi; if [ -d "$INSTALL_DIR/dashboard" ]; then dashboard_bin="$(find "$INSTALL_DIR/dashboard" -type f -name hwcontrol_dashboard -executable | head -n1)"; if [ -n "$dashboard_bin" ]; then $SUDO tee /usr/local/bin/hwcontrol >/dev/null <<EOF
+#!/usr/bin/env bash
+set -euo pipefail
+export HWCONTROL_KEY="\$(cat /var/lib/hwcontrol/bridge.key)"
+exec "$dashboard_bin" "\$@"
+EOF
+$SUDO chmod 0755 /usr/local/bin/hwcontrol; fi; fi; }
+install_archive(){ local file="$1" format="$2" stage="$TMP_DIR/stage" source_dir; rm -rf "$stage"; mkdir -p "$stage"; verify_sha "$file"; case "$format" in zst) command -v zstd >/dev/null || { echo 'zstd is required.' >&2; exit 1; }; tar --use-compress-program=zstd -xf "$file" -C "$stage";; gz) tar -xzf "$file" -C "$stage";; *) exit 1;; esac; source_dir="$(find "$stage" -mindepth 1 -maxdepth 1 -type d | head -n1)"; [ -n "$source_dir" ] || { echo 'Invalid HWControl archive layout.' >&2; exit 1; }; $SUDO rm -rf "$INSTALL_DIR"; $SUDO mkdir -p "$INSTALL_DIR"; $SUDO cp -a "$source_dir/." "$INSTALL_DIR/"; $SUDO chmod 0755 "$INSTALL_DIR/bridge-service" "$INSTALL_DIR/ai_engine" 2>/dev/null || true; configure_runtime; }
 case "$family" in
- debian) if [ -n "$deb_url" ]; then f="$TMP_DIR/$(asset_name '.deb')"; curl -fL -o "$f" "$deb_url"; install_deb "$f"; echo "HWControl $tag installed via .deb."; exit 0; fi;;
- rpm) if [ -n "$rpm_url" ]; then f="$TMP_DIR/$(asset_name '.rpm')"; curl -fL -o "$f" "$rpm_url"; install_rpm "$f"; echo "HWControl $tag installed via RPM."; exit 0; fi;;
- arch) if [ -n "$arch_url" ]; then f="$TMP_DIR/$(asset_name '.pkg.tar.zst')"; curl -fL -o "$f" "$arch_url"; install_arch "$f"; echo "HWControl $tag installed via Arch package."; exit 0; fi;;
+ debian) if [ -n "$deb_url" ]; then f="$TMP_DIR/$(asset_name '.deb')"; curl -fL -o "$f" "$deb_url"; install_deb "$f"; configure_runtime; echo "HWControl $tag installed via .deb."; exit 0; fi;;
+ rpm) if [ -n "$rpm_url" ]; then f="$TMP_DIR/$(asset_name '.rpm')"; curl -fL -o "$f" "$rpm_url"; install_rpm "$f"; configure_runtime; echo "HWControl $tag installed via RPM."; exit 0; fi;;
+ arch) if [ -n "$arch_url" ]; then f="$TMP_DIR/$(asset_name '.pkg.tar.zst')"; curl -fL -o "$f" "$arch_url"; install_arch "$f"; configure_runtime; echo "HWControl $tag installed via Arch package."; exit 0; fi;;
 esac
 if [ -n "$zst_url" ]; then f="$TMP_DIR/$(asset_name '.tar.zst')"; curl -fL -o "$f" "$zst_url"; install_archive "$f" zst; echo "HWControl $tag installed via .tar.zst."; exit 0; fi
 if [ -n "$gz_url" ]; then f="$TMP_DIR/$(asset_name '.tar.gz')"; curl -fL -o "$f" "$gz_url"; install_archive "$f" gz; echo "HWControl $tag installed via .tar.gz."; exit 0; fi
