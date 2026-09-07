@@ -16,7 +16,7 @@ permissions:
 jobs:
   verify-and-publish:
     name: Verify release assets and publish SHA256SUMS
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Resolve release tag
         id: release
@@ -24,53 +24,94 @@ jobs:
           EVENT_TAG: ${{ github.event.release.tag_name }}
           INPUT_TAG: ${{ inputs.tag }}
         run: |
+          set -euo pipefail
           TAG="$EVENT_TAG"
           if [ -z "$TAG" ]; then TAG="$INPUT_TAG"; fi
           test -n "$TAG"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for Linux extra packages
+        if: endsWith(steps.release.outputs.tag, '-linux')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          echo "Waiting for RPM and Arch assets for $TAG..."
+          for attempt in $(seq 1 60); do
+            assets="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name')"
+            if printf '%s\n' "$assets" | grep -Fxq "HWControl-${TAG}-Linux-x64.rpm" && \
+               printf '%s\n' "$assets" | grep -Fxq "HWControl-${TAG}-Linux-x64.pkg.tar.zst" && \
+               printf '%s\n' "$assets" | grep -Fxq "HWControl-${TAG}-Linux-extra.sha256"; then
+              echo 'Linux extra packages are present.'
+              exit 0
+            fi
+            sleep 10
+          done
+          echo 'Timed out waiting for Linux extra packages.' >&2
+          exit 1
 
       - name: Download release assets
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.release.outputs.tag }}
         run: |
+          set -euo pipefail
+          rm -rf release-assets
           mkdir -p release-assets
           gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir release-assets --pattern '*' --clobber
 
       - name: Verify individual SHA256 files
-        env:
-          TAG: ${{ steps.release.outputs.tag }}
         run: |
+          set -euo pipefail
           cd release-assets
           shopt -s nullglob
           found=0
           for checksum in *.sha256; do
             found=1
-            asset="${checksum%.sha256}"
-            test -f "$asset" || { echo "Missing asset for $checksum"; exit 1; }
-            expected=$(awk '{print $1}' "$checksum")
-            actual=$(sha256sum "$asset" | awk '{print $1}')
-            test "$expected" = "$actual" || { echo "SHA256 mismatch: $asset"; exit 1; }
-            echo "Verified: $asset"
+            mapfile -t entries < <(awk 'NF >= 2 {print $1 "\t" $2}' "$checksum")
+            test "${#entries[@]}" -gt 0 || { echo "Empty checksum manifest: $checksum"; exit 1; }
+            for entry in "${entries[@]}"; do
+              expected="${entry%%$'\t'*}"
+              asset="${entry#*$'\t'}"
+              asset="${asset#\*}"
+              test -f "$asset" || { echo "Missing asset for $checksum: $asset"; exit 1; }
+              actual=$(sha256sum "$asset" | awk '{print $1}')
+              test "$expected" = "$actual" || { echo "SHA256 mismatch: $asset"; exit 1; }
+              echo "Verified: $asset"
+            done
           done
           if [ "$found" -eq 0 ]; then
-            echo "No individual .sha256 files found; continuing with release-wide manifest."
+            echo 'No individual .sha256 files found.' >&2
+            exit 1
           fi
 
-      - name: Validate expected platform package
+      - name: Validate expected platform packages
         env:
           TAG: ${{ steps.release.outputs.tag }}
         run: |
+          set -euo pipefail
           cd release-assets
           case "$TAG" in
-            *-windows) compgen -G '*.msi' >/dev/null || compgen -G '*.zip' >/dev/null || { echo 'Windows release has no MSI or ZIP asset'; exit 1; } ;;
-            *-macos) compgen -G '*.pkg' >/dev/null || compgen -G '*.dmg' >/dev/null || { echo 'macOS release has no PKG or DMG asset'; exit 1; } ;;
-            *-linux) compgen -G '*.deb' >/dev/null || compgen -G '*.tar.gz' >/dev/null || compgen -G '*.tar.zst' >/dev/null || { echo 'Linux release has no DEB/TAR asset'; exit 1; } ;;
-            *) echo "Generic/unified tag: package-specific validation skipped." ;;
+            *-windows)
+              test -f *.msi 2>/dev/null || test -f *.zip 2>/dev/null || { echo 'Windows release has no MSI or ZIP asset'; exit 1; }
+              ;;
+            *-macos)
+              test -f *.pkg 2>/dev/null || test -f *.dmg 2>/dev/null || { echo 'macOS release has no PKG or DMG asset'; exit 1; }
+              ;;
+            *-linux)
+              test -f *.deb || test -f *.tar.gz || test -f *.tar.zst || { echo 'Linux release has no DEB/TAR asset'; exit 1; }
+              test -f "HWControl-${TAG}-Linux-x64.rpm"
+              test -f "HWControl-${TAG}-Linux-x64.pkg.tar.zst"
+              ;;
+            *)
+              echo "Generic/unified tag: package-specific validation skipped."
+              ;;
           esac
 
       - name: Generate release-wide SHA256SUMS.txt
         run: |
+          set -euo pipefail
           cd release-assets
           rm -f SHA256SUMS.txt
           find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' ! -name '*.sha256' -print0 \
@@ -84,6 +125,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.release.outputs.tag }}
         run: |
+          set -euo pipefail
           gh release upload "$TAG" release-assets/SHA256SUMS.txt \
             --repo "$GITHUB_REPOSITORY" \
             --clobber
