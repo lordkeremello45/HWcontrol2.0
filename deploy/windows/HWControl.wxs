@@ -5,7 +5,14 @@
     <MediaTemplate EmbedCab="yes" />
     <Feature Id="MainFeature" Title="HWControl" Level="1">
       <ComponentGroupRef Id="ApplicationFiles" />
+      <ComponentRef Id="BridgeServiceComponent" />
     </Feature>
+
+    <Component Id="BridgeServiceComponent" Directory="INSTALLFOLDER">
+      <File Id="BridgeServiceExe" Source="$(var.PackageDir)\bridge-service.exe" KeyPath="yes" />
+      <ServiceInstall Id="BridgeServiceInstall" Name="HWControlBridge" DisplayName="HWControl Bridge" Description="HWControl local authenticated bridge service" ErrorControl="normal" Start="auto" Type="ownProcess" Vital="yes" />
+      <ServiceControl Id="BridgeServiceControl" Name="HWControlBridge" Start="install" Stop="both" Remove="uninstall" Wait="yes" />
+    </Component>
   </Package>
 
   <Fragment>
@@ -16,7 +23,9 @@
 
   <Fragment>
     <ComponentGroup Id="ApplicationFiles" Directory="INSTALLFOLDER">
-      <Files Include="$(var.PackageDir)\**" />
+      <Files Include="$(var.PackageDir)\**">
+        <Exclude Files="$(var.PackageDir)\bridge-service.exe" />
+      </Files>
     </ComponentGroup>
   </Fragment>
 </Wix>
