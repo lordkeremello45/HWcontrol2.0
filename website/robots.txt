@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://lordkeremello45.github.io/HWcontrol2.0/sitemap.xml
