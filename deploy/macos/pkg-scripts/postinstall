@@ -11,7 +11,7 @@ APP_PLIST="$APP_DIR/HWControl.app/Contents/Info.plist"
 /bin/mkdir -p "$KEY_DIR"
 if [ ! -s "$KEY_FILE" ]; then
   /usr/bin/openssl rand -hex 32 > "$KEY_FILE"
-  /bin/chmod 0644 "$KEY_FILE"
+  /bin/chmod 0600 "$KEY_FILE"
 fi
 
 if [ -f "$APP_PLIST" ]; then
@@ -24,10 +24,6 @@ if [ -f "$PLIST_SRC" ]; then
   /usr/bin/install -m 644 "$PLIST_SRC" "$PLIST_DST"
   /usr/sbin/chown root:wheel "$PLIST_DST"
   /usr/bin/plutil -lint "$PLIST_DST" >/dev/null
-  /bin/launchctl bootout system/com.hwcontrol.bridge >/dev/null 2>&1 || true
-  /bin/launchctl bootstrap system "$PLIST_DST"
-  /bin/launchctl enable system/com.hwcontrol.bridge
-  /bin/launchctl kickstart -k system/com.hwcontrol.bridge
 fi
 
 exit 0
