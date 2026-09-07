@@ -1,0 +1,122 @@
+name: Linux extra packages
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+-linux'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+env:
+  FLUTTER_CHANNEL: stable
+
+jobs:
+  build-extra:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev zstd rpm python3
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: bridge_service/go.mod
+          cache: false
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          cache: true
+      - name: Build common Linux bundle
+        run: |
+          set -euo pipefail
+          (cd gui_dashboard && flutter create --platforms=linux --no-pub . && git restore pubspec.yaml test/widget_test.dart && flutter pub get && flutter build linux --release -t lib/installer_main.dart)
+          cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
+          cmake --build build --parallel 2
+          (cd bridge_service && go build -trimpath -ldflags='-s -w' -o ../bridge-service ./src)
+          package_dir="package/HWControl-${GITHUB_REF_NAME}-Linux-x64"
+          rm -rf package && mkdir -p "$package_dir"
+          install -m 0755 build/ai_core/ai_engine "$package_dir/ai_engine"
+          install -m 0755 bridge-service "$package_dir/bridge-service"
+          cp -R gui_dashboard/build/linux/x64/release/bundle "$package_dir/dashboard"
+          cp README.md SECURITY.md THIRD_PARTY_NOTICES "$package_dir/"
+          cp -R deploy/linux "$package_dir/deploy"
+          tar -czf bundle.tar.gz -C package "HWControl-${GITHUB_REF_NAME}-Linux-x64"
+          tar -cf bundle.tar -C package "HWControl-${GITHUB_REF_NAME}-Linux-x64"
+          zstd -f bundle.tar -o bundle.tar.zst
+      - name: Build RPM in Fedora
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"; version="${version%-linux}"
+          rm -rf rpmbuild
+          mkdir -p rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+          cp bundle.tar.gz "rpmbuild/SOURCES/HWControl-${version}.tar.gz"
+          cat > rpmbuild/SPECS/hwcontrol.spec <<EOF
+Name: hwcontrol
+Version: ${version}
+Release: 1
+Summary: HWControl hardware monitoring and control suite
+License: GPL-3.0-or-later
+BuildArch: x86_64
+%description
+HWControl hardware monitoring and control suite.
+%prep
+%setup -q -c
+%install
+mkdir -p %{buildroot}/opt/hwcontrol
+cp -a ./* %{buildroot}/opt/hwcontrol/
+%files
+/opt/hwcontrol
+EOF
+          docker run --rm -v "$PWD/rpmbuild:/rpmbuild" fedora:42 bash -lc 'dnf install -y rpm-build tar gzip >/dev/null && rpmbuild --define "_topdir /rpmbuild" -bb /rpmbuild/SPECS/hwcontrol.spec'
+          cp rpmbuild/RPMS/x86_64/*.rpm "HWControl-${GITHUB_REF_NAME}-Linux-x64.rpm"
+          rpm -qip "HWControl-${GITHUB_REF_NAME}-Linux-x64.rpm" >/dev/null
+      - name: Build Arch package
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"; version="${version%-linux}"
+          rm -rf arch-build && mkdir -p arch-build
+          cp bundle.tar.zst arch-build/hwcontrol-bundle.tar.zst
+          cat > arch-build/PKGBUILD <<EOF
+pkgname=hwcontrol
+pkgver=${version}
+pkgrel=1
+pkgdesc='HWControl hardware monitoring and control suite'
+arch=('x86_64')
+license=('GPL3')
+source=('hwcontrol-bundle.tar.zst')
+sha256sums=('SKIP')
+package() {
+  install -dm755 "\$pkgdir/opt/hwcontrol"
+  local root="\$(tar -tf "\$srcdir/hwcontrol-bundle.tar.zst" | head -n1 | cut -d/ -f1)"
+  tar --use-compress-program=zstd -xf "\$srcdir/hwcontrol-bundle.tar.zst" -C "\$srcdir"
+  cp -a "\$srcdir/\$root/." "\$pkgdir/opt/hwcontrol/"
+}
+EOF
+          docker run --rm -v "$PWD/arch-build:/build" archlinux:base bash -lc 'pacman -Sy --noconfirm base-devel zstd >/dev/null && useradd -m builder && chown -R builder:builder /build && cd /build && su builder -c "makepkg --nodeps --noconfirm"'
+          cp arch-build/*.pkg.tar.zst "HWControl-${GITHUB_REF_NAME}-Linux-x64.pkg.tar.zst"
+      - name: Checksums and validation
+        run: |
+          set -euo pipefail
+          sha256sum "HWControl-${GITHUB_REF_NAME}-Linux-x64.rpm" "HWControl-${GITHUB_REF_NAME}-Linux-x64.pkg.tar.zst" > "HWControl-${GITHUB_REF_NAME}-Linux-extra.sha256"
+          sha256sum -c "HWControl-${GITHUB_REF_NAME}-Linux-extra.sha256"
+          rpm -qip "HWControl-${GITHUB_REF_NAME}-Linux-x64.rpm" >/dev/null
+          tar --use-compress-program=zstd -tf "HWControl-${GITHUB_REF_NAME}-Linux-x64.pkg.tar.zst" >/dev/null
+      - name: Attest packages
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            HWControl-${{ github.ref_name }}-Linux-x64.rpm
+            HWControl-${{ github.ref_name }}-Linux-x64.pkg.tar.zst
+      - name: Upload to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${GITHUB_REF_NAME}" \
+            "HWControl-${GITHUB_REF_NAME}-Linux-x64.rpm" \
+            "HWControl-${GITHUB_REF_NAME}-Linux-x64.pkg.tar.zst" \
+            "HWControl-${GITHUB_REF_NAME}-Linux-extra.sha256" --clobber
