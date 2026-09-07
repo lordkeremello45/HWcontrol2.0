@@ -52,6 +52,10 @@ function renderManifest(){
 }
 function renderFallback(){
   const meta=platformLabels[state.platform];
+  $('.package-title .eyebrow').textContent=meta.eyebrow;
+  $('.package-title h3').textContent=meta.title;
+  $('#detected').textContent=meta.detected;
+  $('#windowsNote').classList.toggle('hidden',state.platform!=='windows');
   const release=platformRelease(state.platform);
   $('#releaseLink').href=release?.html_url||`https://github.com/${REPO}/releases`;
   if(!release){$('#checksumsLink').classList.add('hidden');$('#packages').innerHTML='<div class="loading">No stable package release was found. See all releases on GitHub.</div>';return;}
@@ -61,10 +65,6 @@ function renderFallback(){
   if(manifest)$('#checksumsLink').href=manifest.browser_download_url;
   if(!assets.length){$('#packages').innerHTML='<div class="loading">No matching package was found in this stable release. See the release assets on GitHub.</div>';return;}
   $('#packages').innerHTML=assets.map(a=>{const checksum=checksumAsset(release,a);const verify=checksum?`<a class="verify" href="${esc(checksum.browser_download_url)}" target="_blank" rel="noopener noreferrer">Verify SHA-256 ↗</a>`:'';return `<div class="package"><span class="name">${esc(packageName(a.name))}<small>${esc(a.name)} · ${size(a.size)}</small></span><div class="package-actions"><a href="${esc(a.browser_download_url)}" target="_blank" rel="noopener noreferrer">Download ↗</a>${verify}</div></div>`;}).join('');
-  $('.package-title .eyebrow').textContent=meta.eyebrow;
-  $('.package-title h3').textContent=meta.title;
-  $('#detected').textContent=meta.detected;
-  $('#windowsNote').classList.toggle('hidden',state.platform!=='windows');
 }
 function render(){
   if(state.manifest)renderManifest();else renderFallback();
@@ -74,11 +74,10 @@ async function load(){
     const manifestRes=await fetch(`${MANIFEST}?t=${Date.now()}`,{cache:'no-store',headers:{Accept:'application/json'}});
     if(manifestRes.ok){
       const manifest=await manifestRes.json();
-      if(manifest.schema===1&&manifest.project==='HWControl'&&manifest.repository===REPO){
+      if(manifest.schema===1&&manifest.project==='HWControl'&&manifest.repository===REPO&&manifest.platforms?.windows&&manifest.platforms?.macos&&manifest.platforms?.linux){
         state.manifest=manifest;
-        const tags=Object.values(manifest.platforms||{}).map(x=>x.tag).filter(Boolean);
-        const latest=tags.sort().slice(-1)[0];
-        $('#latestBadge').textContent=latest?`Latest stable · ${latest}`:'Stable release · unavailable';
+        const latest=Object.values(manifest.platforms).sort((a,b)=>new Date(b.published_at)-new Date(a.published_at))[0];
+        $('#latestBadge').textContent=latest?.tag?`Latest stable · ${latest.tag}`:'Stable release · unavailable';
         render();
         return;
       }
