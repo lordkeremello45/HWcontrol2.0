@@ -39,7 +39,7 @@ type HardwareMetrics struct {
 	MemoryUsage float64 `json:"memoryUsage"`; DiskUsage float64 `json:"diskUsage"`
 	PowerWatts float64 `json:"powerWatts"`; Voltage float64 `json:"voltage"`; UptimeSeconds uint64 `json:"uptimeSeconds"`
 	Platform string `json:"platform"`; GPUVendor string `json:"gpuVendor"`; GPUName string `json:"gpuName"`
-	GPUDriver string `json:"gpuDriver"`; GPUDriverProvider string `json:"gpuDriverProvider"`; GPUDriverVersion string `json:"gpuDriverVersion"`; GPUDriverStatus string `json:"gpuDriverStatus"`; GPUDriverSource string `json:"gpuDriverSource"`
+	GPUDriver string `json:"gpuDriver"`; GPUDriverProvider string `json:"gpuDriverProvider"`; GPUDriverVersion string `json:"gpuDriverVersion"`; GPUDriverStatus string `json:"gpuDriverStatus"`; GPUDriverSource string `json:"gpuDriverSource"`; GPUDriverAction string `json:"gpuDriverAction"`; GPUDriverReason string `json:"gpuDriverReason"`
 	GPUMemoryUsedBytes uint64 `json:"gpuMemoryUsedBytes"`; GPUMemoryTotalBytes uint64 `json:"gpuMemoryTotalBytes"`
 	GPUCoreClockMHz float64 `json:"gpuCoreClockMHz"`; GPUMemoryClockMHz float64 `json:"gpuMemoryClockMHz"`; SensorSource string `json:"sensorSource"`
 }
@@ -51,25 +51,13 @@ func collectMetrics() HardwareMetrics {
 	if usage,err:=disk.Usage("/");err==nil{metrics.DiskUsage=usage.UsedPercent}
 	if uptime,err:=host.Uptime();err==nil{metrics.UptimeSeconds=uptime}
 	if temperatures,err:=host.SensorsTemperatures();err==nil{for _,sensor:=range temperatures{key:=strings.ToLower(sensor.SensorKey);if strings.Contains(key,"cpu")||strings.Contains(key,"package")||strings.Contains(key,"core"){metrics.CPUTemperature=sensor.Temperature;break}}}
-
-	// NVIDIA works on both Windows and Linux when the installed driver exposes nvidia-smi.
 	if output,err:=exec.Command("nvidia-smi","--query-gpu=name,driver_version,temperature.gpu,utilization.gpu,fan.speed,power.draw,voltage.gpu,memory.used,memory.total,clocks.gr,clocks.mem","--format=csv,noheader,nounits").Output();err==nil{
 		lines:=strings.Split(strings.TrimSpace(string(output)),"\n")
-		if len(lines)>0 && strings.TrimSpace(lines[0])!="" {
-			parts:=strings.Split(lines[0],",")
-			if len(parts)>=11{
-				metrics.GPUName=strings.TrimSpace(parts[0]); metrics.GPUDriver=strings.TrimSpace(parts[1]);
-				metrics.GPUTemperature,_=strconv.ParseFloat(strings.TrimSpace(parts[2]),64); metrics.GPUUsage,_=strconv.ParseFloat(strings.TrimSpace(parts[3]),64)
-				metrics.FanPercent,_=strconv.ParseFloat(strings.TrimSpace(parts[4]),64); metrics.PowerWatts,_=strconv.ParseFloat(strings.TrimSpace(parts[5]),64); metrics.Voltage,_=strconv.ParseFloat(strings.TrimSpace(parts[6]),64)
-				memoryUsed,_:=strconv.ParseUint(strings.TrimSpace(parts[7]),10,64); memoryTotal,_:=strconv.ParseUint(strings.TrimSpace(parts[8]),10,64)
-				metrics.GPUMemoryUsedBytes=memoryUsed*1024*1024; metrics.GPUMemoryTotalBytes=memoryTotal*1024*1024
-				metrics.GPUCoreClockMHz,_=strconv.ParseFloat(strings.TrimSpace(parts[9]),64); metrics.GPUMemoryClockMHz,_=strconv.ParseFloat(strings.TrimSpace(parts[10]),64)
-				metrics.GPUVendor="NVIDIA"; metrics.SensorSource="nvidia-smi"
-			}
-		}
+		if len(lines)>0 && strings.TrimSpace(lines[0])!="" { parts:=strings.Split(lines[0],","); if len(parts)>=11 { metrics.GPUName=strings.TrimSpace(parts[0]); metrics.GPUDriver=strings.TrimSpace(parts[1]); metrics.GPUTemperature,_=strconv.ParseFloat(strings.TrimSpace(parts[2]),64); metrics.GPUUsage,_=strconv.ParseFloat(strings.TrimSpace(parts[3]),64); metrics.FanPercent,_=strconv.ParseFloat(strings.TrimSpace(parts[4]),64); metrics.PowerWatts,_=strconv.ParseFloat(strings.TrimSpace(parts[5]),64); metrics.Voltage,_=strconv.ParseFloat(strings.TrimSpace(parts[6]),64); memoryUsed,_:=strconv.ParseUint(strings.TrimSpace(parts[7]),10,64); memoryTotal,_:=strconv.ParseUint(strings.TrimSpace(parts[8]),10,64); metrics.GPUMemoryUsedBytes=memoryUsed*1024*1024; metrics.GPUMemoryTotalBytes=memoryTotal*1024*1024; metrics.GPUCoreClockMHz,_=strconv.ParseFloat(strings.TrimSpace(parts[9]),64); metrics.GPUMemoryClockMHz,_=strconv.ParseFloat(strings.TrimSpace(parts[10]),64); metrics.GPUVendor="NVIDIA"; metrics.SensorSource="nvidia-smi" } }
 	}
 	mergePlatformMetrics(&metrics)
 	mergeDriverInfo(&metrics)
+	applyCompatibilityPolicy(&metrics)
 	if _,err:=load.Avg();err==nil{}
 	metrics.Platform=runtime.GOOS
 	return metrics
