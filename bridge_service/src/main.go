@@ -28,6 +28,7 @@ import (
 
 type Command struct { Action string `json:"action"`; Value float64 `json:"value"`; Auth string `json:"auth"` }
 func commandPayload(cmd Command) string { return cmd.Action + "\n" + strconv.FormatFloat(cmd.Value, 'f', 6, 64) }
+func signCommand(cmd Command, secret string) string { digest:=hmac.New(sha256.New,[]byte(secret)); _,_=digest.Write([]byte(commandPayload(cmd))); return hex.EncodeToString(digest.Sum(nil)) }
 func authenticateCommand(cmd Command, secret string) bool { if secret==""||cmd.Auth=="" { return false }; provided,err:=hex.DecodeString(cmd.Auth); if err!=nil{return false}; digest:=hmac.New(sha256.New,[]byte(secret)); _,_=digest.Write([]byte(commandPayload(cmd))); return hmac.Equal(digest.Sum(nil),provided) }
 
 type Response struct { Status string `json:"status"`; Message string `json:"message"`; Data any `json:"data,omitempty"` }
