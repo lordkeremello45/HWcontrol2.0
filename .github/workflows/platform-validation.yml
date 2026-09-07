@@ -149,10 +149,27 @@ jobs:
           Copy-Item deploy/windows/install-bridge-service.ps1 "$packageDir/install-bridge-service.ps1"
           Copy-Item deploy/windows/remove-hwcontrol.ps1 "$packageDir/remove-hwcontrol.ps1"
           if (-not (Test-Path "$packageDir/HWControl.exe")) { throw 'Windows executable was not produced' }
-          wix build deploy/windows/HWControl.wxs -arch x64 -d Version=0.0.0 -d PackageDir=$packageDir -o HWControl-test.msi
-          if (-not (Test-Path "$PWD/HWControl-test.msi")) { throw 'MSI was not produced' }
-          $install = Start-Process msiexec.exe -ArgumentList '/i', "$PWD/HWControl-test.msi", '/qn', '/norestart' -Wait -PassThru
-          if ($install.ExitCode -ne 0) { throw "MSI install failed with exit code $($install.ExitCode)" }
+          $msiPath = Join-Path $PWD 'HWControl-test.msi'
+          wix build deploy/windows/HWControl.wxs -arch x64 -d Version=0.0.0 -d PackageDir=$packageDir -o $msiPath
+          if (-not (Test-Path -LiteralPath $msiPath -PathType Leaf)) { throw "MSI was not produced: $msiPath" }
+          $msiInfo = Get-Item -LiteralPath $msiPath
+          if ($msiInfo.Length -lt 4096) { throw "MSI is unexpectedly small: $($msiInfo.Length) bytes" }
+          $validationRoot = Join-Path $env:RUNNER_TEMP 'HWControl-MSI-Validation'
+          if (Test-Path -LiteralPath $validationRoot) { Remove-Item -LiteralPath $validationRoot -Recurse -Force }
+          New-Item -ItemType Directory -Force -Path $validationRoot | Out-Null
+          $validationMsi = Join-Path $validationRoot 'HWControl-test.msi'
+          $msiLog = Join-Path $validationRoot 'msiexec-install.log'
+          Copy-Item -LiteralPath $msiPath -Destination $validationMsi -Force
+          if (-not (Test-Path -LiteralPath $validationMsi -PathType Leaf)) { throw "Validation MSI copy was not created: $validationMsi" }
+          $validationMsiInfo = Get-Item -LiteralPath $validationMsi
+          if ($validationMsiInfo.Length -ne $msiInfo.Length) { throw 'Validation MSI copy size does not match the original package' }
+          $install = Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList @('/i', "`"$validationMsi`"", '/qn', '/norestart', '/L*V', "`"$msiLog`"") -Wait -PassThru
+          if ($install.ExitCode -ne 0) {
+            Write-Host '===== MSI INSTALL LOG ====='
+            if (Test-Path -LiteralPath $msiLog) { Get-Content -LiteralPath $msiLog -Tail 200 } else { Write-Host "MSI log was not created: $msiLog" }
+            Write-Host '===== END MSI INSTALL LOG ====='
+            throw "MSI install failed with exit code $($install.ExitCode)"
+          }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\bridge-service.exe")) { throw 'MSI did not install bridge-service.exe into Program Files' }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\dashboard")) { throw 'MSI did not install dashboard' }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\HWControl.exe")) { throw 'MSI did not install HWControl.exe' }
@@ -162,18 +179,19 @@ jobs:
           if ([string]::IsNullOrWhiteSpace($envKey) -or $envKey -eq 'replace-me') { throw 'HWCONTROL_KEY was not provisioned by the installed bridge' }
           $probe = Test-NetConnection 127.0.0.1 -Port 8080 -WarningAction SilentlyContinue
           if (-not $probe.TcpTestSucceeded) { throw 'Installed HWControlBridge is not listening on 127.0.0.1:8080' }
-          $uninstall = Start-Process msiexec.exe -ArgumentList '/x', "$PWD/HWControl-test.msi", '/qn', '/norestart' -Wait -PassThru
-          if ($uninstall.ExitCode -ne 0) { throw "MSI uninstall failed with exit code $($uninstall.ExitCode)" }
+          $uninstallLog = Join-Path $validationRoot 'msiexec-uninstall.log'
+          $uninstall = Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList @('/x', "`"$validationMsi`"", '/qn', '/norestart', '/L*V', "`"$uninstallLog`") -Wait -PassThru
+          if ($uninstall.ExitCode -ne 0) { Write-Host '===== MSI UNINSTALL LOG ====='; if (Test-Path -LiteralPath $uninstallLog) { Get-Content -LiteralPath $uninstallLog -Tail 200 }; Write-Host '===== END MSI UNINSTALL LOG ====='; throw "MSI uninstall failed with exit code $($uninstall.ExitCode)" }
           if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge service still exists after uninstall' }
       - name: Build and smoke-test guided Setup.exe
         shell: pwsh
         run: |
           $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
-          wix build deploy/windows/HWControl-Setup.wxs -ext WixToolset.BootstrapperApplications.wixext -arch x64 -d Version=0.0.0 -d MsiPath="$PWD/HWControl-test.msi" -o HWControl-test-Setup.exe
-          if (-not (Test-Path "$PWD/HWControl-test-Setup.exe")) { throw 'Setup.exe was not produced' }
+          wix build deploy/windows/HWControl-Setup.wxs -ext WixToolset.BootstrapperApplications.wixext -arch x64 -d Version=0.0.0 -d MsiPath="$PWD\HWControl-test.msi" -o HWControl-test-Setup.exe
+          if (-not (Test-Path "$PWD\HWControl-test-Setup.exe")) { throw 'Setup.exe was not produced' }
           $testDir = Join-Path $env:RUNNER_TEMP 'HWControl-Setup-Test'
           if (Test-Path $testDir) { Remove-Item $testDir -Recurse -Force }
-          $setupInstall = Start-Process -FilePath "$PWD/HWControl-test-Setup.exe" -ArgumentList '/quiet', '/norestart', "InstallFolder=$testDir" -Wait -PassThru
+          $setupInstall = Start-Process -FilePath "$PWD\HWControl-test-Setup.exe" -ArgumentList '/quiet', '/norestart', "InstallFolder=$testDir" -Wait -PassThru
           if ($setupInstall.ExitCode -ne 0) { throw "Setup.exe install failed with exit code $($setupInstall.ExitCode)" }
           if (-not (Test-Path "$testDir\HWControl.exe")) { throw 'Setup.exe did not honor the selected installation directory' }
           if (-not (Test-Path "$testDir\bridge-service.exe")) { throw 'Setup.exe did not install bridge-service.exe' }
@@ -244,5 +262,20 @@ jobs:
           test -x /Applications/HWControl/bridge-service
           test -x /Applications/HWControl/ai_engine
           test -d /Applications/HWControl/HWControl.app
+          test -f "/Applications/HWControl/com.hwcontrol.bridge.plist"
+          sudo plutil -lint "/Applications/HWControl/com.hwcontrol.bridge.plist"
+          sudo launchctl bootout system/com.hwcontrol.bridge >/dev/null 2>&1 || true
+          sudo launchctl bootstrap system "/Applications/HWControl/com.hwcontrol.bridge.plist"
+          sudo launchctl enable system/com.hwcontrol.bridge
+          sudo launchctl kickstart -k system/com.hwcontrol.bridge
+          sleep 2
+          sudo launchctl print system/com.hwcontrol.bridge
+          for i in 1 2 3 4 5; do
+            if nc -z 127.0.0.1 8080; then break; fi
+            sleep 1
+          done
+          nc -z 127.0.0.1 8080
+          sudo launchctl bootout system/com.hwcontrol.bridge >/dev/null 2>&1 || true
           sudo rm -rf /Applications/HWControl
+          sudo rm -rf "/Library/Application Support/HWControl"
           sudo rm -f /Library/LaunchDaemons/com.hwcontrol.bridge.plist
