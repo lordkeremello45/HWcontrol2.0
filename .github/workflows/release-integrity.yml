@@ -9,6 +9,11 @@ on:
         description: 'Release tag to verify (for example v0.2.0-windows)'
         required: true
         type: string
+      require_linux_extras:
+        description: 'Require RPM and Arch assets for a Linux release'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -30,8 +35,19 @@ jobs:
           test -n "$TAG"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
+      - name: Resolve Linux extra package policy
+        id: policy
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_REQUIRE: ${{ inputs.require_linux_extras }}
+        run: |
+          set -euo pipefail
+          require=false
+          if [ "$EVENT_NAME" = 'release' ] || [ "$INPUT_REQUIRE" = 'true' ]; then require=true; fi
+          echo "require_linux_extras=$require" >> "$GITHUB_OUTPUT"
+
       - name: Wait for Linux extra packages
-        if: endsWith(steps.release.outputs.tag, '-linux')
+        if: endsWith(steps.release.outputs.tag, '-linux') && steps.policy.outputs.require_linux_extras == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.release.outputs.tag }}
@@ -89,6 +105,7 @@ jobs:
       - name: Validate expected platform packages
         env:
           TAG: ${{ steps.release.outputs.tag }}
+          REQUIRE_LINUX_EXTRAS: ${{ steps.policy.outputs.require_linux_extras }}
         run: |
           set -euo pipefail
           cd release-assets
@@ -101,8 +118,11 @@ jobs:
               ;;
             *-linux)
               compgen -G '*.deb' >/dev/null || compgen -G '*.tar.gz' >/dev/null || compgen -G '*.tar.zst' >/dev/null || { echo 'Linux release has no DEB/TAR asset'; exit 1; }
-              test -f "HWControl-${TAG}-Linux-x64.rpm"
-              test -f "HWControl-${TAG}-Linux-x64.pkg.tar.zst"
+              if [ "$REQUIRE_LINUX_EXTRAS" = 'true' ]; then
+                test -f "HWControl-${TAG}-Linux-x64.rpm"
+                test -f "HWControl-${TAG}-Linux-x64.pkg.tar.zst"
+                test -f "HWControl-${TAG}-Linux-extra.sha256"
+              fi
               ;;
             *)
               echo "Generic/unified tag: package-specific validation skipped."
