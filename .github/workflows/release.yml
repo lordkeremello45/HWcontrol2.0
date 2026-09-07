@@ -143,12 +143,19 @@ jobs:
           if (-not (Test-Path "$packageDir/HWControl.exe")) { throw 'HWControl.exe missing from Windows package' }
           if (-not (Test-Path "$packageDir/bridge-service.exe")) { throw 'bridge-service.exe missing from Windows package' }
           if (-not (Test-Path "$packageDir/ai_engine.exe")) { throw 'ai_engine.exe missing from Windows package' }
-      - name: Locate SignTool
-        id: signtool
-        if: ${{ env.WINDOWS_CERTIFICATE_B64 != '' && env.WINDOWS_CERTIFICATE_PASSWORD != '' }}
+      - name: Check Windows signing configuration
+        id: signing
         env:
           WINDOWS_CERTIFICATE_B64: ${{ secrets.WINDOWS_CERTIFICATE_B64 }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        shell: pwsh
+        run: |
+          $enabled = (-not [string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE_B64)) -and (-not [string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE_PASSWORD))
+          "enabled=$($enabled.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          if ($enabled) { Write-Host 'Windows Authenticode signing is enabled.' } else { Write-Host 'Windows Authenticode signing is not configured; release will remain unsigned.' }
+      - name: Locate SignTool
+        id: signtool
+        if: steps.signing.outputs.enabled == 'true'
         shell: pwsh
         run: |
           $tool = Get-Command signtool.exe -ErrorAction SilentlyContinue
@@ -159,9 +166,10 @@ jobs:
               Select-Object -First 1
           }
           if (-not $tool) { throw 'SignTool was not found on the Windows runner.' }
-          "path=$($tool.Source ?? $tool.FullName)" >> $env:GITHUB_OUTPUT
+          $path = if ($tool.PSObject.Properties.Name -contains 'Source') { $tool.Source } else { $tool.FullName }
+          "path=$path" >> $env:GITHUB_OUTPUT
       - name: Sign Windows binaries
-        if: ${{ env.WINDOWS_CERTIFICATE_B64 != '' && env.WINDOWS_CERTIFICATE_PASSWORD != '' }}
+        if: steps.signing.outputs.enabled == 'true'
         env:
           WINDOWS_CERTIFICATE_B64: ${{ secrets.WINDOWS_CERTIFICATE_B64 }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
@@ -195,7 +203,7 @@ jobs:
           wix build deploy/windows/HWControl.wxs -arch x64 -d Version=$version -d PackageDir=$packageDir -o "HWControl-${{ github.ref_name }}-Windows-x64.msi"
           if (-not (Test-Path "HWControl-${{ github.ref_name }}-Windows-x64.msi")) { throw 'MSI was not produced' }
       - name: Sign Windows MSI
-        if: ${{ env.WINDOWS_CERTIFICATE_B64 != '' && env.WINDOWS_CERTIFICATE_PASSWORD != '' }}
+        if: steps.signing.outputs.enabled == 'true'
         env:
           WINDOWS_CERTIFICATE_B64: ${{ secrets.WINDOWS_CERTIFICATE_B64 }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
