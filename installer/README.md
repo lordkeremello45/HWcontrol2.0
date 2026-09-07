@@ -6,20 +6,26 @@ This directory is the source-controlled entry point for the HWControl desktop in
 
 | Platform | Installer | Architecture | Package source |
 |---|---|---|---|
-| Windows | `.msi` | x64 | GitHub Release asset |
+| Windows | Guided `Setup.exe` + `.msi` + portable `.zip` | x64 | GitHub Release asset |
 | macOS | `.pkg` / `.dmg` with `HWControl.app` | Apple Silicon / arm64 | GitHub Release asset |
 | Debian / Ubuntu | `.deb` | x64 | GitHub Release asset |
 | Arch / Manjaro / EndeavourOS | `.tar.zst` | x64 | GitHub Release asset |
 | Fedora / RHEL / Rocky / AlmaLinux | `.tar.zst` | x64 | GitHub Release asset |
 | Other x64 Linux | `.tar.zst` or `.tar.gz` | x64 | GitHub Release asset |
 
-The actual binary installers are intentionally kept as GitHub Release assets rather than committed to `main`. This keeps the repository lightweight while still providing versioned, checksum-protected installers. The release workflow publishes the Linux `.deb`, `.tar.zst`, and `.tar.gz` packages alongside the Windows/macOS packages.
+The actual binary installers are intentionally kept as GitHub Release assets rather than committed to `main`. This keeps the repository lightweight while still providing versioned, checksum-protected installers. The Windows release publishes a guided `Setup.exe`, the MSI it bootstraps, the portable ZIP, and matching checksums; macOS and Linux publish their native package formats.
 
 ## Guided installation
 
-- Windows: `powershell -ExecutionPolicy Bypass -File .\install.ps1`
+- Windows: the recommended path is the downloaded `...-Setup.exe`; `install.ps1` also resolves, verifies, and launches the latest stable Setup bootstrapper.
 - macOS: run `./install.command` from Terminal, or double-click it after allowing Terminal execution.
 - Linux: `./install.sh`
+
+### Windows setup behavior
+
+The Windows `Setup.exe` is a WiX Burn bootstrapper around the signed/releasable MSI. It provides the graphical setup flow, version information, elevation, installation-directory selection, progress reporting, repair/uninstall behavior, and a final launch action while keeping the MSI as the single source of truth for application files and the `HWControlBridge` Windows service.
+
+The chosen setup directory is passed into the MSI so the dashboard, bridge, and AI engine are installed consistently. The MSI itself remains suitable for managed/silent deployment with `msiexec`. The portable ZIP remains available for users who specifically do not want a Windows service installation.
 
 ### Linux installer behavior
 
@@ -46,7 +52,7 @@ The macOS release is distributed as a signed/package-ready `HWControl.app` insid
 
 A release is considered installer-complete when it publishes, as applicable:
 
-- Windows: `.msi` and `.sha256`
+- Windows: guided `Setup.exe`, `.msi`, portable `.zip`, and checksums
 - macOS: `.pkg`, `.dmg`, and `.sha256`
 - Linux: `.deb`, `.tar.zst`, `.tar.gz`, and `.sha256`
 
