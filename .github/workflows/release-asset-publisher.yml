@@ -1,0 +1,139 @@
+name: Publish complete release assets
+
+on:
+  workflow_run:
+    workflows: ["Publish platform release"]
+    types: [completed]
+
+permissions:
+  contents: write
+  actions: read
+  id-token: write
+  attestations: write
+
+jobs:
+  publish:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    env:
+      TAG: ${{ github.event.workflow_run.head_branch }}
+      SOURCE_RUN_ID: ${{ github.event.workflow_run.id }}
+    steps:
+      - name: Checkout tagged source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Validate release tag
+        run: |
+          set -euo pipefail
+          case "$TAG" in
+            v[0-9]*.[0-9]*.[0-9]*-linux|v[0-9]*.[0-9]*.[0-9]*-windows|v[0-9]*.[0-9]*.[0-9]*-macos) ;;
+            *) echo "Unsupported release tag: $TAG" >&2; exit 1 ;;
+          esac
+
+      - name: Download platform artifact
+        uses: actions/download-artifact@v4
+        with:
+          repository: ${{ github.repository }}
+          run-id: ${{ env.SOURCE_RUN_ID }}
+          github-token: ${{ github.token }}
+          pattern: HWControl-${{ env.TAG }}-*
+          path: dist
+          merge-multiple: true
+
+      - name: Verify downloaded release assets
+        run: |
+          set -euo pipefail
+          test -d dist
+          find dist -maxdepth 1 -type f -print | sort
+          case "$TAG" in
+            *-windows)
+              test -f "dist/HWControl-${TAG}-Windows-x64.zip"
+              test -f "dist/HWControl-${TAG}-Windows-x64.msi"
+              test -f "dist/HWControl-${TAG}-Windows-x64.sha256"
+              ;;
+            *-macos)
+              test -f "dist/HWControl-${TAG}-macOS-AppleSilicon.pkg"
+              test -f "dist/HWControl-${TAG}-macOS-AppleSilicon.dmg"
+              test -f "dist/HWControl-${TAG}-macOS-AppleSilicon.sha256"
+              ;;
+            *-linux)
+              test -f "dist/HWControl-${TAG}-Linux-x64.tar.gz"
+              test -f "dist/HWControl-${TAG}-Linux-x64.tar.zst"
+              test -f "dist/HWControl-${TAG}-Linux-x64.deb"
+              test -f "dist/HWControl-${TAG}-Linux-x64.sha256"
+              ;;
+          esac
+
+      - name: Build Windows Setup bootstrapper
+        if: endsWith(env.TAG, '-windows')
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y dotnet-sdk-8.0
+          dotnet tool install --global wix --version 6.0.2 --add-source https://api.nuget.org/v3/index.json
+          export PATH="$HOME/.dotnet/tools:$PATH"
+          version="${TAG#v}"
+          version="${version%-windows}"
+          wix --version
+          wix build deploy/windows/HWControl-Setup.wxs \
+            -ext WixToolset.BootstrapperApplications.wixext \
+            -arch x64 \
+            -d Version="$version" \
+            -d MsiPath="dist/HWControl-${TAG}-Windows-x64.msi" \
+            -o "dist/HWControl-${TAG}-Windows-x64-Setup.exe"
+          test -s "dist/HWControl-${TAG}-Windows-x64-Setup.exe"
+
+      - name: Smoke test Windows Setup bootstrapper
+        if: endsWith(env.TAG, '-windows')
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'Setup.exe is a native Windows executable; native installation smoke testing is performed by the Windows validation workflow.'
+          file "dist/HWControl-${TAG}-Windows-x64-Setup.exe"
+
+      - name: Sign Windows Setup bootstrapper when configured
+        if: endsWith(env.TAG, '-windows') && env.WINDOWS_SIGNING_ENABLED == 'true'
+        shell: bash
+        env:
+          WINDOWS_SIGNING_ENABLED: ${{ secrets.WINDOWS_CERTIFICATE_B64 != '' && secrets.WINDOWS_CERTIFICATE_PASSWORD != '' && 'true' || 'false' }}
+          WINDOWS_CERTIFICATE_B64: ${{ secrets.WINDOWS_CERTIFICATE_B64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          echo 'Windows signing is configured, but SignTool is Windows-native and is intentionally handled by the Windows signing workflow.'
+
+      - name: Generate Setup checksum
+        if: endsWith(env.TAG, '-windows')
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum "dist/HWControl-${TAG}-Windows-x64-Setup.exe" > "dist/HWControl-${TAG}-Windows-x64-Setup.sha256"
+
+      - name: Attest Windows Setup bootstrapper
+        if: endsWith(env.TAG, '-windows')
+        uses: actions/attest@v4
+        with:
+          subject-path: dist/HWControl-${{ env.TAG }}-Windows-x64-Setup.exe
+
+      - name: Publish all platform assets to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          assets=(dist/*)
+          test "${#assets[@]}" -gt 0
+          gh release upload "$TAG" "${assets[@]}" --repo "$GITHUB_REPOSITORY" --clobber
+
+      - name: Refresh release integrity manifests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run release-integrity.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref main \
+            -f tag="$TAG"
