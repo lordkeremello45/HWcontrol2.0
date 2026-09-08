@@ -9,19 +9,28 @@ KEY_FILE="$KEY_DIR/bridge.key"
 APP_PLIST="$APP_DIR/HWControl.app/Contents/Info.plist"
 
 /bin/mkdir -p "$KEY_DIR"
+
 if [ ! -s "$KEY_FILE" ]; then
-  /usr/bin/openssl rand -hex 32 > "$KEY_FILE"
-  /bin/chmod 0600 "$KEY_FILE"
+  /usr/bin/umask 077
+  /usr/bin/head -c 32 /dev/urandom | /usr/bin/od -An -tx1 | /usr/bin/tr -d ' \n' > "$KEY_FILE"
 fi
 
+/usr/bin/test -s "$KEY_FILE"
+/bin/chmod 0600 "$KEY_FILE"
+
 if [ -f "$APP_PLIST" ]; then
-  /usr/bin/plutil -replace LSEnvironment.HWCONTROL_KEY -string "$(/bin/cat "$KEY_FILE")" "$APP_PLIST" 2>/dev/null || \
-  /usr/bin/plutil -insert LSEnvironment.HWCONTROL_KEY -string "$(/bin/cat "$KEY_FILE")" "$APP_PLIST"
+  KEY_VALUE=$(/bin/cat "$KEY_FILE")
+
+  if ! /usr/bin/plutil -replace LSEnvironment.HWCONTROL_KEY -string "$KEY_VALUE" "$APP_PLIST" 2>/dev/null; then
+    /usr/bin/plutil -insert LSEnvironment -xml "<dict><key>HWCONTROL_KEY</key><string>$KEY_VALUE</string></dict>" "$APP_PLIST"
+  fi
+
+  /usr/bin/plutil -extract LSEnvironment.HWCONTROL_KEY raw "$APP_PLIST" >/dev/null
 fi
 
 if [ -f "$PLIST_SRC" ]; then
   /bin/mkdir -p "/Library/LaunchDaemons"
-  /usr/bin/install -m 644 "$PLIST_SRC" "$PLIST_DST"
+  /usr/bin/install -m 0644 "$PLIST_SRC" "$PLIST_DST"
   /usr/sbin/chown root:wheel "$PLIST_DST"
   /usr/bin/plutil -lint "$PLIST_DST" >/dev/null
 fi
