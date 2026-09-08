@@ -98,7 +98,10 @@ jobs:
         working-directory: bridge_service
         run: |
           go test ./...
-          go build -trimpath -o bridge-service ./src
+          # PR merge refs are checked out detached. Go 1.24 VCS stamping can fail
+          # in these containerized smoke jobs; release provenance is handled by
+          # the release/attestation pipeline, not by this distro build.
+          go build -buildvcs=false -trimpath -o bridge-service ./src
 
       - name: Validate runtime dependencies
         shell: bash
