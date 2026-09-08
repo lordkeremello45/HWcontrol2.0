@@ -11,7 +11,7 @@ APP_PLIST="$APP_DIR/HWControl.app/Contents/Info.plist"
 /bin/mkdir -p "$KEY_DIR"
 
 if [ ! -s "$KEY_FILE" ]; then
-  /usr/bin/umask 077
+  umask 077
   /usr/bin/head -c 32 /dev/urandom | /usr/bin/od -An -tx1 | /usr/bin/tr -d ' \n' > "$KEY_FILE"
 fi
 
