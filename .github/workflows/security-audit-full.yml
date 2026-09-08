@@ -17,11 +17,12 @@ jobs:
   semgrep:
     name: Semgrep SAST
     runs-on: ubuntu-24.04
+    container:
+      image: semgrep/semgrep
     steps:
       - uses: actions/checkout@v4
-      - uses: semgrep/semgrep@v1
-        with:
-          args: --config auto --error --metrics=off
+      - name: Run Semgrep Community Edition
+        run: semgrep scan --config auto --error --metrics=off
 
   trivy:
     name: Trivy filesystem and secret scan
