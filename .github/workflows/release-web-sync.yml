@@ -4,7 +4,6 @@ on:
   workflow_run:
     workflows:
       - Release integrity
-      - Publish Windows Setup bootstrapper
     types: [completed]
   workflow_dispatch:
 
