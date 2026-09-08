@@ -2,14 +2,11 @@ name: Deploy website
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
       - 'website/**'
       - '.github/workflows/pages.yml'
-  workflow_run:
-    workflows:
-      - Sync release metadata to web app
-    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -23,27 +20,50 @@ concurrency:
 
 jobs:
   deploy:
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
 
       - name: Validate website JavaScript
         run: node --check website/app.js
 
-      - name: Verify release-aware download selector
+      - name: Validate release metadata
         run: |
+          set -euo pipefail
+
+          test -f website/release.json
+          python3 -m json.tool website/release.json >/dev/null
+          node scripts/website-release-test.mjs website/release.json
+
+      - name: Verify website installer integration
+        run: |
+          set -euo pipefail
+
           node - <<'NODE'
           const fs = require('fs');
           const source = fs.readFileSync('website/app.js', 'utf8');
-          for (const token of ["endsWith('-setup.exe')", "Setup · recommended", '.msi', '.zip']) {
-            if (!source.includes(token)) throw new Error(`Missing website installer integration token: ${token}`);
+          const requiredTokens = [
+            "endsWith('-setup.exe')",
+            'Setup · recommended',
+            '.msi',
+            '.zip'
+          ];
+          const missing = requiredTokens.filter(token => !source.includes(token));
+          if (missing.length > 0) {
+            console.error('Missing website installer integration tokens:');
+            for (const token of missing) console.error(`  - ${token}`);
+            process.exit(1);
           }
-          console.log('Website Windows installer integration: OK');
+          console.log('Website installer integration: OK');
           NODE
 
       - name: Configure Pages
@@ -52,7 +72,7 @@ jobs:
       - name: Upload site
         uses: actions/upload-pages-artifact@v4
         with:
-          path: './website'
+          path: ./website
 
       - name: Deploy
         id: deployment
