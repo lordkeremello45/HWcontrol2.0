@@ -21,7 +21,6 @@ concurrency:
 
 env:
   FLUTTER_PROJECT: gui_dashboard
-  STORE_DISPLAY_NAME: HWControl
 
 jobs:
   package:
@@ -61,13 +60,15 @@ jobs:
           STORE_IDENTITY_NAME: ${{ vars.STORE_IDENTITY_NAME }}
           STORE_PUBLISHER: ${{ vars.STORE_PUBLISHER }}
           STORE_PUBLISHER_DISPLAY_NAME: ${{ vars.STORE_PUBLISHER_DISPLAY_NAME }}
+          STORE_PRODUCT_ID: ${{ vars.STORE_PRODUCT_ID }}
         run: |
           $missing = @()
           if ([string]::IsNullOrWhiteSpace($env:STORE_IDENTITY_NAME)) { $missing += 'STORE_IDENTITY_NAME' }
           if ([string]::IsNullOrWhiteSpace($env:STORE_PUBLISHER)) { $missing += 'STORE_PUBLISHER' }
           if ([string]::IsNullOrWhiteSpace($env:STORE_PUBLISHER_DISPLAY_NAME)) { $missing += 'STORE_PUBLISHER_DISPLAY_NAME' }
+          if ([string]::IsNullOrWhiteSpace($env:STORE_PRODUCT_ID)) { $missing += 'STORE_PRODUCT_ID' }
           if ($missing.Count -gt 0) {
-            throw "Missing GitHub Actions Variables: $($missing -join ', '). Copy the exact values from Partner Center > Product identity."
+            throw "Missing GitHub Actions Variables: $($missing -join ', '). Copy the exact values from Partner Center."
           }
 
       - name: Install Dart dependencies
@@ -167,7 +168,7 @@ jobs:
         run: flutter pub get
 
       - name: Install Microsoft Store CLI
-        uses: microsoft/setup-msstore-cli@v1
+        uses: microsoft/microsoft-store-apppublisher@v1.1
 
       - name: Configure Microsoft Store CLI
         shell: pwsh
@@ -187,7 +188,6 @@ jobs:
 
       - name: Package with Microsoft Store CLI
         working-directory: ${{ env.FLUTTER_PROJECT }}
-        shell: pwsh
         env:
           STORE_IDENTITY_NAME: ${{ vars.STORE_IDENTITY_NAME }}
           STORE_PUBLISHER: ${{ vars.STORE_PUBLISHER }}
@@ -211,4 +211,8 @@ jobs:
 
       - name: Publish package to Microsoft Store
         shell: pwsh
-        run: msstore publish -v
+        env:
+          STORE_PRODUCT_ID: ${{ vars.STORE_PRODUCT_ID }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:STORE_PRODUCT_ID)) { throw 'STORE_PRODUCT_ID is not configured.' }
+          msstore publish "${{ github.workspace }}\${{ env.FLUTTER_PROJECT }}" --appId $env:STORE_PRODUCT_ID -v
