@@ -1,0 +1,124 @@
+name: Agent Orchestrator
+
+on:
+  workflow_run:
+    workflows:
+      - Cross-platform package validation
+      - Release integrity
+      - Publish Windows Setup bootstrapper
+      - Website validation
+      - Linux distribution validation
+      - Linux extra packages
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: GitHub Actions run ID to diagnose
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+  issues: write
+
+concurrency:
+  group: agent-orchestrator
+  cancel-in-progress: false
+
+jobs:
+  triage:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'failure' ||
+      github.event.workflow_run.conclusion == 'timed_out' ||
+      github.event.workflow_run.conclusion == 'cancelled'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Collect failed run metadata
+        id: meta
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.run_id || github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          gh run view "$RUN_ID" --repo "$GITHUB_REPOSITORY" --json databaseId,name,headSha,headBranch,event,status,conclusion,url > run.json
+          gh run view "$RUN_ID" --repo "$GITHUB_REPOSITORY" --log-failed > failed.log 2>&1 || true
+          jq -r '.name' run.json > workflow_name.txt
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "workflow_name=$(cat workflow_name.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Build agent handoff issue
+        id: issue
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ steps.meta.outputs.run_id }}
+          WORKFLOW_NAME: ${{ steps.meta.outputs.workflow_name }}
+        run: |
+          set -euo pipefail
+          {
+            echo "## Automated CI failure handoff"
+            echo
+            echo "**Workflow:** $WORKFLOW_NAME"
+            echo "**Run:** https://github.com/$GITHUB_REPOSITORY/actions/runs/$RUN_ID"
+            echo
+            echo "### Agent chain"
+            echo '1. CI Debugger: inspect the first meaningful failure.'
+            echo '2. Installer Engineer: handle installer/package failures when applicable.'
+            echo '3. Security Reviewer: verify that the fix does not weaken checksums, attestations, signing, or security controls.'
+            echo '4. Release Engineer: validate release packaging and publication paths.'
+            echo '5. Website Release: validate release metadata when website artifacts are affected.'
+            echo
+            echo "### Run metadata"
+            cat run.json
+            echo
+            echo "### Failed log excerpt"
+            echo '```text'
+            tail -n 600 failed.log
+            echo '```'
+            echo
+            echo "### Required behavior"
+            echo "Do not edit main directly. Create a focused fix branch and PR. Preserve SHA-256/SHA-512/SHA3-512 validation, attestations, signing, smoke tests, and least-privilege permissions."
+          } > issue.md
+
+          issue_url=$(gh issue create --repo "$GITHUB_REPOSITORY" \
+            --title "[agent] CI failure: $WORKFLOW_NAME (#$RUN_ID)" \
+            --body-file issue.md)
+          echo "issue_url=$issue_url" >> "$GITHUB_OUTPUT"
+
+      - name: Try Copilot agent handoff when explicitly configured
+        if: ${{ secrets.AGENT_USER_TOKEN != '' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.AGENT_USER_TOKEN }}
+          ISSUE_URL: ${{ steps.issue.outputs.issue_url }}
+        run: |
+          set -euo pipefail
+          issue_number="${ISSUE_URL##*/}"
+          gh api --method POST \
+            -H 'GraphQL-Features: issues_copilot_assignment_api_support,coding_agent_model_selection' \
+            "/repos/$GITHUB_REPOSITORY/issues/$issue_number/assignees" \
+            --input - <<'JSON'
+          {
+            "assignees": ["copilot-swe-agent[bot]"],
+            "agent_assignment": {
+              "target_repo": "lordkeremello45/HWcontrol2.0",
+              "base_branch": "main",
+              "custom_instructions": "Use the CI Debugger custom agent. Inspect the exact failing run, fix the root cause on a focused branch, run relevant validation, then open a PR. Do not weaken security or release validation.",
+              "custom_agent": "ci-debugger"
+            }
+          }
+          JSON
+
+      - name: Publish no-paid-agent fallback status
+        if: ${{ secrets.AGENT_USER_TOKEN == '' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_URL: ${{ steps.issue.outputs.issue_url }}
+        run: |
+          set -euo pipefail
+          issue_number="${ISSUE_URL##*/}"
+          gh issue comment "$issue_number" --repo "$GITHUB_REPOSITORY" --body "No Copilot agent credential is configured. The failure has been captured with logs and is ready for a local/third-party agent handoff. This path does not require a paid Copilot subscription and intentionally does not guess or modify code automatically."
