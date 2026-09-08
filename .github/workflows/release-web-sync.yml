@@ -4,7 +4,6 @@ on:
   workflow_run:
     workflows:
       - Release integrity
-      - Publish complete release assets
     types: [completed]
   workflow_dispatch:
 
