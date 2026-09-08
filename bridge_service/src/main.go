@@ -17,6 +17,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/shirou/gopsutil/v3/cpu"
@@ -70,7 +71,7 @@ type HardwareMetrics struct {
 	FanRPM               float64 `json:"fanRpm"`
 	MemoryUsage          float64 `json:"memoryUsage"`
 	DiskUsage            float64 `json:"diskUsage"`
-	PowerWatts           float64 `json:"powerWatts"`
+	PowerWatts            float64 `json:"powerWatts"`
 	Voltage               float64 `json:"voltage"`
 	UptimeSeconds        uint64  `json:"uptimeSeconds"`
 	Platform             string  `json:"platform"`
@@ -91,6 +92,37 @@ type HardwareMetrics struct {
 }
 
 const bridgeVersion = "2.1.0"
+
+const (
+	maxRequestBytes       = 64 * 1024
+	maxAuthFailures       = 5
+	authFailureWindow     = time.Minute
+	maxConnections        = 32
+	connectionIdleTimeout = 30 * time.Second
+)
+
+var connectionLimiter = struct {
+	sync.Mutex
+	active int
+}{ }
+
+func acquireConnection() bool {
+	connectionLimiter.Lock()
+	defer connectionLimiter.Unlock()
+	if connectionLimiter.active >= maxConnections {
+		return false
+	}
+	connectionLimiter.active++
+	return true
+}
+
+func releaseConnection() {
+	connectionLimiter.Lock()
+	if connectionLimiter.active > 0 {
+		connectionLimiter.active--
+	}
+	connectionLimiter.Unlock()
+}
 
 func collectMetrics() HardwareMetrics {
 	metrics := HardwareMetrics{}
@@ -206,22 +238,13 @@ func defaultKeyFile() string {
 	}
 }
 
-func persistWindowsEnvironment(secret string) {
-	if runtime.GOOS != "windows" {
-		return
-	}
-	_ = exec.Command("setx", "HWCONTROL_KEY", secret, "/M").Run()
-}
-
 func loadOrCreateSecret() (string, error) {
 	if secret := strings.TrimSpace(os.Getenv("HWCONTROL_KEY")); secret != "" && secret != "replace-me" {
-		persistWindowsEnvironment(secret)
 		return secret, nil
 	}
 	path := defaultKeyFile()
 	if data, err := os.ReadFile(path); err == nil {
 		if secret := strings.TrimSpace(string(data)); secret != "" {
-			persistWindowsEnvironment(secret)
 			return secret, nil
 		}
 	}
@@ -234,14 +257,13 @@ func loadOrCreateSecret() (string, error) {
 		return "", fmt.Errorf("create key directory: %w", err)
 	}
 	tmp := path + ".tmp"
-	if err := os.WriteFile(tmp, []byte(secret+"\n"), 0640); err != nil {
+	if err := os.WriteFile(tmp, []byte(secret+"\n"), 0600); err != nil {
 		return "", fmt.Errorf("write bridge key: %w", err)
 	}
 	if err := os.Rename(tmp, path); err != nil {
 		_ = os.Remove(tmp)
 		return "", fmt.Errorf("commit bridge key: %w", err)
 	}
-	persistWindowsEnvironment(secret)
 	return secret, nil
 }
 
@@ -289,15 +311,18 @@ func bridgePort() string {
 
 func handleConnection(conn net.Conn, secret string) {
 	defer conn.Close()
+	defer releaseConnection()
 	defer func() {
 		if recovered := recover(); recovered != nil {
 			log.Printf("connection panic recovered: %v", recovered)
 		}
 	}()
-	decoder := json.NewDecoder(conn)
+	decoder := json.NewDecoder(io.LimitReader(conn, maxRequestBytes))
 	encoder := json.NewEncoder(conn)
+	failedAttempts := 0
+	windowStart := time.Time{}
 	for {
-		_ = conn.SetReadDeadline(time.Now().Add(30 * time.Second))
+		_ = conn.SetReadDeadline(time.Now().Add(connectionIdleTimeout))
 		var cmd Command
 		if err := decoder.Decode(&cmd); err != nil {
 			return
@@ -307,9 +332,21 @@ func handleConnection(conn net.Conn, secret string) {
 			continue
 		}
 		if !authenticateCommand(cmd, secret) {
+			now := time.Now()
+			if windowStart.IsZero() || now.Sub(windowStart) > authFailureWindow {
+				windowStart = now
+				failedAttempts = 0
+			}
+			failedAttempts++
+			if failedAttempts >= maxAuthFailures {
+				_ = encoder.Encode(Response{Status: "ERROR", Message: "too many authentication failures; connection closed"})
+				return
+			}
 			_ = encoder.Encode(Response{Status: "ERROR", Message: "authentication failed"})
 			continue
 		}
+		failedAttempts = 0
+		windowStart = time.Time{}
 		if cmd.Action == "Get Status" {
 			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Metrikler alındı", Data: collectMetrics()}); err != nil {
 				return
@@ -318,9 +355,9 @@ func handleConnection(conn net.Conn, secret string) {
 		}
 		if cmd.Action == "Get Security" {
 			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Güvenlik durumu alındı", Data: map[string]any{
-				"hmac":       true,
+				"hmac":        true,
 				"modelSha256": modelDigest(),
-				"keyFile":    defaultKeyFile(),
+				"keyFile":     defaultKeyFile(),
 			}}); err != nil {
 				return
 			}
@@ -366,6 +403,10 @@ func main() {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
+			continue
+		}
+		if !acquireConnection() {
+			_ = conn.Close()
 			continue
 		}
 		go handleConnection(conn, secret)
