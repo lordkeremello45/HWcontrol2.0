@@ -35,6 +35,28 @@ ai_core/include/bsod_shield.h
 ai_core/src/bsod_shield.cpp
 ```
 
+## Bridge runtime hardening
+
+The local bridge keeps the existing HMAC authentication and localhost-only listener, with additional abuse controls:
+
+- Maximum request payload is 64 KiB.
+- Maximum of 32 concurrent bridge connections.
+- A single connection is closed after 5 failed HMAC authentication attempts within one minute.
+- Idle bridge connections time out after 30 seconds.
+- Failed authentication is throttled without limiting correctly authenticated dashboard traffic.
+
+The authentication throttle is intended to slow rapid credential guessing by a local process. It is not a replacement for HMAC authentication or operating-system access controls.
+
+## Secret storage
+
+Bridge secrets are stored as local files rather than persisted as machine-wide environment variables.
+
+- Windows: `%ProgramData%\HWControl\bridge.key`, restricted to `SYSTEM` and `Administrators` by the Windows installer.
+- macOS: `/Library/Application Support/HWControl/bridge.key`.
+- Linux: `/var/lib/hwcontrol/bridge.key`.
+
+The bridge generates a cryptographically random 32-byte secret when no valid secret is present. The dashboard and bridge must use the same secret; a missing or invalid secret fails authentication rather than disabling authentication.
+
 ## Release integrity
 
 Release packages are published only from the official GitHub repository. Platform packages have matching `.sha256` checksum assets. Verify a download before running it.
