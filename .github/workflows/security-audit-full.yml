@@ -153,7 +153,6 @@ jobs:
           languages: ${{ matrix.language }}
           queries: security-extended,security-and-quality
       - uses: github/codeql-action/autobuild@v3
-        if: matrix.language == 'cpp'
       - uses: github/codeql-action/analyze@v3
         with:
           category: /language:${{ matrix.language }}
