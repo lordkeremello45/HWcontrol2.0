@@ -15,8 +15,11 @@ if [ ! -s "$KEY_FILE" ]; then
 fi
 
 if [ -f "$APP_PLIST" ]; then
-  /usr/bin/plutil -replace LSEnvironment.HWCONTROL_KEY -string "$(/bin/cat "$KEY_FILE")" "$APP_PLIST" 2>/dev/null || \
-  /usr/bin/plutil -insert LSEnvironment.HWCONTROL_KEY -string "$(/bin/cat "$KEY_FILE")" "$APP_PLIST"
+  KEY_VALUE=$(/bin/cat "$KEY_FILE")
+  # Flutter's generated Info.plist does not always contain LSEnvironment.
+  # Create the dictionary first so the nested key replacement is deterministic.
+  /usr/bin/plutil -insert LSEnvironment -dict "$APP_PLIST" 2>/dev/null || true
+  /usr/bin/plutil -replace LSEnvironment.HWCONTROL_KEY -string "$KEY_VALUE" "$APP_PLIST"
 fi
 
 if [ -f "$PLIST_SRC" ]; then
