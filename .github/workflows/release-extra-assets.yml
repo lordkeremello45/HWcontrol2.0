@@ -54,6 +54,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $zip = "HWControl-$env:TAG-Windows-x64.zip"
           $out = "HWControl-$env:TAG-Windows-x64.exe"
+          $checksum = "HWControl-$env:TAG-Windows-x64.exe.sha256"
           gh release download $env:TAG --repo $env:GITHUB_REPOSITORY --pattern $zip --dir $env:RUNNER_TEMP --clobber
           $extract = Join-Path $env:RUNNER_TEMP 'hwcontrol-windows-release'
           Remove-Item $extract -Recurse -Force -ErrorAction SilentlyContinue
@@ -62,7 +63,9 @@ jobs:
           if (-not $exe) { throw 'HWControl.exe was not found inside the Windows release ZIP.' }
           Copy-Item $exe.FullName $out -Force
           if ((Get-Item $out).Length -le 0) { throw 'Standalone HWControl.exe is empty.' }
-          gh release upload $env:TAG $out --repo $env:GITHUB_REPOSITORY --clobber
+          $hash = (Get-FileHash $out -Algorithm SHA256).Hash.ToLowerInvariant()
+          Set-Content $checksum "$hash  $out"
+          gh release upload $env:TAG $out $checksum --repo $env:GITHUB_REPOSITORY --clobber
 
       - name: Publish macOS .app ZIP
         if: endsWith(steps.release.outputs.tag, '-macos')
@@ -74,6 +77,7 @@ jobs:
           set -euo pipefail
           dmg="HWControl-${TAG}-macOS-AppleSilicon.dmg"
           app_zip="HWControl-${TAG}-macOS-AppleSilicon.app.zip"
+          checksum="HWControl-${TAG}-macOS-AppleSilicon.app.zip.sha256"
           mount="$RUNNER_TEMP/hwcontrol-mount"
           mkdir -p "$mount"
           gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$dmg" --dir "$RUNNER_TEMP" --clobber
@@ -84,7 +88,8 @@ jobs:
           test -n "$app"
           ditto -c -k --sequesterRsrc --keepParent "$app" "$RUNNER_TEMP/$app_zip"
           test -s "$RUNNER_TEMP/$app_zip"
-          gh release upload "$TAG" "$RUNNER_TEMP/$app_zip" --repo "$GITHUB_REPOSITORY" --clobber
+          shasum -a 256 "$RUNNER_TEMP/$app_zip" > "$RUNNER_TEMP/$checksum"
+          gh release upload "$TAG" "$RUNNER_TEMP/$app_zip" "$RUNNER_TEMP/$checksum" --repo "$GITHUB_REPOSITORY" --clobber
 
       - name: Re-run release integrity after standalone assets are published
         env:
