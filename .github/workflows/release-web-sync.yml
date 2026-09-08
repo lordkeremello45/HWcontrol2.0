@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows:
       - Release integrity
-      - Publish Windows Setup bootstrapper
+      - Publish complete release assets
     types: [completed]
   workflow_dispatch:
 
