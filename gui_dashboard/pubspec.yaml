@@ -22,9 +22,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
-msix_config:
-  display_name: HWControl
-  architecture: x64
-  install_certificate: false
-  languages: en-us
