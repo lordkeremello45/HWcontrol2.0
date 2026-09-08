@@ -137,6 +137,7 @@ jobs:
       - name: Build MSI and validate EXE package
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Stop'
           dotnet tool install --global wix --version 6.0.2 --add-source https://api.nuget.org/v3/index.json
           $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
           wix --version
@@ -181,11 +182,17 @@ jobs:
           if (-not $probe.TcpTestSucceeded) { throw 'Installed HWControlBridge is not listening on 127.0.0.1:8080' }
           $uninstallLog = Join-Path $validationRoot 'msiexec-uninstall.log'
           $uninstall = Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList @('/x', "`"$validationMsi`"", '/qn', '/norestart', '/L*V', "`"$uninstallLog`") -Wait -PassThru
-          if ($uninstall.ExitCode -ne 0) { Write-Host '===== MSI UNINSTALL LOG ====='; if (Test-Path -LiteralPath $uninstallLog) { Get-Content -LiteralPath $uninstallLog -Tail 200 }; Write-Host '===== END MSI UNINSTALL LOG ====='; throw "MSI uninstall failed with exit code $($uninstall.ExitCode)" }
+          if ($uninstall.ExitCode -ne 0) {
+            Write-Host '===== MSI UNINSTALL LOG ====='
+            if (Test-Path -LiteralPath $uninstallLog) { Get-Content -LiteralPath $uninstallLog -Tail 200 }
+            Write-Host '===== END MSI UNINSTALL LOG ====='
+            throw "MSI uninstall failed with exit code $($uninstall.ExitCode)"
+          }
           if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge service still exists after uninstall' }
       - name: Build and smoke-test guided Setup.exe
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Stop'
           $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
           wix build deploy/windows/HWControl-Setup.wxs -ext WixToolset.BootstrapperApplications.wixext -arch x64 -d Version=0.0.0 -d MsiPath="$PWD\HWControl-test.msi" -o HWControl-test-Setup.exe
           if (-not (Test-Path "$PWD\HWControl-test-Setup.exe")) { throw 'Setup.exe was not produced' }
