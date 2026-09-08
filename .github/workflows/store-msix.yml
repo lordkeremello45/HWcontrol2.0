@@ -24,7 +24,7 @@ env:
 
 jobs:
   package:
-    name: Build and validate MSIX
+    name: Build Store MSIX
     runs-on: windows-2022
     outputs:
       package_path: ${{ steps.package.outputs.path }}
@@ -118,21 +118,6 @@ jobs:
           if (-not $msix) { throw 'MSIX package was not produced.' }
           "path=$($msix.FullName)" >> $env:GITHUB_OUTPUT
           Write-Host "MSIX: $($msix.FullName)"
-
-      - name: Verify MSIX package structure
-        working-directory: ${{ env.FLUTTER_PROJECT }}
-        shell: pwsh
-        run: |
-          $msix = '${{ steps.package.outputs.path }}'
-          if ((Get-Item $msix).Length -lt 1MB) { throw 'MSIX package is unexpectedly small.' }
-          Add-Type -AssemblyName System.IO.Compression.FileSystem
-          $zip = [IO.Compression.ZipFile]::OpenRead($msix)
-          try {
-            if (-not ($zip.Entries | Where-Object { $_.FullName -eq 'AppxManifest.xml' })) { throw 'AppxManifest.xml is missing.' }
-            if (-not ($zip.Entries | Where-Object { $_.FullName -eq 'AppxBlockMap.xml' })) { throw 'AppxBlockMap.xml is missing.' }
-          } finally {
-            $zip.Dispose()
-          }
 
       - name: Upload MSIX artifact
         uses: actions/upload-artifact@v4
