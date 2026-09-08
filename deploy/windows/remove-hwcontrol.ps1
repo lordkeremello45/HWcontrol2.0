@@ -36,10 +36,9 @@ foreach ($path in $paths) {
 }
 
 if ($PurgeSecret) {
-    Invoke-Safe { [Environment]::SetEnvironmentVariable('HWCONTROL_KEY', $null, 'Machine') } 'Remove machine HWCONTROL_KEY'
-    Write-Host 'Makine HWCONTROL_KEY degiskeni silindi.'
+    Write-Host 'Bridge secreti ProgramData\HWControl\bridge.key dosyasiyla birlikte kaldirildi.'
 } else {
-    Write-Host 'HWCONTROL_KEY korunuyor. Silmek icin -PurgeSecret kullanin.'
+    Write-Host 'Bridge secreti kurulum dizinindeki ProgramData\HWControl\bridge.key dosyasiyla birlikte kaldirildi.'
 }
 
 Write-Host $(if ($DryRun) { 'Dry-run tamamlandi.' } else { 'HWControl kaldirildi.' })
