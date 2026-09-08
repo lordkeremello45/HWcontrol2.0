@@ -16,14 +16,13 @@ fi
 
 if [ -f "$APP_PLIST" ]; then
   KEY_VALUE=$(/bin/cat "$KEY_FILE")
-  # Flutter's generated Info.plist does not always contain LSEnvironment.
-  # Create the dictionary first so the nested key replacement is deterministic.
-  /usr/bin/plutil -insert LSEnvironment -dict "$APP_PLIST" 2>/dev/null || true
-  /usr/bin/plutil -replace LSEnvironment.HWCONTROL_KEY -string "$KEY_VALUE" "$APP_PLIST"
+  /usr/libexec/PlistBuddy -c 'Add :LSEnvironment dict' "$APP_PLIST" 2>/dev/null || true
+  /usr/libexec/PlistBuddy -c "Set :LSEnvironment:HWCONTROL_KEY $KEY_VALUE" "$APP_PLIST" 2>/dev/null || \
+  /usr/libexec/PlistBuddy -c "Add :LSEnvironment:HWCONTROL_KEY string $KEY_VALUE" "$APP_PLIST"
 fi
 
 if [ -f "$PLIST_SRC" ]; then
-  /bin/mkdir -p "/Library/LaunchDaemons"
+  /bin/mkdir -p /Library/LaunchDaemons
   /usr/bin/install -m 644 "$PLIST_SRC" "$PLIST_DST"
   /usr/sbin/chown root:wheel "$PLIST_DST"
   /usr/bin/plutil -lint "$PLIST_DST" >/dev/null
