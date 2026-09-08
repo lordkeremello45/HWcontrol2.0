@@ -35,9 +35,10 @@ jobs:
           cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
           cmake --build build --parallel 2
       - name: Build and test bridge
+        working-directory: bridge_service
         run: |
-          go test ./bridge_service/...
-          go build -trimpath -ldflags='-s -w' -o bridge-service ./bridge_service/src
+          go test -count=1 ./...
+          go build -trimpath -ldflags='-s -w' -o ../bridge-service ./src
       - name: Validate dashboard
         working-directory: gui_dashboard
         run: |
@@ -95,12 +96,15 @@ jobs:
           cmake --build build-windows --config Release --parallel 2
       - name: Build bridge
         working-directory: bridge_service
+        shell: pwsh
         run: go build -trimpath -ldflags='-s -w' -o ../bridge-service.exe ./src
       - name: Test bridge
         working-directory: bridge_service
+        shell: pwsh
         run: go test -count=1 ./...
       - name: Validate dashboard
         working-directory: gui_dashboard
+        shell: pwsh
         run: |
           flutter pub get
           flutter analyze
@@ -180,9 +184,10 @@ jobs:
           cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
           cmake --build build --parallel 2
       - name: Build and test bridge
+        working-directory: bridge_service
         run: |
-          go test ./bridge_service/...
-          go build -trimpath -ldflags='-s -w' -o bridge-service ./bridge_service/src
+          go test -count=1 ./...
+          go build -trimpath -ldflags='-s -w' -o ../bridge-service ./src
       - name: Validate dashboard
         working-directory: gui_dashboard
         run: |
