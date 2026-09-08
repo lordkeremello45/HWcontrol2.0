@@ -1,0 +1,99 @@
+name: Publish standalone desktop assets
+
+on:
+  workflow_run:
+    workflows:
+      - Publish platform release
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Platform release tag (for example v0.2.1-windows)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: release-extra-assets
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ${{ startsWith(github.event.inputs.tag || github.event.workflow_run.head_branch, 'v') && contains(github.event.inputs.tag || github.event.workflow_run.head_branch, '-macos') && 'macos-14' || 'ubuntu-24.04' }}
+    steps:
+      - name: Resolve release tag
+        id: release
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+          RUN_TAG: ${{ github.event.workflow_run.head_branch }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="$INPUT_TAG"
+          if [ -z "$tag" ]; then tag="$RUN_TAG"; fi
+          case "$tag" in
+            v*-windows|v*-macos) ;;
+            *) echo "Unsupported platform release tag: $tag" >&2; exit 1 ;;
+          esac
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Publish Windows standalone EXE
+        if: endsWith(steps.release.outputs.tag, '-windows')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $zip = "HWControl-$env:TAG-Windows-x64.zip"
+          $out = "HWControl-$env:TAG-Windows-x64.exe"
+          gh release download $env:TAG --repo $env:GITHUB_REPOSITORY --pattern $zip --dir $env:RUNNER_TEMP --clobber
+          $extract = Join-Path $env:RUNNER_TEMP 'hwcontrol-windows-release'
+          Remove-Item $extract -Recurse -Force -ErrorAction SilentlyContinue
+          Expand-Archive -Path (Join-Path $env:RUNNER_TEMP $zip) -DestinationPath $extract -Force
+          $exe = Get-ChildItem $extract -Filter 'HWControl.exe' -File -Recurse | Select-Object -First 1
+          if (-not $exe) { throw 'HWControl.exe was not found inside the Windows release ZIP.' }
+          Copy-Item $exe.FullName $out -Force
+          if ((Get-Item $out).Length -le 0) { throw 'Standalone HWControl.exe is empty.' }
+          gh release upload $env:TAG $out --repo $env:GITHUB_REPOSITORY --clobber
+
+      - name: Publish macOS .app ZIP
+        if: endsWith(steps.release.outputs.tag, '-macos')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          dmg="HWControl-${TAG}-macOS-AppleSilicon.dmg"
+          app_zip="HWControl-${TAG}-macOS-AppleSilicon.app.zip"
+          mount="$RUNNER_TEMP/hwcontrol-mount"
+          mkdir -p "$mount"
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$dmg" --dir "$RUNNER_TEMP" --clobber
+          hdiutil attach "$RUNNER_TEMP/$dmg" -readonly -nobrowse -mountpoint "$mount"
+          cleanup() { hdiutil detach "$mount" -quiet || true; }
+          trap cleanup EXIT
+          app=$(find "$mount" -maxdepth 2 -type d -name 'HWControl.app' -print -quit)
+          test -n "$app"
+          ditto -c -k --sequesterRsrc --keepParent "$app" "$RUNNER_TEMP/$app_zip"
+          test -s "$RUNNER_TEMP/$app_zip"
+          gh release upload "$TAG" "$RUNNER_TEMP/$app_zip" --repo "$GITHUB_REPOSITORY" --clobber
+
+      - name: Re-run release integrity after standalone assets are published
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh workflow run release-integrity.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref main \
+            -f tag="$TAG"
