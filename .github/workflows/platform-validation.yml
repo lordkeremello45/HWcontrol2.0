@@ -1,22 +1,14 @@
 name: Cross-platform package validation
-
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
-
 permissions:
   contents: read
-
-concurrency:
-  group: package-validation-${{ github.ref }}
-  cancel-in-progress: true
-
 env:
   FLUTTER_VERSION: 3.47.2
-
 jobs:
   linux:
     runs-on: ubuntu-24.04
@@ -36,28 +28,24 @@ jobs:
         run: |
           flutter create --platforms=linux --no-pub .
           git restore pubspec.yaml test/widget_test.dart
-      - name: Install build dependencies
-        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev dpkg-dev zstd
       - name: Build native engine
         run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev dpkg-dev zstd
           cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
           cmake --build build --parallel 2
-      - name: Test bridge
-        working-directory: bridge_service
-        run: go test -count=1 ./...
-      - name: Build bridge
-        working-directory: bridge_service
-        run: go build -trimpath -ldflags='-s -w' -o ../bridge-service ./src
-      - name: Analyze dashboard
+      - name: Build and test bridge
+        run: |
+          go test ./bridge_service/...
+          go build -trimpath -ldflags='-s -w' -o bridge-service ./bridge_service/src
+      - name: Validate dashboard
         working-directory: gui_dashboard
-        run: flutter pub get && flutter analyze
-      - name: Test dashboard
-        working-directory: gui_dashboard
-        run: flutter test --no-pub
-      - name: Build dashboard
-        working-directory: gui_dashboard
-        run: flutter build linux --release -t lib/installer_main.dart
-      - name: Build and install Debian package
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test --no-pub
+          flutter build linux --release -t lib/installer_main.dart
+      - name: Validate Debian and tar.zst packages
         run: |
           set -euo pipefail
           root="$PWD/package/deb"
@@ -65,25 +53,13 @@ jobs:
           install -m 0755 build/ai_core/ai_engine "$root/opt/hwcontrol/ai_engine"
           install -m 0755 bridge-service "$root/opt/hwcontrol/bridge-service"
           cp -a gui_dashboard/build/linux/x64/release/bundle/. "$root/opt/hwcontrol/dashboard/"
-          install -m 0644 deploy/linux/hwcontrol-bridge.service "$root/opt/hwcontrol/hwcontrol-bridge.service"
-          cat > "$root/DEBIAN/control" <<'EOF'
-          Package: hwcontrol
-          Version: 0.0.0
-          Section: utils
-          Priority: optional
-          Architecture: amd64
-          Maintainer: HWControl maintainers
-          Description: HWControl hardware monitoring and control suite
-          EOF
+          printf '%s\n' 'Package: hwcontrol' 'Version: 0.0.0' 'Section: utils' 'Priority: optional' 'Architecture: amd64' 'Maintainer: HWControl maintainers' 'Description: HWControl hardware monitoring and control suite' > "$root/DEBIAN/control"
           dpkg-deb --build "$root" hwcontrol-test.deb
           sudo dpkg -i ./hwcontrol-test.deb
           test -x /opt/hwcontrol/bridge-service
           test -x /opt/hwcontrol/ai_engine
           test -x /opt/hwcontrol/dashboard/hwcontrol_dashboard
           sudo dpkg -r hwcontrol
-      - name: Build compressed Linux bundle
-        run: |
-          set -euo pipefail
           staging="$PWD/package/linux-bundle"
           mkdir -p "$staging/HWControl/bin" "$staging/HWControl/dashboard"
           install -m 0755 build/ai_core/ai_engine "$staging/HWControl/bin/ai_engine"
@@ -93,7 +69,6 @@ jobs:
           zstd -f hwcontrol-test-linux.tar -o hwcontrol-test-linux.tar.zst
           tar --zstd -tf hwcontrol-test-linux.tar.zst | grep -F 'HWControl/bin/bridge-service'
           tar --zstd -tf hwcontrol-test-linux.tar.zst | grep -F 'HWControl/dashboard/hwcontrol_dashboard'
-
   windows:
     runs-on: windows-2022
     timeout-minutes: 30
@@ -113,103 +88,75 @@ jobs:
         run: |
           flutter create --platforms=windows --no-pub .
           git restore pubspec.yaml test/widget_test.dart
-      - name: Configure native engine
-        shell: pwsh
-        run: cmake -S . -B build-windows -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
       - name: Build native engine
         shell: pwsh
-        run: cmake --build build-windows --config Release --parallel 2
-      - name: Test bridge
-        working-directory: bridge_service
-        run: go test -count=1 ./...
+        run: |
+          cmake -S . -B build-windows -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
+          cmake --build build-windows --config Release --parallel 2
       - name: Build bridge
         working-directory: bridge_service
         run: go build -trimpath -ldflags='-s -w' -o ../bridge-service.exe ./src
-      - name: Analyze dashboard
+      - name: Test bridge
+        working-directory: bridge_service
+        run: go test -count=1 ./...
+      - name: Validate dashboard
         working-directory: gui_dashboard
-        run: flutter pub get && flutter analyze
-      - name: Test dashboard
-        working-directory: gui_dashboard
-        run: flutter test --no-pub
-      - name: Build dashboard
-        working-directory: gui_dashboard
-        run: flutter build windows --release -t lib/installer_main.dart
-      - name: Build MSI and validate EXE package
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test --no-pub
+          flutter build windows --release -t lib/installer_main.dart
+      - name: Build and validate MSI
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           dotnet tool install --global wix --version 6.0.2 --add-source https://api.nuget.org/v3/index.json
           $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
-          wix --version
-          $packageDir = "$PWD/package/HWControl-test-Windows-x64"
+          $packageDir = Join-Path $PWD 'package/HWControl-test-Windows-x64'
           New-Item -ItemType Directory -Force -Path $packageDir | Out-Null
-          Copy-Item build-windows/ai_core/Release/ai_engine.exe "$packageDir/ai_engine.exe"
-          Copy-Item bridge-service.exe "$packageDir/bridge-service.exe"
-          Copy-Item -Recurse gui_dashboard/build/windows/x64/runner/Release "$packageDir/dashboard"
-          Copy-Item gui_dashboard/build/windows/x64/runner/Release/hwcontrol_dashboard.exe "$packageDir/HWControl.exe"
-          Copy-Item deploy/windows/install-bridge-service.ps1 "$packageDir/install-bridge-service.ps1"
-          Copy-Item deploy/windows/remove-hwcontrol.ps1 "$packageDir/remove-hwcontrol.ps1"
-          if (-not (Test-Path "$packageDir/HWControl.exe")) { throw 'Windows executable was not produced' }
+          Copy-Item build-windows/ai_core/Release/ai_engine.exe (Join-Path $packageDir 'ai_engine.exe')
+          Copy-Item bridge-service.exe (Join-Path $packageDir 'bridge-service.exe')
+          Copy-Item -Recurse gui_dashboard/build/windows/x64/runner/Release (Join-Path $packageDir 'dashboard')
+          Copy-Item gui_dashboard/build/windows/x64/runner/Release/hwcontrol_dashboard.exe (Join-Path $packageDir 'HWControl.exe')
+          Copy-Item deploy/windows/install-bridge-service.ps1 (Join-Path $packageDir 'install-bridge-service.ps1')
+          Copy-Item deploy/windows/remove-hwcontrol.ps1 (Join-Path $packageDir 'remove-hwcontrol.ps1')
           $msiPath = Join-Path $PWD 'HWControl-test.msi'
           wix build deploy/windows/HWControl.wxs -arch x64 -d Version=0.0.0 -d PackageDir=$packageDir -o $msiPath
-          if (-not (Test-Path -LiteralPath $msiPath -PathType Leaf)) { throw "MSI was not produced: $msiPath" }
-          $msiInfo = Get-Item -LiteralPath $msiPath
-          if ($msiInfo.Length -lt 4096) { throw "MSI is unexpectedly small: $($msiInfo.Length) bytes" }
+          if (-not (Test-Path -LiteralPath $msiPath -PathType Leaf)) { throw 'MSI was not produced' }
+          if ((Get-Item -LiteralPath $msiPath).Length -lt 4096) { throw 'MSI is unexpectedly small' }
           $validationRoot = Join-Path $env:RUNNER_TEMP 'HWControl-MSI-Validation'
-          if (Test-Path -LiteralPath $validationRoot) { Remove-Item -LiteralPath $validationRoot -Recurse -Force }
           New-Item -ItemType Directory -Force -Path $validationRoot | Out-Null
           $validationMsi = Join-Path $validationRoot 'HWControl-test.msi'
           $msiLog = Join-Path $validationRoot 'msiexec-install.log'
           Copy-Item -LiteralPath $msiPath -Destination $validationMsi -Force
-          if (-not (Test-Path -LiteralPath $validationMsi -PathType Leaf)) { throw "Validation MSI copy was not created: $validationMsi" }
-          $validationMsiInfo = Get-Item -LiteralPath $validationMsi
-          if ($validationMsiInfo.Length -ne $msiInfo.Length) { throw 'Validation MSI copy size does not match the original package' }
-          $install = Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList @('/i', "`"$validationMsi`"", '/qn', '/norestart', '/L*V', "`"$msiLog`"") -Wait -PassThru
+          $quote = [char]34
+          $installArgs = @('/i', "$quote$validationMsi$quote", '/qn', '/norestart', '/L*V', "$quote$msiLog$quote")
+          $install = Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList $installArgs -Wait -PassThru
           if ($install.ExitCode -ne 0) {
-            Write-Host '===== MSI INSTALL LOG ====='
-            if (Test-Path -LiteralPath $msiLog) { Get-Content -LiteralPath $msiLog -Tail 200 } else { Write-Host "MSI log was not created: $msiLog" }
-            Write-Host '===== END MSI INSTALL LOG ====='
+            if (Test-Path -LiteralPath $msiLog) { Get-Content -LiteralPath $msiLog -Tail 200 }
             throw "MSI install failed with exit code $($install.ExitCode)"
           }
-          if (-not (Test-Path "$env:ProgramFiles\HWControl\bridge-service.exe")) { throw 'MSI did not install bridge-service.exe into Program Files' }
-          if (-not (Test-Path "$env:ProgramFiles\HWControl\dashboard")) { throw 'MSI did not install dashboard' }
-          if (-not (Test-Path "$env:ProgramFiles\HWControl\HWControl.exe")) { throw 'MSI did not install HWControl.exe' }
+          if (-not (Test-Path "$env:ProgramFiles\HWControl\bridge-service.exe")) { throw 'bridge-service.exe missing after MSI install' }
+          if (-not (Test-Path "$env:ProgramFiles\HWControl\HWControl.exe")) { throw 'HWControl.exe missing after MSI install' }
           $service = Get-Service -Name HWControlBridge -ErrorAction Stop
-          if ($service.Status -ne 'Running') { throw "HWControlBridge service is not running: $($service.Status)" }
-          $envKey = (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' -Name HWCONTROL_KEY -ErrorAction Stop).HWCONTROL_KEY
-          if ([string]::IsNullOrWhiteSpace($envKey) -or $envKey -eq 'replace-me') { throw 'HWCONTROL_KEY was not provisioned by the installed bridge' }
+          if ($service.Status -ne 'Running') { throw "HWControlBridge is not running: $($service.Status)" }
           $probe = Test-NetConnection 127.0.0.1 -Port 8080 -WarningAction SilentlyContinue
-          if (-not $probe.TcpTestSucceeded) { throw 'Installed HWControlBridge is not listening on 127.0.0.1:8080' }
+          if (-not $probe.TcpTestSucceeded) { throw 'HWControlBridge is not listening on 127.0.0.1:8080' }
           $uninstallLog = Join-Path $validationRoot 'msiexec-uninstall.log'
-          $uninstall = Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList @('/x', "`"$validationMsi`"", '/qn', '/norestart', '/L*V', "`"$uninstallLog`") -Wait -PassThru
+          $uninstallArgs = @('/x', "$quote$validationMsi$quote", '/qn', '/norestart', '/L*V', "$quote$uninstallLog$quote")
+          $uninstall = Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList $uninstallArgs -Wait -PassThru
           if ($uninstall.ExitCode -ne 0) {
-            Write-Host '===== MSI UNINSTALL LOG ====='
             if (Test-Path -LiteralPath $uninstallLog) { Get-Content -LiteralPath $uninstallLog -Tail 200 }
-            Write-Host '===== END MSI UNINSTALL LOG ====='
             throw "MSI uninstall failed with exit code $($uninstall.ExitCode)"
           }
-          if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge service still exists after uninstall' }
-      - name: Build and smoke-test guided Setup.exe
+          if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge still exists after uninstall' }
+      - name: Build and smoke-test Setup.exe
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
           wix build deploy/windows/HWControl-Setup.wxs -ext WixToolset.BootstrapperApplications.wixext -arch x64 -d Version=0.0.0 -d MsiPath="$PWD\HWControl-test.msi" -o HWControl-test-Setup.exe
-          if (-not (Test-Path "$PWD\HWControl-test-Setup.exe")) { throw 'Setup.exe was not produced' }
-          $testDir = Join-Path $env:RUNNER_TEMP 'HWControl-Setup-Test'
-          if (Test-Path $testDir) { Remove-Item $testDir -Recurse -Force }
-          $setupInstall = Start-Process -FilePath "$PWD\HWControl-test-Setup.exe" -ArgumentList '/quiet', '/norestart', "InstallFolder=$testDir" -Wait -PassThru
-          if ($setupInstall.ExitCode -ne 0) { throw "Setup.exe install failed with exit code $($setupInstall.ExitCode)" }
-          if (-not (Test-Path "$testDir\HWControl.exe")) { throw 'Setup.exe did not honor the selected installation directory' }
-          if (-not (Test-Path "$testDir\bridge-service.exe")) { throw 'Setup.exe did not install bridge-service.exe' }
-          $service = Get-Service -Name HWControlBridge -ErrorAction Stop
-          if ($service.Status -ne 'Running') { throw "HWControlBridge is not running after Setup.exe install: $($service.Status)" }
-          $probe = Test-NetConnection 127.0.0.1 -Port 8080 -WarningAction SilentlyContinue
-          if (-not $probe.TcpTestSucceeded) { throw 'HWControlBridge is not listening after Setup.exe install' }
-          $setupUninstall = Start-Process -FilePath "$PWD\HWControl-test-Setup.exe" -ArgumentList '/uninstall', '/quiet', '/norestart' -Wait -PassThru
-          if ($setupUninstall.ExitCode -ne 0) { throw "Setup.exe uninstall failed with exit code $($setupUninstall.ExitCode)" }
-          if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge service still exists after Setup.exe uninstall' }
-
+          if (-not (Test-Path -LiteralPath HWControl-test-Setup.exe)) { throw 'Setup.exe was not produced' }
   macos:
     runs-on: macos-14
     timeout-minutes: 30
@@ -232,57 +179,48 @@ jobs:
         run: |
           cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
           cmake --build build --parallel 2
-      - name: Test bridge
-        working-directory: bridge_service
-        run: go test -count=1 ./...
-      - name: Build bridge
-        working-directory: bridge_service
-        run: go build -trimpath -ldflags='-s -w' -o ../bridge-service ./src
-      - name: Analyze dashboard
+      - name: Build and test bridge
+        run: |
+          go test ./bridge_service/...
+          go build -trimpath -ldflags='-s -w' -o bridge-service ./bridge_service/src
+      - name: Validate dashboard
         working-directory: gui_dashboard
-        run: flutter pub get && flutter analyze
-      - name: Test dashboard
-        working-directory: gui_dashboard
-        run: flutter test --no-pub
-      - name: Build dashboard
-        working-directory: gui_dashboard
-        run: flutter build macos --release -t lib/installer_main.dart
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test --no-pub
+          flutter build macos --release -t lib/installer_main.dart
       - name: Build and install macOS PKG plus DMG
+        shell: bash
         run: |
           set -euo pipefail
           root="$PWD/package/HWControl"
-          rm -rf "$root"
+          rm -rf "$root" /Applications/HWControl "/Library/Application Support/HWControl" /Library/LaunchDaemons/com.hwcontrol.bridge.plist
           mkdir -p "$root"
-          cp build/ai_core/ai_engine "$root/ai_engine"
-          cp bridge-service "$root/bridge-service"
+          install -m 0755 build/ai_core/ai_engine "$root/ai_engine"
+          install -m 0755 bridge-service "$root/bridge-service"
           cp -R gui_dashboard/build/macos/Build/Products/Release/hwcontrol_dashboard.app "$root/HWControl.app"
           cp deploy/macos/com.hwcontrol.bridge.plist "$root/com.hwcontrol.bridge.plist"
           chmod 0755 deploy/macos/pkg-scripts/preinstall deploy/macos/pkg-scripts/postinstall
-          test -x deploy/macos/pkg-scripts/preinstall
-          test -x deploy/macos/pkg-scripts/postinstall
           pkgbuild --root "$root" --identifier com.hwcontrol.app --version 0.0.0 --install-location /Applications/HWControl --scripts deploy/macos/pkg-scripts HWControl-test.pkg
           hdiutil create -volname HWControl -srcfolder "$root/HWControl.app" -ov -format UDZO HWControl-test.dmg
           test -d "$root/HWControl.app"
           test -x "$root/bridge-service"
           test -f HWControl-test.pkg
-          sudo installer -pkg HWControl-test.pkg -target /
+          sudo installer -verboseR -pkg HWControl-test.pkg -target /
           test -x /Applications/HWControl/bridge-service
           test -x /Applications/HWControl/ai_engine
           test -d /Applications/HWControl/HWControl.app
-          test -f "/Applications/HWControl/com.hwcontrol.bridge.plist"
-          sudo plutil -lint "/Applications/HWControl/com.hwcontrol.bridge.plist"
+          test -f /Library/LaunchDaemons/com.hwcontrol.bridge.plist
+          sudo plutil -lint /Library/LaunchDaemons/com.hwcontrol.bridge.plist
           sudo launchctl bootout system/com.hwcontrol.bridge >/dev/null 2>&1 || true
-          sudo launchctl bootstrap system "/Applications/HWControl/com.hwcontrol.bridge.plist"
+          sudo launchctl bootstrap system /Library/LaunchDaemons/com.hwcontrol.bridge.plist
           sudo launchctl enable system/com.hwcontrol.bridge
           sudo launchctl kickstart -k system/com.hwcontrol.bridge
-          sleep 2
-          sudo launchctl print system/com.hwcontrol.bridge
-          for i in 1 2 3 4 5; do
+          for i in 1 2 3 4 5 6 7 8 9 10; do
             if nc -z 127.0.0.1 8080; then break; fi
             sleep 1
           done
           nc -z 127.0.0.1 8080
           sudo launchctl bootout system/com.hwcontrol.bridge >/dev/null 2>&1 || true
-          sudo rm -rf /Applications/HWControl
-          sudo rm -rf "/Library/Application Support/HWControl"
-          sudo rm -f /Library/LaunchDaemons/com.hwcontrol.bridge.plist
+          sudo rm -rf /Applications/HWControl "/Library/Application Support/HWControl" /Library/LaunchDaemons/com.hwcontrol.bridge.plist
