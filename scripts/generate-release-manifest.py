@@ -11,15 +11,32 @@ from typing import Any
 PLATFORMS = {
     "windows": {
         "suffix": "-windows",
-        "patterns": [r"windows.*x64.*-setup\.exe$", r"windows.*x64.*\.msi$", r"windows.*x64.*\.zip$"],
+        "patterns": [
+            r"windows.*x64.*-setup\.exe$",
+            r"windows.*x64.*\.exe$",
+            r"windows.*x64.*\.msi$",
+            r"windows.*x64.*\.zip$",
+        ],
     },
     "macos": {
         "suffix": "-macos",
-        "patterns": [r"macos.*(apple.?silicon|arm64).*\.pkg$", r"macos.*(apple.?silicon|arm64).*\.dmg$", r"macos.*(apple.?silicon|arm64).*\.zip$", r"darwin.*arm64.*\.pkg$", r"darwin.*arm64.*\.dmg$"],
+        "patterns": [
+            r"macos.*(apple.?silicon|arm64).*\.pkg$",
+            r"macos.*(apple.?silicon|arm64).*\.dmg$",
+            r"macos.*(apple.?silicon|arm64).*\.zip$",
+            r"darwin.*arm64.*\.pkg$",
+            r"darwin.*arm64.*\.dmg$",
+        ],
     },
     "linux": {
         "suffix": "-linux",
-        "patterns": [r"linux.*(x64|amd64).*\.deb$", r"linux.*(x64|amd64).*\.rpm$", r"linux.*(x64|amd64).*\.pkg\.tar\.zst$", r"linux.*(x64|amd64).*\.tar\.zst$", r"linux.*(x64|amd64).*\.tar\.gz$"],
+        "patterns": [
+            r"linux.*(x64|amd64).*\.deb$",
+            r"linux.*(x64|amd64).*\.rpm$",
+            r"linux.*(x64|amd64).*\.pkg\.tar\.zst$",
+            r"linux.*(x64|amd64).*\.tar\.zst$",
+            r"linux.*(x64|amd64).*\.tar\.gz$",
+        ],
     },
 }
 CHECKSUM_SUFFIXES = (".sha256", ".sha256sum", ".sha256.txt")
@@ -33,8 +50,11 @@ def stable_platform_releases(releases: list[dict[str, Any]]) -> dict[str, dict[s
     result: dict[str, dict[str, Any]] = {}
     for platform, cfg in PLATFORMS.items():
         candidates = [
-            r for r in releases
-            if not r.get("draft") and not r.get("prerelease") and str(r.get("tag_name", "")).lower().endswith(cfg["suffix"])
+            r
+            for r in releases
+            if not r.get("draft")
+            and not r.get("prerelease")
+            and str(r.get("tag_name", "")).lower().endswith(cfg["suffix"])
         ]
         candidates.sort(key=published_at, reverse=True)
         if candidates:
@@ -67,13 +87,15 @@ def manifest_assets(release: dict[str, Any], platform: str) -> list[dict[str, An
     for asset in matching_assets(release, platform):
         name = str(asset.get("name", ""))
         checksum = checksum_asset(release, name)
-        output.append({
-            "name": name,
-            "url": asset.get("browser_download_url"),
-            "size": asset.get("size"),
-            "content_type": asset.get("content_type"),
-            "checksum_sha256_url": checksum.get("browser_download_url") if checksum else None,
-        })
+        output.append(
+            {
+                "name": name,
+                "url": asset.get("browser_download_url"),
+                "size": asset.get("size"),
+                "content_type": asset.get("content_type"),
+                "checksum_sha256_url": checksum.get("browser_download_url") if checksum else None,
+            }
+        )
     return output
 
 
