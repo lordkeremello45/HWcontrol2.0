@@ -6,7 +6,6 @@ PLIST_SRC="$APP_DIR/com.hwcontrol.bridge.plist"
 PLIST_DST="/Library/LaunchDaemons/com.hwcontrol.bridge.plist"
 KEY_DIR="/Library/Application Support/HWControl"
 KEY_FILE="$KEY_DIR/bridge.key"
-APP_PLIST="$APP_DIR/HWControl.app/Contents/Info.plist"
 
 /bin/mkdir -p "$KEY_DIR"
 
@@ -17,16 +16,6 @@ fi
 
 /usr/bin/test -s "$KEY_FILE"
 /bin/chmod 0600 "$KEY_FILE"
-
-if [ -f "$APP_PLIST" ]; then
-  KEY_VALUE=$(/bin/cat "$KEY_FILE")
-
-  if ! /usr/bin/plutil -replace LSEnvironment.HWCONTROL_KEY -string "$KEY_VALUE" "$APP_PLIST" 2>/dev/null; then
-    /usr/bin/plutil -insert LSEnvironment -xml "<dict><key>HWCONTROL_KEY</key><string>$KEY_VALUE</string></dict>" "$APP_PLIST"
-  fi
-
-  /usr/bin/plutil -extract LSEnvironment.HWCONTROL_KEY raw "$APP_PLIST" >/dev/null
-fi
 
 if [ -f "$PLIST_SRC" ]; then
   /bin/mkdir -p "/Library/LaunchDaemons"
