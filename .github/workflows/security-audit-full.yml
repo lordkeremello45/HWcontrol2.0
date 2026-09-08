@@ -1,0 +1,159 @@
+name: Comprehensive security audit
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '30 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  semgrep:
+    name: Semgrep SAST
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: semgrep/semgrep@v1
+        with:
+          args: --config auto --error --metrics=off
+
+  trivy:
+    name: Trivy filesystem and secret scan
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '1'
+
+  osv:
+    name: OSV dependency scan
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.5.0
+    permissions:
+      contents: read
+      security-events: write
+
+  secrets:
+    name: Secret leak scan
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  powershell:
+    name: PowerShell installer analysis
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PSScriptAnalyzer
+        shell: pwsh
+        run: Install-Module -Name PSScriptAnalyzer -Scope CurrentUser -Force -AllowClobber
+      - name: Analyze PowerShell scripts
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Path deploy,scripts -Recurse -File -Filter *.ps1 -ErrorAction SilentlyContinue
+          if ($files.Count -eq 0) { Write-Host 'No PowerShell scripts found.'; exit 0 }
+          $results = $files | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }
+          $results | Format-Table -AutoSize | Out-String | Write-Host
+          if ($results) { exit 1 }
+
+  shell:
+    name: ShellCheck installer analysis
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: Analyze shell scripts
+        shell: bash
+        run: |
+          mapfile -t files < <(find deploy scripts -type f \( -name '*.sh' -o -name '*.bash' \) -print)
+          if ((${#files[@]})); then shellcheck "${files[@]}"; else echo 'No shell scripts found.'; fi
+
+  rust:
+    name: Rust dependency audit
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect Rust projects
+        id: detect
+        shell: bash
+        run: |
+          if find . -name Cargo.toml -not -path './.git/*' -print -quit | grep -q .; then
+            echo 'present=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'present=false' >> "$GITHUB_OUTPUT"
+          fi
+      - uses: dtolnay/rust-toolchain@stable
+        if: steps.detect.outputs.present == 'true'
+      - uses: actions/cache@v4
+        if: steps.detect.outputs.present == 'true'
+        with:
+          path: ~/.cargo/registry
+          key: rust-audit-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: rust-audit-${{ runner.os }}-
+      - name: Install cargo-audit
+        if: steps.detect.outputs.present == 'true'
+        run: cargo install cargo-audit --locked
+      - name: Audit Rust dependencies
+        if: steps.detect.outputs.present == 'true'
+        run: cargo audit
+      - name: Skip when Rust is absent
+        if: steps.detect.outputs.present != 'true'
+        run: echo 'No Rust project detected; cargo-audit not required.'
+
+  workflow-permissions:
+    name: GitHub Actions permission audit
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Audit workflow permissions
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import pathlib, re, sys
+          failures = []
+          for path in pathlib.Path('.github/workflows').glob('*.y*ml'):
+              text = path.read_text(encoding='utf-8')
+              if re.search(r'(^|\n)\s*permissions:\s*write-all\s*(\n|$)', text):
+                  failures.append(f'{path}: write-all permissions are forbidden')
+              if re.search(r'pull_request_target', text) and re.search(r'run:\s*[^\n]*(github\.event\.(pull_request|issue|comment)|github\.head_ref)', text):
+                  failures.append(f'{path}: review pull_request_target shell execution manually')
+          if failures:
+              print('\n'.join(failures))
+              sys.exit(1)
+          print('Workflow permission audit passed.')
+          PY
+
+  codeql:
+    name: CodeQL repository analysis
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [cpp, go]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+      - uses: github/codeql-action/autobuild@v3
+        if: matrix.language == 'cpp'
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:${{ matrix.language }}
