@@ -6,6 +6,10 @@ on:
     paths:
       - 'website/**'
       - '.github/workflows/pages.yml'
+  workflow_run:
+    workflows:
+      - Sync release metadata to web app
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -19,6 +23,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -45,7 +50,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Upload site
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: './website'
 
