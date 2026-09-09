@@ -19,10 +19,10 @@ jobs:
       endsWith(github.event.workflow_run.head_branch, '-windows')
     runs-on: windows-2022
     steps:
-      - name: Checkout tagged source
+      - name: Checkout trusted release tooling
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: main
 
       - name: Download Windows MSI artifact
         uses: actions/download-artifact@v4
@@ -142,7 +142,7 @@ jobs:
           $setup = "HWControl-$($env:RELEASE_TAG)-Windows-x64-Setup.exe"
           $hash = (Get-FileHash $setup -Algorithm SHA256).Hash.ToLower()
           Set-Content "HWControl-$($env:RELEASE_TAG)-Windows-x64-Setup.sha256" "$hash  $setup"
-          $status = if ('${{ steps.signing.outputs.enabled }}' -eq 'true') { 'AUTHENTICODE_SIGNED=true' } else { 'AUTHENTICODE_SIGNED=false' }
+          $status = if ($env:AUTHENTICODE_SIGNED -eq 'true') { 'AUTHENTICODE_SIGNED=true' } else { 'AUTHENTICODE_SIGNED=false' }
           @(
             "HWCONTROL_RELEASE=$($env:RELEASE_TAG)",
             $status,
