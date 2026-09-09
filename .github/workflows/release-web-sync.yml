@@ -22,7 +22,6 @@ jobs:
     if: >
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
-
     runs-on: ubuntu-24.04
 
     steps:
@@ -37,7 +36,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-
           gh api --paginate --slurp \
             "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
             | jq 'add' > "$RUNNER_TEMP/releases.json"
@@ -49,10 +47,8 @@ jobs:
 
           path = Path(sys.argv[1])
           data = json.loads(path.read_text(encoding="utf-8"))
-
           if not isinstance(data, list):
               raise SystemExit("GitHub releases response is not a JSON array")
-
           print(f"Fetched {len(data)} releases")
           PY
 
@@ -65,11 +61,9 @@ jobs:
       - name: Generate release manifest
         run: |
           set -euo pipefail
-
           python3 scripts/generate-release-manifest.py \
             "$RUNNER_TEMP/releases.json" \
             website/release.json
-
           python3 -m json.tool website/release.json >/dev/null
           node scripts/website-release-test.mjs website/release.json
 
@@ -77,9 +71,7 @@ jobs:
         id: changes
         run: |
           set -euo pipefail
-
           git add website/release.json
-
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "Release metadata is already current."
@@ -92,15 +84,31 @@ jobs:
         if: steps.changes.outputs.changed == 'true'
         run: |
           set -euo pipefail
-
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-
           git commit -m 'chore(web): sync latest stable release metadata'
-
           git fetch origin main
           git rebase origin/main
           git push origin HEAD:main
+
+      - name: Wait for main push to be visible
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          expected="$(git rev-parse HEAD)"
+          for attempt in $(seq 1 30); do
+            actual="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+            if [ "$actual" = "$expected" ]; then
+              echo "main is visible at $expected"
+              exit 0
+            fi
+            echo "main still at $actual; waiting for $expected (attempt $attempt/30)"
+            sleep 2
+          done
+          echo "Timed out waiting for main to expose $expected" >&2
+          exit 1
 
       - name: Trigger Pages deployment
         if: steps.changes.outputs.changed == 'true'
@@ -108,9 +116,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-
-          gh workflow run pages.yml \
-            --repo "$GITHUB_REPOSITORY" \
-            --ref main
-
+          gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
           echo "Pages deployment dispatched successfully."
