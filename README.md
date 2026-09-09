@@ -54,3 +54,17 @@ The project is built on a multi-layer architecture:
 **BSOD Shield:** Built-in safeguards to prevent system instability and kernel panics.
 
 **Secure Communication:** Implements SHA-256 verification to ensure the integrity of driver modules.
+
+## Security audit
+
+A dedicated Codespaces environment is available for interactive security/static/dependency analysis.
+
+Run the complete local audit with:
+
+```bash
+bash scripts/security-audit-all.sh
+```
+
+The automated security workflow covers `gosec`, `govulncheck`, `cargo-audit` when Rust is present, Semgrep, Trivy, OSV-Scanner, ShellCheck, PSScriptAnalyzer, CodeQL, secret scanning, and GitHub Actions permission auditing.
+
+**Important:** Codespaces is not a Windows/macOS installer emulator. Windows, macOS, and Linux package/install behavior remains validated by the existing GitHub Actions platform jobs.

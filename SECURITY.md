@@ -91,6 +91,44 @@ Until code signing is enabled, users should obtain packages only from the offici
 
 The dashboard does not install or execute updates automatically. It accepts only HTTPS links to the allowlisted GitHub repository and requires a release checksum asset before showing an update.
 
+## Security audit toolchain
+
+The repository provides a dedicated Codespaces security-audit environment and automated GitHub Actions checks.
+
+The audit stack includes:
+
+- `gosec` — Go security static analysis.
+- `govulncheck` — Go dependency/reachable-code vulnerability analysis.
+- `cargo-audit` — conditional RustSec dependency auditing when a Rust project is present.
+- `Semgrep` — multi-language SAST for C++, Go, PowerShell, and other supported files.
+- `Trivy` — filesystem dependency, misconfiguration, and secret scanning.
+- `OSV-Scanner` — OSV dependency vulnerability scanning.
+- `ShellCheck` — Linux/macOS shell installer analysis.
+- `PSScriptAnalyzer` — PowerShell installer analysis.
+- `CodeQL` — repository-level C++ and Go semantic security analysis.
+- Gitleaks plus Trivy secret scanning — supplemental repository secret detection.
+- GitHub Actions workflow permission auditing — checks for dangerous broad permissions and selected `pull_request_target` shell-execution patterns.
+
+Run the local audit from Codespaces with:
+
+```bash
+bash scripts/security-audit-all.sh
+```
+
+The complete CI toolchain is run by `.github/workflows/security-audit-full.yml`.
+
+### Platform boundary
+
+Codespaces is the interactive **security/static/dependency audit** environment. It is not a substitute for platform integration testing.
+
+GitHub Actions remains responsible for **real platform testing**:
+
+- Windows runners validate the Windows bridge, native engine, Flutter dashboard, MSI/EXE/Setup packaging and Windows-specific installer behavior.
+- macOS runners validate the macOS bridge, native engine, Flutter dashboard, PKG/DMG packaging and macOS installer behavior.
+- Linux container/runner jobs validate the native engine, bridge, runtime dependencies and distribution packages across the supported x86_64 distributions.
+
+A green Codespaces audit therefore means that the source/dependencies/security checks passed; it does not claim that Windows or macOS installer behavior was reproduced inside Linux Codespaces.
+
 ## Reporting a vulnerability
 
 Please report security issues privately through the repository's GitHub Security tab. Do not publish credentials, private keys, or exploit details in a public issue. We will acknowledge reports and provide a remediation status when the investigation is complete.

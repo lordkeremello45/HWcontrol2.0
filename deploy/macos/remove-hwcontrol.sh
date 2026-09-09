@@ -40,4 +40,8 @@ run rm -rf "$APP_PATH"
 run rm -rf "$CONFIG_DIR"
 run rm -f "$LOG_FILE"
 
-echo "$([[ "$DRY_RUN" -eq 1 ]] && echo 'Dry-run tamamlandi.' || echo 'HWControl kaldirildi.')"
+if [[ "$DRY_RUN" -eq 1 ]]; then
+  echo 'Dry-run tamamlandi.'
+else
+  echo 'HWControl kaldirildi.'
+fi

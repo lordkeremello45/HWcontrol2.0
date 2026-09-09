@@ -54,14 +54,14 @@ jobs:
           set -euo pipefail
           if command -v apt-get >/dev/null 2>&1; then
             apt-get update
-            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates curl git cmake build-essential pkg-config file
+            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates curl git cmake build-essential pkg-config file bash
           elif command -v dnf >/dev/null 2>&1; then
-            dnf install -y ca-certificates curl git cmake gcc-c++ make pkgconf-pkg-config file
+            dnf install -y ca-certificates curl git cmake gcc-c++ make pkgconf-pkg-config file bash
           elif command -v pacman >/dev/null 2>&1; then
-            pacman -Sy --noconfirm ca-certificates curl git cmake base-devel pkgconf file
+            pacman -Sy --noconfirm ca-certificates curl git cmake base-devel pkgconf file bash
           elif command -v zypper >/dev/null 2>&1; then
             zypper --non-interactive refresh
-            zypper --non-interactive install -y ca-certificates curl git cmake gcc-c++ make pkg-config file
+            zypper --non-interactive install -y ca-certificates curl git cmake gcc-c++ make pkg-config file bash
           else
             echo 'Unsupported container distribution.' >&2
             exit 1
@@ -71,12 +71,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Validate host architecture
+        shell: bash
         run: test "$(uname -m)" = "x86_64"
 
       - name: Configure native engine
+        shell: bash
         run: cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
 
       - name: Build native engine
+        shell: bash
         run: cmake --build build --parallel 2
 
       - name: Install Go
@@ -96,9 +99,13 @@ jobs:
 
       - name: Test and build bridge
         working-directory: bridge_service
+        shell: bash
         run: |
           go test ./...
-          go build -trimpath -o bridge-service ./src
+          # PR merge refs are checked out detached. Go VCS stamping can fail
+          # inside these containerized distro smoke jobs; release provenance
+          # is handled by the release/attestation pipeline.
+          go build -buildvcs=false -trimpath -o bridge-service ./src
 
       - name: Validate runtime dependencies
         shell: bash
