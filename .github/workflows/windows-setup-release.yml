@@ -91,11 +91,7 @@ jobs:
         run: |
           $enabled = (-not [string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE_B64)) -and (-not [string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE_PASSWORD))
           "enabled=$($enabled.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
-          if ($enabled) {
-            Write-Host 'Windows Authenticode signing is enabled.'
-          } else {
-            Write-Host 'Windows Authenticode signing is not configured; release remains unsigned.'
-          }
+          if ($enabled) { Write-Host 'Windows Authenticode signing is enabled.' } else { Write-Host 'Windows Authenticode signing is not configured; release remains unsigned.' }
 
       - name: Locate SignTool
         id: signtool
@@ -137,6 +133,7 @@ jobs:
       - name: Generate Setup checksum and signing status
         env:
           RELEASE_TAG: ${{ github.event.workflow_run.head_branch }}
+          AUTHENTICODE_SIGNED: ${{ steps.signing.outputs.enabled }}
         shell: pwsh
         run: |
           $setup = "HWControl-$($env:RELEASE_TAG)-Windows-x64-Setup.exe"
