@@ -49,19 +49,19 @@ jobs:
 
     steps:
       - name: Install base tooling
-        shell: bash
+        shell: sh
         run: |
-          set -euo pipefail
+          set -eu
           if command -v apt-get >/dev/null 2>&1; then
             apt-get update
-            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates curl git cmake build-essential pkg-config file
+            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends bash ca-certificates curl git cmake build-essential pkg-config file
           elif command -v dnf >/dev/null 2>&1; then
-            dnf install -y ca-certificates curl git cmake gcc-c++ make pkgconf-pkg-config file
+            dnf install -y bash ca-certificates curl git cmake gcc-c++ make pkgconf-pkg-config file
           elif command -v pacman >/dev/null 2>&1; then
-            pacman -Sy --noconfirm ca-certificates curl git cmake base-devel pkgconf file
+            pacman -Sy --noconfirm bash ca-certificates curl git cmake base-devel pkgconf file
           elif command -v zypper >/dev/null 2>&1; then
             zypper --non-interactive refresh
-            zypper --non-interactive install -y ca-certificates curl git cmake gcc-c++ make pkg-config file bash
+            zypper --non-interactive install -y bash ca-certificates curl git cmake gcc-c++ make pkg-config file
           else
             echo 'Unsupported container distribution.' >&2
             exit 1
@@ -71,12 +71,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Validate host architecture
+        shell: bash
         run: test "$(uname -m)" = "x86_64"
 
       - name: Configure native engine
+        shell: bash
         run: cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
 
       - name: Build native engine
+        shell: bash
         run: cmake --build build --parallel 2
 
       - name: Install Go
