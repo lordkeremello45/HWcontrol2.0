@@ -3,6 +3,7 @@ name: Sync release metadata to web app
 on:
   workflow_run:
     workflows:
+      - Publish platform release
       - Release integrity
       - Publish Windows Setup bootstrapper
     types:
