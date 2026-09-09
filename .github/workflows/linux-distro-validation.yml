@@ -61,7 +61,7 @@ jobs:
             pacman -Sy --noconfirm ca-certificates curl git cmake base-devel pkgconf file
           elif command -v zypper >/dev/null 2>&1; then
             zypper --non-interactive refresh
-            zypper --non-interactive install -y ca-certificates curl git cmake gcc-c++ make pkg-config file
+            zypper --non-interactive install -y ca-certificates curl git cmake gcc-c++ make pkg-config file bash
           else
             echo 'Unsupported container distribution.' >&2
             exit 1
@@ -96,9 +96,11 @@ jobs:
 
       - name: Test and build bridge
         working-directory: bridge_service
+        shell: bash
         run: |
+          set -euo pipefail
           go test ./...
-          go build -trimpath -o bridge-service ./src
+          go build -buildvcs=false -trimpath -o bridge-service ./src
 
       - name: Validate runtime dependencies
         shell: bash
