@@ -58,6 +58,8 @@ fi
 
 if command -v pwsh >/dev/null 2>&1; then
   if pwsh -NoProfile -Command 'Get-Module -ListAvailable PSScriptAnalyzer' | grep -q PSScriptAnalyzer; then
+    # The PowerShell expression is intentionally single-quoted so Bash does not expand it.
+    # shellcheck disable=SC2016
     run "PSScriptAnalyzer" pwsh -NoProfile -Command '$f=Get-ChildItem deploy,scripts -Recurse -Filter *.ps1 -File -ErrorAction SilentlyContinue; if($f){$r=$f|ForEach-Object{Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning};$r|Format-Table -AutoSize|Out-String|Write-Host;if($r){exit 1}}'
   else
     echo "SKIP: PSScriptAnalyzer module not installed"
@@ -79,4 +81,4 @@ if ((missing)); then
 fi
 
 echo
- echo "Local security audit completed."
+echo "Local security audit completed."
