@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - 'website/**'
+      - 'scripts/generate-release-manifest.py'
+      - 'scripts/website-release-test.mjs'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -14,8 +16,6 @@ permissions:
   pages: write
   id-token: write
 
-# Never cancel an in-flight production Pages deployment. Release metadata sync
-# can queue another deployment, and GitHub Pages must finish deployments in order.
 concurrency:
   group: github-pages-production
   cancel-in-progress: false
@@ -47,10 +47,21 @@ jobs:
       - name: Validate website JavaScript
         run: node --check website/app.js
 
-      - name: Validate release metadata
+      - name: Ensure release metadata is available
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          test -f website/release.json
+          if [ ! -f website/release.json ]; then
+            echo 'website/release.json is absent; generating an ephemeral Pages manifest from stable releases.'
+            gh api --paginate --slurp \
+              "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+              | jq 'add' > "$RUNNER_TEMP/releases.json"
+            python3 scripts/generate-release-manifest.py \
+              "$RUNNER_TEMP/releases.json" \
+              website/release.json
+          fi
+          test -s website/release.json
           python3 -m json.tool website/release.json >/dev/null
           node scripts/website-release-test.mjs website/release.json
 
@@ -90,6 +101,9 @@ jobs:
         run: |
           set -euo pipefail
           echo "Pages artifact prepared: $EXPECTED_ARTIFACT"
+          test -f website/index.html
+          test -f website/app.js
+          test -f website/release.json
 
       - name: Deploy to GitHub Pages
         id: deployment
