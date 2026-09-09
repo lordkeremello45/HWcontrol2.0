@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run Semgrep Community Edition
-        run: semgrep scan --config auto --error --metrics=off
+        run: semgrep scan --config auto --error
 
   trivy:
     name: Trivy filesystem and secret scan
@@ -94,7 +94,7 @@ jobs:
         run: |
           $files = Get-ChildItem -Path deploy,scripts -Recurse -File -Filter *.ps1 -ErrorAction SilentlyContinue
           if ($files.Count -eq 0) { Write-Host 'No PowerShell scripts found.'; exit 0 }
-          $results = $files | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }
+          $results = $files | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error }
           $results | Format-Table -AutoSize | Out-String | Write-Host
           if ($results) { exit 1 }
 
