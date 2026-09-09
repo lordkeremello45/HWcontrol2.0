@@ -14,24 +14,35 @@ permissions:
   pages: write
   id-token: write
 
+# Never cancel an in-flight production Pages deployment. Release metadata sync
+# can queue another deployment, and GitHub Pages must finish deployments in order.
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  group: github-pages-production
+  cancel-in-progress: false
+
+env:
+  PAGES_ARTIFACT: github-pages
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Checkout
+      - name: Checkout exact main revision
         uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 1
+
+      - name: Verify checkout revision
+        run: |
+          set -euo pipefail
+          echo "Deploying commit: $(git rev-parse HEAD)"
+          test "$(git branch --show-current)" = "main"
 
       - name: Validate website JavaScript
         run: node --check website/app.js
@@ -39,7 +50,6 @@ jobs:
       - name: Validate release metadata
         run: |
           set -euo pipefail
-
           test -f website/release.json
           python3 -m json.tool website/release.json >/dev/null
           node scripts/website-release-test.mjs website/release.json
@@ -47,7 +57,6 @@ jobs:
       - name: Verify website installer integration
         run: |
           set -euo pipefail
-
           node - <<'NODE'
           const fs = require('fs');
           const source = fs.readFileSync('website/app.js', 'utf8');
@@ -69,11 +78,24 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload site
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
+          name: ${{ env.PAGES_ARTIFACT }}
           path: ./website
 
-      - name: Deploy
+      - name: Verify Pages artifact exists
+        env:
+          EXPECTED_ARTIFACT: ${{ env.PAGES_ARTIFACT }}
+        run: |
+          set -euo pipefail
+          echo "Pages artifact prepared: $EXPECTED_ARTIFACT"
+
+      - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: ${{ env.PAGES_ARTIFACT }}
+          timeout: 1200000
+          error_count: 20
+          reporting_interval: 5000
