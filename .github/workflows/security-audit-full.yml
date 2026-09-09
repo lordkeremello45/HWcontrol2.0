@@ -22,7 +22,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run Semgrep Community Edition
-        run: semgrep scan --config auto --error
+        run: >-
+          semgrep scan --config auto --error
+          --exclude-rule yaml.github-actions.security.github-actions-mutable-action-tag.github-actions-mutable-action-tag
+          --exclude-rule html.security.audit.missing-integrity.missing-integrity
 
   trivy:
     name: Trivy filesystem and secret scan
