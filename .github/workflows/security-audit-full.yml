@@ -10,13 +10,13 @@ on:
 
 permissions:
   contents: read
-  security-events: write
-  actions: read
 
 jobs:
   semgrep:
     name: Semgrep SAST
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     container:
       image: semgrep/semgrep
     steps:
@@ -27,6 +27,9 @@ jobs:
   trivy:
     name: Trivy filesystem and secret scan
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@v4
       - uses: aquasecurity/trivy-action@v0.36.0
@@ -40,18 +43,38 @@ jobs:
 
   osv:
     name: OSV dependency scan
-    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.5.0
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       security-events: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run OSV-Scanner
+        uses: google/osv-scanner-action/osv-scanner-action@6e4298ebc4db23e847df9b2e2de2939d6f066c67
+        with:
+          scan-args: |-
+            --recursive
+            --format=sarif
+            --output=osv-results.sarif
+            ./
+      - name: Upload OSV results
+        if: always() && hashFiles('osv-results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: osv-results.sarif
 
   secrets:
     name: Secret leak scan
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -59,6 +82,8 @@ jobs:
   powershell:
     name: PowerShell installer analysis
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Install PSScriptAnalyzer
@@ -76,6 +101,8 @@ jobs:
   shell:
     name: ShellCheck installer analysis
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y shellcheck
@@ -88,6 +115,8 @@ jobs:
   rust:
     name: Rust dependency audit
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Detect Rust projects
@@ -120,8 +149,12 @@ jobs:
   workflow-permissions:
     name: GitHub Actions permission audit
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Audit workflow permissions
         shell: bash
         run: |
@@ -143,12 +176,17 @@ jobs:
   codeql:
     name: CodeQL repository analysis
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      security-events: write
     strategy:
       fail-fast: false
       matrix:
         language: [cpp, go]
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
