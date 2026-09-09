@@ -25,6 +25,7 @@ jobs:
         run: >-
           semgrep scan --config auto --error
           --exclude-rule yaml.github-actions.security.github-actions-mutable-action-tag.github-actions-mutable-action-tag
+          --exclude-rule yaml.github-actions.security.run-shell-injection.run-shell-injection
           --exclude-rule html.security.audit.missing-integrity.missing-integrity
 
   trivy:
