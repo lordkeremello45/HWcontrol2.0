@@ -123,7 +123,7 @@ jobs:
         run: go test -count=1 ./...
       - name: Build bridge
         working-directory: bridge_service
-        run: go build -trimpath -ldflags='-s -w' -o ../bridge-service.exe ./src
+        run: go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../bridge-service.exe ./src
       - name: Analyze and test dashboard
         working-directory: gui_dashboard
         run: |
@@ -156,12 +156,13 @@ jobs:
           $validationMsi = Join-Path $validationRoot 'HWControl-test.msi'
           $msiLog = Join-Path $validationRoot 'msiexec-install.log'
           Copy-Item -LiteralPath $msiPath -Destination $validationMsi -Force
-          $install = Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList @('/i', "`"$validationMsi`"", '/qn', '/norestart', '/L*V', "`"$msiLog`") -Wait -PassThru
+          $install = Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList @('/i', $validationMsi, '/qn', '/norestart', '/L*V', $msiLog) -Wait -PassThru
           if ($install.ExitCode -ne 0) {
             Write-Host '===== MSI INSTALL LOG ====='
             if (Test-Path -LiteralPath $msiLog) { Get-Content -LiteralPath $msiLog -Tail 200 }
             Write-Host '===== END MSI INSTALL LOG ====='
-            throw "MSI install failed with exit code $($install.ExitCode)"
+            $exitCode = $install.ExitCode
+            throw ('MSI install failed with exit code {0}' -f $exitCode)
           }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\bridge-service.exe")) { throw 'MSI did not install bridge-service.exe' }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\dashboard")) { throw 'MSI did not install dashboard' }
@@ -175,8 +176,8 @@ jobs:
           $probe = Test-NetConnection 127.0.0.1 -Port 8080 -WarningAction SilentlyContinue
           if (-not $probe.TcpTestSucceeded) { throw 'Installed HWControlBridge is not listening on 127.0.0.1:8080' }
           $uninstallLog = Join-Path $validationRoot 'msiexec-uninstall.log'
-          $uninstall = Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList @('/x', "`"$validationMsi`"", '/qn', '/norestart', '/L*V', "`"$uninstallLog`") -Wait -PassThru
-          if ($uninstall.ExitCode -ne 0) { throw "MSI uninstall failed with exit code $($uninstall.ExitCode)" }
+          $uninstall = Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList @('/x', $validationMsi, '/qn', '/norestart', '/L*V', $uninstallLog) -Wait -PassThru
+          if ($uninstall.ExitCode -ne 0) { $exitCode = $uninstall.ExitCode; throw ('MSI uninstall failed with exit code {0}' -f $exitCode) }
           if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge service still exists after uninstall' }
       - name: Build and smoke-test guided Setup.exe
         shell: pwsh
@@ -186,16 +187,16 @@ jobs:
           if (-not (Test-Path "$PWD\HWControl-test-Setup.exe")) { throw 'Setup.exe was not produced' }
           $testDir = Join-Path $env:RUNNER_TEMP 'HWControl-Setup-Test'
           if (Test-Path $testDir) { Remove-Item $testDir -Recurse -Force }
-          $setupInstall = Start-Process -FilePath "$PWD\HWControl-test-Setup.exe" -ArgumentList '/quiet', '/norestart', "InstallFolder=$testDir" -Wait -PassThru
-          if ($setupInstall.ExitCode -ne 0) { throw "Setup.exe install failed with exit code $($setupInstall.ExitCode)" }
+          $setupInstall = Start-Process -FilePath "$PWD\HWControl-test-Setup.exe" -ArgumentList @('/quiet', '/norestart', "InstallFolder=$testDir") -Wait -PassThru
+          if ($setupInstall.ExitCode -ne 0) { $exitCode = $setupInstall.ExitCode; throw ('Setup.exe install failed with exit code {0}' -f $exitCode) }
           if (-not (Test-Path "$testDir\HWControl.exe")) { throw 'Setup.exe did not honor the selected installation directory' }
           if (-not (Test-Path "$testDir\bridge-service.exe")) { throw 'Setup.exe did not install bridge-service.exe' }
           $service = Get-Service -Name HWControlBridge -ErrorAction Stop
           if ($service.Status -ne 'Running') { throw "HWControlBridge is not running after Setup.exe install: $($service.Status)" }
           $probe = Test-NetConnection 127.0.0.1 -Port 8080 -WarningAction SilentlyContinue
           if (-not $probe.TcpTestSucceeded) { throw 'HWControlBridge is not listening after Setup.exe install' }
-          $setupUninstall = Start-Process -FilePath "$PWD\HWControl-test-Setup.exe" -ArgumentList '/uninstall', '/quiet', '/norestart' -Wait -PassThru
-          if ($setupUninstall.ExitCode -ne 0) { throw "Setup.exe uninstall failed with exit code $($setupUninstall.ExitCode)" }
+          $setupUninstall = Start-Process -FilePath "$PWD\HWControl-test-Setup.exe" -ArgumentList @('/uninstall', '/quiet', '/norestart') -Wait -PassThru
+          if ($setupUninstall.ExitCode -ne 0) { $exitCode = $setupUninstall.ExitCode; throw ('Setup.exe uninstall failed with exit code {0}' -f $exitCode) }
           if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge service still exists after Setup.exe uninstall' }
 
   macos:
@@ -225,7 +226,7 @@ jobs:
         run: go test -count=1 ./...
       - name: Build bridge
         working-directory: bridge_service
-        run: go build -trimpath -ldflags='-s -w' -o ../bridge-service ./src
+        run: go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../bridge-service ./src
       - name: Analyze and test dashboard
         working-directory: gui_dashboard
         run: |
