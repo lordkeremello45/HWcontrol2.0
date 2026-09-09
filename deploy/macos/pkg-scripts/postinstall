@@ -9,26 +9,23 @@ KEY_FILE="$KEY_DIR/bridge.key"
 
 # Installer scripts run as root. Keep the bridge secret outside the signed app bundle.
 /bin/mkdir -p "$KEY_DIR"
-/usr/sbin/chown root:wheel "$KEY_DIR"
 /bin/chmod 0700 "$KEY_DIR"
 
 if [ ! -s "$KEY_FILE" ]; then
   umask 077
   tmp_key="${KEY_FILE}.tmp.$$"
-  /usr/bin/head -c 32 /dev/urandom | /usr/bin/od -An -tx1 | /usr/bin/tr -d ' \n' > "$tmp_key"
-  /usr/bin/test -s "$tmp_key"
+  /usr/bin/hexdump -n 32 -e '1/1 "%02x"' /dev/urandom > "$tmp_key"
+  /usr/bin/test "$(/usr/bin/wc -c < "$tmp_key")" -eq 64
   /bin/chmod 0600 "$tmp_key"
-  /usr/sbin/chown root:wheel "$tmp_key"
   /bin/mv -f "$tmp_key" "$KEY_FILE"
 fi
 
 /usr/bin/test -s "$KEY_FILE"
 /bin/chmod 0600 "$KEY_FILE"
-/usr/sbin/chown root:wheel "$KEY_FILE"
 
 if [ -f "$PLIST_SRC" ]; then
   /bin/mkdir -p "/Library/LaunchDaemons"
-  /usr/bin/install -o root -g wheel -m 0644 "$PLIST_SRC" "$PLIST_DST"
+  /usr/bin/install -m 0644 "$PLIST_SRC" "$PLIST_DST"
   /usr/bin/plutil -lint "$PLIST_DST" >/dev/null
 fi
 
