@@ -14,7 +14,6 @@ log() {
 
 log "postinstall start"
 
-# Installer scripts run as root. Keep the bridge secret outside the signed app bundle.
 /bin/mkdir -p "$KEY_DIR"
 /bin/chmod 0700 "$KEY_DIR"
 
@@ -23,7 +22,9 @@ if [ ! -s "$KEY_FILE" ]; then
   tmp_key="${KEY_FILE}.tmp.$$"
   trap '/bin/rm -f "$tmp_key"' EXIT HUP INT TERM
   /usr/bin/openssl rand -hex 32 > "$tmp_key"
-  /usr/bin/test "$('/usr/bin/wc -c < "$tmp_key" | /usr/bin/tr -d "[:space:]")" -eq 64
+  key_length=$(/usr/bin/wc -c < "$tmp_key")
+  key_length=$(printf '%s' "$key_length" | /usr/bin/tr -d '[:space:]')
+  /usr/bin/test "$key_length" -eq 64
   /bin/chmod 0600 "$tmp_key"
   /bin/mv -f "$tmp_key" "$KEY_FILE"
   trap - EXIT HUP INT TERM
