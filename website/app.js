@@ -11,7 +11,12 @@ const $=s=>document.querySelector(s);
 function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]||c));}
 function size(bytes){if(!bytes)return '';const units=['B','KB','MB','GB'];let n=bytes,i=0;while(n>=1024&&i<units.length-1){n/=1024;i++;}return `${n.toFixed(i?1:0)} ${units[i]}`;}
 function stableReleases(){return state.releases.filter(r=>!r.draft&&!r.prerelease);}
-function platformRelease(platform){return stableReleases().find(r=>new RegExp(`-${platform}$`,'i').test(r.tag_name));}
+function platformRelease(platform){
+  const suffixes={windows:'-windows',macos:'-macos',linux:'-linux'};
+  const suffix=suffixes[platform];
+  if(!suffix)return undefined;
+  return stableReleases().find(r=>r.tag_name.toLowerCase().endsWith(suffix));
+}
 function matches(name,platform){const n=name.toLowerCase();
   if(platform==='windows')return (/setup\.exe$/.test(n)||/\.msi$/.test(n)||/\.zip$/.test(n))&&(/windows.*x64|win.*x64/.test(n));
   if(platform==='macos')return (/\.pkg$|\.dmg$|\.zip$/.test(n))&&(/macos.*(apple.?silicon|arm64)|darwin.*arm64/.test(n));
