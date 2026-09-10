@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"syscall"
 	"time"
 
 	"golang.org/x/sys/windows/svc"
@@ -87,7 +86,7 @@ func (serviceHandler) Execute(_ []string, requests <-chan svc.ChangeRequest, sta
 }
 
 func installConsoleShutdown(bridge *bridgeService) func() {
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	go func() {
 		<-ctx.Done()
 		bridge.requestStop()
