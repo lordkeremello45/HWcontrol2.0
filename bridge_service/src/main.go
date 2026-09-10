@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
@@ -22,7 +23,6 @@ import (
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/host"
-	"github.com/shirou/gopsutil/v3/load"
 	"github.com/shirou/gopsutil/v3/mem"
 )
 
@@ -70,12 +70,12 @@ type HardwareMetrics struct {
 	FanRPM               float64 `json:"fanRpm"`
 	MemoryUsage          float64 `json:"memoryUsage"`
 	DiskUsage            float64 `json:"diskUsage"`
-	PowerWatts           float64 `json:"powerWatts"`
+	PowerWatts            float64 `json:"powerWatts"`
 	Voltage               float64 `json:"voltage"`
 	UptimeSeconds        uint64  `json:"uptimeSeconds"`
-	Platform             string  `json:"platform"`
-	GPUVendor            string  `json:"gpuVendor"`
-	GPUName              string  `json:"gpuName"`
+	Platform              string  `json:"platform"`
+	GPUVendor             string  `json:"gpuVendor"`
+	GPUName               string  `json:"gpuName"`
 	GPUDriver             string  `json:"gpuDriver"`
 	GPUDriverProvider     string  `json:"gpuDriverProvider"`
 	GPUDriverVersion      string  `json:"gpuDriverVersion"`
@@ -90,7 +90,11 @@ type HardwareMetrics struct {
 	SensorSource          string  `json:"sensorSource"`
 }
 
-const bridgeVersion = "2.1.0"
+const (
+	bridgeVersion     = "2.1.0"
+	nvidiaSMITimeout  = 3 * time.Second
+	defaultBridgePort = "8080"
+)
 
 func collectMetrics() HardwareMetrics {
 	metrics := HardwareMetrics{}
@@ -115,7 +119,7 @@ func collectMetrics() HardwareMetrics {
 			}
 		}
 	}
-	if output, err := exec.Command("nvidia-smi", "--query-gpu=name,driver_version,temperature.gpu,utilization.gpu,fan.speed,power.draw,voltage.gpu,memory.used,memory.total,clocks.gr,clocks.mem", "--format=csv,noheader,nounits").Output(); err == nil {
+	if output, err := nvidiaSMIOutput(); err == nil {
 		lines := strings.Split(strings.TrimSpace(string(output)), "\n")
 		if len(lines) > 0 && strings.TrimSpace(lines[0]) != "" {
 			parts := strings.Split(lines[0], ",")
@@ -141,10 +145,20 @@ func collectMetrics() HardwareMetrics {
 	mergePlatformMetrics(&metrics)
 	mergeDriverInfo(&metrics)
 	applyCompatibilityPolicy(&metrics)
-	if _, err := load.Avg(); err == nil {
-	}
 	metrics.Platform = runtime.GOOS
 	return metrics
+}
+
+func nvidiaSMIOutput() ([]byte, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), nvidiaSMITimeout)
+	defer cancel()
+
+	return exec.CommandContext(
+		ctx,
+		"nvidia-smi",
+		"--query-gpu=name,driver_version,temperature.gpu,utilization.gpu,fan.speed,power.draw,voltage.gpu,memory.used,memory.total,clocks.gr,clocks.mem",
+		"--format=csv,noheader,nounits",
+	).Output()
 }
 
 func modelDigest() string {
@@ -259,32 +273,36 @@ func diagnosticsSnapshot() map[string]any {
 		}
 	}
 	return map[string]any{
-		"bridgeVersion":       bridgeVersion,
-		"platform":            runtime.GOOS,
-		"architecture":        runtime.GOARCH,
-		"goVersion":           runtime.Version(),
-		"keyFile":             defaultKeyFile(),
-		"keyConfigured":       strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "" && strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "replace-me",
-		"modelPath":            modelPath,
-		"modelState":           modelState,
-		"modelSha256":          modelDigest(),
-		"sensorSource":         metrics.SensorSource,
-		"gpuVendor":            metrics.GPUVendor,
-		"gpuDriver":            metrics.GPUDriver,
-		"gpuDriverStatus":      metrics.GPUDriverStatus,
-		"hardwareControl":      false,
-		"localOnly":            true,
-		"listenAddress":        "127.0.0.1:" + bridgePort(),
-		"uptimeSeconds":        metrics.UptimeSeconds,
+		"bridgeVersion":  bridgeVersion,
+		"platform":       runtime.GOOS,
+		"architecture":   runtime.GOARCH,
+		"goVersion":      runtime.Version(),
+		"keyFile":        defaultKeyFile(),
+		"keyConfigured":  strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "" && strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "replace-me",
+		"modelPath":      modelPath,
+		"modelState":     modelState,
+		"modelSha256":    modelDigest(),
+		"sensorSource":   metrics.SensorSource,
+		"gpuVendor":      metrics.GPUVendor,
+		"gpuDriver":      metrics.GPUDriver,
+		"gpuDriverStatus": metrics.GPUDriverStatus,
+		"hardwareControl": false,
+		"localOnly":       true,
+		"listenAddress":   "127.0.0.1:" + bridgePort(),
+		"uptimeSeconds":   metrics.UptimeSeconds,
 	}
 }
 
 func bridgePort() string {
 	port := strings.TrimSpace(os.Getenv("HWCONTROL_PORT"))
 	if port == "" {
-		return "8080"
+		return defaultBridgePort
 	}
-	return port
+	parsed, err := strconv.Atoi(port)
+	if err != nil || parsed < 1 || parsed > 65535 {
+		return defaultBridgePort
+	}
+	return strconv.Itoa(parsed)
 }
 
 func handleConnection(conn net.Conn, secret string) {
@@ -318,9 +336,9 @@ func handleConnection(conn net.Conn, secret string) {
 		}
 		if cmd.Action == "Get Security" {
 			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Güvenlik durumu alındı", Data: map[string]any{
-				"hmac":       true,
+				"hmac":        true,
 				"modelSha256": modelDigest(),
-				"keyFile":    defaultKeyFile(),
+				"keyFile":     defaultKeyFile(),
 			}}); err != nil {
 				return
 			}
