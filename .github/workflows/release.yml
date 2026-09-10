@@ -118,10 +118,12 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $packageDir = "package/HWControl-${{ github.ref_name }}-Windows-x64"
-          Compress-Archive -Path "$packageDir/*" -DestinationPath "HWControl-${{ github.ref_name }}-Windows-x64.zip"
-          Expand-Archive -Path "HWControl-${{ github.ref_name }}-Windows-x64.zip" -DestinationPath verify-zip -Force
-          if (-not (Test-Path "verify-zip/$packageDir/HWControl.exe")) { throw 'HWControl.exe missing from ZIP' }
-          if (-not (Test-Path "verify-zip/$packageDir/bridge-service.exe")) { throw 'bridge-service.exe missing from ZIP' }
+          $zip = "HWControl-${{ github.ref_name }}-Windows-x64.zip"
+          Compress-Archive -Path "$packageDir/*" -DestinationPath $zip
+          Expand-Archive -Path $zip -DestinationPath verify-zip -Force
+          if (-not (Test-Path "verify-zip/HWControl.exe")) { throw 'HWControl.exe missing from ZIP' }
+          if (-not (Test-Path "verify-zip/bridge-service.exe")) { throw 'bridge-service.exe missing from ZIP' }
+          if (-not (Test-Path "verify-zip/ai_engine.exe")) { throw 'ai_engine.exe missing from ZIP' }
 
       - name: Generate checksums
         shell: pwsh
