@@ -1,1 +1,0 @@
-Follow-up: explicit main executable component for WiX MSI.
