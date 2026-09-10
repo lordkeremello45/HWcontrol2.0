@@ -62,38 +62,40 @@ type Response struct {
 }
 
 type HardwareMetrics struct {
-	CPUUsage             float64 `json:"cpuUsage"`
-	CPUTemperature       float64 `json:"cpuTemperature"`
-	GPUTemperature       float64 `json:"gpuTemperature"`
-	GPUUsage             float64 `json:"gpuUsage"`
-	FanPercent           float64 `json:"fanPercent"`
-	FanRPM               float64 `json:"fanRpm"`
-	MemoryUsage          float64 `json:"memoryUsage"`
-	DiskUsage            float64 `json:"diskUsage"`
-	PowerWatts            float64 `json:"powerWatts"`
-	Voltage               float64 `json:"voltage"`
-	UptimeSeconds        uint64  `json:"uptimeSeconds"`
-	Platform              string  `json:"platform"`
-	GPUVendor             string  `json:"gpuVendor"`
-	GPUName               string  `json:"gpuName"`
-	GPUDriver             string  `json:"gpuDriver"`
-	GPUDriverProvider     string  `json:"gpuDriverProvider"`
-	GPUDriverVersion      string  `json:"gpuDriverVersion"`
-	GPUDriverStatus       string  `json:"gpuDriverStatus"`
-	GPUDriverSource       string  `json:"gpuDriverSource"`
-	GPUDriverAction       string  `json:"gpuDriverAction"`
-	GPUDriverReason       string  `json:"gpuDriverReason"`
-	GPUMemoryUsedBytes    uint64  `json:"gpuMemoryUsedBytes"`
-	GPUMemoryTotalBytes   uint64  `json:"gpuMemoryTotalBytes"`
-	GPUCoreClockMHz       float64 `json:"gpuCoreClockMHz"`
-	GPUMemoryClockMHz     float64 `json:"gpuMemoryClockMHz"`
-	SensorSource          string  `json:"sensorSource"`
+	CPUUsage           float64 `json:"cpuUsage"`
+	CPUTemperature     float64 `json:"cpuTemperature"`
+	GPUTemperature     float64 `json:"gpuTemperature"`
+	GPUUsage           float64 `json:"gpuUsage"`
+	FanPercent         float64 `json:"fanPercent"`
+	FanRPM             float64 `json:"fanRpm"`
+	MemoryUsage        float64 `json:"memoryUsage"`
+	DiskUsage          float64 `json:"diskUsage"`
+	PowerWatts         float64 `json:"powerWatts"`
+	Voltage             float64 `json:"voltage"`
+	UptimeSeconds      uint64  `json:"uptimeSeconds"`
+	Platform            string  `json:"platform"`
+	GPUVendor           string  `json:"gpuVendor"`
+	GPUName             string  `json:"gpuName"`
+	GPUDriver           string  `json:"gpuDriver"`
+	GPUDriverProvider   string  `json:"gpuDriverProvider"`
+	GPUDriverVersion    string  `json:"gpuDriverVersion"`
+	GPUDriverStatus     string  `json:"gpuDriverStatus"`
+	GPUDriverSource     string  `json:"gpuDriverSource"`
+	GPUDriverAction     string  `json:"gpuDriverAction"`
+	GPUDriverReason     string  `json:"gpuDriverReason"`
+	GPUMemoryUsedBytes  uint64  `json:"gpuMemoryUsedBytes"`
+	GPUMemoryTotalBytes uint64  `json:"gpuMemoryTotalBytes"`
+	GPUCoreClockMHz     float64 `json:"gpuCoreClockMHz"`
+	GPUMemoryClockMHz   float64 `json:"gpuMemoryClockMHz"`
+	SensorSource        string  `json:"sensorSource"`
 }
 
 const (
 	bridgeVersion     = "2.1.0"
 	nvidiaSMITimeout  = 3 * time.Second
 	defaultBridgePort = "8080"
+	connectionTimeout = 30 * time.Second
+	maxRequestBytes  = 64 * 1024
 )
 
 func collectMetrics() HardwareMetrics {
@@ -248,8 +250,12 @@ func loadOrCreateSecret() (string, error) {
 		return "", fmt.Errorf("create key directory: %w", err)
 	}
 	tmp := path + ".tmp"
-	if err := os.WriteFile(tmp, []byte(secret+"\n"), 0640); err != nil {
+	if err := os.WriteFile(tmp, []byte(secret+"\n"), 0600); err != nil {
 		return "", fmt.Errorf("write bridge key: %w", err)
+	}
+	if err := os.Chmod(tmp, 0600); err != nil && runtime.GOOS != "windows" {
+		_ = os.Remove(tmp)
+		return "", fmt.Errorf("protect bridge key: %w", err)
 	}
 	if err := os.Rename(tmp, path); err != nil {
 		_ = os.Remove(tmp)
@@ -273,18 +279,18 @@ func diagnosticsSnapshot() map[string]any {
 		}
 	}
 	return map[string]any{
-		"bridgeVersion":  bridgeVersion,
-		"platform":       runtime.GOOS,
-		"architecture":   runtime.GOARCH,
-		"goVersion":      runtime.Version(),
-		"keyFile":        defaultKeyFile(),
-		"keyConfigured":  strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "" && strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "replace-me",
-		"modelPath":      modelPath,
-		"modelState":     modelState,
-		"modelSha256":    modelDigest(),
-		"sensorSource":   metrics.SensorSource,
-		"gpuVendor":      metrics.GPUVendor,
-		"gpuDriver":      metrics.GPUDriver,
+		"bridgeVersion":   bridgeVersion,
+		"platform":        runtime.GOOS,
+		"architecture":    runtime.GOARCH,
+		"goVersion":       runtime.Version(),
+		"keyFile":         defaultKeyFile(),
+		"keyConfigured":   strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "" && strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "replace-me",
+		"modelPath":       modelPath,
+		"modelState":      modelState,
+		"modelSha256":     modelDigest(),
+		"sensorSource":    metrics.SensorSource,
+		"gpuVendor":       metrics.GPUVendor,
+		"gpuDriver":       metrics.GPUDriver,
 		"gpuDriverStatus": metrics.GPUDriverStatus,
 		"hardwareControl": false,
 		"localOnly":       true,
@@ -312,29 +318,37 @@ func handleConnection(conn net.Conn, secret string) {
 			log.Printf("connection panic recovered: %v", recovered)
 		}
 	}()
-	decoder := json.NewDecoder(conn)
+	decoder := json.NewDecoder(io.LimitReader(conn, maxRequestBytes))
 	encoder := json.NewEncoder(conn)
 	for {
-		_ = conn.SetReadDeadline(time.Now().Add(30 * time.Second))
+		_ = conn.SetReadDeadline(time.Now().Add(connectionTimeout))
 		var cmd Command
 		if err := decoder.Decode(&cmd); err != nil {
 			return
 		}
 		if err := validateCommand(cmd); err != nil {
-			_ = encoder.Encode(Response{Status: "ERROR", Message: err.Error()})
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			if err := encoder.Encode(Response{Status: "ERROR", Message: err.Error()}); err != nil {
+				return
+			}
 			continue
 		}
 		if !authenticateCommand(cmd, secret) {
-			_ = encoder.Encode(Response{Status: "ERROR", Message: "authentication failed"})
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			if err := encoder.Encode(Response{Status: "ERROR", Message: "authentication failed"}); err != nil {
+				return
+			}
 			continue
 		}
 		if cmd.Action == "Get Status" {
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
 			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Metrikler alındı", Data: collectMetrics()}); err != nil {
 				return
 			}
 			continue
 		}
 		if cmd.Action == "Get Security" {
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
 			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Güvenlik durumu alındı", Data: map[string]any{
 				"hmac":        true,
 				"modelSha256": modelDigest(),
@@ -345,12 +359,14 @@ func handleConnection(conn net.Conn, secret string) {
 			continue
 		}
 		if cmd.Action == "Get Diagnostics" {
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
 			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Diagnostics hazır", Data: diagnosticsSnapshot()}); err != nil {
 				return
 			}
 			continue
 		}
 		if err := executeHardwareCommand(cmd); err != nil {
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
 			if err := encoder.Encode(Response{Status: "ERROR", Message: err.Error()}); err != nil {
 				return
 			}
@@ -384,7 +400,13 @@ func main() {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			continue
+			if temp, ok := err.(net.Error); ok && temp.Temporary() {
+				log.Printf("temporary listener error: %v", err)
+				time.Sleep(100 * time.Millisecond)
+				continue
+			}
+			log.Printf("listener stopped: %v", err)
+			return
 		}
 		go handleConnection(conn, secret)
 	}
