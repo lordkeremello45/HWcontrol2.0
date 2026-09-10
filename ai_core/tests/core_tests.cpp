@@ -3,8 +3,6 @@
 
 #include <cassert>
 #include <chrono>
-#include <cmath>
-#include <filesystem>
 #include <limits>
 #include <thread>
 
@@ -21,8 +19,8 @@ int main() {
         assert(engine.processData(42.0f, 25.0f) == "AI motoru hazir degil");
 
         // Non-finite telemetry must never be passed to the model pipeline.
-        assert(engine.processData(std::numeric_limits<float>::quiet_NaN(), 25.0f) == "AI motoru hazir degil");
-        assert(engine.processData(42.0f, std::numeric_limits<float>::infinity()) == "AI motoru hazir degil");
+        assert(engine.processData(std::numeric_limits<float>::quiet_NaN(), 25.0f) == "AI girdisi gecersiz");
+        assert(engine.processData(42.0f, std::numeric_limits<float>::infinity()) == "AI girdisi gecersiz");
     }
 
     {
