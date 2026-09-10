@@ -34,6 +34,7 @@
     <Component Id="BridgeDataComponent" Directory="HWCONTROL_DATA">
       <CreateFolder />
       <RemoveFile Id="RemoveBridgeKey" Name="bridge.key" On="uninstall" />
+      <Environment Id="RemoveHWControlKey" Name="HWCONTROL_KEY" Action="remove" System="yes" />
       <RegistryValue Root="HKLM" Key="Software\HWControl" Name="BridgeDataInstalled" Type="integer" Value="1" KeyPath="yes" />
     </Component>
 
