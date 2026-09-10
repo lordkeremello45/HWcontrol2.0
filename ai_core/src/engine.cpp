@@ -1,52 +1,77 @@
 #include "../include/engine.h"
+#include <cmath>
 #include <iostream>
 #include <vector>
 
-AIEngine::AIEngine() : model(nullptr), ctx(nullptr), sampler(nullptr) {}
+AIEngine::AIEngine() : model(nullptr), ctx(nullptr), sampler(nullptr), backend_initialized(false) {}
+
+void AIEngine::release() {
+    if (sampler) {
+        llama_sampler_free(sampler);
+        sampler = nullptr;
+    }
+    if (ctx) {
+        llama_free(ctx);
+        ctx = nullptr;
+    }
+    if (model) {
+        llama_model_free(model);
+        model = nullptr;
+    }
+    if (backend_initialized) {
+        llama_backend_free();
+        backend_initialized = false;
+    }
+}
 
 bool AIEngine::init(const char* modelPath) {
     if (!modelPath || modelPath[0] == '\0') {
         return false;
     }
 
+    // init() is safe to call repeatedly: never leak or overwrite a previous runtime.
+    release();
     llama_backend_init();
-    
+    backend_initialized = true;
+
     llama_model_params mparams = llama_model_default_params();
     model = llama_model_load_from_file(modelPath, mparams);
-    
-    if (!model) return false;
+    if (!model) {
+        release();
+        return false;
+    }
 
     llama_context_params cparams = llama_context_default_params();
     ctx = llama_init_from_model(model, cparams);
-
     if (!ctx) {
-        llama_model_free(model);
-        model = nullptr;
-        llama_backend_free();
+        release();
         return false;
     }
 
     sampler = llama_sampler_chain_init(llama_sampler_chain_default_params());
     if (!sampler) {
-        llama_free(ctx);
-        ctx = nullptr;
-        llama_model_free(model);
-        model = nullptr;
-        llama_backend_free();
+        release();
         return false;
     }
     llama_sampler_chain_add(sampler, llama_sampler_init_temp(0.25f));
     llama_sampler_chain_add(sampler, llama_sampler_init_greedy());
-    
-    return ctx != nullptr;
+
+    return true;
 }
 
 std::string AIEngine::processData(float temp, float load) {
     if (!model || !ctx || !sampler) {
         return "AI motoru hazir degil";
     }
+    if (!std::isfinite(temp) || !std::isfinite(load)) {
+        return "AI girdisi gecersiz";
+    }
 
     const llama_vocab* vocab = llama_model_get_vocab(model);
+    if (!vocab) {
+        return "AI vocab bulunamadi";
+    }
+
     const std::string prompt =
         "Sistem monitoru olarak kisa ve Turkce yanit ver. "
         "Sicaklik: " + std::to_string(temp) + " C, CPU yuku: " +
@@ -56,7 +81,7 @@ std::string AIEngine::processData(float temp, float load) {
     const int token_count = -llama_tokenize(vocab, prompt.c_str(), prompt.size(), nullptr, 0, is_first, true);
     if (token_count <= 0) return "Prompt tokenize edilemedi";
 
-    std::vector<llama_token> prompt_tokens(token_count);
+    std::vector<llama_token> prompt_tokens(static_cast<size_t>(token_count));
     if (llama_tokenize(vocab, prompt.c_str(), prompt.size(), prompt_tokens.data(), prompt_tokens.size(), is_first, true) < 0) {
         return "Prompt tokenize edilemedi";
     }
@@ -71,7 +96,7 @@ std::string AIEngine::processData(float temp, float load) {
         char buffer[256];
         const int piece_size = llama_token_to_piece(vocab, token, buffer, sizeof(buffer), 0, true);
         if (piece_size <= 0) break;
-        response.append(buffer, piece_size);
+        response.append(buffer, static_cast<size_t>(piece_size));
         batch = llama_batch_get_one(&token, 1);
         if (llama_decode(ctx, batch) != 0) break;
     }
@@ -79,8 +104,5 @@ std::string AIEngine::processData(float temp, float load) {
 }
 
 AIEngine::~AIEngine() {
-    if (sampler) llama_sampler_free(sampler);
-    if (ctx) llama_free(ctx);
-    if (model) llama_model_free(model);
-    llama_backend_free();
+    release();
 }
