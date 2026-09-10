@@ -161,6 +161,9 @@ EOF
           if ($service.Status -ne 'Running') { throw "HWControlBridge is not running: $($service.Status)" }
           $envKey = (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' -Name HWCONTROL_KEY -ErrorAction Stop).HWCONTROL_KEY
           if ([string]::IsNullOrWhiteSpace($envKey) -or $envKey -eq 'replace-me') { throw 'HWCONTROL_KEY was not provisioned' }
+          $keyFile = "$env:ProgramData\HWControl\bridge.key"
+          if (-not (Test-Path -LiteralPath $keyFile -PathType Leaf)) { throw 'MSI did not provision bridge.key' }
+          if ((Get-Content -LiteralPath $keyFile -Raw).Trim().Length -lt 32) { throw 'bridge.key is unexpectedly short' }
           $probe = Test-NetConnection 127.0.0.1 -Port 8080 -WarningAction SilentlyContinue
           if (-not $probe.TcpTestSucceeded) { throw 'HWControlBridge is not listening on 127.0.0.1:8080' }
           $uninstallLog = Join-Path $validationRoot 'msiexec-uninstall.log'
@@ -173,6 +176,10 @@ EOF
             throw "MSI uninstall failed with exit code $($uninstall.ExitCode)"
           }
           if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge still exists after uninstall' }
+          if (Test-Path -LiteralPath "$env:ProgramFiles\HWControl") { throw 'Program Files install directory still exists after uninstall' }
+          if (Test-Path -LiteralPath "$env:ProgramData\HWControl\bridge.key") { throw 'bridge.key still exists after MSI uninstall' }
+          $remainingKey = Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' -Name HWCONTROL_KEY -ErrorAction SilentlyContinue
+          if ($null -ne $remainingKey) { throw 'MSI uninstall left machine HWCONTROL_KEY behind' }
       - name: Build and smoke-test guided Setup.exe
         shell: pwsh
         run: |
@@ -192,6 +199,9 @@ EOF
           $setupUninstall = Start-Process -FilePath "$PWD\HWControl-test-Setup.exe" -ArgumentList @('/uninstall', '/quiet', '/norestart') -Wait -PassThru
           if ($setupUninstall.ExitCode -ne 0) { throw "Setup.exe uninstall failed with exit code $($setupUninstall.ExitCode)" }
           if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge still exists after Setup.exe uninstall' }
+          if (Test-Path -LiteralPath "$env:ProgramData\HWControl\bridge.key") { throw 'bridge.key still exists after Setup.exe uninstall' }
+          $remainingSetupKey = Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' -Name HWCONTROL_KEY -ErrorAction SilentlyContinue
+          if ($null -ne $remainingSetupKey) { throw 'Setup.exe uninstall left machine HWCONTROL_KEY behind' }
 
   macos:
     runs-on: macos-14
@@ -243,6 +253,11 @@ EOF
           chmod 0755 deploy/macos/pkg-scripts/preinstall deploy/macos/pkg-scripts/postinstall
           pkgbuild --root "$root" --identifier com.hwcontrol.app --version 0.0.0 --install-location /Applications/HWControl --scripts deploy/macos/pkg-scripts HWControl-test.pkg
           hdiutil create -volname HWControl -srcfolder "$root/HWControl.app" -ov -format UDZO HWControl-test.dmg
+          test -s HWControl-test.pkg
+          test -s HWControl-test.dmg
+          pkgutil --payload-files HWControl-test.pkg > /tmp/hwcontrol-pkg-files.txt
+          grep -F 'Applications/HWControl/HWControl.app' /tmp/hwcontrol-pkg-files.txt
+          grep -F 'Applications/HWControl/bridge-service' /tmp/hwcontrol-pkg-files.txt
           pkgutil --check-signature HWControl-test.pkg || true
           sudo installer -verboseR -pkg HWControl-test.pkg -target /
           test -x /Applications/HWControl/bridge-service
@@ -250,7 +265,14 @@ EOF
           test -d /Applications/HWControl/HWControl.app
           test -f /Applications/HWControl/com.hwcontrol.bridge.plist
           test -f "/Library/Application Support/HWControl/bridge.key"
+          test "$(/usr/bin/stat -f '%Lp' '/Library/Application Support/HWControl/bridge.key')" = "600"
           sudo plutil -lint /Applications/HWControl/com.hwcontrol.bridge.plist
+          pkgutil --pkg-info com.hwcontrol.app
+          mount_point=$(mktemp -d)
+          hdiutil attach -nobrowse -readonly -mountpoint "$mount_point" HWControl-test.dmg
+          test -d "$mount_point/HWControl.app"
+          hdiutil detach "$mount_point" >/dev/null
+          rmdir "$mount_point"
           sudo launchctl bootout system/com.hwcontrol.bridge >/dev/null 2>&1 || true
           sudo launchctl bootstrap system /Applications/HWControl/com.hwcontrol.bridge.plist
           sudo launchctl enable system/com.hwcontrol.bridge
@@ -266,3 +288,7 @@ EOF
           sudo rm -rf /Applications/HWControl
           sudo rm -rf "/Library/Application Support/HWControl"
           sudo rm -f /Library/LaunchDaemons/com.hwcontrol.bridge.plist
+          sudo pkgutil --forget com.hwcontrol.app >/dev/null 2>&1 || true
+          test ! -e /Applications/HWControl
+          test ! -e "/Library/Application Support/HWControl/bridge.key"
+          test ! -e /Library/LaunchDaemons/com.hwcontrol.bridge.plist
