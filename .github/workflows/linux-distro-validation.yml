@@ -71,7 +71,7 @@ jobs:
                 pacman -Sy --noconfirm bash ca-certificates curl git cmake base-devel pkgconf file
               elif command -v zypper >/dev/null 2>&1; then
                 zypper --non-interactive refresh
-                zypper --non-interactive install -y bash ca-certificates curl git cmake gcc-c++ make pkg-config file
+                zypper --non-interactive install -y bash ca-certificates curl git cmake gcc-c++ make pkg-config file findutils
               else
                 echo "Unsupported container distribution." >&2
                 exit 1
