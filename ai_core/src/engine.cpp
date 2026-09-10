@@ -60,11 +60,11 @@ bool AIEngine::init(const char* modelPath) {
 }
 
 std::string AIEngine::processData(float temp, float load) {
-    if (!model || !ctx || !sampler) {
-        return "AI motoru hazir degil";
-    }
     if (!std::isfinite(temp) || !std::isfinite(load)) {
         return "AI girdisi gecersiz";
+    }
+    if (!model || !ctx || !sampler) {
+        return "AI motoru hazir degil";
     }
 
     const llama_vocab* vocab = llama_model_get_vocab(model);
