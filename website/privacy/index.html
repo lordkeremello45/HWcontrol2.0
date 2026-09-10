@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="index,follow">
+  <meta name="description" content="HWControl 2.0 Privacy Policy — local-first telemetry and transparent data handling.">
+  <link rel="canonical" href="https://lordkeremello45.github.io/HWcontrol2.0/privacy/">
+  <title>Privacy Policy — HWControl 2.0</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .privacy{padding:72px 0 110px}.privacy-header{max-width:760px;margin-bottom:45px}.privacy-header h1{font-size:clamp(46px,7vw,72px);margin-bottom:18px}.privacy-header p{color:var(--muted);font-size:15px}.privacy-card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:36px;max-width:860px;box-shadow:var(--shadow)}.privacy-card h2{font-size:22px;margin:32px 0 10px;letter-spacing:-.03em}.privacy-card h2:first-child{margin-top:0}.privacy-card p,.privacy-card li{font-size:14px;line-height:1.75;color:var(--muted)}.privacy-card ul{padding-left:22px}.privacy-card code{background:var(--soft);padding:2px 5px;border-radius:4px;color:var(--ink)}.privacy-card a{color:var(--accent);font-weight:650}.back{display:inline-flex;margin-bottom:28px;color:var(--accent);font-size:13px;font-weight:700}.footer{margin-top:0}
+  </style>
+</head>
+<body>
+  <header class="nav shell">
+    <a class="brand" href="../" aria-label="HWControl home"><span class="brand-mark">H</span><span>HWControl <b>2.0</b></span></a>
+    <nav aria-label="Primary navigation"><a href="../#features">Features</a><a href="../#security">Security</a><a href="../#download">Download</a><a href="https://github.com/lordkeremello45/HWcontrol2.0" target="_blank" rel="noopener noreferrer">GitHub ↗</a></nav>
+  </header>
+  <main class="privacy shell">
+    <a class="back" href="../">← Back to HWControl</a>
+    <div class="privacy-header">
+      <div class="eyebrow">PRIVACY</div>
+      <h1>Privacy Policy</h1>
+      <p>HWControl 2.0 follows a local-first approach. Hardware monitoring data is processed on the user's computer unless the user explicitly exports or shares it.</p>
+      <p><strong>Effective date: 2026-09-10</strong></p>
+    </div>
+    <article class="privacy-card">
+      <h2>1. Data collected by the application</h2>
+      <p>HWControl does not intentionally collect or transmit unnecessary telemetry, usage analytics, advertising identifiers, or behavioral tracking data.</p>
+      <p>Hardware and system information used by HWControl may include CPU/GPU utilization, temperatures, memory usage, disk usage, fan state, driver information, uptime, and related hardware diagnostics. This information is collected locally so the application can monitor and control the user's own system.</p>
+      <p>Monitoring data remains on the user's computer unless the user explicitly exports, copies, shares, or otherwise sends it elsewhere.</p>
+
+      <h2>2. Local bridge communication</h2>
+      <p>The dashboard communicates with the local bridge service over loopback communication. The bridge is designed to bind to <code>127.0.0.1</code> by default and uses authenticated requests between application components.</p>
+      <p>The local bridge is not intended to be a remote telemetry collection service.</p>
+
+      <h2>3. Updates and release information</h2>
+      <p>HWControl may check for available releases using HTTPS requests to the project's allowlisted GitHub release infrastructure. This is used for release/update information and is not an application telemetry upload channel.</p>
+      <p>As with any HTTPS connection, the network provider and the contacted third-party service may process connection information such as an IP address, request metadata, or user-agent information according to their own policies. HWControl does not control those third-party practices.</p>
+      <p>The application does not automatically install or execute updates.</p>
+
+      <h2>4. Explicit exports and sharing</h2>
+      <p>If a user explicitly exports diagnostics, monitoring information, logs, or other application data, the resulting data is under the user's control. The user is responsible for deciding where that information is stored or shared.</p>
+
+      <h2>5. Website</h2>
+      <p>The official project website is hosted through GitHub Pages. GitHub may process technical request information required to provide and protect the website. Those practices are governed by GitHub's own policies.</p>
+      <p>The HWControl website does not intentionally use advertising identifiers or behavioral tracking as part of the project application.</p>
+
+      <h2>6. Third-party software and services</h2>
+      <p>HWControl can interact with the operating system, hardware drivers, GitHub release infrastructure, and other third-party software or services. Those components may have their own privacy policies and data practices.</p>
+      <p>This policy does not claim that the operating system, GPU drivers, GitHub, or other third-party software on a user's computer collect no data.</p>
+
+      <h2>7. Security and transparency</h2>
+      <p>For additional technical details, see the project's <a href="https://github.com/lordkeremello45/HWcontrol2.0/blob/main/SECURITY.md" target="_blank" rel="noopener noreferrer">Security Policy</a> and <a href="https://github.com/lordkeremello45/HWcontrol2.0/blob/main/docs/CODE_SIGNING_POLICY.md" target="_blank" rel="noopener noreferrer">Code Signing Policy</a>.</p>
+
+      <h2>8. Changes to this policy</h2>
+      <p>This policy may be updated when HWControl's data handling or privacy-relevant behavior changes. Material changes will be documented in the project repository and release information.</p>
+
+      <h2>9. Contact</h2>
+      <p>Privacy and security questions can be raised through the project's <a href="https://github.com/lordkeremello45/HWcontrol2.0" target="_blank" rel="noopener noreferrer">official GitHub repository</a> and its security-reporting process.</p>
+    </article>
+  </main>
+  <footer class="footer shell"><div class="brand"><span class="brand-mark">H</span><span>HWControl <b>2.0</b></span></div><span>GPL-3.0 · Open source</span><a href="../">Home</a><a href="https://github.com/lordkeremello45/HWcontrol2.0/releases" target="_blank" rel="noopener noreferrer">All releases ↗</a></footer>
+</body>
+</html>
