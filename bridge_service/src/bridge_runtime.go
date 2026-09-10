@@ -6,8 +6,32 @@ import (
 	"log"
 	"net"
 	"os"
+	"sync"
 	"time"
 )
+
+type bridgeService struct {
+	stopOnce sync.Once
+	stopCh   chan struct{}
+	stopped  chan struct{}
+	listener net.Listener
+}
+
+func newBridgeService() *bridgeService {
+	return &bridgeService{stopCh: make(chan struct{}), stopped: make(chan struct{})}
+}
+
+func (b *bridgeService) requestStop() {
+	b.stopOnce.Do(func() { close(b.stopCh) })
+}
+
+func (b *bridgeService) setListener(listener net.Listener) { b.listener = listener }
+
+func (b *bridgeService) stopListener() {
+	if b.listener != nil {
+		_ = b.listener.Close()
+	}
+}
 
 func runBridge(ctx context.Context, service *bridgeService) error {
 	logPath := os.Getenv("HWCONTROL_LOG")
@@ -54,7 +78,11 @@ func runBridge(ctx context.Context, service *bridgeService) error {
 		default:
 		}
 
-		_ = listener.(*net.TCPListener).SetDeadline(time.Now().Add(1 * time.Second))
+		tcpListener, ok := listener.(*net.TCPListener)
+		if !ok {
+			return fmt.Errorf("unexpected listener type %T", listener)
+		}
+		_ = tcpListener.SetDeadline(time.Now().Add(1 * time.Second))
 		conn, err := listener.Accept()
 		if err != nil {
 			if ne, ok := err.(net.Error); ok && ne.Timeout() {
