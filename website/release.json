@@ -1,0 +1,96 @@
+{
+  "schema": 1,
+  "project": "HWControl",
+  "repository": "lordkeremello45/HWcontrol2.0",
+  "platforms": {
+    "windows": {
+      "tag": "v0.2.4-windows",
+      "version": "0.2.4",
+      "published_at": "2026-09-10T19:23:12Z",
+      "release_url": "https://github.com/lordkeremello45/HWcontrol2.0/releases/tag/v0.2.4-windows",
+      "assets": [
+        {
+          "name": "HWControl-v0.2.4-windows-Windows-x64.msi",
+          "url": "https://github.com/lordkeremello45/HWcontrol2.0/releases/download/v0.2.4-windows/HWControl-v0.2.4-windows-Windows-x64.msi",
+          "size": 1105920,
+          "content_type": "application/x-msdownload",
+          "checksum_sha256_url": null
+        },
+        {
+          "name": "HWControl-v0.2.4-windows-Windows-x64.zip",
+          "url": "https://github.com/lordkeremello45/HWcontrol2.0/releases/download/v0.2.4-windows/HWControl-v0.2.4-windows-Windows-x64.zip",
+          "size": 13362639,
+          "content_type": "application/zip",
+          "checksum_sha256_url": null
+        }
+      ],
+      "integrity": {
+        "sha256sums_url": null,
+        "sha512sums_url": null,
+        "sha3_512sums_url": null,
+        "ed25519_signature_url": null,
+        "ed25519_public_key_url": null,
+        "gpg_signature_url": null,
+        "gpg_public_key_url": null,
+        "gpg_fingerprint_url": null
+      }
+    },
+    "macos": {
+      "tag": "v0.2.0-macos",
+      "version": "0.2.0",
+      "published_at": "2026-09-06T10:04:26Z",
+      "release_url": "https://github.com/lordkeremello45/HWcontrol2.0/releases/tag/v0.2.0-macos",
+      "assets": [
+        {
+          "name": "HWControl-v0.2.0-macos-macOS-AppleSilicon.dmg",
+          "url": "https://github.com/lordkeremello45/HWcontrol2.0/releases/download/v0.2.0-macos/HWControl-v0.2.0-macos-macOS-AppleSilicon.dmg",
+          "size": 19814303,
+          "content_type": "application/x-apple-diskimage",
+          "checksum_sha256_url": null
+        }
+      ],
+      "integrity": {
+        "sha256sums_url": null,
+        "sha512sums_url": null,
+        "sha3_512sums_url": null,
+        "ed25519_signature_url": null,
+        "ed25519_public_key_url": null,
+        "gpg_signature_url": null,
+        "gpg_public_key_url": null,
+        "gpg_fingerprint_url": null
+      }
+    },
+    "linux": {
+      "tag": "v0.2.0-linux",
+      "version": "0.2.0",
+      "published_at": "2026-09-06T10:01:18Z",
+      "release_url": "https://github.com/lordkeremello45/HWcontrol2.0/releases/tag/v0.2.0-linux",
+      "assets": [
+        {
+          "name": "HWControl-v0.2.0-linux-Linux-x64.deb",
+          "url": "https://github.com/lordkeremello45/HWcontrol2.0/releases/download/v0.2.0-linux/HWControl-v0.2.0-linux-Linux-x64.deb",
+          "size": 8514842,
+          "content_type": "application/x-debian-package",
+          "checksum_sha256_url": null
+        },
+        {
+          "name": "HWControl-v0.2.0-linux-Linux-x64.tar.gz",
+          "url": "https://github.com/lordkeremello45/HWcontrol2.0/releases/download/v0.2.0-linux/HWControl-v0.2.0-linux-Linux-x64.tar.gz",
+          "size": 10401441,
+          "content_type": "application/gzip",
+          "checksum_sha256_url": null
+        }
+      ],
+      "integrity": {
+        "sha256sums_url": null,
+        "sha512sums_url": null,
+        "sha3_512sums_url": null,
+        "ed25519_signature_url": null,
+        "ed25519_public_key_url": null,
+        "gpg_signature_url": null,
+        "gpg_public_key_url": null,
+        "gpg_fingerprint_url": null
+      }
+    }
+  }
+}
