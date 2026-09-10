@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -28,7 +29,7 @@ func TestRunBridgeGracefulShutdown(t *testing.T) {
 	port := probe.Addr().(*net.TCPAddr).Port
 	_ = probe.Close()
 
-	_ = os.Setenv("HWCONTROL_PORT", formatTestPort(port))
+	_ = os.Setenv("HWCONTROL_PORT", strconv.Itoa(port))
 	_ = os.Setenv("HWCONTROL_KEY_FILE", keyPath)
 	_ = os.Setenv("HWCONTROL_LOG", logPath)
 	_ = os.Unsetenv("HWCONTROL_KEY")
@@ -39,7 +40,7 @@ func TestRunBridgeGracefulShutdown(t *testing.T) {
 
 	deadline := time.Now().Add(5 * time.Second)
 	for time.Now().Before(deadline) {
-		conn, err := net.DialTimeout("tcp", "127.0.0.1:"+formatTestPort(port), 100*time.Millisecond)
+		conn, err := net.DialTimeout("tcp", "127.0.0.1:"+strconv.Itoa(port), 100*time.Millisecond)
 		if err == nil {
 			_ = conn.Close()
 			break
@@ -56,8 +57,4 @@ func TestRunBridgeGracefulShutdown(t *testing.T) {
 	case <-time.After(3 * time.Second):
 		t.Fatal("bridge graceful shutdown timed out")
 	}
-}
-
-func formatTestPort(port int) string {
-	return strconv.Itoa(port)
 }
