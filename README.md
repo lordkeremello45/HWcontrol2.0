@@ -3,7 +3,7 @@
 [![HWControl Website](https://img.shields.io/badge/HWControl-Website-111827?style=for-the-badge&logo=googlechrome&logoColor=white)](https://lordkeremello45.github.io/HWcontrol2.0/)
 [![GitHub Releases](https://img.shields.io/github/v/release/lordkeremello45/HWcontrol2.0?display_name=tag&style=for-the-badge)](https://github.com/lordkeremello45/HWcontrol2.0/releases)
 
-HWControl 2.0 is a high-performance, kernel-level hardware management and control suite designed for precision and stability. Built with a focus on low-latency communication and secure system interaction, this project provides a robust bridge between user-space applications and kernel-mode operations.
+HWControl 2.0 is a high-performance, cross-platform hardware monitoring and control suite designed for precision and stability. Built with a focus on low-latency communication and secure system interaction, it provides a robust bridge between user-space applications and low-level hardware operations.
 
 ## Supported operating systems
 
@@ -54,16 +54,16 @@ The official project website provides the platform-specific installer selector a
 
 The project is built on a multi-layer architecture:
 
-**ai_core (C++):** The heart of the system, handling kernel-mode drivers and hardware-level operations.
+**ai_core (C++):** The heart of the system, handling low-level hardware operations and hardware-interface integrations.
 
-**bridge_service (Go):** A high-concurrency service that manages the secure communication bridge between the kernel-core and the UI.
+**bridge_service (Go):** A high-concurrency service that manages the secure communication bridge between hardware-control components and the UI.
 
 **gui_dashboard (Dart/Flutter):** A responsive and intuitive dashboard for real-time hardware monitoring and configuration.
 
 ## Key Features
 
-**Kernel-Level Control:** Direct interaction with hardware drivers for maximum efficiency.
+**Low-Level Hardware Control:** Direct interaction with supported hardware interfaces and drivers where required by the target platform.
 
-**BSOD Shield:** Built-in safeguards to prevent system instability and kernel panics.
+**BSOD Shield:** Built-in validation and safeguards intended to reduce the risk of unsafe hardware configuration and system instability.
 
 **Secure Communication:** Implements SHA-256 verification to ensure the integrity of driver modules.
