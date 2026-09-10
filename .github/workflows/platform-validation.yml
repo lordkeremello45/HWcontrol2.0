@@ -42,6 +42,8 @@ jobs:
         run: |
           cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
           cmake --build build --parallel 2
+      - name: Run native regression tests
+        run: ctest --test-dir build --output-on-failure
       - name: Test and build bridge
         working-directory: bridge_service
         run: |
@@ -107,6 +109,9 @@ EOF
       - name: Build native engine
         shell: pwsh
         run: cmake --build build-windows --config Release --parallel 2
+      - name: Run native regression tests
+        shell: pwsh
+        run: ctest --test-dir build-windows -C Release --output-on-failure
       - name: Test and build bridge
         working-directory: bridge_service
         shell: pwsh
@@ -226,6 +231,8 @@ EOF
         run: |
           cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
           cmake --build build --parallel 2
+      - name: Run native regression tests
+        run: ctest --test-dir build --output-on-failure
       - name: Test and build bridge
         working-directory: bridge_service
         run: |
