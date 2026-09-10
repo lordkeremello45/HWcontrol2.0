@@ -71,21 +71,21 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Validate host architecture
-        shell: bash
+        shell: sh
         run: test "$(uname -m)" = "x86_64"
 
       - name: Configure native engine
-        shell: bash
+        shell: sh
         run: cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
 
       - name: Build native engine
-        shell: bash
+        shell: sh
         run: cmake --build build --parallel 2
 
       - name: Install Go
-        shell: bash
+        shell: sh
         run: |
-          set -euo pipefail
+          set -eu
           if command -v go >/dev/null 2>&1; then
             go version
             exit 0
@@ -99,19 +99,19 @@ jobs:
 
       - name: Test and build bridge
         working-directory: bridge_service
-        shell: bash
+        shell: sh
         run: |
-          set -euo pipefail
+          set -eu
           go test ./...
           go build -buildvcs=false -trimpath -o bridge-service ./src
 
       - name: Validate runtime dependencies
-        shell: bash
+        shell: sh
         run: |
-          set -euo pipefail
-          found=0
-          while IFS= read -r -d '' binary; do
-            found=1
+          set -eu
+          find bridge_service build -type f -perm -111 -print > /tmp/hwcontrol-binaries
+          test -s /tmp/hwcontrol-binaries
+          while IFS= read -r binary; do
             if command -v ldd >/dev/null 2>&1; then
               if ldd "$binary" 2>&1 | grep -q 'not found'; then
                 echo "Missing runtime dependency: $binary" >&2
@@ -119,5 +119,4 @@ jobs:
                 exit 1
               fi
             fi
-          done < <(find bridge_service build -type f -perm -111 -print0 2>/dev/null)
-          test "$found" -eq 1
+          done < /tmp/hwcontrol-binaries
