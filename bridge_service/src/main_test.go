@@ -3,7 +3,13 @@ package main
 import (
 	"encoding/hex"
 	"math"
+	"net"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
 	"testing"
+	"time"
 )
 
 func TestValidateCommand(t *testing.T) {
@@ -102,5 +108,65 @@ func TestExecuteHardwareCommandFailsClosed(t *testing.T) {
 		if err == nil {
 			t.Fatalf("expected %q to fail without a hardware backend", action)
 		}
+	}
+}
+
+func TestBridgeRequestSizeBound(t *testing.T) {
+	server, client := net.Pipe()
+	defer client.Close()
+
+	done := make(chan struct{})
+	go func() {
+		handleConnection(server, "test-secret")
+		close(done)
+	}()
+
+	payload := []byte(strings.Repeat("A", maxRequestBytes+1))
+	if _, err := client.Write(payload); err == nil {
+		t.Fatal("expected oversized request to terminate the connection")
+	}
+
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("oversized request handler did not terminate")
+	}
+}
+
+func TestBridgeKeyLifecycleUsesAtomicFile(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows persists the active key to the machine environment")
+	}
+
+	root := t.TempDir()
+	keyPath := filepath.Join(root, "bridge.key")
+	t.Setenv("HWCONTROL_KEY", "")
+	t.Setenv("HWCONTROL_KEY_FILE", keyPath)
+
+	secret, err := loadOrCreateSecret()
+	if err != nil {
+		t.Fatalf("loadOrCreateSecret() error = %v", err)
+	}
+	if len(secret) != 64 {
+		t.Fatalf("generated secret length = %d, want 64 hex characters", len(secret))
+	}
+	if _, err := hex.DecodeString(secret); err != nil {
+		t.Fatalf("generated secret is not hex: %v", err)
+	}
+
+	info, err := os.Stat(keyPath)
+	if err != nil {
+		t.Fatalf("stat key file: %v", err)
+	}
+	if mode := info.Mode().Perm(); mode != 0600 {
+		t.Fatalf("key file mode = %o, want 600", mode)
+	}
+
+	reloaded, err := loadOrCreateSecret()
+	if err != nil {
+		t.Fatalf("reload key: %v", err)
+	}
+	if reloaded != secret {
+		t.Fatalf("reloaded secret changed: got %q, want %q", reloaded, secret)
 	}
 }
