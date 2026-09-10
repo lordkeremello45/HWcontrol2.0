@@ -31,6 +31,19 @@ The local bridge exposes a signed `Get Diagnostics` command alongside `Get Statu
 
 The bridge remains loopback-only (`127.0.0.1`) and requires the existing HMAC authentication for diagnostics, so diagnostic data is not exposed as an unauthenticated network endpoint.
 
+## Code signing policy
+
+**Free code signing provided by SignPath.io, certificate by SignPath Foundation.**
+
+HWControl 2.0 is preparing an application for the SignPath Foundation Open Source Code Signing program. The intended signing scope is the Windows release artifacts produced by the repository's GitHub Actions workflows, including the guided `Setup.exe`, `.msi`, and applicable Windows executable artifacts.
+
+Signing is not considered active until the project is accepted, the trusted GitHub build integration is configured, and a signed release artifact has been successfully verified. Release signing must use artifacts built from this repository and must not use manually uploaded local binaries.
+
+- **Committers and reviewers:** `lordkeremello45`
+- **Approver:** `lordkeremello45`
+- **Policy:** [`docs/CODE_SIGNING_POLICY.md`](docs/CODE_SIGNING_POLICY.md)
+- **Privacy/security:** [`SECURITY.md`](SECURITY.md)
+
 ## Website
 
 The official project website provides the platform-specific installer selector and dynamically resolves the latest GitHub Release assets:
