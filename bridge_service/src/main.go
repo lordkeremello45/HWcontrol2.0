@@ -154,13 +154,7 @@ func collectMetrics() HardwareMetrics {
 func nvidiaSMIOutput() ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), nvidiaSMITimeout)
 	defer cancel()
-
-	return exec.CommandContext(
-		ctx,
-		"nvidia-smi",
-		"--query-gpu=name,driver_version,temperature.gpu,utilization.gpu,fan.speed,power.draw,voltage.gpu,memory.used,memory.total,clocks.gr,clocks.mem",
-		"--format=csv,noheader,nounits",
-	).Output()
+	return exec.CommandContext(ctx, "nvidia-smi", "--query-gpu=name,driver_version,temperature.gpu,utilization.gpu,fan.speed,power.draw,voltage.gpu,memory.used,memory.total,clocks.gr,clocks.mem", "--format=csv,noheader,nounits").Output()
 }
 
 func modelDigest() string {
@@ -375,39 +369,20 @@ func handleConnection(conn net.Conn, secret string) {
 }
 
 func main() {
-	logPath := os.Getenv("HWCONTROL_LOG")
-	if logPath == "" {
-		logPath = "hwcontrol.log"
-	}
-	if logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600); err == nil {
-		defer logFile.Close()
-		log.SetOutput(logFile)
-		log.SetFlags(log.LstdFlags | log.LUTC)
-	}
-	secret, err := loadOrCreateSecret()
+	handled, err := runWindowsService()
 	if err != nil {
-		fmt.Println("Bridge baslatilamadi:", err)
+		fmt.Println("Windows service başlatılamadı:", err)
 		os.Exit(1)
 	}
-	port := bridgePort()
-	listener, err := net.Listen("tcp", "127.0.0.1:"+port)
-	if err != nil {
+	if handled {
+		return
+	}
+
+	bridge := newBridgeService()
+	stopSignals := installConsoleShutdown(bridge)
+	defer stopSignals()
+	if err := runBridge(context.Background(), bridge); err != nil {
 		fmt.Println("Bridge başlatılamadı:", err)
 		os.Exit(1)
-	}
-	defer listener.Close()
-	fmt.Println("Bridge Service 2.0 hazır, 127.0.0.1:" + port + " dinleniyor...")
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			if temp, ok := err.(net.Error); ok && temp.Temporary() {
-				log.Printf("temporary listener error: %v", err)
-				time.Sleep(100 * time.Millisecond)
-				continue
-			}
-			log.Printf("listener stopped: %v", err)
-			return
-		}
-		go handleConnection(conn, secret)
 	}
 }
