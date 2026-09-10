@@ -1,6 +1,10 @@
 package main
 
-import "testing"
+import (
+	"encoding/hex"
+	"math"
+	"testing"
+)
 
 func TestValidateCommand(t *testing.T) {
 	tests := []struct {
@@ -14,6 +18,7 @@ func TestValidateCommand(t *testing.T) {
 		{"missing action", Command{Value: 20}, false},
 		{"status command", Command{Action: "Get Status"}, true},
 		{"security command", Command{Action: "Get Security"}, true},
+		{"diagnostics command", Command{Action: "Get Diagnostics"}, true},
 	}
 
 	for _, test := range tests {
@@ -22,6 +27,14 @@ func TestValidateCommand(t *testing.T) {
 				t.Fatalf("validateCommand(%+v) validity mismatch", test.command)
 			}
 		})
+	}
+}
+
+func TestCommandPayloadIsStable(t *testing.T) {
+	command := Command{Action: "Fan Hızı", Value: 42.5}
+	want := "Fan Hızı\n42.500000"
+	if got := commandPayload(command); got != want {
+		t.Fatalf("commandPayload() = %q, want %q", got, want)
 	}
 }
 
@@ -36,6 +49,50 @@ func TestAuthenticateCommand(t *testing.T) {
 	command.Value = 51
 	if authenticateCommand(command, secret) {
 		t.Fatal("expected modified command authentication to fail")
+	}
+}
+
+func TestAuthenticateCommandRejectsMalformedAuth(t *testing.T) {
+	command := Command{Action: "Get Status", Auth: "not-hex"}
+	if authenticateCommand(command, "test-secret") {
+		t.Fatal("expected malformed authentication value to be rejected")
+	}
+
+	command.Auth = hex.EncodeToString([]byte("short"))
+	if authenticateCommand(command, "test-secret") {
+		t.Fatal("expected wrong-length authentication value to be rejected")
+	}
+}
+
+func TestValidateCommandRejectsNonFiniteAndOutOfRangeValues(t *testing.T) {
+	for _, value := range []float64{-1, 101, math.NaN(), math.Inf(1), math.Inf(-1)} {
+		if err := validateCommand(Command{Action: "Fan Hızı", Value: value}); err == nil {
+			t.Fatalf("validateCommand() accepted invalid value %v", value)
+		}
+	}
+}
+
+func TestBridgePortFallsBackToSafeDefault(t *testing.T) {
+	for _, value := range []string{"", "0", "65536", "-1", "not-a-port", "8080:9090"} {
+		t.Setenv("HWCONTROL_PORT", value)
+		if got := bridgePort(); got != defaultBridgePort {
+			t.Fatalf("bridgePort(%q) = %q, want %q", value, got, defaultBridgePort)
+		}
+	}
+
+	for _, test := range []struct {
+		value string
+		want  string
+	}{
+		{"1", "1"},
+		{"8080", "8080"},
+		{"65535", "65535"},
+		{" 9000 ", "9000"},
+	} {
+		t.Setenv("HWCONTROL_PORT", test.value)
+		if got := bridgePort(); got != test.want {
+			t.Fatalf("bridgePort(%q) = %q, want %q", test.value, got, test.want)
+		}
 	}
 }
 
