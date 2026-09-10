@@ -28,6 +28,7 @@ jobs:
   distro-smoke:
     name: ${{ matrix.name }}
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -45,78 +46,66 @@ jobs:
           - name: openSUSE Tumbleweed
             container: opensuse/tumbleweed:latest
 
-    container: ${{ matrix.container }}
-
     steps:
-      - name: Install base tooling
-        shell: /bin/sh
+      - uses: actions/checkout@v4
+
+      - name: Smoke test distro
+        env:
+          DISTRO_IMAGE: ${{ matrix.container }}
         run: |
-          set -eu
-          if command -v apt-get >/dev/null 2>&1; then
-            apt-get update
-            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends bash ca-certificates curl git cmake build-essential pkg-config file
-          elif command -v dnf >/dev/null 2>&1; then
-            dnf install -y bash ca-certificates curl git cmake gcc-c++ make pkgconf-pkg-config file
-          elif command -v pacman >/dev/null 2>&1; then
-            pacman -Sy --noconfirm bash ca-certificates curl git cmake base-devel pkgconf file
-          elif command -v zypper >/dev/null 2>&1; then
-            zypper --non-interactive refresh
-            zypper --non-interactive install -y bash ca-certificates curl git cmake gcc-c++ make pkg-config file
-          else
-            echo 'Unsupported container distribution.' >&2
-            exit 1
-          fi
-
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Validate host architecture
-        shell: /bin/sh
-        run: test "$(uname -m)" = "x86_64"
-
-      - name: Configure native engine
-        shell: /bin/sh
-        run: cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
-
-      - name: Build native engine
-        shell: /bin/sh
-        run: cmake --build build --parallel 2
-
-      - name: Install Go
-        shell: /bin/sh
-        run: |
-          set -eu
-          if command -v go >/dev/null 2>&1; then
-            go version
-            exit 0
-          fi
-          curl -fsSL https://go.dev/dl/go1.24.6.linux-amd64.tar.gz -o /tmp/go.tgz
-          rm -rf /usr/local/go
-          tar -C /usr/local -xzf /tmp/go.tgz
-          echo /usr/local/go/bin >> "$GITHUB_PATH"
-          export PATH=/usr/local/go/bin:$PATH
-          go version
-
-      - name: Test and build bridge
-        working-directory: bridge_service
-        shell: /bin/sh
-        run: |
-          set -eu
-          go test ./...
-          go build -buildvcs=false -trimpath -o bridge-service ./src
-
-      - name: Validate runtime dependencies
-        shell: /bin/sh
-        run: |
-          set -eu
-          find bridge_service build -type f -perm -111 -print > /tmp/hwcontrol-binaries
-          test -s /tmp/hwcontrol-binaries
-          while IFS= read -r binary; do
-            if command -v ldd >/dev/null 2>&1; then
-              if ldd "$binary" 2>&1 | grep -q 'not found'; then
-                echo "Missing runtime dependency: $binary" >&2
-                ldd "$binary" >&2 || true
+          set -euo pipefail
+          docker run --rm \
+            -e CI=1 \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -w /workspace \
+            "$DISTRO_IMAGE" \
+            /bin/sh -c '
+              set -eu
+              if command -v apt-get >/dev/null 2>&1; then
+                apt-get update
+                DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+                  bash ca-certificates curl git cmake build-essential pkg-config file
+              elif command -v dnf >/dev/null 2>&1; then
+                dnf install -y bash ca-certificates curl git cmake gcc-c++ make pkgconf-pkg-config file
+              elif command -v pacman >/dev/null 2>&1; then
+                pacman -Sy --noconfirm bash ca-certificates curl git cmake base-devel pkgconf file
+              elif command -v zypper >/dev/null 2>&1; then
+                zypper --non-interactive refresh
+                zypper --non-interactive install -y bash ca-certificates curl git cmake gcc-c++ make pkg-config file
+              else
+                echo "Unsupported container distribution." >&2
                 exit 1
               fi
-            fi
-          done < /tmp/hwcontrol-binaries
+
+              test "$(uname -m)" = "x86_64"
+
+              cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
+              cmake --build build --parallel 2
+
+              if command -v go >/dev/null 2>&1; then
+                go version
+              else
+                curl -fsSL https://go.dev/dl/go1.24.6.linux-amd64.tar.gz -o /tmp/go.tgz
+                rm -rf /usr/local/go
+                tar -C /usr/local -xzf /tmp/go.tgz
+                export PATH=/usr/local/go/bin:$PATH
+                go version
+              fi
+
+              cd bridge_service
+              go test ./...
+              go build -buildvcs=false -trimpath -o bridge-service ./src
+              cd ..
+
+              find bridge_service build -type f -perm -111 -print > /tmp/hwcontrol-binaries
+              test -s /tmp/hwcontrol-binaries
+              while IFS= read -r binary; do
+                if command -v ldd >/dev/null 2>&1; then
+                  if ldd "$binary" 2>&1 | grep -q "not found"; then
+                    echo "Missing runtime dependency: $binary" >&2
+                    ldd "$binary" >&2 || true
+                    exit 1
+                  fi
+                fi
+              done < /tmp/hwcontrol-binaries
+            '
