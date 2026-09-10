@@ -1,1 +1,0 @@
-The MSI explicitly installs the root HWControl.exe component.
