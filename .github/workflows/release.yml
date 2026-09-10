@@ -99,17 +99,14 @@ jobs:
           $root = Join-Path $env:RUNNER_TEMP 'HWControl-MSI-Validation'
           if (Test-Path $root) { Remove-Item $root -Recurse -Force }
           New-Item -ItemType Directory -Force -Path $root | Out-Null
-          $log = Join-Path $root 'install.log'
-          $install = Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList @('/i',$msi,'/qn','/norestart','/L*V',$log) -Wait -PassThru
-          if ($install.ExitCode -ne 0) { Get-Content $log -Tail 250; throw "MSI install failed: $($install.ExitCode)" }
+          & "$PWD\deploy\windows\Invoke-MsiWithTimeout.ps1" -MsiPath $msi -Action Install -LogPath (Join-Path $root 'install.log') -TimeoutSeconds 120
           if (-not (Test-Path "$env:ProgramFiles\HWControl\HWControl.exe")) { throw 'HWControl.exe was not installed' }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\bridge-service.exe")) { throw 'bridge-service.exe was not installed' }
           $service = Get-Service -Name HWControlBridge -ErrorAction Stop
           if ($service.Status -ne 'Running') { throw "HWControlBridge is not running: $($service.Status)" }
           $probe = Test-NetConnection 127.0.0.1 -Port 8080 -WarningAction SilentlyContinue
           if (-not $probe.TcpTestSucceeded) { throw 'Bridge is not listening on 127.0.0.1:8080' }
-          $uninstall = Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList @('/x',$msi,'/qn','/norestart','/L*V',(Join-Path $root 'uninstall.log')) -Wait -PassThru
-          if ($uninstall.ExitCode -ne 0) { Get-Content (Join-Path $root 'uninstall.log') -Tail 250; throw "MSI uninstall failed: $($uninstall.ExitCode)" }
+          & "$PWD\deploy\windows\Invoke-MsiWithTimeout.ps1" -MsiPath $msi -Action Uninstall -LogPath (Join-Path $root 'uninstall.log') -TimeoutSeconds 120
           if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge still exists after MSI uninstall' }
           if (Test-Path "$env:ProgramFiles\HWControl") { throw 'Program Files\HWControl still exists after MSI uninstall' }
           if (Test-Path "$env:ProgramData\HWControl\bridge.key") { throw 'bridge.key still exists after MSI uninstall' }
