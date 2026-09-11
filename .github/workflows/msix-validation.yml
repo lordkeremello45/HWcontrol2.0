@@ -89,6 +89,7 @@ jobs:
           Write-Host "MSIX: $($msix.FullName)"
 
       - name: Create and trust CI signing certificate
+        id: cert
         shell: pwsh
         run: |
           $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject 'CN=HWControl CI' -CertStoreLocation Cert:\CurrentUser\My -HashAlgorithm SHA256
@@ -99,27 +100,27 @@ jobs:
           "thumbprint=$($cert.Thumbprint)" >> $env:GITHUB_OUTPUT
 
       - name: Sign MSIX for isolated CI installation
-        id: sign
         shell: pwsh
         run: |
           $msix = '${{ steps.package.outputs.path }}'
-          $cert = Get-ChildItem Cert:\CurrentUser\My | Where-Object Subject -eq 'CN=HWControl CI' | Select-Object -First 1
-          if (-not $cert) { throw 'CI signing certificate was not found.' }
-          Set-AuthenticodeSignature -FilePath $msix -Certificate $cert | Out-Null
-          if ((Get-AuthenticodeSignature -FilePath $msix).Status -ne 'Valid') {
-            throw 'MSIX CI signature is not valid.'
-          }
+          $thumbprint = '${{ steps.cert.outputs.thumbprint }}'
+          $signtool = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\bin\*\x64\signtool.exe' -ErrorAction Stop | Select-Object -First 1
+          if (-not $signtool) { throw 'signtool.exe was not found on the Windows runner.' }
+          & $signtool.FullName sign /fd SHA256 /sha1 $thumbprint /td SHA256 $msix
+          if ($LASTEXITCODE -ne 0) { throw "signtool failed with exit code $LASTEXITCODE" }
+          & $signtool.FullName verify /pa /all $msix
+          if ($LASTEXITCODE -ne 0) { throw 'MSIX package signature verification failed.' }
 
       - name: Inspect MSIX manifest
         shell: pwsh
         run: |
           $msix = '${{ steps.package.outputs.path }}'
-          $manifest = Join-Path $env:RUNNER_TEMP 'AppxManifest.xml'
+          $zip = Join-Path $env:RUNNER_TEMP 'package.zip'
           $temp = Join-Path $env:RUNNER_TEMP 'msix-expand'
+          Copy-Item $msix $zip -Force
           Remove-Item $temp -Recurse -Force -ErrorAction SilentlyContinue
-          Expand-Archive -Path $msix -DestinationPath $temp -Force
-          Copy-Item (Join-Path $temp 'AppxManifest.xml') $manifest -Force
-          [xml]$xml = Get-Content $manifest
+          Expand-Archive -Path $zip -DestinationPath $temp -Force
+          [xml]$xml = Get-Content (Join-Path $temp 'AppxManifest.xml')
           $identity = $xml.Package.Identity
           if ($identity.Name -ne 'HWControl.CI') { throw "Unexpected package identity: $($identity.Name)" }
           if ($identity.ProcessorArchitecture -ne 'x64') { throw "Unexpected package architecture: $($identity.ProcessorArchitecture)" }
@@ -132,7 +133,7 @@ jobs:
         shell: pwsh
         run: |
           $msix = '${{ steps.package.outputs.path }}'
-          Add-AppxPackage -Path $msix -ForceApplicationShutdown
+          Add-AppxPackage -Path $msix -ForceApplicationShutdown -ErrorAction Stop
           $pkg = Get-AppxPackage -Name 'HWControl.CI'
           if (-not $pkg) { throw 'MSIX package is not registered after installation.' }
           Write-Host "Installed package: $($pkg.Name) $($pkg.Version)"
@@ -142,16 +143,15 @@ jobs:
         run: |
           $pkg = Get-AppxPackage -Name 'HWControl.CI'
           if (-not $pkg) { throw 'Installed package could not be located.' }
-          $exe = Get-ChildItem $pkg.InstallLocation -Filter '*.exe' -File -Recurse | Where-Object Name -eq 'hwcontrol_dashboard.exe' | Select-Object -First 1
-          if (-not $exe) { throw 'Flutter dashboard executable is missing from installed MSIX payload.' }
-          Write-Host "Installed executable: $($exe.FullName)"
+          $exe = Join-Path $pkg.InstallLocation 'hwcontrol_dashboard.exe'
+          if (-not (Test-Path -LiteralPath $exe)) { throw "Flutter dashboard executable is missing: $exe" }
+          Write-Host "Installed executable: $exe"
 
       - name: Launch installed application smoke test
         shell: pwsh
         run: |
           $pkg = Get-AppxPackage -Name 'HWControl.CI'
           $exe = Join-Path $pkg.InstallLocation 'hwcontrol_dashboard.exe'
-          if (-not (Test-Path $exe)) { throw "Installed executable not found: $exe" }
           $process = Start-Process -FilePath $exe -PassThru
           Start-Sleep -Seconds 5
           if ($process.HasExited -and $process.ExitCode -ne 0) {
@@ -169,6 +169,7 @@ jobs:
           if (Get-AppxPackage -Name 'HWControl.CI') { throw 'MSIX package remains registered after uninstall.' }
 
       - name: Upload tested MSIX
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: HWControl-v0.2.4-windows-MSIX-tested
