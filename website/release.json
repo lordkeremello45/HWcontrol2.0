@@ -56,7 +56,6 @@
         "sha3_512sums_url": null,
         "ed25519_signature_url": null,
         "ed25519_public_key_url": null,
-        "ed25519_signature_url": null,
         "gpg_signature_url": null,
         "gpg_public_key_url": null,
         "gpg_fingerprint_url": null
@@ -66,7 +65,7 @@
       "tag": "v0.2.0-linux",
       "version": "0.2.0",
       "published_at": "2026-09-06T10:01:18Z",
-      "release_url": "https://github.com/lordkeremello45/HWcontrol2.0/releases/download/v0.2.0-linux",
+      "release_url": "https://github.com/lordkeremello45/HWcontrol2.0/releases/tag/v0.2.0-linux",
       "assets": [
         {
           "name": "HWControl-v0.2.0-linux-Linux-x64.deb",
