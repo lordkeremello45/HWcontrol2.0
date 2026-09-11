@@ -233,14 +233,41 @@ jobs:
           $ErrorActionPreference = 'Stop'
           Import-Module Appx -ErrorAction Stop
           $pkg = Get-AppxPackage -Name 'HWControl.CI' -ErrorAction Stop
-          $exe = Join-Path $pkg.InstallLocation 'hwcontrol_dashboard.exe'
-          $process = Start-Process -FilePath $exe -PassThru
+          if (-not $pkg) { throw 'Installed package could not be located.' }
+
+          $msix = '${{ steps.package.outputs.path }}'
+          $zip = Join-Path $env:RUNNER_TEMP 'launch-manifest.zip'
+          $temp = Join-Path $env:RUNNER_TEMP 'launch-manifest'
+          Copy-Item -LiteralPath $msix -Destination $zip -Force
+          Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction SilentlyContinue
+          Expand-Archive -LiteralPath $zip -DestinationPath $temp -Force
+
+          [xml]$xml = Get-Content -LiteralPath (Join-Path $temp 'AppxManifest.xml')
+          $application = $xml.Package.Applications.Application | Select-Object -First 1
+          if (-not $application) { throw 'MSIX application entry was not found in AppxManifest.xml.' }
+
+          $appId = [string]$application.Id
+          if ([string]::IsNullOrWhiteSpace($appId)) { throw 'MSIX Application Id is missing.' }
+
+          $activationTarget = "shell:AppsFolder\$($pkg.PackageFamilyName)!$appId"
+          Write-Host "Launching packaged app through shell activation: $activationTarget"
+          $shell = Start-Process -FilePath 'explorer.exe' -ArgumentList @($activationTarget) -PassThru
+
           Start-Sleep -Seconds 5
-          if ($process.HasExited -and $process.ExitCode -ne 0) {
-            throw "Installed application exited unexpectedly with code $($process.ExitCode)."
+
+          $exePath = Join-Path $pkg.InstallLocation 'hwcontrol_dashboard.exe'
+          $running = Get-Process -ErrorAction SilentlyContinue | Where-Object {
+            try { $_.Path -eq $exePath } catch { $false }
           }
-          if (-not $process.HasExited) {
-            Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+
+          if (-not $running) {
+            throw "Packaged application was not running after shell activation: $exePath"
+          }
+
+          Write-Host "Packaged application smoke test passed: PID $($running[0].Id)"
+          $running | ForEach-Object { Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue }
+          if ($shell -and -not $shell.HasExited) {
+            Stop-Process -Id $shell.Id -Force -ErrorAction SilentlyContinue
           }
 
       - name: Uninstall MSIX
