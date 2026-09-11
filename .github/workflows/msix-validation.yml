@@ -1,0 +1,177 @@
+name: Windows MSIX validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'gui_dashboard/**'
+      - '.github/workflows/msix-validation.yml'
+      - 'bridge_service/**'
+      - 'ai_core/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: msix-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_PROJECT: gui_dashboard
+
+jobs:
+  validate:
+    name: Build, install, smoke-test and uninstall MSIX
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Enable Windows desktop
+        shell: pwsh
+        run: flutter config --enable-windows-desktop
+
+      - name: Install dependencies
+        working-directory: ${{ env.FLUTTER_PROJECT }}
+        shell: pwsh
+        run: flutter pub get
+
+      - name: Run dashboard tests
+        working-directory: ${{ env.FLUTTER_PROJECT }}
+        shell: pwsh
+        run: flutter test
+
+      - name: Build Flutter Windows release
+        working-directory: ${{ env.FLUTTER_PROJECT }}
+        shell: pwsh
+        run: flutter build windows --release -t lib/installer_main.dart
+
+      - name: Configure CI MSIX metadata
+        working-directory: ${{ env.FLUTTER_PROJECT }}
+        shell: pwsh
+        run: |
+          @'
+
+          msix_config:
+            display_name: HWControl
+            publisher_display_name: HWControl CI
+            identity_name: HWControl.CI
+            publisher: CN=HWControl CI
+            msix_version: 0.2.4.0
+            architecture: x64
+            install_certificate: false
+            languages: en-us
+          '@ | Add-Content pubspec.yaml
+
+      - name: Build MSIX
+        working-directory: ${{ env.FLUTTER_PROJECT }}
+        shell: pwsh
+        run: dart run msix:create --version 0.2.4.0 --output-path build/msix
+
+      - name: Locate MSIX
+        id: package
+        working-directory: ${{ env.FLUTTER_PROJECT }}
+        shell: pwsh
+        run: |
+          $msix = Get-ChildItem build/msix -Filter '*.msix' -File -Recurse | Select-Object -First 1
+          if (-not $msix) { throw 'MSIX package was not produced.' }
+          "path=$($msix.FullName)" >> $env:GITHUB_OUTPUT
+          Write-Host "MSIX: $($msix.FullName)"
+
+      - name: Create and trust CI signing certificate
+        shell: pwsh
+        run: |
+          $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject 'CN=HWControl CI' -CertStoreLocation Cert:\CurrentUser\My -HashAlgorithm SHA256
+          $root = New-Object System.Security.Cryptography.X509Certificates.X509Store('Root','CurrentUser')
+          $root.Open('ReadWrite')
+          $root.Add($cert)
+          $root.Close()
+          "thumbprint=$($cert.Thumbprint)" >> $env:GITHUB_OUTPUT
+
+      - name: Sign MSIX for isolated CI installation
+        id: sign
+        shell: pwsh
+        run: |
+          $msix = '${{ steps.package.outputs.path }}'
+          $cert = Get-ChildItem Cert:\CurrentUser\My | Where-Object Subject -eq 'CN=HWControl CI' | Select-Object -First 1
+          if (-not $cert) { throw 'CI signing certificate was not found.' }
+          Set-AuthenticodeSignature -FilePath $msix -Certificate $cert | Out-Null
+          if ((Get-AuthenticodeSignature -FilePath $msix).Status -ne 'Valid') {
+            throw 'MSIX CI signature is not valid.'
+          }
+
+      - name: Inspect MSIX manifest
+        shell: pwsh
+        run: |
+          $msix = '${{ steps.package.outputs.path }}'
+          $manifest = Join-Path $env:RUNNER_TEMP 'AppxManifest.xml'
+          $temp = Join-Path $env:RUNNER_TEMP 'msix-expand'
+          Remove-Item $temp -Recurse -Force -ErrorAction SilentlyContinue
+          Expand-Archive -Path $msix -DestinationPath $temp -Force
+          Copy-Item (Join-Path $temp 'AppxManifest.xml') $manifest -Force
+          [xml]$xml = Get-Content $manifest
+          $identity = $xml.Package.Identity
+          if ($identity.Name -ne 'HWControl.CI') { throw "Unexpected package identity: $($identity.Name)" }
+          if ($identity.ProcessorArchitecture -ne 'x64') { throw "Unexpected package architecture: $($identity.ProcessorArchitecture)" }
+          if ($identity.Publisher -ne 'CN=HWControl CI') { throw "Unexpected package publisher: $($identity.Publisher)" }
+          Write-Host "Identity: $($identity.Name)"
+          Write-Host "Architecture: $($identity.ProcessorArchitecture)"
+          Write-Host "Publisher: $($identity.Publisher)"
+
+      - name: Install MSIX
+        shell: pwsh
+        run: |
+          $msix = '${{ steps.package.outputs.path }}'
+          Add-AppxPackage -Path $msix -ForceApplicationShutdown
+          $pkg = Get-AppxPackage -Name 'HWControl.CI'
+          if (-not $pkg) { throw 'MSIX package is not registered after installation.' }
+          Write-Host "Installed package: $($pkg.Name) $($pkg.Version)"
+
+      - name: Validate installed app payload
+        shell: pwsh
+        run: |
+          $pkg = Get-AppxPackage -Name 'HWControl.CI'
+          if (-not $pkg) { throw 'Installed package could not be located.' }
+          $exe = Get-ChildItem $pkg.InstallLocation -Filter '*.exe' -File -Recurse | Where-Object Name -eq 'hwcontrol_dashboard.exe' | Select-Object -First 1
+          if (-not $exe) { throw 'Flutter dashboard executable is missing from installed MSIX payload.' }
+          Write-Host "Installed executable: $($exe.FullName)"
+
+      - name: Launch installed application smoke test
+        shell: pwsh
+        run: |
+          $pkg = Get-AppxPackage -Name 'HWControl.CI'
+          $exe = Join-Path $pkg.InstallLocation 'hwcontrol_dashboard.exe'
+          if (-not (Test-Path $exe)) { throw "Installed executable not found: $exe" }
+          $process = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 5
+          if ($process.HasExited -and $process.ExitCode -ne 0) {
+            throw "Installed application exited unexpectedly with code $($process.ExitCode)."
+          }
+          if (-not $process.HasExited) {
+            Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+          }
+
+      - name: Uninstall MSIX
+        if: always()
+        shell: pwsh
+        run: |
+          Get-AppxPackage -Name 'HWControl.CI' | Remove-AppxPackage -ErrorAction SilentlyContinue
+          if (Get-AppxPackage -Name 'HWControl.CI') { throw 'MSIX package remains registered after uninstall.' }
+
+      - name: Upload tested MSIX
+        uses: actions/upload-artifact@v4
+        with:
+          name: HWControl-v0.2.4-windows-MSIX-tested
+          path: ${{ steps.package.outputs.path }}
+          if-no-files-found: error
+          retention-days: 14
