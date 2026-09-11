@@ -19,6 +19,7 @@ concurrency:
 
 env:
   FLUTTER_PROJECT: gui_dashboard
+  FLUTTER_VERSION: 3.47.2
 
 jobs:
   validate:
@@ -34,12 +35,24 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
 
       - name: Enable Windows desktop
         shell: pwsh
         run: flutter config --enable-windows-desktop
+
+      - name: Generate Windows desktop project
+        working-directory: ${{ env.FLUTTER_PROJECT }}
+        shell: pwsh
+        run: |
+          if (-not (Test-Path -LiteralPath 'windows/CMakeLists.txt')) {
+            flutter create --platforms=windows --project-name hwcontrol_dashboard .
+          }
+          if (-not (Test-Path -LiteralPath 'windows/CMakeLists.txt')) {
+            throw 'Flutter Windows desktop project was not generated.'
+          }
+          Write-Host 'Windows desktop project is present.'
 
       - name: Install dependencies
         working-directory: ${{ env.FLUTTER_PROJECT }}
