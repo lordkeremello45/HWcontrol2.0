@@ -1,0 +1,47 @@
+name: Publish validated v0.2.4 MSIX
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: github.event.before == 'a7c85002a50721610f9669097bb061757c56e17a'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Download validated MSIX artifact
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 34614932396
+          name: HWControl-v0.2.4-windows-MSIX-tested
+          path: dist
+
+      - name: Verify downloaded MSIX
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(dist/*.msix)
+          if [ "${#files[@]}" -ne 1 ]; then
+            echo "Expected exactly one MSIX, found ${#files[@]}" >&2
+            exit 1
+          fi
+          mv "${files[0]}" dist/HWControl-v0.2.4-windows-x64.msix
+          test -s dist/HWControl-v0.2.4-windows-x64.msix
+          sha256sum dist/HWControl-v0.2.4-windows-x64.msix
+
+      - name: Upload MSIX to existing release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release upload v0.2.4-windows \
+            dist/HWControl-v0.2.4-windows-x64.msix \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
