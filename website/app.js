@@ -8,18 +8,19 @@ const platformLabels={
   linux:{eyebrow:'LINUX PACKAGE',title:'Pick your package',detected:'Linux · x64'}
 };
 const $=s=>document.querySelector(s);
-function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]||c));}
+function esc(v){return String(v).replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]||c));}
 function size(bytes){if(!bytes)return '';const units=['B','KB','MB','GB'];let n=bytes,i=0;while(n>=1024&&i<units.length-1){n/=1024;i++;}return `${n.toFixed(i?1:0)} ${units[i]}`;}
 function stableReleases(){return state.releases.filter(r=>!r.draft&&!r.prerelease);}
 function platformRelease(platform){return stableReleases().find(r=>new RegExp(`-${platform}$`,'i').test(r.tag_name));}
 function matches(name,platform){const n=name.toLowerCase();
-  if(platform==='windows')return (/setup\.exe$/.test(n)||/\.msi$/.test(n)||/\.zip$/.test(n))&&(/windows.*x64|win.*x64/.test(n));
+  if(platform==='windows')return (/setup\.exe$/.test(n)||/\.msi$/.test(n)||/\.msix$/.test(n))&&(/windows.*x64|win.*x64/.test(n)||/msix.*x64/.test(n));
   if(platform==='macos')return (/\.pkg$|\.dmg$|\.zip$/.test(n))&&(/macos.*(apple.?silicon|arm64)|darwin.*arm64/.test(n));
   return (/linux.*(x64|amd64)/.test(n))&&(/\.deb$|\.rpm$|\.pkg\.tar\.zst$|\.tar\.zst$|\.tar\.gz$/.test(n));
 }
 function packageName(name){const n=name.toLowerCase();
   if(n.endsWith('-setup.exe'))return 'HWControl Setup · recommended';
   if(n.endsWith('.msi'))return 'HWControl MSI installer';
+  if(n.endsWith('.msix'))return 'HWControl MSIX installer';
   if(n.endsWith('.exe'))return 'EXE installer';
   if(n.endsWith('.dmg'))return 'DMG disk image';
   if(n.endsWith('.pkg'))return 'PKG installer';
@@ -30,7 +31,7 @@ function packageName(name){const n=name.toLowerCase();
   if(n.endsWith('.tar.gz'))return 'TAR.GZ archive · generic Linux';
   return 'Release asset';
 }
-function preferred(a,b){const rank=x=>{const n=x.name.toLowerCase();if(state.platform==='windows'){if(n.endsWith('-setup.exe'))return 0;if(n.endsWith('.msi'))return 1;if(n.endsWith('.zip'))return 2;return 3;}if(state.platform==='macos')return n.endsWith('.pkg')?0:n.endsWith('.dmg')?1:n.endsWith('.zip')?2:3;return n.endsWith('.deb')?0:n.endsWith('.rpm')?1:n.endsWith('.pkg.tar.zst')?2:n.endsWith('.tar.zst')?3:n.endsWith('.tar.gz')?4:5};return rank(a)-rank(b);}
+function preferred(a,b){const rank=x=>{const n=x.name.toLowerCase();if(state.platform==='windows'){if(n.endsWith('.msix'))return 0;if(n.endsWith('-setup.exe'))return 1;if(n.endsWith('.msi'))return 2;return 3;}if(state.platform==='macos')return n.endsWith('.pkg')?0:n.endsWith('.dmg')?1:n.endsWith('.zip')?2:3;return n.endsWith('.deb')?0:n.endsWith('.rpm')?1:n.endsWith('.pkg.tar.zst')?2:n.endsWith('.tar.zst')?3:n.endsWith('.tar.gz')?4:5};return rank(a)-rank(b);}
 function checksumAsset(release,asset){const base=asset.name.toLowerCase();const candidates=release.assets||[];return candidates.find(x=>x.name.toLowerCase()===`${base}.sha256`)||candidates.find(x=>x.name.toLowerCase()===`${base}.sha256sum`)||candidates.find(x=>x.name.toLowerCase()===`${base}.sha256.txt`);}
 function releaseChecksumManifest(release){return (release?.assets||[]).find(x=>/^(sha256sums|checksums).*\.(txt|sha256|sha256sum)$/i.test(x.name));}
 function renderManifest(){
@@ -48,7 +49,7 @@ function renderManifest(){
   $('#checksumsLink').classList.toggle('hidden',!manifestUrl);
   if(manifestUrl)$('#checksumsLink').href=manifestUrl;
   if(!assets.length){$('#packages').innerHTML='<div class="loading">No matching package was found in the latest stable release. See the release assets on GitHub.</div>';return;}
-  $('#packages').innerHTML=assets.map(a=>{const verify=a.checksum_sha256_url?`<a class="verify" href="${esc(a.checksum_sha256_url)}" target="_blank" rel="noopener noreferrer">Verify SHA-256 ↗</a>`:'';return `<div class="package"><span class="name">${esc(packageName(a.name))}<small>${esc(a.name)} · ${size(a.size)}</small></span><div class="package-actions"><a href="${esc(a.url)}" target="_blank" rel="noopener noreferrer">Download ↗</a>${verify}</div></div>`;}).join('');
+  $('#packages').innerHTML=assets.map(a=>{const verify=a.checksum_sha256_url?`<a class="verify" href="${esc(a.checksum_sha256_url)}" target="_blank" rel="noopener noreferrer">Verify SHA-256 ↗</a>`:'';return `<div class="package"><span class="name">${esc(packageName(a.name))}<small>${esc(a.name)}${a.size?` · ${size(a.size)}`:''}</small></span><div class="package-actions"><a href="${esc(a.url)}" target="_blank" rel="noopener noreferrer">Download ↗</a>${verify}</div></div>`;}).join('');
 }
 function renderFallback(){
   const meta=platformLabels[state.platform];
