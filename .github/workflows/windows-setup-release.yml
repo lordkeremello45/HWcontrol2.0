@@ -61,7 +61,7 @@ jobs:
           wix build deploy/windows/HWControl-Setup.wxs -ext WixToolset.BootstrapperApplications.wixext -arch x64 -d Version=$version -d MsiPath="$env:MSI_PATH" -o "HWControl-${tag}-Windows-x64-Setup.exe"
           if (-not (Test-Path "HWControl-${tag}-Windows-x64-Setup.exe")) { throw 'HWControl Setup.exe was not produced.' }
 
-      - name: Smoke test Setup.exe and custom install directory
+      - name: Smoke test Setup.exe and complete uninstall cleanup
         env:
           RELEASE_TAG: ${{ github.event.workflow_run.head_branch }}
         shell: pwsh
@@ -69,18 +69,49 @@ jobs:
           $tag = $env:RELEASE_TAG
           $setup = Join-Path $PWD "HWControl-${tag}-Windows-x64-Setup.exe"
           $testDir = Join-Path $env:RUNNER_TEMP 'HWControl-Setup-Test'
+          $programDataDir = Join-Path $env:ProgramData 'HWControl'
+          $localAppDataDir = Join-Path $env:LOCALAPPDATA 'HWControl'
+          $machineEnvironmentKey = 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
+
           if (Test-Path $testDir) { Remove-Item $testDir -Recurse -Force }
+          if (Test-Path $programDataDir) { Remove-Item $programDataDir -Recurse -Force }
+          if (Test-Path $localAppDataDir) { Remove-Item $localAppDataDir -Recurse -Force }
+          Remove-ItemProperty -Path $machineEnvironmentKey -Name 'HWCONTROL_KEY' -ErrorAction SilentlyContinue
+
           $install = Start-Process -FilePath $setup -ArgumentList '/quiet', '/norestart', "InstallFolder=$testDir" -Wait -PassThru
           if ($install.ExitCode -ne 0) { throw "Setup.exe install failed with exit code $($install.ExitCode)." }
+
           if (-not (Test-Path "$testDir\HWControl.exe")) { throw 'Custom install folder was not honored by Setup.exe.' }
           if (-not (Test-Path "$testDir\bridge-service.exe")) { throw 'Bridge service was not installed into the custom folder.' }
           $service = Get-Service -Name HWControlBridge -ErrorAction Stop
           if ($service.Status -ne 'Running') { throw "HWControlBridge service is not running: $($service.Status)" }
           $probe = Test-NetConnection 127.0.0.1 -Port 8080 -WarningAction SilentlyContinue
           if (-not $probe.TcpTestSucceeded) { throw 'HWControlBridge is not listening on 127.0.0.1:8080 after Setup.exe install.' }
+
+          $machineKey = (Get-ItemProperty -Path $machineEnvironmentKey -Name 'HWCONTROL_KEY' -ErrorAction SilentlyContinue).HWCONTROL_KEY
+          if ([string]::IsNullOrWhiteSpace($machineKey)) { throw 'HWCONTROL_KEY was not persisted in the machine environment during install.' }
+          if (-not (Test-Path "$programDataDir\bridge.key")) { throw 'Bridge secret file was not created in ProgramData during install.' }
+
           $uninstall = Start-Process -FilePath $setup -ArgumentList '/uninstall', '/quiet', '/norestart' -Wait -PassThru
           if ($uninstall.ExitCode -ne 0) { throw "Setup.exe uninstall failed with exit code $($uninstall.ExitCode)." }
+
+          Start-Sleep -Seconds 2
+
           if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge service still exists after Setup.exe uninstall.' }
+          if (Test-Path $testDir) { throw "Install directory still exists after uninstall: $testDir" }
+          if (Test-Path $programDataDir) { throw "ProgramData directory still exists after uninstall: $programDataDir" }
+          if (Test-Path $localAppDataDir) { throw "LocalAppData directory still exists after uninstall: $localAppDataDir" }
+
+          $remainingMachineKey = (Get-ItemProperty -Path $machineEnvironmentKey -Name 'HWCONTROL_KEY' -ErrorAction SilentlyContinue).HWCONTROL_KEY
+          if (-not [string]::IsNullOrWhiteSpace($remainingMachineKey)) { throw 'Machine HWCONTROL_KEY still exists after Setup.exe uninstall.' }
+
+          $staleProcesses = Get-Process -Name 'HWControl','bridge-service' -ErrorAction SilentlyContinue
+          if ($staleProcesses) {
+            $names = ($staleProcesses | Select-Object -ExpandProperty ProcessName) -join ', '
+            throw "HWControl processes are still running after uninstall: $names"
+          }
+
+          Write-Host 'Complete uninstall cleanup verified: service, machine key, ProgramData, LocalAppData, install directory, and product processes are gone.'
 
       - name: Check Windows signing configuration
         id: signing
