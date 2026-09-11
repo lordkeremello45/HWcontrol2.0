@@ -13,8 +13,6 @@ on:
 permissions:
   contents: read
 
-# Do not cancel an in-flight package validation when another commit lands.
-# MSIX install/sign/uninstall validation must be allowed to finish cleanly.
 concurrency:
   group: msix-validation-${{ github.ref }}
   cancel-in-progress: false
@@ -103,32 +101,72 @@ jobs:
           "path=$($msix.FullName)" >> $env:GITHUB_OUTPUT
           Write-Host "MSIX: $($msix.FullName)"
 
-      - name: Create and trust CI signing certificate
+      - name: Create isolated CI signing certificate
         id: cert
         shell: powershell
         run: |
-          $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject 'CN=HWControl CI' -CertStoreLocation Cert:\CurrentUser\My -HashAlgorithm SHA256
-          $root = New-Object System.Security.Cryptography.X509Certificates.X509Store('Root','CurrentUser')
-          $root.Open('ReadWrite')
-          $root.Add($cert)
-          $root.Close()
+          $ErrorActionPreference = 'Stop'
+          $outDir = Join-Path $env:RUNNER_TEMP 'hwcontrol-msix-cert'
+          New-Item -ItemType Directory -Path $outDir -Force | Out-Null
+          $pfxPath = Join-Path $outDir 'hwcontrol-ci.pfx'
+          $cerPath = Join-Path $outDir 'hwcontrol-ci.cer'
+          $password = [Guid]::NewGuid().ToString('N')
+
+          $rsa = [System.Security.Cryptography.RSA]::Create(2048)
+          $dn = [System.Security.Cryptography.X509Certificates.X500DistinguishedName]::new('CN=HWControl CI')
+          $req = [System.Security.Cryptography.X509Certificates.CertificateRequest]::new(
+            $dn,
+            $rsa,
+            [System.Security.Cryptography.HashAlgorithmName]::SHA256,
+            [System.Security.Cryptography.RSASignaturePadding]::Pkcs1
+          )
+
+          $keyUsage = [System.Security.Cryptography.X509Certificates.X509KeyUsageExtension]::new(
+            [System.Security.Cryptography.X509Certificates.X509KeyUsageFlags]::DigitalSignature,
+            $true
+          )
+          $req.CertificateExtensions.Add($keyUsage)
+
+          $ekuOids = [System.Security.Cryptography.OidCollection]::new()
+          $ekuOids.Add([System.Security.Cryptography.Oid]::new('1.3.6.1.5.5.7.3.3')) | Out-Null
+          $req.CertificateExtensions.Add(
+            [System.Security.Cryptography.X509Certificates.X509EnhancedKeyUsageExtension]::new($ekuOids, $false)
+          )
+
+          $cert = $req.CreateSelfSigned((Get-Date).AddMinutes(-5), (Get-Date).AddDays(1))
+          [System.IO.File]::WriteAllBytes($pfxPath, $cert.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pfx, $password))
+          [System.IO.File]::WriteAllBytes($cerPath, $cert.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Cert))
+
+          foreach ($storeName in @('Root','TrustedPeople')) {
+            $store = [System.Security.Cryptography.X509Certificates.X509Store]::new($storeName, 'CurrentUser')
+            $store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
+            try { $store.Add($cert) } finally { $store.Close() }
+          }
+
+          "pfx_path=$pfxPath" >> $env:GITHUB_OUTPUT
+          "cer_path=$cerPath" >> $env:GITHUB_OUTPUT
+          "pfx_password=$password" >> $env:GITHUB_OUTPUT
           "thumbprint=$($cert.Thumbprint)" >> $env:GITHUB_OUTPUT
+          Write-Host "Created CI certificate $($cert.Thumbprint)"
 
       - name: Sign MSIX for isolated CI installation
         shell: powershell
         run: |
+          $ErrorActionPreference = 'Stop'
           $msix = '${{ steps.package.outputs.path }}'
-          $thumbprint = '${{ steps.cert.outputs.thumbprint }}'
+          $pfx = '${{ steps.cert.outputs.pfx_path }}'
+          $password = '${{ steps.cert.outputs.pfx_password }}'
           $signtool = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\bin\*\x64\signtool.exe' -ErrorAction Stop | Select-Object -First 1
           if (-not $signtool) { throw 'signtool.exe was not found on the Windows runner.' }
-          & $signtool.FullName sign /fd SHA256 /sha1 $thumbprint /td SHA256 $msix
-          if ($LASTEXITCODE -ne 0) { throw "signtool failed with exit code $LASTEXITCODE" }
+          & $signtool.FullName sign /fd SHA256 /f $pfx /p $password /td SHA256 $msix
+          if ($LASTEXITCODE -ne 0) { throw "signtool sign failed with exit code $LASTEXITCODE" }
           & $signtool.FullName verify /pa /all $msix
           if ($LASTEXITCODE -ne 0) { throw 'MSIX package signature verification failed.' }
 
       - name: Inspect MSIX manifest
         shell: powershell
         run: |
+          $ErrorActionPreference = 'Stop'
           $msix = '${{ steps.package.outputs.path }}'
           $zip = Join-Path $env:RUNNER_TEMP 'package.zip'
           $temp = Join-Path $env:RUNNER_TEMP 'msix-expand'
@@ -153,7 +191,6 @@ jobs:
           $pkg = Get-AppxPackage -Name 'HWControl.CI' -ErrorAction Stop
           if (-not $pkg) { throw 'MSIX package is not registered after installation.' }
           Write-Host "Installed package: $($pkg.Name) $($pkg.Version)"
-          "package_full_name=$($pkg.PackageFullName)" >> $env:GITHUB_ENV
 
       - name: Validate installed app payload
         shell: powershell
