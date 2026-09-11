@@ -139,19 +139,24 @@ jobs:
           if (-not (Test-Path -LiteralPath $pfxPath)) { throw 'CI signing PFX was not produced.' }
           if (-not (Test-Path -LiteralPath $certPath)) { throw 'CI signing certificate was not produced.' }
 
-          $cert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($certPath)
-          Write-Host "Created CI certificate $($cert.Thumbprint)"
+          Write-Host "Created CI certificate file $certPath"
 
           foreach ($storeName in @('Root','TrustedPeople')) {
-            $store = [System.Security.Cryptography.X509Certificates.X509Store]::new($storeName, 'CurrentUser')
-            $store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
-            try { $store.Add($cert) } finally { $store.Close() }
+            $certutil = Join-Path $env:SystemRoot 'System32\certutil.exe'
+            $process = Start-Process -FilePath $certutil -ArgumentList @('-user','-addstore','-f',$storeName,$certPath) -PassThru -NoNewWindow
+            if (-not $process.WaitForExit(30000)) {
+              try { $process.Kill() } catch { }
+              throw "certutil import to $storeName timed out after 30 seconds."
+            }
+            if ($process.ExitCode -ne 0) {
+              throw "certutil import to $storeName failed with exit code $($process.ExitCode)."
+            }
+            Write-Host "Trusted certificate imported into CurrentUser\$storeName"
           }
 
           "pfx_path=$pfxPath" >> $env:GITHUB_OUTPUT
           "cer_path=$certPath" >> $env:GITHUB_OUTPUT
           "pfx_password=$password" >> $env:GITHUB_OUTPUT
-          "thumbprint=$($cert.Thumbprint)" >> $env:GITHUB_OUTPUT
 
       - name: Sign MSIX for isolated CI installation
         shell: pwsh
