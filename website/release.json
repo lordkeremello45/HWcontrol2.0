@@ -17,10 +17,10 @@
           "checksum_sha256_url": null
         },
         {
-          "name": "HWControl-v0.2.4-windows-Windows-x64.zip",
-          "url": "https://github.com/lordkeremello45/HWcontrol2.0/releases/download/v0.2.4-windows/HWControl-v0.2.4-windows-Windows-x64.zip",
-          "size": 13362639,
-          "content_type": "application/zip",
+          "name": "HWControl-v0.2.4-windows-MSIX-x64.msix",
+          "url": "https://github.com/lordkeremello45/HWcontrol2.0/releases/download/v0.2.4-windows/HWControl-v0.2.4-windows-MSIX-x64.msix",
+          "size": null,
+          "content_type": "application/octet-stream",
           "checksum_sha256_url": null
         }
       ],
@@ -88,7 +88,6 @@
         "ed25519_signature_url": null,
         "ed25519_public_key_url": null,
         "gpg_signature_url": null,
-        "gpg_public_key_url": null,
         "gpg_fingerprint_url": null
       }
     }
