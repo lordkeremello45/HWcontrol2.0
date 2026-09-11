@@ -145,7 +145,7 @@ jobs:
             --output $pfxPath `
             --password $password `
             --valid-days 1 `
-            --if-exists overwrite `
+            --if-exists Overwrite `
             --export-cer
           if ($LASTEXITCODE -ne 0) { throw "WinApp CLI certificate generation failed with exit code $LASTEXITCODE" }
 
@@ -165,10 +165,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'WinApp CLI certificate inspection failed.' }
 
       - name: Trust CI certificate
-        shell: pwsh
+        shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
-          winapp cert install '${{ steps.cert.outputs.pfx_path }}' --password '${{ steps.cert.outputs.pfx_password }}'
+          winapp cert install '${{ steps.cert.outputs.pfx_path }}'
           if ($LASTEXITCODE -ne 0) { throw 'WinApp CLI certificate installation failed.' }
 
       - name: Sign MSIX for isolated CI installation
@@ -208,8 +208,9 @@ jobs:
           Write-Host "Publisher: $($identity.Publisher)"
 
       - name: Install MSIX
-        shell: pwsh
+        shell: powershell
         run: |
+          $ErrorActionPreference = 'Stop'
           Import-Module Appx -ErrorAction Stop
           $msix = '${{ steps.package.outputs.path }}'
           Add-AppxPackage -Path $msix -ForceApplicationShutdown -ErrorAction Stop
@@ -218,8 +219,9 @@ jobs:
           Write-Host "Installed package: $($pkg.Name) $($pkg.Version)"
 
       - name: Validate installed app payload
-        shell: pwsh
+        shell: powershell
         run: |
+          $ErrorActionPreference = 'Stop'
           Import-Module Appx -ErrorAction Stop
           $pkg = Get-AppxPackage -Name 'HWControl.CI' -ErrorAction Stop
           if (-not $pkg) { throw 'Installed package could not be located.' }
@@ -228,8 +230,9 @@ jobs:
           Write-Host "Installed executable: $exe"
 
       - name: Launch installed application smoke test
-        shell: pwsh
+        shell: powershell
         run: |
+          $ErrorActionPreference = 'Stop'
           Import-Module Appx -ErrorAction Stop
           $pkg = Get-AppxPackage -Name 'HWControl.CI' -ErrorAction Stop
           $exe = Join-Path $pkg.InstallLocation 'hwcontrol_dashboard.exe'
@@ -244,8 +247,9 @@ jobs:
 
       - name: Uninstall MSIX
         if: always()
-        shell: pwsh
+        shell: powershell
         run: |
+          $ErrorActionPreference = 'Stop'
           Import-Module Appx -ErrorAction Stop
           $pkg = Get-AppxPackage -Name 'HWControl.CI' -ErrorAction SilentlyContinue
           if ($pkg) {
