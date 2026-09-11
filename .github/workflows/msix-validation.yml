@@ -13,9 +13,11 @@ on:
 permissions:
   contents: read
 
+# Do not cancel an in-flight package validation when another commit lands.
+# MSIX install/sign/uninstall validation must be allowed to finish cleanly.
 concurrency:
   group: msix-validation-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   FLUTTER_PROJECT: gui_dashboard
@@ -25,7 +27,7 @@ jobs:
   validate:
     name: Build, install, smoke-test and uninstall MSIX
     runs-on: windows-2022
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,6 +38,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
           cache: true
 
       - name: Enable Windows desktop
@@ -52,7 +55,6 @@ jobs:
           if (-not (Test-Path -LiteralPath 'windows/CMakeLists.txt')) {
             throw 'Flutter Windows desktop project was not generated.'
           }
-          Write-Host 'Windows desktop project is present.'
 
       - name: Install dependencies
         working-directory: ${{ env.FLUTTER_PROJECT }}
