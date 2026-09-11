@@ -103,39 +103,44 @@ jobs:
 
       - name: Create isolated CI signing certificate
         id: cert
-        shell: powershell
+        shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+          $openssl = (Get-Command openssl.exe -ErrorAction Stop).Source
           $outDir = Join-Path $env:RUNNER_TEMP 'hwcontrol-msix-cert'
           New-Item -ItemType Directory -Path $outDir -Force | Out-Null
+
+          $keyPath = Join-Path $outDir 'hwcontrol-ci-key.pem'
+          $certPath = Join-Path $outDir 'hwcontrol-ci.crt'
           $pfxPath = Join-Path $outDir 'hwcontrol-ci.pfx'
-          $cerPath = Join-Path $outDir 'hwcontrol-ci.cer'
           $password = [Guid]::NewGuid().ToString('N')
 
-          $rsa = [System.Security.Cryptography.RSA]::Create(2048)
-          $dn = [System.Security.Cryptography.X509Certificates.X500DistinguishedName]::new('CN=HWControl CI')
-          $req = [System.Security.Cryptography.X509Certificates.CertificateRequest]::new(
-            $dn,
-            $rsa,
-            [System.Security.Cryptography.HashAlgorithmName]::SHA256,
-            [System.Security.Cryptography.RSASignaturePadding]::Pkcs1
-          )
+          Write-Host "Using OpenSSL: $openssl"
+          & $openssl version
+          if ($LASTEXITCODE -ne 0) { throw 'OpenSSL version check failed.' }
 
-          $keyUsage = [System.Security.Cryptography.X509Certificates.X509KeyUsageExtension]::new(
-            [System.Security.Cryptography.X509Certificates.X509KeyUsageFlags]::DigitalSignature,
-            $true
-          )
-          $req.CertificateExtensions.Add($keyUsage)
+          & $openssl req -x509 -newkey rsa:2048 -nodes -sha256 `
+            -keyout $keyPath `
+            -out $certPath `
+            -days 1 `
+            -subj '/CN=HWControl CI' `
+            -addext 'keyUsage=digitalSignature' `
+            -addext 'extendedKeyUsage=codeSigning'
+          if ($LASTEXITCODE -ne 0) { throw "OpenSSL certificate generation failed with exit code $LASTEXITCODE" }
 
-          $ekuOids = [System.Security.Cryptography.OidCollection]::new()
-          $ekuOids.Add([System.Security.Cryptography.Oid]::new('1.3.6.1.5.5.7.3.3')) | Out-Null
-          $req.CertificateExtensions.Add(
-            [System.Security.Cryptography.X509Certificates.X509EnhancedKeyUsageExtension]::new($ekuOids, $false)
-          )
+          & $openssl pkcs12 -export `
+            -out $pfxPath `
+            -inkey $keyPath `
+            -in $certPath `
+            -passout "pass:$password" `
+            -name 'HWControl CI'
+          if ($LASTEXITCODE -ne 0) { throw "OpenSSL PFX export failed with exit code $LASTEXITCODE" }
 
-          $cert = $req.CreateSelfSigned((Get-Date).AddMinutes(-5), (Get-Date).AddDays(1))
-          [System.IO.File]::WriteAllBytes($pfxPath, $cert.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pfx, $password))
-          [System.IO.File]::WriteAllBytes($cerPath, $cert.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Cert))
+          if (-not (Test-Path -LiteralPath $pfxPath)) { throw 'CI signing PFX was not produced.' }
+          if (-not (Test-Path -LiteralPath $certPath)) { throw 'CI signing certificate was not produced.' }
+
+          $cert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($certPath)
+          Write-Host "Created CI certificate $($cert.Thumbprint)"
 
           foreach ($storeName in @('Root','TrustedPeople')) {
             $store = [System.Security.Cryptography.X509Certificates.X509Store]::new($storeName, 'CurrentUser')
@@ -144,13 +149,12 @@ jobs:
           }
 
           "pfx_path=$pfxPath" >> $env:GITHUB_OUTPUT
-          "cer_path=$cerPath" >> $env:GITHUB_OUTPUT
+          "cer_path=$certPath" >> $env:GITHUB_OUTPUT
           "pfx_password=$password" >> $env:GITHUB_OUTPUT
           "thumbprint=$($cert.Thumbprint)" >> $env:GITHUB_OUTPUT
-          Write-Host "Created CI certificate $($cert.Thumbprint)"
 
       - name: Sign MSIX for isolated CI installation
-        shell: powershell
+        shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $msix = '${{ steps.package.outputs.path }}'
@@ -164,7 +168,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'MSIX package signature verification failed.' }
 
       - name: Inspect MSIX manifest
-        shell: powershell
+        shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $msix = '${{ steps.package.outputs.path }}'
@@ -183,7 +187,7 @@ jobs:
           Write-Host "Publisher: $($identity.Publisher)"
 
       - name: Install MSIX
-        shell: powershell
+        shell: pwsh
         run: |
           Import-Module Appx -ErrorAction Stop
           $msix = '${{ steps.package.outputs.path }}'
@@ -193,7 +197,7 @@ jobs:
           Write-Host "Installed package: $($pkg.Name) $($pkg.Version)"
 
       - name: Validate installed app payload
-        shell: powershell
+        shell: pwsh
         run: |
           Import-Module Appx -ErrorAction Stop
           $pkg = Get-AppxPackage -Name 'HWControl.CI' -ErrorAction Stop
@@ -203,7 +207,7 @@ jobs:
           Write-Host "Installed executable: $exe"
 
       - name: Launch installed application smoke test
-        shell: powershell
+        shell: pwsh
         run: |
           Import-Module Appx -ErrorAction Stop
           $pkg = Get-AppxPackage -Name 'HWControl.CI' -ErrorAction Stop
@@ -219,7 +223,7 @@ jobs:
 
       - name: Uninstall MSIX
         if: always()
-        shell: powershell
+        shell: pwsh
         run: |
           Import-Module Appx -ErrorAction Stop
           $pkg = Get-AppxPackage -Name 'HWControl.CI' -ErrorAction SilentlyContinue
