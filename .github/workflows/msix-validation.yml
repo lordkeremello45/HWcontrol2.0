@@ -90,7 +90,7 @@ jobs:
 
       - name: Create and trust CI signing certificate
         id: cert
-        shell: pwsh
+        shell: powershell
         run: |
           $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject 'CN=HWControl CI' -CertStoreLocation Cert:\CurrentUser\My -HashAlgorithm SHA256
           $root = New-Object System.Security.Cryptography.X509Certificates.X509Store('Root','CurrentUser')
@@ -100,7 +100,7 @@ jobs:
           "thumbprint=$($cert.Thumbprint)" >> $env:GITHUB_OUTPUT
 
       - name: Sign MSIX for isolated CI installation
-        shell: pwsh
+        shell: powershell
         run: |
           $msix = '${{ steps.package.outputs.path }}'
           $thumbprint = '${{ steps.cert.outputs.thumbprint }}'
@@ -112,7 +112,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'MSIX package signature verification failed.' }
 
       - name: Inspect MSIX manifest
-        shell: pwsh
+        shell: powershell
         run: |
           $msix = '${{ steps.package.outputs.path }}'
           $zip = Join-Path $env:RUNNER_TEMP 'package.zip'
@@ -130,27 +130,31 @@ jobs:
           Write-Host "Publisher: $($identity.Publisher)"
 
       - name: Install MSIX
-        shell: pwsh
+        shell: powershell
         run: |
+          Import-Module Appx -ErrorAction Stop
           $msix = '${{ steps.package.outputs.path }}'
           Add-AppxPackage -Path $msix -ForceApplicationShutdown -ErrorAction Stop
-          $pkg = Get-AppxPackage -Name 'HWControl.CI'
+          $pkg = Get-AppxPackage -Name 'HWControl.CI' -ErrorAction Stop
           if (-not $pkg) { throw 'MSIX package is not registered after installation.' }
           Write-Host "Installed package: $($pkg.Name) $($pkg.Version)"
+          "package_full_name=$($pkg.PackageFullName)" >> $env:GITHUB_ENV
 
       - name: Validate installed app payload
-        shell: pwsh
+        shell: powershell
         run: |
-          $pkg = Get-AppxPackage -Name 'HWControl.CI'
+          Import-Module Appx -ErrorAction Stop
+          $pkg = Get-AppxPackage -Name 'HWControl.CI' -ErrorAction Stop
           if (-not $pkg) { throw 'Installed package could not be located.' }
           $exe = Join-Path $pkg.InstallLocation 'hwcontrol_dashboard.exe'
           if (-not (Test-Path -LiteralPath $exe)) { throw "Flutter dashboard executable is missing: $exe" }
           Write-Host "Installed executable: $exe"
 
       - name: Launch installed application smoke test
-        shell: pwsh
+        shell: powershell
         run: |
-          $pkg = Get-AppxPackage -Name 'HWControl.CI'
+          Import-Module Appx -ErrorAction Stop
+          $pkg = Get-AppxPackage -Name 'HWControl.CI' -ErrorAction Stop
           $exe = Join-Path $pkg.InstallLocation 'hwcontrol_dashboard.exe'
           $process = Start-Process -FilePath $exe -PassThru
           Start-Sleep -Seconds 5
@@ -163,10 +167,16 @@ jobs:
 
       - name: Uninstall MSIX
         if: always()
-        shell: pwsh
+        shell: powershell
         run: |
-          Get-AppxPackage -Name 'HWControl.CI' | Remove-AppxPackage -ErrorAction SilentlyContinue
-          if (Get-AppxPackage -Name 'HWControl.CI') { throw 'MSIX package remains registered after uninstall.' }
+          Import-Module Appx -ErrorAction Stop
+          $pkg = Get-AppxPackage -Name 'HWControl.CI' -ErrorAction SilentlyContinue
+          if ($pkg) {
+            Remove-AppxPackage -Package $pkg.PackageFullName -ErrorAction Stop
+          }
+          $remaining = Get-AppxPackage -Name 'HWControl.CI' -ErrorAction SilentlyContinue
+          if ($remaining) { throw 'MSIX package remains registered after uninstall.' }
+          Write-Host 'MSIX uninstall verification passed.'
 
       - name: Upload tested MSIX
         if: success()
