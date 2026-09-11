@@ -39,6 +39,17 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Set up WinApp CLI
+        uses: microsoft/setup-WinAppCli@v0.2
+        with:
+          version: latest
+
+      - name: Verify WinApp CLI
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          winapp --help | Select-Object -First 5
+
       - name: Enable Windows desktop
         shell: pwsh
         run: flutter config --enable-windows-desktop
@@ -101,74 +112,79 @@ jobs:
           "path=$($msix.FullName)" >> $env:GITHUB_OUTPUT
           Write-Host "MSIX: $($msix.FullName)"
 
+      - name: Extract MSIX manifest for certificate generation
+        id: manifest
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $msix = '${{ steps.package.outputs.path }}'
+          $zip = Join-Path $env:RUNNER_TEMP 'hwcontrol-msix.zip'
+          $dir = Join-Path $env:RUNNER_TEMP 'hwcontrol-msix-manifest'
+          Copy-Item -LiteralPath $msix -Destination $zip -Force
+          Remove-Item -LiteralPath $dir -Recurse -Force -ErrorAction SilentlyContinue
+          Expand-Archive -LiteralPath $zip -DestinationPath $dir -Force
+          $manifest = Join-Path $dir 'AppxManifest.xml'
+          if (-not (Test-Path -LiteralPath $manifest)) { throw 'MSIX AppxManifest.xml was not found.' }
+          "path=$manifest" >> $env:GITHUB_OUTPUT
+          Write-Host "Manifest: $manifest"
+
       - name: Create isolated CI signing certificate
         id: cert
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $openssl = (Get-Command openssl.exe -ErrorAction Stop).Source
-          $outDir = Join-Path $env:RUNNER_TEMP 'hwcontrol-msix-cert'
+          $outDir = Join-Path $env:RUNNER_TEMP 'hwcontrol-winapp-cert'
           New-Item -ItemType Directory -Path $outDir -Force | Out-Null
-
-          $keyPath = Join-Path $outDir 'hwcontrol-ci-key.pem'
-          $certPath = Join-Path $outDir 'hwcontrol-ci.crt'
           $pfxPath = Join-Path $outDir 'hwcontrol-ci.pfx'
-          $password = [Guid]::NewGuid().ToString('N')
+          $cerPath = Join-Path $outDir 'hwcontrol-ci.cer'
+          $password = 'password'
 
-          Write-Host "Using OpenSSL: $openssl"
-          & $openssl version
-          if ($LASTEXITCODE -ne 0) { throw 'OpenSSL version check failed.' }
+          Write-Host 'Generating CI development certificate with WinApp CLI...'
+          winapp cert generate `
+            --manifest '${{ steps.manifest.outputs.path }}' `
+            --output $pfxPath `
+            --password $password `
+            --valid-days 1 `
+            --if-exists overwrite `
+            --export-cer
+          if ($LASTEXITCODE -ne 0) { throw "WinApp CLI certificate generation failed with exit code $LASTEXITCODE" }
 
-          & $openssl req -x509 -newkey rsa:2048 -nodes -sha256 `
-            -keyout $keyPath `
-            -out $certPath `
-            -days 1 `
-            -subj '/CN=HWControl CI' `
-            -addext 'keyUsage=digitalSignature' `
-            -addext 'extendedKeyUsage=codeSigning'
-          if ($LASTEXITCODE -ne 0) { throw "OpenSSL certificate generation failed with exit code $LASTEXITCODE" }
+          if (-not (Test-Path -LiteralPath $pfxPath)) { throw 'WinApp CLI did not produce a PFX certificate.' }
+          if (-not (Test-Path -LiteralPath $cerPath)) { throw 'WinApp CLI did not produce a CER certificate.' }
 
-          & $openssl pkcs12 -export `
-            -out $pfxPath `
-            -inkey $keyPath `
-            -in $certPath `
-            -passout "pass:$password" `
-            -name 'HWControl CI'
-          if ($LASTEXITCODE -ne 0) { throw "OpenSSL PFX export failed with exit code $LASTEXITCODE" }
-
-          if (-not (Test-Path -LiteralPath $pfxPath)) { throw 'CI signing PFX was not produced.' }
-          if (-not (Test-Path -LiteralPath $certPath)) { throw 'CI signing certificate was not produced.' }
-
-          Write-Host "Created CI certificate file $certPath"
-
-          foreach ($storeName in @('Root','TrustedPeople')) {
-            $certutil = Join-Path $env:SystemRoot 'System32\certutil.exe'
-            $process = Start-Process -FilePath $certutil -ArgumentList @('-user','-addstore','-f',$storeName,$certPath) -PassThru -NoNewWindow
-            if (-not $process.WaitForExit(30000)) {
-              try { $process.Kill() } catch { }
-              throw "certutil import to $storeName timed out after 30 seconds."
-            }
-            if ($process.ExitCode -ne 0) {
-              throw "certutil import to $storeName failed with exit code $($process.ExitCode)."
-            }
-            Write-Host "Trusted certificate imported into CurrentUser\$storeName"
-          }
-
+          Write-Host 'CI certificate generated successfully.'
           "pfx_path=$pfxPath" >> $env:GITHUB_OUTPUT
-          "cer_path=$certPath" >> $env:GITHUB_OUTPUT
+          "cer_path=$cerPath" >> $env:GITHUB_OUTPUT
           "pfx_password=$password" >> $env:GITHUB_OUTPUT
+
+      - name: Inspect generated certificate
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          winapp cert info '${{ steps.cert.outputs.pfx_path }}' --password '${{ steps.cert.outputs.pfx_password }}'
+          if ($LASTEXITCODE -ne 0) { throw 'WinApp CLI certificate inspection failed.' }
+
+      - name: Trust CI certificate
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          winapp cert install '${{ steps.cert.outputs.pfx_path }}' --password '${{ steps.cert.outputs.pfx_password }}'
+          if ($LASTEXITCODE -ne 0) { throw 'WinApp CLI certificate installation failed.' }
 
       - name: Sign MSIX for isolated CI installation
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+          winapp sign '${{ steps.package.outputs.path }}' '${{ steps.cert.outputs.pfx_path }}' --password '${{ steps.cert.outputs.pfx_password }}'
+          if ($LASTEXITCODE -ne 0) { throw 'WinApp CLI MSIX signing failed.' }
+
+      - name: Verify MSIX signature
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
           $msix = '${{ steps.package.outputs.path }}'
-          $pfx = '${{ steps.cert.outputs.pfx_path }}'
-          $password = '${{ steps.cert.outputs.pfx_password }}'
           $signtool = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\bin\*\x64\signtool.exe' -ErrorAction Stop | Select-Object -First 1
           if (-not $signtool) { throw 'signtool.exe was not found on the Windows runner.' }
-          & $signtool.FullName sign /fd SHA256 /f $pfx /p $password /td SHA256 $msix
-          if ($LASTEXITCODE -ne 0) { throw "signtool sign failed with exit code $LASTEXITCODE" }
           & $signtool.FullName verify /pa /all $msix
           if ($LASTEXITCODE -ne 0) { throw 'MSIX package signature verification failed.' }
 
