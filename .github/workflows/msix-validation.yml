@@ -80,27 +80,25 @@ jobs:
         shell: pwsh
         run: flutter build windows --release -t lib/installer_main.dart
 
-      - name: Configure CI MSIX metadata
+      - name: Build unsigned CI MSIX
         working-directory: ${{ env.FLUTTER_PROJECT }}
         shell: pwsh
         run: |
-          @'
-
-          msix_config:
-            display_name: HWControl
-            publisher_display_name: HWControl CI
-            identity_name: HWControl.CI
-            publisher: CN=HWControl CI
-            msix_version: 0.2.4.0
-            architecture: x64
-            install_certificate: false
-            languages: en-us
-          '@ | Add-Content pubspec.yaml
-
-      - name: Build MSIX
-        working-directory: ${{ env.FLUTTER_PROJECT }}
-        shell: pwsh
-        run: dart run msix:create --version 0.2.4.0 --output-path build/msix
+          $ErrorActionPreference = 'Stop'
+          dart run msix:create `
+            --build-windows false `
+            --display-name 'HWControl' `
+            --publisher-display-name 'HWControl CI' `
+            --identity-name 'HWControl.CI' `
+            --publisher 'CN=HWControl CI' `
+            --version 0.2.4.0 `
+            --architecture x64 `
+            --languages en-us `
+            --install-certificate false `
+            --sign-msix false `
+            --output-path build/msix `
+            --output-name HWControl-CI
+          if ($LASTEXITCODE -ne 0) { throw "MSIX creation failed with exit code $LASTEXITCODE" }
 
       - name: Locate MSIX
         id: package
