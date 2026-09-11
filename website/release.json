@@ -17,10 +17,10 @@
           "checksum_sha256_url": null
         },
         {
-          "name": "HWControl-v0.2.4-windows-MSIX-x64.msix",
-          "url": "https://github.com/lordkeremello45/HWcontrol2.0/releases/download/v0.2.4-windows/HWControl-v0.2.4-windows-MSIX-x64.msix",
-          "size": null,
-          "content_type": "application/octet-stream",
+          "name": "HWControl-v0.2.4-windows-x64.msix",
+          "url": "https://github.com/lordkeremello45/HWcontrol2.0/releases/download/v0.2.4-windows/HWControl-v0.2.4-windows-x64.msix",
+          "size": 13137358,
+          "content_type": "application/msix",
           "checksum_sha256_url": null
         }
       ],
@@ -30,6 +30,7 @@
         "sha3_512sums_url": null,
         "ed25519_signature_url": null,
         "ed25519_public_key_url": null,
+        "ed25519_signature_url": null,
         "gpg_signature_url": null,
         "gpg_public_key_url": null,
         "gpg_fingerprint_url": null
@@ -55,6 +56,7 @@
         "sha3_512sums_url": null,
         "ed25519_signature_url": null,
         "ed25519_public_key_url": null,
+        "ed25519_signature_url": null,
         "gpg_signature_url": null,
         "gpg_public_key_url": null,
         "gpg_fingerprint_url": null
@@ -64,7 +66,7 @@
       "tag": "v0.2.0-linux",
       "version": "0.2.0",
       "published_at": "2026-09-06T10:01:18Z",
-      "release_url": "https://github.com/lordkeremello45/HWcontrol2.0/releases/tag/v0.2.0-linux",
+      "release_url": "https://github.com/lordkeremello45/HWcontrol2.0/releases/download/v0.2.0-linux",
       "assets": [
         {
           "name": "HWControl-v0.2.0-linux-Linux-x64.deb",
@@ -88,6 +90,7 @@
         "ed25519_signature_url": null,
         "ed25519_public_key_url": null,
         "gpg_signature_url": null,
+        "gpg_public_key_url": null,
         "gpg_fingerprint_url": null
       }
     }
