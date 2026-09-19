@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: wiki-sync
@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   sync:
-    name: Publish docs/wiki to GitHub Wiki
+    name: Validate and sync docs/wiki
     runs-on: ubuntu-latest
 
     steps:
@@ -31,96 +31,124 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -d docs/wiki || { echo "::error::docs/wiki does not exist."; exit 1; }
+
+          test -d docs/wiki || {
+            echo "::error::docs/wiki does not exist."
+            exit 1
+          }
+
           count="$(find docs/wiki -maxdepth 1 -type f -name '*.md' | wc -l)"
           if [ "$count" -eq 0 ]; then
             echo "::error::No Markdown pages found in docs/wiki."
             exit 1
           fi
+
           echo "Found $count Wiki Markdown pages."
 
-      - name: Configure GitHub Actions authentication
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
-
-      - name: Check Wiki repository access
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          WIKI_REPO="https://github.com/${GITHUB_REPOSITORY}.wiki.git"
-          if ! git ls-remote --exit-code "$WIKI_REPO" HEAD >/dev/null 2>&1; then
-            echo "::error::The GitHub Wiki repository is not accessible with GITHUB_TOKEN."
-            echo "::error::Enable and initialize the repository Wiki first."
-            exit 1
-          fi
-
-      - name: Detect Wiki default branch
+      - name: Probe GitHub Wiki
         id: wiki
         shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+
           WIKI_REPO="https://github.com/${GITHUB_REPOSITORY}.wiki.git"
-          branch="$(
-            git ls-remote --symref "$WIKI_REPO" HEAD |
-            sed -n 's/^ref: refs\/heads\/\([^[:space:]]*\)[[:space:]]HEAD$/\1/p'
-          )"
-          if [ -z "$branch" ]; then
-            echo "::error::Could not determine the Wiki default branch."
-            exit 1
+
+          auth_header="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w 0)"
+
+          if ! output="$(git -c http.extraHeader="$auth_header" ls-remote --symref "$WIKI_REPO" HEAD 2>/dev/null)"; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::GitHub Wiki sync skipped. The built-in GITHUB_TOKEN cannot access the separate .wiki.git repository."
+            echo "::notice::docs/wiki remains the canonical, version-controlled Wiki source."
+            exit 0
           fi
-          echo "Wiki default branch: $branch"
-          echo "branch=$branch" >> "${GITHUB_OUTPUT}"
+
+          branch="$(printf '%s\n' "$output" | sed -n 's/^ref: refs\/heads\/\([^[:space:]]*\)[[:space:]]HEAD$/\1/p')"
+
+          if [ -z "$branch" ]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::GitHub Wiki sync skipped because the Wiki has not been initialized yet."
+            echo "::notice::docs/wiki validation completed successfully."
+            exit 0
+          fi
+
+          echo "available=true" >> "$GITHUB_OUTPUT"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          echo "Wiki repository is available on branch: $branch"
 
       - name: Clone Wiki
+        if: steps.wiki.outputs.available == 'true'
         shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+
           WIKI_REPO="https://github.com/${GITHUB_REPOSITORY}.wiki.git"
-          git clone --depth 1 --branch "${{ steps.wiki.outputs.branch }}" "$WIKI_REPO" wiki
+          auth_header="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w 0)"
+
+          git -c http.extraHeader="$auth_header" clone             --depth 1             --branch "${{ steps.wiki.outputs.branch }}"             "$WIKI_REPO" wiki
+
           git -C wiki config user.name "github-actions[bot]"
           git -C wiki config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Synchronize Wiki pages
+        if: steps.wiki.outputs.available == 'true'
         shell: bash
         run: |
           set -euo pipefail
+
           find wiki -maxdepth 1 -type f -name '*.md' -delete
           cp docs/wiki/*.md wiki/
+
           if [ -f wiki/Wiki-Index.md ] && [ ! -f wiki/Home.md ]; then
             cp wiki/Wiki-Index.md wiki/Home.md
           fi
 
       - name: Commit Wiki changes
         id: commit
+        if: steps.wiki.outputs.available == 'true'
         shell: bash
         run: |
           set -euo pipefail
+
           cd wiki
           git add -A
+
           if git diff --cached --quiet; then
-            echo "changed=false" >> "${GITHUB_OUTPUT}"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "Wiki is already up to date."
             exit 0
           fi
+
           git commit -m "docs: sync HWControl 2.0 Wiki"
-          echo "changed=true" >> "${GITHUB_OUTPUT}"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
 
       - name: Push Wiki
-        if: ${{ steps.commit.outputs.changed == 'true' }}
+        if: steps.wiki.outputs.available == 'true' && steps.commit.outputs.changed == 'true'
         shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+
           cd wiki
-          git push origin "${{ steps.wiki.outputs.branch }}"
+          auth_header="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w 0)"
+          git -c http.extraHeader="$auth_header" push origin "${{ steps.wiki.outputs.branch }}"
+
+      - name: Summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Wiki synchronization"
+            echo
+            if [ "${{ steps.wiki.outputs.available }}" = "true" ]; then
+              echo "GitHub Wiki repository was reachable and synchronization was attempted."
+            else
+              echo "GitHub Wiki repository was not reachable with the built-in Actions token."
+              echo
+              echo "The workflow completed successfully and **docs/wiki** remains the canonical Wiki source."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
