@@ -1,0 +1,121 @@
+name: Release readiness
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to validate (for example v0.2.4)"
+        required: true
+        type: string
+      require_windows_signing:
+        description: "Fail if Windows Authenticode credentials are missing"
+        required: false
+        default: false
+        type: boolean
+      require_macos_signing:
+        description: "Fail if Apple signing/notarization credentials are missing"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  readiness:
+    name: Validate release assets and trust configuration
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Validate release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json name,tagName,publishedAt,assets
+          rm -rf release-assets
+          mkdir release-assets
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir release-assets --pattern '*' --clobber
+          shopt -s nullglob
+          files=(release-assets/*)
+          test "${#files[@]}" -gt 0
+
+          case "$TAG" in
+            *-windows)
+              compgen -G 'release-assets/*.msi' >/dev/null || compgen -G 'release-assets/*.zip' >/dev/null
+              ;;
+            *-macos)
+              compgen -G 'release-assets/*.pkg' >/dev/null || compgen -G 'release-assets/*.dmg' >/dev/null
+              ;;
+            *-linux)
+              compgen -G 'release-assets/*.deb' >/dev/null || compgen -G 'release-assets/*.tar.gz' >/dev/null || compgen -G 'release-assets/*.tar.zst' >/dev/null
+              ;;
+          esac
+
+      - name: Verify SHA256 manifests
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          cd release-assets
+          shopt -s nullglob
+          manifests=(*.sha256)
+          test "${#manifests[@]}" -gt 0 || { echo "No per-artifact SHA256 manifest found."; exit 1; }
+          for manifest in "${manifests[@]}"; do
+            while read -r expected asset; do
+              [ -n "$expected" ] || continue
+              asset="${asset#*}"
+              test -f "$asset" || { echo "Missing asset: $asset"; exit 1; }
+              actual="$(sha256sum "$asset" | awk '{print $1}')"
+              test "$expected" = "$actual" || { echo "SHA256 mismatch: $asset"; exit 1; }
+            done < "$manifest"
+          done
+
+      - name: Check Windows trust configuration
+        env:
+          WINDOWS_CERTIFICATE_B64: ${{ secrets.WINDOWS_CERTIFICATE_B64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+          REQUIRE: ${{ inputs.require_windows_signing }}
+        run: |
+          set -euo pipefail
+          configured=false
+          if [ -n "${WINDOWS_CERTIFICATE_B64:-}" ] && [ -n "${WINDOWS_CERTIFICATE_PASSWORD:-}" ]; then configured=true; fi
+          echo "Windows Authenticode configured: $configured"
+          if [ "$REQUIRE" = "true" ] && [ "$configured" != "true" ]; then
+            echo "Required Windows signing credentials are missing." >&2
+            exit 1
+          fi
+
+      - name: Check Apple trust configuration
+        env:
+          APPLE_CERTIFICATE_P12_B64: ${{ secrets.APPLE_CERTIFICATE_P12_B64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_API_KEY_B64: ${{ secrets.APPLE_API_KEY_B64 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          REQUIRE: ${{ inputs.require_macos_signing }}
+        run: |
+          set -euo pipefail
+          configured=false
+          if [ -n "${APPLE_CERTIFICATE_P12_B64:-}" ] &&              [ -n "${APPLE_CERTIFICATE_PASSWORD:-}" ] &&              [ -n "${APPLE_SIGNING_IDENTITY:-}" ] &&              [ -n "${APPLE_API_KEY_B64:-}" ] &&              [ -n "${APPLE_API_KEY_ID:-}" ] &&              [ -n "${APPLE_API_ISSUER:-}" ]; then configured=true; fi
+          echo "Apple Developer ID + notarization configuration: $configured"
+          if [ "$REQUIRE" = "true" ] && [ "$configured" != "true" ]; then
+            echo "Required Apple signing/notarization credentials are missing." >&2
+            exit 1
+          fi
+
+      - name: Readiness summary
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          {
+            echo "## Release readiness"
+            echo
+            echo "- Release: `$TAG`"
+            echo "- Package assets: present"
+            echo "- SHA-256 verification: passed"
+            echo "- Windows/Apple publisher trust: checked against configured repository secrets"
+            echo
+            echo "Checksums and artifact provenance do not substitute for OS-trusted publisher signatures."
+          } >> "$GITHUB_STEP_SUMMARY"
