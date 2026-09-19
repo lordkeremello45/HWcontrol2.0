@@ -34,43 +34,42 @@ jobs:
           test "$count" -gt 0
           echo "Found $count Wiki Markdown pages."
 
-      - name: Select Wiki credential
+      - name: Check Wiki publication credential
         id: auth
         shell: bash
         env:
           WIKI_TOKEN: ${{ secrets.WIKI_TOKEN }}
         run: |
           set -euo pipefail
-          if [ -n "${WIKI_TOKEN:-}" ]; then
-            echo "mode=wiki-token" >> "$GITHUB_OUTPUT"
-            echo "::notice::Using WIKI_TOKEN for cross-repository Wiki publication."
+          if [ -z "${WIKI_TOKEN:-}" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::WIKI_TOKEN is not configured. docs/wiki validation passed; Wiki publication was skipped."
           else
-            echo "mode=github-token" >> "$GITHUB_OUTPUT"
-            echo "::notice::WIKI_TOKEN is not configured; the workflow will validate docs/wiki and probe the Wiki with the built-in token."
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::WIKI_TOKEN is configured; using it for .wiki.git publication."
           fi
 
-      - name: Probe Wiki with configured credential
+      - name: Probe Wiki with WIKI_TOKEN
         id: wiki
+        if: steps.auth.outputs.enabled == 'true'
         shell: bash
         env:
           WIKI_TOKEN: ${{ secrets.WIKI_TOKEN }}
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           WIKI_REPO="https://github.com/${GITHUB_REPOSITORY}.wiki.git"
-          TOKEN="${WIKI_TOKEN:-${GH_TOKEN}}"
-          auth_header="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 -w 0)"
+          auth_header="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$WIKI_TOKEN" | base64 -w 0)"
 
           if ! output="$(git -c http.extraHeader="$auth_header" ls-remote --symref "$WIKI_REPO" HEAD 2>/dev/null)"; then
             echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Wiki repository is not reachable with the available credential. docs/wiki validation succeeded; publication was skipped."
+            echo "::warning::WIKI_TOKEN cannot access the Wiki repository. Check that the token can write to the repository Wiki."
             exit 0
           fi
 
           branch="$(printf '%s\n' "$output" | sed -n 's/^ref: refs\/heads\/\([^[:space:]]*\)[[:space:]]HEAD$/\1/p')"
           if [ -z "$branch" ]; then
             echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Wiki repository exists but is not initialized. Publication was skipped."
+            echo "::warning::Wiki repository is reachable but not initialized. Open the Wiki and create/initialize its first page."
             exit 0
           fi
 
@@ -82,12 +81,10 @@ jobs:
         shell: bash
         env:
           WIKI_TOKEN: ${{ secrets.WIKI_TOKEN }}
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           WIKI_REPO="https://github.com/${GITHUB_REPOSITORY}.wiki.git"
-          TOKEN="${WIKI_TOKEN:-${GH_TOKEN}}"
-          auth_header="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 -w 0)"
+          auth_header="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$WIKI_TOKEN" | base64 -w 0)"
           git -c http.extraHeader="$auth_header" clone --depth 1 --branch "${{ steps.wiki.outputs.branch }}" "$WIKI_REPO" wiki
           git -C wiki config user.name "github-actions[bot]"
           git -C wiki config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -121,11 +118,9 @@ jobs:
         shell: bash
         env:
           WIKI_TOKEN: ${{ secrets.WIKI_TOKEN }}
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          TOKEN="${WIKI_TOKEN:-${GH_TOKEN}}"
-          auth_header="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 -w 0)"
+          auth_header="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$WIKI_TOKEN" | base64 -w 0)"
           cd wiki
           git -c http.extraHeader="$auth_header" push origin "${{ steps.wiki.outputs.branch }}"
 
@@ -137,10 +132,12 @@ jobs:
             echo "## Wiki synchronization"
             echo
             if [ "${{ steps.wiki.outputs.available }}" = "true" ]; then
-              echo "Wiki publication path was reachable and synchronization was attempted."
-            else
-              echo "Wiki source validation succeeded, but publication was skipped because no usable cross-repository credential was available."
+              echo "Wiki publication completed or was attempted using WIKI_TOKEN."
+            elif [ "${{ steps.auth.outputs.enabled }}" != "true" ]; then
+              echo "Wiki source validation succeeded. Publication was skipped because WIKI_TOKEN is not configured."
               echo
-              echo "Set the WIKI_TOKEN repository secret to enable automatic publication to the special .wiki.git repository."
+              echo "Add the WIKI_TOKEN repository secret to enable automatic publication to .wiki.git."
+            else
+              echo "Wiki source validation succeeded, but the configured WIKI_TOKEN could not access the Wiki repository."
             fi
           } >> "$GITHUB_STEP_SUMMARY"
