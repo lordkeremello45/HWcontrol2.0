@@ -2,12 +2,14 @@
 
 The following items are documentation/planning targets rather than promises of a release date.
 
-## Near-term
+## Release hardening
 
-- finish and harden cross-platform release validation;
-- improve installer and trust-state reporting;
-- document supported hardware and telemetry limitations;
-- grow independent technical documentation and community references.
+- cross-platform package validation is implemented in GitHub Actions;
+- Windows MSI and guided Setup.exe installation/uninstallation are smoke-tested;
+- Linux DEB installation is validated on Ubuntu;
+- macOS native release validation runs on Apple Silicon;
+- release integrity generates and verifies SHA-256, SHA-512 and SHA3-512 manifests;
+- a manual release-readiness gate checks package assets and publisher-signing configuration.
 
 ## Feature expansion
 
@@ -19,9 +21,9 @@ The following items are documentation/planning targets rather than promises of a
 
 ## Trust / distribution
 
-- production Windows publisher signing;
+- production Windows publisher signing when certificate secrets are provisioned;
+- production Apple Developer ID signing and notarization when Apple credentials are provisioned;
 - potential SignPath integration;
-- stronger release provenance and verification UX;
-- additional platform signing/notarization paths.
+- stronger release provenance and verification UX.
 
 The actual release status should always be determined from the repository and GitHub Releases.
