@@ -38,4 +38,73 @@ The bridge is loopback-only by default and authenticates commands with HMAC-SHA-
 
 ## Documentation map
 
-See the Getting Started, Features, Architecture, Packaging & Distribution, Security & Signing, Testing, Troubleshooting and Development sections in this repository.
+### 🚀 Getting Started
+- [Getting Started](Getting-Started)
+- [Installation](Getting-Started-Installation)
+- [Windows](Getting-Started-Windows)
+- [Linux](Getting-Started-Linux)
+- [macOS](Getting-Started-macOS)
+- [Building from Source](Getting-Started-Building-from-Source)
+
+### 🖥️ Features
+- [Features](Features)
+- [Hardware Monitoring](Features-Hardware-Monitoring)
+- [CPU & GPU Temperature](Features-CPU-GPU-Temperature)
+- [Fan Curve Editor](Features-Fan-Curve-Editor)
+- [Real-time Hardware Graphs](Features-Real-time-Hardware-Graphs)
+- [Performance / Balanced / Quiet](Features-Performance-Balanced-Quiet)
+- [Game Mode](Features-Game-Mode)
+
+### 🏗️ Architecture
+- [Architecture](Architecture)
+- [Application Architecture](Architecture-Application)
+- [Hardware Abstraction](Architecture-Hardware-Abstraction)
+- [Platform-specific Components](Architecture-Platform-specific)
+- [Data Flow](Architecture-Data-Flow)
+
+### 📦 Packaging & Distribution
+- [Packaging & Distribution](Packaging-and-Distribution)
+- [Windows Installer](Packaging-Windows-Installer)
+- [macOS Application](Packaging-macOS-Application)
+- [Linux Packages](Packaging-Linux-Packages)
+- [Cross-platform CI](Packaging-Cross-platform-CI)
+- [Release Pipeline](Packaging-Release-Pipeline)
+
+### 🔐 Security & Signing
+- [Security & Signing](Security-and-Signing)
+- [Code Signing](Security-Code-Signing)
+- [Artifact Attestation](Security-Artifact-Attestation)
+- [Release Integrity](Security-Release-Integrity)
+- [SignPath](Security-SignPath)
+
+### 🧪 Testing
+- [Testing](Testing)
+- [Unit Tests](Testing-Unit-Tests)
+- [Smoke Tests](Testing-Smoke-Tests)
+- [Windows Validation](Testing-Windows-Validation)
+- [Linux Validation](Testing-Linux-Validation)
+- [macOS Validation](Testing-macOS-Validation)
+
+### 🛠️ Troubleshooting
+- [Troubleshooting](Troubleshooting)
+- [Windows](Troubleshooting-Windows)
+- [Linux](Troubleshooting-Linux)
+- [macOS](Troubleshooting-macOS)
+- [Hardware Detection](Troubleshooting-Hardware-Detection)
+
+### 👨‍💻 Development
+- [Development](Development)
+- [Development Environment](Development-Environment)
+- [Repository Structure](Development-Repository-Structure)
+- [CI/CD](Development-CI-CD)
+- [Contributing](Development-Contributing)
+
+- [FAQ](FAQ)
+- [Roadmap](Roadmap)
+- [License](License)
+
+## Release readiness
+
+The repository validates native, bridge, dashboard and package paths in GitHub Actions. Windows MSI/Setup installation and cleanup are smoke-tested on Windows runners, Linux DEB installation is validated on Ubuntu, and the macOS release path is validated on a native macOS runner.
+
+Publisher trust is a separate layer: Windows Authenticode and macOS Developer ID/notarization are only claimed when the corresponding credentials and verification steps are actually present. Checksums and GitHub artifact attestation prove integrity/provenance but do not substitute for OS-trusted publisher signing.
