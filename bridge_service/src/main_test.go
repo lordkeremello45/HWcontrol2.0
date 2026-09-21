@@ -121,9 +121,9 @@ func TestBridgeRequestSizeBound(t *testing.T) {
 		close(done)
 	}()
 
-	payload := []byte(strings.Repeat("A", maxRequestBytes+1))
-	if _, err := client.Write(payload); err == nil {
-		t.Fatal("expected oversized request to terminate the connection")
+	payload := append([]byte(strings.Repeat("A", maxRequestBytes)), '\n')
+	if _, err := client.Write(payload); err != nil {
+		t.Fatalf("write oversized request: %v", err)
 	}
 
 	select {
