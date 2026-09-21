@@ -69,6 +69,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _lastAction = 'Henüz komut gönderilmedi';
   bool _isConnected = false;
   bool _isSending = false;
+  bool _connecting = false;
+  int _connectionGeneration = 0;
   bool _isCheckingUpdate = false;
   UpdateInfo? _updateInfo;
   String _updateStatus = 'Güncellemeler kontrol edilmedi';
@@ -166,6 +168,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _refreshMetrics() async {
+    if (!_isConnected || _isSending) return;
     final data = await _requestBridgeData('Get Status');
     if (!mounted || data == null) return;
     final temperature = (data['cpuTemperature'] as num?)?.toDouble() ?? 0;
@@ -190,6 +193,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _refreshSecurity() async {
+    if (!_isConnected || _isSending) return;
     final data = await _requestBridgeData('Get Security');
     if (!mounted || data == null) return;
     setState(() => _modelDigest = data['modelSha256'] as String? ?? 'unavailable');
@@ -313,33 +317,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _connectToBridge() async {
+    if (_connecting || _isConnected) return;
+    final generation = ++_connectionGeneration;
+    _connecting = true;
     try {
       final socket = await Socket.connect(
         '127.0.0.1',
         _bridgePort,
         timeout: const Duration(seconds: 3),
       );
+      if (generation != _connectionGeneration || !mounted) {
+        socket.destroy();
+        return;
+      }
+      _socket?.destroy();
+      _responses?.cancel();
       _socket = socket;
       _responses = StreamIterator(socket.map(utf8.decode).transform(const LineSplitter()));
       socket.done.whenComplete(() {
-        if (!mounted) return;
+        if (!mounted || generation != _connectionGeneration) return;
         setState(() {
           _isConnected = false;
           _status = 'Bridge bağlantısı kesildi';
         });
       });
-      if (!mounted) return;
+      if (!mounted || generation != _connectionGeneration) return;
       setState(() {
         _isConnected = true;
         _status = 'Bridge aktif';
       });
       _addEvent('Bridge bağlantısı kuruldu');
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || generation != _connectionGeneration) return;
       setState(() {
         _isConnected = false;
         _status = 'Bridge bulunamadı';
       });
+    } finally {
+      if (generation == _connectionGeneration) _connecting = false;
     }
   }
 
@@ -390,12 +405,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _aiValue = ai;
       _lastAction = '$name profili hazırlanıyor';
     });
-    if (_profiles.containsKey(name)) {
-      fan = _profiles[name]!['fan'] ?? fan;
-      ai = _profiles[name]!['ai'] ?? ai;
+    final savedProfile = _profiles[name];
+    if (savedProfile != null) {
+      fan = savedProfile['fan'] ?? fan;
+      ai = savedProfile['ai'] ?? ai;
       setState(() { _fanValue = fan; _aiValue = ai; });
     }
     await _sendCommand('Fan Hızı', fan);
+    if (!mounted || !_isConnected) return;
     await _sendCommand('AI İşlem Gücü', ai);
     if (mounted) setState(() => _lastAction = '$name profili  •  fan %${fan.round()}  •  AI %${ai.round()}');
   }
@@ -410,6 +427,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   void dispose() {
+    _connectionGeneration++;
     _metricsTimer?.cancel();
     _responses?.cancel();
     _socket?.destroy();
