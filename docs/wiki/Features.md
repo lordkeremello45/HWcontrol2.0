@@ -3,6 +3,7 @@
 This section documents the features that are present in the current repository.
 
 - [Hardware Monitoring](Features-Hardware-Monitoring.md)
+- [Hardware Detection](Features-Hardware-Detection.md)
 - [CPU & GPU Temperature](Features-CPU-GPU-Temperature.md)
 - [Fan Curve Editor](Features-Fan-Curve-Editor.md)
 - [Real-time Hardware Graphs](Features-Real-time-Hardware-Graphs.md)
