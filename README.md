@@ -44,6 +44,25 @@ Signing is not considered active until the project is accepted, the trusted GitH
 - **Policy:** [`docs/CODE_SIGNING_POLICY.md`](docs/CODE_SIGNING_POLICY.md)
 - **Privacy/security:** [`SECURITY.md`](SECURITY.md)
 
+## Community and contribution
+
+HWControl 2.0 is developed in the open. Contributions, reproducible bug reports, hardware compatibility reports, documentation improvements, and platform-specific fixes are welcome.
+
+- [Contributing guide](CONTRIBUTING.md)
+- [Support guide](SUPPORT.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Security policy](SECURITY.md)
+- [GitHub Issues](https://github.com/lordkeremello45/HWcontrol2.0/issues)
+- [GitHub Releases](https://github.com/lordkeremello45/HWcontrol2.0/releases)
+
+For hardware reports, please include the operating system, architecture, CPU/GPU and driver information where available. Do not publish bridge authentication keys, tokens, signing credentials, or other secrets.
+
+## Project status
+
+The project is under active development. Build, test, packaging, and release-integrity checks are maintained in GitHub Actions. Hardware capabilities are reported explicitly by the bridge so unsupported control paths can remain monitor-only rather than pretending that every system supports fan control.
+
+Windows code signing is **not yet active**. The repository contains a documented signing policy and release provenance/checksum workflow, but an artifact must not be described as signed until a trusted signing integration produces and verifies the Authenticode signature.
+
 ## Website
 
 The official project website provides the platform-specific installer selector and dynamically resolves the latest GitHub Release assets:
