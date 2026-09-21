@@ -64,13 +64,17 @@ type Response struct {
 
 type HardwareMetrics struct {
 	CPUUsage           float64 `json:"cpuUsage"`
+	CPUCoreCount       int     `json:"cpuCoreCount"`
+	CPUFrequencyMHz    float64 `json:"cpuFrequencyMHz"`
 	CPUTemperature     float64 `json:"cpuTemperature"`
 	GPUTemperature     float64 `json:"gpuTemperature"`
 	GPUUsage           float64 `json:"gpuUsage"`
 	FanPercent         float64 `json:"fanPercent"`
 	FanRPM             float64 `json:"fanRpm"`
 	MemoryUsage        float64 `json:"memoryUsage"`
+	MemoryTotalBytes   uint64  `json:"memoryTotalBytes"`
 	DiskUsage          float64 `json:"diskUsage"`
+	DiskTotalBytes     uint64  `json:"diskTotalBytes"`
 	PowerWatts         float64 `json:"powerWatts"`
 	Voltage             float64 `json:"voltage"`
 	UptimeSeconds      uint64  `json:"uptimeSeconds"`
@@ -89,6 +93,9 @@ type HardwareMetrics struct {
 	GPUCoreClockMHz     float64 `json:"gpuCoreClockMHz"`
 	GPUMemoryClockMHz   float64 `json:"gpuMemoryClockMHz"`
 	SensorSource        string  `json:"sensorSource"`
+	FanControlSupported bool   `json:"fanControlSupported"`
+	FanControlBackend   string `json:"fanControlBackend"`
+	HardwareControlMode string `json:"hardwareControlMode"`
 }
 
 const (
@@ -104,11 +111,17 @@ func collectMetrics() HardwareMetrics {
 	if percentages, err := cpu.Percent(time.Second, false); err == nil && len(percentages) > 0 {
 		metrics.CPUUsage = percentages[0]
 	}
+	if infos, err := cpu.Info(); err == nil && len(infos) > 0 {
+		metrics.CPUCoreCount = int(infos[0].Cores)
+		metrics.CPUFrequencyMHz = infos[0].Mhz
+	}
 	if memory, err := mem.VirtualMemory(); err == nil {
 		metrics.MemoryUsage = memory.UsedPercent
+		metrics.MemoryTotalBytes = memory.Total
 	}
 	if usage, err := disk.Usage("/"); err == nil {
 		metrics.DiskUsage = usage.UsedPercent
+		metrics.DiskTotalBytes = usage.Total
 	}
 	if uptime, err := host.Uptime(); err == nil {
 		metrics.UptimeSeconds = uptime
@@ -146,6 +159,9 @@ func collectMetrics() HardwareMetrics {
 		}
 	}
 	mergePlatformMetrics(&metrics)
+	metrics.FanControlSupported = false
+	metrics.FanControlBackend = "monitor-only"
+	metrics.HardwareControlMode = "monitor-only"
 	mergeDriverInfo(&metrics)
 	applyCompatibilityPolicy(&metrics)
 	metrics.Platform = runtime.GOOS
@@ -277,7 +293,9 @@ func diagnosticsSnapshot() map[string]any {
 		"gpuVendor":       metrics.GPUVendor,
 		"gpuDriver":       metrics.GPUDriver,
 		"gpuDriverStatus": metrics.GPUDriverStatus,
-		"hardwareControl": false,
+		"hardwareControl":     metrics.FanControlSupported,
+		"fanControlBackend":   metrics.FanControlBackend,
+		"hardwareControlMode": metrics.HardwareControlMode,
 		"localOnly":       true,
 		"listenAddress":   "127.0.0.1:" + bridgePort(),
 		"uptimeSeconds":   metrics.UptimeSeconds,
