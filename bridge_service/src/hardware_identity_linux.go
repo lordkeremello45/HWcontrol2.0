@@ -23,10 +23,8 @@ func collectHardwareIdentity() HardwareIdentity {
 	if infos, err := cpu.Info(); err == nil && len(infos) > 0 {
 		id.CPUManufacturer = infos[0].VendorID
 		id.CPUModel = infos[0].ModelName
-		id.CPUThreads = len(infos)
-		cores := 0
-		for _, info := range infos { if info.Cores > 0 { cores += int(info.Cores) } }
-		id.CPUPhysicalCores = cores
+		if threads, err := cpu.Counts(true); err == nil { id.CPUThreads = threads }
+		if cores, err := cpu.Counts(false); err == nil { id.CPUPhysicalCores = cores }
 	}
 	cards, _ := filepath.Glob("/sys/class/drm/card[0-9]*")
 	for _, card := range cards {
