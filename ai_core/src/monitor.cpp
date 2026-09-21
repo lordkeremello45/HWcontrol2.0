@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <cmath>
 #include <string>
 
 Monitor::Monitor()
@@ -12,6 +13,7 @@ void Monitor::updateHardwareStatus() {
 #if defined(__linux__)
     static unsigned long long previous_idle = 0;
     static unsigned long long previous_total = 0;
+    static bool have_previous = false;
     std::ifstream cpu_file("/proc/stat");
     std::string label;
     unsigned long long user = 0;
@@ -25,13 +27,16 @@ void Monitor::updateHardwareStatus() {
     if (cpu_file >> label >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal) {
         const unsigned long long idle_total = idle + iowait;
         const unsigned long long total = user + nice + system + idle + iowait + irq + softirq + steal;
-        const unsigned long long total_delta = total - previous_total;
-        const unsigned long long idle_delta = idle_total - previous_idle;
-        if (total_delta > 0) {
-            currentStatus.cpuLoad = 100.0f * static_cast<float>(total_delta - idle_delta) / static_cast<float>(total_delta);
+        if (have_previous && total >= previous_total && idle_total >= previous_idle) {
+            const unsigned long long total_delta = total - previous_total;
+            const unsigned long long idle_delta = idle_total - previous_idle;
+            if (total_delta > 0 && idle_delta <= total_delta) {
+                currentStatus.cpuLoad = 100.0f * static_cast<float>(total_delta - idle_delta) / static_cast<float>(total_delta);
+            }
         }
         previous_idle = idle_total;
         previous_total = total;
+        have_previous = true;
     }
 
     const char* thermal_paths[] = {
@@ -42,8 +47,11 @@ void Monitor::updateHardwareStatus() {
         std::ifstream temperature_file(path);
         long temperature = 0;
         if (temperature_file >> temperature) {
-            currentStatus.temperature = static_cast<float>(temperature) / 1000.0f;
-            break;
+            const float celsius = static_cast<float>(temperature) / 1000.0f;
+            if (std::isfinite(celsius) && celsius > -40.0f && celsius < 150.0f) {
+                currentStatus.temperature = celsius;
+                break;
+            }
         }
     }
 #else
