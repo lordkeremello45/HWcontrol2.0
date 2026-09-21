@@ -78,7 +78,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   double _aiValue = 80;
   double _temperatureLimit = 85;
   bool _notificationsEnabled = true;
-  Timer? _metricsTimer;
+  bool _polling = false;
   double _cpuUsage = 0;
   double _cpuTemperature = 0;
   double _memoryUsage = 0;
@@ -100,17 +100,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    _connectToBridge();
-    _checkForUpdate();
-    _refreshSecurity();
-    _loadProfiles();
-    _metricsTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-      if (_isConnected) {
-        _refreshMetrics();
-      } else {
-        _connectToBridge();
+    // GUI I/O is deliberately serialized. No startup operation is allowed
+    // to race another operation, and the metrics loop never overlaps itself.
+    _runStartupSequence();
+  }
+
+  Future<void> _runStartupSequence() async {
+    if (_polling) return;
+    _polling = true;
+    try {
+      await _loadProfiles();
+      if (!mounted) return;
+      await _connectToBridge();
+      if (!mounted) return;
+      await _refreshSecurity();
+      if (!mounted) return;
+      await _checkForUpdate();
+      if (!mounted) return;
+      while (mounted) {
+        if (_isConnected) {
+          await _refreshMetrics();
+        } else {
+          await _connectToBridge();
+        }
+        await Future<void>.delayed(const Duration(seconds: 5));
       }
-    });
+    } finally {
+      _polling = false;
+    }
   }
 
   Future<File> get _profilesFile async => File('hwcontrol_profiles.json');
@@ -206,7 +223,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _checkForUpdate() async {
-    if (_isCheckingUpdate) return;
+    if (_isCheckingUpdate || _polling) return;
     setState(() => _isCheckingUpdate = true);
     try {
       final manifestResponse = await http.get(Uri.parse(_checkFileUrl)).timeout(const Duration(seconds: 6));
@@ -435,7 +452,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void dispose() {
     _connectionGeneration++;
-    _metricsTimer?.cancel();
     _responses?.cancel();
     _socket?.destroy();
     super.dispose();
