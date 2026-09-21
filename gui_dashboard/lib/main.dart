@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
+import 'dart:typed_data';
+
+import 'package:audioplayers/audioplayers.dart';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -468,11 +471,65 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return true;
   }
 
-  Future<void> _playGameModeSound() async {
+  Future<void> _playGameModeSound(bool enabled) async {
+    // Short, locally synthesized gamer-style UI sound. No external audio
+    // asset or network request is required, and it only runs after a
+    // successful Game Mode toggle.
+    final sampleRate = 11025;
+    final durationMs = enabled ? 220 : 180;
+    final sampleCount = (sampleRate * durationMs / 1000).round();
+    final bytes = BytesBuilder(copy: false);
+
+    void write16(int value) {
+      bytes.addByte(value & 0xff);
+      bytes.addByte((value >> 8) & 0xff);
+    }
+
+    void writeAscii(String value) {
+      bytes.add(value.codeUnits);
+    }
+
+    final dataSize = sampleCount;
+    final fileSize = 44 + dataSize;
+    writeAscii('RIFF');
+    write16(fileSize & 0xffff);
+    write16((fileSize >> 16) & 0xffff);
+    writeAscii('WAVEfmt ');
+    write16(16);
+    write16(1);
+    write16(1);
+    write16(sampleRate & 0xffff);
+    write16((sampleRate >> 16) & 0xffff);
+    write16(sampleRate & 0xffff);
+    write16((sampleRate >> 16) & 0xffff);
+    write16(1);
+    write16(8);
+    writeAscii('data');
+    write16(dataSize & 0xffff);
+    write16((dataSize >> 16) & 0xffff);
+
+    final pcm = Uint8List(sampleCount);
+    for (var i = 0; i < sampleCount; i++) {
+      final t = i / sampleRate;
+      final x = i / sampleCount;
+      final frequency = enabled ? 540 + 920 * x : 1050 - 680 * x;
+      final attack = (x / (enabled ? 0.055 : 0.06)).clamp(0.0, 1.0);
+      final release = ((1.0 - x) / (enabled ? 0.23 : 0.25)).clamp(0.0, 1.0);
+      final envelope = attack * release;
+      final primary = math.sin(2 * math.pi * frequency * t);
+      final harmonic = math.sin(2 * math.pi * frequency * 2 * t);
+      final sample = ((primary * 0.72 + harmonic * 0.12) * envelope * 0.65).clamp(-1.0, 1.0);
+      pcm[i] = ((sample + 1.0) * 127.5).round();
+    }
+    bytes.add(pcm);
+
     try {
-      await SystemSound.play(SystemSoundType.click);
+      final player = AudioPlayer();
+      await player.play(BytesSource(bytes.takeBytes(), mimeType: 'audio/wav'), volume: 0.55);
+      await Future<void>.delayed(Duration(milliseconds: durationMs + 40));
+      await player.dispose();
     } catch (_) {
-      // System click sound is optional; Game Mode must still work silently.
+      // Audio feedback is optional; Game Mode must still work silently.
     }
   }
 
@@ -806,7 +863,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             if (!mounted) return;
             if (success) {
               setState(() => _gameModeEnabled = enabled);
-              await _playGameModeSound();
+              await _playGameModeSound(enabled);
               if (mounted) _addEvent(enabled ? 'Game Mode etkinleştirildi' : 'Game Mode devre dışı bırakıldı');
             }
           }),
