@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -291,7 +292,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         newest = UpdateInfo(tag: tag, releaseUrl: url);
         break;
       }
-      if (!mounted) return;
+      if (!mounted) return true;
       setState(() {
         _updateInfo = newest != null && _isNewerVersion(newest.tag, _appVersion) ? newest : null;
         _updateStatus = newest == null ? 'Güncel release bulunamadı' : _updateInfo == null ? 'Uygulama güncel' : 'Yeni sürüm hazır';
@@ -421,20 +422,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  Future<void> _sendCommand(String action, double value) async {
+  Future<bool> _sendCommand(String action, double value) async {
     if ((action == 'Fan Hızı' || action == 'AI İşlem Gücü') && !_fanControlSupported) {
       if (mounted) setState(() => _status = 'Donanım kontrol backend\'i bu platformda kullanılabilir değil');
-      return;
+      return false;
     }
     final socket = _socket;
     if (!_isConnected || socket == null) {
       setState(() => _status = 'Önce bridge servisini başlatın');
-      return;
+      return false;
     }
-    if (_isSending) return;
+    if (_isSending) return false;
     if (_sharedKey.isEmpty) {
       setState(() => _status = 'HWCONTROL_KEY ayarlı değil');
-      return;
+      return false;
     }
 
     setState(() => _isSending = true);
@@ -458,10 +459,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _lastAction = '$action  •  %${value.round()}';
       });
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted) return false;
       setState(() => _status = 'Bridge yanıt vermedi');
+      return false;
     } finally {
       if (mounted) setState(() => _isSending = false);
+    }
+    return true;
+  }
+
+  Future<void> _playGameModeSound() async {
+    try {
+      await SystemSound.play(SystemSoundType.click);
+    } catch (_) {
+      // System click sound is optional; Game Mode must still work silently.
     }
   }
 
