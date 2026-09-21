@@ -103,6 +103,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _gpuModel = 'Bilinmiyor';
   String _gpuDriver = 'Bilinmiyor';
   String _hardwareDetectionStatus = 'Kontrol edilmedi';
+  bool _gameModeEnabled = false;
+  bool _gameDetected = false;
+  String _gameProcessName = '';
   final List<_MetricSample> _history = <_MetricSample>[];
   final List<String> _events = <String>[];
   Map<String, Map<String, double>> _profiles = {};
@@ -234,6 +237,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _gpuModel = data['gpuModel'] as String? ?? 'Bilinmiyor';
       _gpuDriver = data['gpuDriver'] as String? ?? 'Bilinmiyor';
       _hardwareDetectionStatus = data['hardwareDetectionStatus'] as String? ?? 'partial';
+      _gameModeEnabled = data['gameModeEnabled'] as bool? ?? false;
+      _gameDetected = data['gameDetected'] as bool? ?? false;
+      _gameProcessName = data['gameProcessName'] as String? ?? '';
       _history.add(_MetricSample(DateTime.now(), temperature));
       if (_history.length > 720) _history.removeAt(0);
       if (thresholdExceeded) {
@@ -519,6 +525,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(height: 18),
                       _buildHardwareIdentityCard(),
                       const SizedBox(height: 18),
+                      _buildGameModeCard(),
+                      const SizedBox(height: 18),
                       if (compact)
                         Column(
                           children: [
@@ -767,6 +775,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _buildGameModeCard() {
+    final active = _gameModeEnabled && _gameDetected;
+    return _Panel(
+      padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
+      child: Row(
+        children: [
+          Container(width: 48, height: 48, decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: Theme.of(context).colorScheme.primary.withAlpha(18)), child: Icon(Icons.sports_esports_outlined, color: Theme.of(context).colorScheme.primary)),
+          const SizedBox(width: 14),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            _sectionTitle('Game Mode', 'Oyun çalışırken otomatik algılama ve oyun odaklı izleme'),
+            const SizedBox(height: 8),
+            Text(_gameDetected ? 'Algılanan oyun: ' + (_gameProcessName.isEmpty ? 'bilinmeyen işlem' : _gameProcessName) : (_gameModeEnabled ? 'Game Mode hazır — oyun bekleniyor' : 'Game Mode kapalı'), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(170))),
+            const SizedBox(height: 4),
+            Text(active ? 'Aktif • oyun süreci izleniyor' : 'Donanım kontrolü mevcut değilse fan/clock değişikliği yapılmaz', style: TextStyle(fontSize: 11, color: active ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withAlpha(130))),
+          ])),
+          Switch(value: _gameModeEnabled, onChanged: _isSending ? null : (enabled) async {
+            setState(() => _gameModeEnabled = enabled);
+            await _sendCommand('Set Game Mode', enabled ? 100 : 0);
+            if (mounted) _addEvent(enabled ? 'Game Mode etkinleştirildi' : 'Game Mode devre dışı bırakıldı');
+          }),
+        ],
+      ),
+    );
+  }
   Widget _buildControls() {
     return _Panel(
       padding: const EdgeInsets.fromLTRB(22, 20, 22, 16),
