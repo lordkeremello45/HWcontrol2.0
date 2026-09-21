@@ -802,9 +802,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Text(active ? 'Aktif • oyun süreci izleniyor' : 'Donanım kontrolü mevcut değilse fan/clock değişikliği yapılmaz', style: TextStyle(fontSize: 11, color: active ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withAlpha(130))),
           ])),
           Switch(value: _gameModeEnabled, onChanged: _isSending ? null : (enabled) async {
-            setState(() => _gameModeEnabled = enabled);
-            await _sendCommand('Set Game Mode', enabled ? 100 : 0);
-            if (mounted) _addEvent(enabled ? 'Game Mode etkinleştirildi' : 'Game Mode devre dışı bırakıldı');
+            final success = await _sendCommand('Set Game Mode', enabled ? 100 : 0);
+            if (!mounted) return;
+            if (success) {
+              setState(() => _gameModeEnabled = enabled);
+              await _playGameModeSound();
+              if (mounted) _addEvent(enabled ? 'Game Mode etkinleştirildi' : 'Game Mode devre dışı bırakıldı');
+            }
           }),
         ],
       ),
