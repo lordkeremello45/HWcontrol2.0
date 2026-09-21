@@ -216,22 +216,13 @@ func defaultKeyFile() string {
 	}
 }
 
-func persistWindowsEnvironment(secret string) {
-	if runtime.GOOS != "windows" {
-		return
-	}
-	_ = exec.Command("setx", "HWCONTROL_KEY", secret, "/M").Run()
-}
-
 func loadOrCreateSecret() (string, error) {
 	if secret := strings.TrimSpace(os.Getenv("HWCONTROL_KEY")); secret != "" && secret != "replace-me" {
-		persistWindowsEnvironment(secret)
 		return secret, nil
 	}
 	path := defaultKeyFile()
 	if data, err := os.ReadFile(path); err == nil {
 		if secret := strings.TrimSpace(string(data)); secret != "" {
-			persistWindowsEnvironment(secret)
 			return secret, nil
 		}
 	}
@@ -255,7 +246,6 @@ func loadOrCreateSecret() (string, error) {
 		_ = os.Remove(tmp)
 		return "", fmt.Errorf("commit bridge key: %w", err)
 	}
-	persistWindowsEnvironment(secret)
 	return secret, nil
 }
 
