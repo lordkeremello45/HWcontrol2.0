@@ -1,16 +1,30 @@
 # Game Mode
 
-## Current status
+Game Mode provides a safe game-session detection layer.
 
-The dashboard currently provides an **Oyun / Game** preset with the following targets:
+## Behavior
 
-- fan: 75%
-- AI processing: 95%
+- Can be armed from the dashboard.
+- Automatically scans running processes for known game executables.
+- Reports the detected game process and PID.
+- Exposes Game Mode state through the authenticated bridge.
+- Includes the state in diagnostics.
+- Does not force fan, clock, voltage, power-limit, or process-priority changes.
 
-The preset is implemented through the same profile/command path as the other presets.
+## Safety
 
-## Not a process optimizer yet
+The current native hardware-control backend is monitor-only. Therefore Game Mode never pretends to apply a fan/clock optimization when the platform does not expose a validated control backend.
 
-The current source does not implement a full game-process detection/priority/overlay scheduler. The term Game Mode therefore refers to the available preset rather than a complete game orchestration subsystem.
+When hardware control is implemented for a platform, Game Mode can use this state as the trigger for a platform-specific performance policy.
 
-Future work can add process detection, automatic activation, restore-on-exit and per-game profiles.
+## Detection
+
+The detector uses a conservative executable allow-list. Unknown games are not automatically treated as games.
+
+Status values distinguish:
+
+- Game Mode armed
+- game process detected
+- monitoring-only operation
+
+This design avoids unsafe automatic hardware changes while establishing the foundation for platform-specific gaming optimization.
