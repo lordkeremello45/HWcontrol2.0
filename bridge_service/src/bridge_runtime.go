@@ -40,7 +40,7 @@ func runBridge(ctx context.Context, service *bridgeService) error {
 	}
 	if logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600); err == nil {
 		defer logFile.Close()
-		log.SetOutput(logFile)
+		log.SetOutput(redactingWriter{dst: logFile})
 		log.SetFlags(log.LstdFlags | log.LUTC)
 	}
 
