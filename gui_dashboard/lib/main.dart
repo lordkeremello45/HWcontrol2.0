@@ -93,6 +93,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _modelDigest = 'Kontrol edilmedi';
   bool _fanControlSupported = false;
   String _fanControlBackend = 'monitor-only';
+  String _systemManufacturer = 'Bilinmiyor';
+  String _systemModel = 'Bilinmiyor';
+  String _biosVersion = 'Bilinmiyor';
+  String _motherboardVendor = 'Bilinmiyor';
+  String _motherboardModel = 'Bilinmiyor';
+  String _cpuManufacturer = 'Bilinmiyor';
+  String _cpuModel = 'Bilinmiyor';
+  String _gpuModel = 'Bilinmiyor';
+  String _gpuDriver = 'Bilinmiyor';
+  String _hardwareDetectionStatus = 'Kontrol edilmedi';
   final List<_MetricSample> _history = <_MetricSample>[];
   final List<String> _events = <String>[];
   Map<String, Map<String, double>> _profiles = {};
@@ -214,6 +224,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _sensorSource = data['sensorSource'] as String? ?? 'Bilinmiyor';
       _fanControlSupported = data['fanControlSupported'] as bool? ?? false;
       _fanControlBackend = data['fanControlBackend'] as String? ?? 'monitor-only';
+      _systemManufacturer = data['systemManufacturer'] as String? ?? 'Bilinmiyor';
+      _systemModel = data['systemModel'] as String? ?? 'Bilinmiyor';
+      _biosVersion = data['biosVersion'] as String? ?? 'Bilinmiyor';
+      _motherboardVendor = data['motherboardVendor'] as String? ?? 'Bilinmiyor';
+      _motherboardModel = data['motherboardModel'] as String? ?? 'Bilinmiyor';
+      _cpuManufacturer = data['cpuManufacturer'] as String? ?? 'Bilinmiyor';
+      _cpuModel = data['cpuModel'] as String? ?? 'Bilinmiyor';
+      _gpuModel = data['gpuModel'] as String? ?? 'Bilinmiyor';
+      _gpuDriver = data['gpuDriver'] as String? ?? 'Bilinmiyor';
+      _hardwareDetectionStatus = data['hardwareDetectionStatus'] as String? ?? 'partial';
       _history.add(_MetricSample(DateTime.now(), temperature));
       if (_history.length > 720) _history.removeAt(0);
       if (thresholdExceeded) {
@@ -497,6 +517,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(height: 18),
                       _buildHistoryCard(),
                       const SizedBox(height: 18),
+                      _buildHardwareIdentityCard(),
+                      const SizedBox(height: 18),
                       if (compact)
                         Column(
                           children: [
@@ -676,6 +698,71 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 16),
           SizedBox(height: 130, child: _history.isEmpty ? const Center(child: Text('Bridge metrikleri bekleniyor', style: TextStyle(color: Colors.white54, fontSize: 12))) : CustomPaint(painter: _HistoryPainter(_history, Theme.of(context).colorScheme.primary))),
         ],
+      ),
+    );
+  }
+
+  Widget _buildHardwareIdentityCard() {
+    final detected = _hardwareDetectionStatus == 'ok';
+    return _Panel(
+      padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionTitle('Donanım tanıma', 'PC, anakart, CPU ve GPU kimliği'),
+          const SizedBox(height: 18),
+          Wrap(
+            spacing: 14,
+            runSpacing: 14,
+            children: [
+              _hardwareIdentityTile(Icons.computer_outlined, 'PC', '$_systemManufacturer $_systemModel'),
+              _hardwareIdentityTile(Icons.developer_board_outlined, 'Anakart', '$_motherboardVendor $_motherboardModel'),
+              _hardwareIdentityTile(Icons.memory_outlined, 'CPU', '$_cpuManufacturer $_cpuModel'),
+              _hardwareIdentityTile(Icons.videogame_asset_outlined, 'GPU', '$_gpuVendor • $_gpuModel'),
+              _hardwareIdentityTile(Icons.dns_outlined, 'BIOS', _biosVersion),
+              _hardwareIdentityTile(Icons.drive_file_rename_outline, 'GPU sürücüsü', _gpuDriver),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Icon(Icons.verified_outlined, size: 16, color: detected ? const Color(0xFF64D8CB) : const Color(0xFFFFB454)),
+              const SizedBox(width: 8),
+              Text('Tanılama: $_hardwareDetectionStatus • Seri numaraları rapora dahil edilmez', style: const TextStyle(fontSize: 11)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _hardwareIdentityTile(IconData icon, String label, String value) {
+    final text = value.trim().isEmpty ? 'Bilinmiyor' : value.trim();
+    return SizedBox(
+      width: 360,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.onSurface.withAlpha(8),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Theme.of(context).colorScheme.onSurface.withAlpha(18)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: Theme.of(context).colorScheme.primary, size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurface.withAlpha(140))),
+                  const SizedBox(height: 3),
+                  Text(text, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
