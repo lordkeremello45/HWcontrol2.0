@@ -162,6 +162,10 @@ func collectMetrics() HardwareMetrics {
 	metrics.FanControlSupported = false
 	metrics.FanControlBackend = "monitor-only"
 	metrics.HardwareControlMode = "monitor-only"
+	game := collectGameModeState()
+	metrics.GameModeEnabled = game.Enabled
+	metrics.GameDetected = game.GameDetected
+	metrics.GameProcessName = game.ProcessName
 	identity := collectHardwareIdentity()
 	metrics.SystemManufacturer = identity.SystemManufacturer
 	metrics.SystemModel = identity.SystemModel
@@ -217,7 +221,7 @@ func validateCommand(cmd Command) error {
 		return fmt.Errorf("value must be between 0 and 100")
 	}
 	switch cmd.Action {
-	case "Fan Hızı", "AI İşlem Gücü", "Get Status", "Get Security", "Get Diagnostics":
+	case "Fan Hızı", "AI İşlem Gücü", "Get Status", "Get Security", "Get Diagnostics", "Get Game Mode", "Set Game Mode":
 		return nil
 	default:
 		return fmt.Errorf("unsupported action: %s", cmd.Action)
@@ -228,6 +232,9 @@ func executeHardwareCommand(cmd Command) error {
 	switch cmd.Action {
 	case "Fan Hızı", "AI İşlem Gücü":
 		return fmt.Errorf("hardware control backend is not available on this build")
+	case "Set Game Mode":
+		setGameModeEnabled(cmd.Value >= 50)
+		return nil
 	default:
 		return fmt.Errorf("action cannot be executed: %s", cmd.Action)
 	}
@@ -317,6 +324,7 @@ func diagnosticsSnapshot() map[string]any {
 		"localOnly":       true,
 		"listenAddress":   "127.0.0.1:" + bridgePort(),
 		"uptimeSeconds":   metrics.UptimeSeconds,
+		"gameMode": collectGameModeState(),
 		"hardwareIdentity": map[string]any{
 			"systemManufacturer": metrics.SystemManufacturer,
 			"systemModel": metrics.SystemModel,
@@ -402,6 +410,11 @@ func handleConnection(conn net.Conn, secret string) {
 			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Metrikler alındı", Data: collectMetrics()}); err != nil {
 				return
 			}
+			continue
+		}
+		if cmd.Action == "Get Game Mode" {
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Game Mode durumu alındı", Data: collectGameModeState()}); err != nil { return }
 			continue
 		}
 		if cmd.Action == "Get Security" {
