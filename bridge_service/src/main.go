@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"crypto/hmac"
 	"crypto/rand"
@@ -302,13 +303,25 @@ func handleConnection(conn net.Conn, secret string) {
 			log.Printf("connection panic recovered: %v", recovered)
 		}
 	}()
-	decoder := json.NewDecoder(io.LimitReader(conn, maxRequestBytes))
+	reader := bufio.NewReaderSize(conn, 4096)
 	encoder := json.NewEncoder(conn)
+	authFailures := 0
 	for {
 		_ = conn.SetReadDeadline(time.Now().Add(connectionTimeout))
-		var cmd Command
-		if err := decoder.Decode(&cmd); err != nil {
+		line, err := reader.ReadBytes('\n')
+		if err != nil {
 			return
+		}
+		if len(line) > maxRequestBytes {
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			_ = encoder.Encode(Response{Status: "ERROR", Message: "request too large"})
+			return
+		}
+		var cmd Command
+		if err := json.Unmarshal(line, &cmd); err != nil {
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			_ = encoder.Encode(Response{Status: "ERROR", Message: "invalid request"})
+			continue
 		}
 		if err := validateCommand(cmd); err != nil {
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
@@ -318,12 +331,14 @@ func handleConnection(conn net.Conn, secret string) {
 			continue
 		}
 		if !authenticateCommand(cmd, secret) {
+			authFailures++
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-			if err := encoder.Encode(Response{Status: "ERROR", Message: "authentication failed"}); err != nil {
+			if err := encoder.Encode(Response{Status: "ERROR", Message: "authentication failed"}); err != nil || authFailures >= 5 {
 				return
 			}
 			continue
 		}
+		authFailures = 0
 		if cmd.Action == "Get Status" {
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
 			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Metrikler alındı", Data: collectMetrics()}); err != nil {
