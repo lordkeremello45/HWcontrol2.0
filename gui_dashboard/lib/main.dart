@@ -490,7 +490,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     final dataSize = sampleCount;
-    final fileSize = 44 + dataSize;
+    final fileSize = 36 + dataSize;
     writeAscii('RIFF');
     write16(fileSize & 0xffff);
     write16((fileSize >> 16) & 0xffff);
