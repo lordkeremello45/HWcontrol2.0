@@ -104,7 +104,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _checkForUpdate();
     _refreshSecurity();
     _loadProfiles();
-    _metricsTimer = Timer.periodic(const Duration(seconds: 5), (_) => _refreshMetrics());
+    _metricsTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (_isConnected) {
+        _refreshMetrics();
+      } else {
+        _connectToBridge();
+      }
+    });
   }
 
   Future<File> get _profilesFile async => File('hwcontrol_profiles.json');
@@ -347,6 +353,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _status = 'Bridge aktif';
       });
       _addEvent('Bridge bağlantısı kuruldu');
+      await _refreshSecurity();
     } catch (_) {
       if (!mounted || generation != _connectionGeneration) return;
       setState(() {
