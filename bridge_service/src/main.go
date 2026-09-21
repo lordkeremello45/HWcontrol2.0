@@ -162,6 +162,24 @@ func collectMetrics() HardwareMetrics {
 	metrics.FanControlSupported = false
 	metrics.FanControlBackend = "monitor-only"
 	metrics.HardwareControlMode = "monitor-only"
+	identity := collectHardwareIdentity()
+	metrics.SystemManufacturer = identity.SystemManufacturer
+	metrics.SystemModel = identity.SystemModel
+	metrics.SystemVersion = identity.SystemVersion
+	metrics.BIOSVendor = identity.BIOSVendor
+	metrics.BIOSVersion = identity.BIOSVersion
+	metrics.MotherboardVendor = identity.MotherboardVendor
+	metrics.MotherboardModel = identity.MotherboardModel
+	metrics.MotherboardVersion = identity.MotherboardVersion
+	metrics.CPUManufacturer = identity.CPUManufacturer
+	metrics.CPUModel = identity.CPUModel
+	metrics.CPUArchitecture = identity.CPUArchitecture
+	metrics.CPUPhysicalCores = identity.CPUPhysicalCores
+	metrics.CPUThreads = identity.CPUThreads
+	metrics.GPUModel = identity.GPUModel
+	metrics.DetectionSource = identity.DetectionSource
+	metrics.DetectionStatus = identity.DetectionStatus
+	metrics.SerialsExcluded = identity.SerialsExcluded
 	mergeDriverInfo(&metrics)
 	applyCompatibilityPolicy(&metrics)
 	metrics.Platform = runtime.GOOS
@@ -299,6 +317,28 @@ func diagnosticsSnapshot() map[string]any {
 		"localOnly":       true,
 		"listenAddress":   "127.0.0.1:" + bridgePort(),
 		"uptimeSeconds":   metrics.UptimeSeconds,
+		"hardwareIdentity": map[string]any{
+			"systemManufacturer": metrics.SystemManufacturer,
+			"systemModel": metrics.SystemModel,
+			"systemVersion": metrics.SystemVersion,
+			"biosVendor": metrics.BIOSVendor,
+			"biosVersion": metrics.BIOSVersion,
+			"motherboardVendor": metrics.MotherboardVendor,
+			"motherboardModel": metrics.MotherboardModel,
+			"motherboardVersion": metrics.MotherboardVersion,
+			"cpuManufacturer": metrics.CPUManufacturer,
+			"cpuModel": metrics.CPUModel,
+			"cpuArchitecture": metrics.CPUArchitecture,
+			"cpuPhysicalCores": metrics.CPUPhysicalCores,
+			"cpuThreads": metrics.CPUThreads,
+			"gpuVendor": metrics.GPUVendor,
+			"gpuModel": metrics.GPUModel,
+			"gpuDriver": metrics.GPUDriver,
+			"gpuDriverVersion": metrics.GPUDriverVersion,
+			"detectionSource": metrics.DetectionSource,
+			"detectionStatus": metrics.DetectionStatus,
+			"serialsExcluded": metrics.SerialsExcluded,
+		},
 	}
 }
 
