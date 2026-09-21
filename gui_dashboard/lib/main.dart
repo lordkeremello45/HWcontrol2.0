@@ -115,7 +115,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (!mounted) return;
       await _refreshSecurity();
       if (!mounted) return;
-      await _checkForUpdate();
+      await _checkForUpdateInternal();
       if (!mounted) return;
       while (mounted) {
         if (_isConnected) {
@@ -223,7 +223,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _checkForUpdate() async {
-    if (_isCheckingUpdate || _polling) return;
+    if (_polling) return;
+    await _checkForUpdateInternal();
+  }
+
+  Future<void> _checkForUpdateInternal() async {
+    if (_isCheckingUpdate) return;
     setState(() => _isCheckingUpdate = true);
     try {
       final manifestResponse = await http.get(Uri.parse(_checkFileUrl)).timeout(const Duration(seconds: 6));
