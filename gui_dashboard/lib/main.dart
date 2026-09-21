@@ -80,6 +80,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _notificationsEnabled = true;
   bool _polling = false;
   double _cpuUsage = 0;
+  int _cpuCoreCount = 0;
+  double _cpuFrequencyMHz = 0;
   double _cpuTemperature = 0;
   double _memoryUsage = 0;
   double _diskUsage = 0;
@@ -89,6 +91,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _gpuVendor = 'Bilinmiyor';
   String _sensorSource = 'Kontrol edilmedi';
   String _modelDigest = 'Kontrol edilmedi';
+  bool _fanControlSupported = false;
+  String _fanControlBackend = 'monitor-only';
   final List<_MetricSample> _history = <_MetricSample>[];
   final List<String> _events = <String>[];
   Map<String, Map<String, double>> _profiles = {};
@@ -198,6 +202,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final thresholdExceeded = _notificationsEnabled && temperature >= _temperatureLimit;
     setState(() {
       _cpuUsage = (data['cpuUsage'] as num?)?.toDouble() ?? 0;
+      _cpuCoreCount = (data['cpuCoreCount'] as num?)?.toInt() ?? 0;
+      _cpuFrequencyMHz = (data['cpuFrequencyMHz'] as num?)?.toDouble() ?? 0;
       _cpuTemperature = temperature;
       _memoryUsage = (data['memoryUsage'] as num?)?.toDouble() ?? 0;
       _diskUsage = (data['diskUsage'] as num?)?.toDouble() ?? 0;
@@ -206,6 +212,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _fanRpm = (data['fanRpm'] as num?)?.toDouble() ?? 0;
       _gpuVendor = data['gpuVendor'] as String? ?? 'Bilinmiyor';
       _sensorSource = data['sensorSource'] as String? ?? 'Bilinmiyor';
+      _fanControlSupported = data['fanControlSupported'] as bool? ?? false;
+      _fanControlBackend = data['fanControlBackend'] as String? ?? 'monitor-only';
       _history.add(_MetricSample(DateTime.now(), temperature));
       if (_history.length > 720) _history.removeAt(0);
       if (thresholdExceeded) {
@@ -388,6 +396,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _sendCommand(String action, double value) async {
+    if ((action == 'Fan Hızı' || action == 'AI İşlem Gücü') && !_fanControlSupported) {
+      if (mounted) setState(() => _status = 'Donanım kontrol backend\'i bu platformda kullanılabilir değil');
+      return;
+    }
     final socket = _socket;
     if (!_isConnected || socket == null) {
       setState(() => _status = 'Önce bridge servisini başlatın');
@@ -692,12 +704,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       runSpacing: 8,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
+        if (!_fanControlSupported) const Text('Donanım kontrolü: yalnızca izleme', style: TextStyle(fontSize: 12)),
         _presetButton('Sessiz', Icons.volume_off_outlined, 25, 45, const Color(0xFF64D8CB)),
         _presetButton('Dengeli', Icons.tune, 50, 80, const Color(0xFFFFB454)),
         _presetButton('Performans', Icons.speed, 85, 100, const Color(0xFFFF7B7B)),
         _presetButton('Oyun', Icons.sports_esports_outlined, 75, 95, const Color(0xFFB995FF)),
         _presetButton('Manuel', Icons.edit_outlined, _fanValue, _aiValue, const Color(0xFF8FA7FF)),
-        TextButton.icon(onPressed: _isSending ? null : _resetControls, icon: const Icon(Icons.restart_alt, size: 16), label: const Text('Sıfırla')),
+        TextButton.icon(onPressed: _isSending || !_fanControlSupported ? null : _resetControls, icon: const Icon(Icons.restart_alt, size: 16), label: const Text('Sıfırla')),
         TextButton.icon(onPressed: () => _saveProfile('Manuel'), icon: const Icon(Icons.save_outlined, size: 16), label: const Text('Profili kaydet')),
       ],
     );
@@ -705,7 +718,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _presetButton(String label, IconData icon, double fan, double ai, Color color) {
     return OutlinedButton.icon(
-      onPressed: _isSending ? null : () => _applyPreset(label, fan, ai),
+      onPressed: _isSending || !_fanControlSupported ? null : () => _applyPreset(label, fan, ai),
       icon: Icon(icon, size: 16),
       label: Text(label),
       style: OutlinedButton.styleFrom(foregroundColor: color, side: BorderSide(color: color.withAlpha(100))),
@@ -724,13 +737,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(width: 12),
             IconButton(
               tooltip: 'Uygula',
-              onPressed: _isSending ? null : () => _sendCommand(label, value),
+              onPressed: _isSending || !_fanControlSupported ? null : () => _sendCommand(label, value),
               icon: const Icon(Icons.check_circle_outline),
               color: color,
             ),
           ],
         ),
-        Slider(value: value, min: 0, max: 100, divisions: 20, activeColor: color, onChanged: onChanged),
+        Slider(value: value, min: 0, max: 100, divisions: 20, activeColor: color, onChanged: _fanControlSupported ? onChanged : null),
       ],
     );
   }
@@ -746,8 +759,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _statusRow('Bridge', _isConnected ? 'Bağlı' : 'Bağlı değil', _isConnected),
           _statusRow('Güvenlik', _sharedKey.isEmpty ? 'Anahtar bekleniyor' : 'HMAC-SHA-256', _sharedKey.isNotEmpty),
           _statusRow('Model SHA-256', _modelDigest == 'unavailable' ? 'Bulunamadı' : (_modelDigest.length > 12 ? '${_modelDigest.substring(0, 12)}...' : _modelDigest), _modelDigest != 'unavailable' && _modelDigest != 'Kontrol edilmedi'),
+          _statusRow('CPU', _cpuCoreCount > 0 ? '$_cpuCoreCount çekirdek • ${_cpuFrequencyMHz.toStringAsFixed(0)} MHz' : 'Bilinmiyor', _cpuCoreCount > 0),
           _statusRow('GPU adaptörü', _gpuVendor, _gpuVendor != 'Bilinmiyor'),
           _statusRow('Sensör kaynağı', _sensorSource, _sensorSource != 'Kontrol edilmedi'),
+          _statusRow('Fan kontrolü', _fanControlSupported ? _fanControlBackend : 'Yalnızca izleme', _fanControlSupported),
           _statusRow('Uyarı eşiği', '${_temperatureLimit.round()} °C', _notificationsEnabled),
           _statusRow('Son sıcaklık', '${_cpuTemperature.toStringAsFixed(1)} °C', _cpuTemperature < _temperatureLimit || _cpuTemperature == 0),
           _statusRow('Son işlem', _lastAction, true),
