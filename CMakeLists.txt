@@ -1,28 +1,23 @@
 cmake_minimum_required(VERSION 3.16)
 project(HWControl2_0 C CXX)
 
-# C++ Standartları
+# C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Llama.cpp ve GGML Derleme Ayarları
+# Keep the build tree outside the source tree. CMake owns the build directory
+# selected by the caller (-B build, -B build-windows, etc.).
 set(GGML_CUDA OFF CACHE BOOL "" FORCE)
 set(GGML_METAL OFF CACHE BOOL "" FORCE)
 set(GGML_NATIVE OFF CACHE BOOL "" FORCE)
 
-# 1. Klasör yapısını CMake'e garanti ettir
-file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/build)
-file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/ai_core/models)
-
-# 2. Model dosyasının yolunu tanımla
+# The model is a runtime asset. Do not create source-tree directories or
+# download/copy large model files during configuration.
 set(MODEL_PATH "${CMAKE_SOURCE_DIR}/ai_core/models/gemma-2b-it-q4_k_m.gguf")
-
-# Model runtime girdisidir; configure aşamasında büyük dosyaları indirme.
-if(NOT EXISTS ${MODEL_PATH})
-  message(WARNING "Model bulunamadi: ${MODEL_PATH}. Runtime icin ayri olarak ekleyin.")
+if(NOT EXISTS "${MODEL_PATH}")
+  message(STATUS "Model not found: ${MODEL_PATH}. It must be supplied separately for runtime AI features.")
 endif()
 
-# 3. FetchContent ile llama.cpp'yi çek
 include(FetchContent)
 
 FetchContent_Declare(
@@ -30,9 +25,16 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/ggerganov/llama.cpp
   GIT_TAG        b9789
 )
+
 FetchContent_MakeAvailable(llama_cpp)
 
-# 5. AI_CORE modülünü sisteme dahil et
+# Enable CTest explicitly so native regression tests are available to CI and
+# local builds without requiring callers to know the implementation detail.
+include(CTest)
+if(BUILD_TESTING)
+  enable_testing()
+endif()
+
 add_subdirectory(ai_core)
 
-message(STATUS "HWControl 2.0 yapılandırması başarıyla tamamlandı.")
+message(STATUS "HWControl 2.0 configuration completed successfully.")
