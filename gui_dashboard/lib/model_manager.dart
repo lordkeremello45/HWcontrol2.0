@@ -89,7 +89,7 @@ class HWControlModelManager {
       final hasher = sha256.startChunkedConversion(digestSink);
       var received = 0;
       try {
-        await for (final chunk in response.stream) {
+        await for (final chunk in response.stream.timeout(const Duration(seconds: 30))) {
           received += chunk.length;
           if (received > modelSizeBytes) {
             throw StateError('Model indirme boyutu sınırı aşıldı.');
