@@ -1,10 +1,12 @@
 #include "../include/engine.h"
 #include "../include/monitor.h"
 #include "../include/bsod_shield.h"
+
 #include <cstdlib>
-#include <iostream>
-#include <thread>
 #include <filesystem>
+#include <iostream>
+#include <string>
+#include <thread>
 
 static std::filesystem::path defaultModelPath() {
     if (const char* configured = std::getenv("HWCONTROL_MODEL"); configured && *configured) {
@@ -29,15 +31,48 @@ static std::filesystem::path defaultModelPath() {
     return std::filesystem::path("ai_core/models/gemma-2b-it-q4_k_m.gguf");
 }
 
+static int runStdioMode(const std::filesystem::path& modelPath) {
+    AIEngine ai;
+    if (!ai.init(modelPath.string().c_str())) {
+        std::cerr << "AI model could not be initialized: " << modelPath << std::endl;
+        return -1;
+    }
+
+    std::string line;
+    while (std::getline(std::cin, line)) {
+        if (line.empty()) {
+            continue;
+        }
+        HardwareTelemetry telemetry;
+        if (!parseTelemetryProtocolLine(line, telemetry)) {
+            std::cout << "ERROR|invalid-telemetry" << std::endl;
+            std::cout.flush();
+            continue;
+        }
+        const std::string response = ai.processTelemetry(telemetry);
+        std::cout << "OK|" << response << std::endl;
+        std::cout.flush();
+    }
+    return 0;
+}
+
 int main(int argc, char* argv[]) {
+    const bool stdioMode = argc > 1 && std::string(argv[1]) == "--stdio";
+    const std::filesystem::path modelPath = (argc > 1 && !stdioMode)
+        ? std::filesystem::path(argv[1])
+        : defaultModelPath();
+
+    if (stdioMode) {
+        return runStdioMode(modelPath);
+    }
+
     AIEngine ai;
     Monitor monitor;
     BSODShield shield(5);
 
-    const std::filesystem::path modelPath = argc > 1 ? argv[1] : defaultModelPath();
     if (!std::filesystem::exists(modelPath)) {
         std::cerr << "AI modeli bulunamadı: " << modelPath << std::endl;
-        std::cerr << "HWControl ilk çalıştırmada modeli kurmalıdır veya HWCONTROL_MODEL ile geçerli bir yol verilmelidir." << std::endl;
+        std::cerr << "HWCONTROL_MODEL ile geçerli bir model yolu verilebilir." << std::endl;
         return -2;
     }
 
@@ -46,14 +81,13 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    int sample_count = 0;
+    int sampleCount = 0;
     while (true) {
         monitor.updateHardwareStatus();
-        float temp = monitor.getTemperature();
 
-        if (++sample_count >= 10) {
-            sample_count = 0;
-            const std::string analysis = ai.processData(temp, monitor.getStatus().cpuLoad);
+        if (++sampleCount >= 10) {
+            sampleCount = 0;
+            const std::string analysis = ai.processTelemetry(monitor.getTelemetry());
             std::cout << "AI: " << analysis << std::endl;
         }
 
