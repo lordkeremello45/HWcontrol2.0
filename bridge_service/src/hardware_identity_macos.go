@@ -8,7 +8,7 @@ import (
 )
 
 func macSysctl(key string) string {
-	out, err := exec.Command("sysctl", "-n", key).Output()
+	out, err := exec.Command(platformExecutable("sysctl"), "-n", key).Output()
 	if err != nil {
 		return ""
 	}
@@ -26,7 +26,7 @@ func collectHardwareIdentity() HardwareIdentity {
 	id.CPUPhysicalCores = parsePositiveInt(macSysctl("hw.physicalcpu"))
 	id.GPUVendor = "Apple"
 
-	if out, err := exec.Command("ioreg", "-l", "-c", "IOPlatformExpertDevice").Output(); err == nil {
+	if out, err := exec.Command(platformExecutable("ioreg"), "-l", "-c", "IOPlatformExpertDevice").Output(); err == nil {
 		text := string(out)
 		id.SystemVersion = extractIORegValue(text, "product-name")
 		id.MotherboardModel = extractIORegValue(text, "board-id")
