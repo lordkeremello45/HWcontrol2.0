@@ -86,12 +86,8 @@ class HWControlModelManager {
       }
 
       final sink = partial.openWrite();
-      Digest? digest;
-      final hasher = sha256.startChunkedConversion(
-        ByteConversionSink.withCallback((bytes) {
-          digest = Digest(bytes);
-        }),
-      );
+      final digestSink = _DigestSink();
+      final hasher = sha256.startChunkedConversion(digestSink);
       var received = 0;
       try {
         await for (final chunk in response.stream.timeout(const Duration(seconds: 30))) {
@@ -114,7 +110,7 @@ class HWControlModelManager {
           'Model boyutu doğrulanamadı: $received / $modelSizeBytes byte.',
         );
       }
-      final actualDigest = digest?.toString();
+      final actualDigest = digestSink.value?.toString();
       if (actualDigest == null || actualDigest != modelSha256) {
         throw StateError(
           'Model SHA-256 doğrulaması başarısız. Beklenen: $modelSha256, alınan: ${actualDigest ?? 'yok'}',
@@ -160,12 +156,8 @@ class HWControlModelManager {
   }
 
   static Future<String> _sha256(File file) async {
-    Digest? digest;
-    final input = sha256.startChunkedConversion(
-      ByteConversionSink.withCallback((bytes) {
-        digest = Digest(bytes);
-      }),
-    );
+    final digestSink = _DigestSink();
+    final input = sha256.startChunkedConversion(digestSink);
     try {
       await for (final chunk in file.openRead()) {
         input.add(chunk);
@@ -173,7 +165,7 @@ class HWControlModelManager {
     } finally {
       input.close();
     }
-    return digest?.toString() ?? '';
+    return digestSink.value?.toString() ?? '';
   }
 
   static Future<void> _removeLegacyModels(Directory directory) async {
@@ -190,4 +182,14 @@ class HWControlModelManager {
       } catch (_) {}
     }
   }
+}
+
+class _DigestSink implements Sink<Digest> {
+  Digest? value;
+
+  @override
+  void add(Digest data) => value = data;
+
+  @override
+  void close() {}
 }
