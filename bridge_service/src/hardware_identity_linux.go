@@ -52,7 +52,7 @@ func collectHardwareIdentity() HardwareIdentity {
 		}
 		break
 	}
-	if output, err := exec.Command("lspci", "-nn", "-d", "::0300").Output(); err == nil {
+	if output, err := exec.Command(platformExecutable("lspci"), "-nn", "-d", "::0300").Output(); err == nil {
 		line := strings.TrimSpace(strings.SplitN(string(output), "\n", 2)[0])
 		if idx := strings.Index(line, ": "); idx >= 0 {
 			id.GPUModel = strings.TrimSpace(line[idx+2:])
