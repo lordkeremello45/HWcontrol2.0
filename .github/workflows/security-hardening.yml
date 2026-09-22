@@ -44,7 +44,9 @@ jobs:
         with:
           persist-credentials: false
       - name: Check repository whitespace
-        run: git diff --check HEAD^ HEAD
+        run: |
+          git diff --check HEAD
+          git diff-tree --check --no-commit-id -r HEAD
       - name: Check for accidental credential material
         shell: bash
         run: |
