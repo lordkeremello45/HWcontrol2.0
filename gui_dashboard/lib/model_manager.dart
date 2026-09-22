@@ -167,6 +167,21 @@ class HWControlModelManager {
     return digestSink.value?.toString() ?? '';
   }
 
+  static Future<void> removeCachedModel() async {
+    final target = await modelFile();
+    final partial = File('${target.path}.part');
+    final backup = File('${target.path}.old');
+    for (final file in <File>[target, partial, backup]) {
+      try {
+        if (await file.exists()) {
+          await file.delete();
+        }
+      } catch (error) {
+        throw StateError('Model cache silinemedi: $error');
+      }
+    }
+  }
+
   static Future<void> _removeLegacyModels(Directory directory) async {
     const legacyNames = <String>[
       'gemma-2b-it-q4_k_m.gguf',
