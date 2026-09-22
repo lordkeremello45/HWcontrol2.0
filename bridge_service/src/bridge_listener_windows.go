@@ -23,3 +23,5 @@ func listenBridge() (net.Listener, string, error) {
 func cleanupBridgeEndpoint(endpoint string) {
     _ = os.Remove(endpoint)
 }
+
+func bridgeEndpoint() string { return "127.0.0.1:" + bridgePort() }
