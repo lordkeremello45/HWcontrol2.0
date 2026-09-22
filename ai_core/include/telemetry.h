@@ -40,6 +40,8 @@ struct RiskAssessment {
     std::vector<std::string> findings;
     double cpuTemperatureDeltaC = std::numeric_limits<double>::quiet_NaN();
     double gpuTemperatureDeltaC = std::numeric_limits<double>::quiet_NaN();
+    double cpuFrequencyDropPercent = std::numeric_limits<double>::quiet_NaN();
+    double gpuCoreClockDropPercent = std::numeric_limits<double>::quiet_NaN();
 };
 
 bool isFiniteMeasurement(double value);
