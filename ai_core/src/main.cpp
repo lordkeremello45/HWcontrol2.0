@@ -14,21 +14,21 @@ static std::filesystem::path defaultModelPath() {
     }
 #ifdef _WIN32
     if (const char* localAppData = std::getenv("LOCALAPPDATA"); localAppData && *localAppData) {
-        return std::filesystem::path(localAppData) / "HWControl" / "models" / "gemma-2b-it-q4_k_m.gguf";
+        return std::filesystem::path(localAppData) / "HWControl" / "models" / "gemma-3-1b-it-Q5_K_M.gguf";
     }
 #elif defined(__APPLE__)
     if (const char* home = std::getenv("HOME"); home && *home) {
-        return std::filesystem::path(home) / "Library" / "Application Support" / "HWControl" / "models" / "gemma-2b-it-q4_k_m.gguf";
+        return std::filesystem::path(home) / "Library" / "Application Support" / "HWControl" / "models" / "gemma-3-1b-it-Q5_K_M.gguf";
     }
 #else
     if (const char* xdg = std::getenv("XDG_CACHE_HOME"); xdg && *xdg) {
-        return std::filesystem::path(xdg) / "HWControl" / "models" / "gemma-2b-it-q4_k_m.gguf";
+        return std::filesystem::path(xdg) / "HWControl" / "models" / "gemma-3-1b-it-Q5_K_M.gguf";
     }
     if (const char* home = std::getenv("HOME"); home && *home) {
-        return std::filesystem::path(home) / ".cache" / "HWControl" / "models" / "gemma-2b-it-q4_k_m.gguf";
+        return std::filesystem::path(home) / ".cache" / "HWControl" / "models" / "gemma-3-1b-it-Q5_K_M.gguf";
     }
 #endif
-    return std::filesystem::path("ai_core/models/gemma-2b-it-q4_k_m.gguf");
+    return std::filesystem::path("ai_core/models/gemma-3-1b-it-Q5_K_M.gguf");
 }
 
 static int runStdioMode(const std::filesystem::path& modelPath) {
