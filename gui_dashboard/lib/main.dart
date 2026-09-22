@@ -92,6 +92,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   double _memoryUsage = 0;
   double _diskUsage = 0;
   double _gpuUsage = 0;
+  double _gpuMemoryUsage = 0;
+  double _gpuPowerWatts = 0;
+  double _gpuPowerLimitWatts = 0;
+  double _gpuCoreClockMHz = 0;
+  double _gpuMemoryClockMHz = 0;
+  String _gpuPState = 'N/A';
+  double _gpuEncoderUsage = 0;
+  double _gpuDecoderUsage = 0;
+  List<double> _cpuPerCoreUsage = <double>[];
   double _fanPercent = 0;
   double _fanRpm = 0;
   String _gpuVendor = 'Bilinmiyor';
@@ -316,6 +325,15 @@ Attach this archive to a support issue only after reviewing it for personal info
       _memoryUsage = (data['memoryUsage'] as num?)?.toDouble() ?? 0;
       _diskUsage = (data['diskUsage'] as num?)?.toDouble() ?? 0;
       _gpuUsage = (data['gpuUsage'] as num?)?.toDouble() ?? 0;
+      _gpuMemoryUsage = (data['gpuMemoryUsage'] as num?)?.toDouble() ?? 0;
+      _gpuPowerWatts = (data['powerWatts'] as num?)?.toDouble() ?? 0;
+      _gpuPowerLimitWatts = (data['gpuPowerLimitWatts'] as num?)?.toDouble() ?? 0;
+      _gpuCoreClockMHz = (data['gpuCoreClockMHz'] as num?)?.toDouble() ?? 0;
+      _gpuMemoryClockMHz = (data['gpuMemoryClockMHz'] as num?)?.toDouble() ?? 0;
+      _gpuPState = data['gpuPState'] as String? ?? 'N/A';
+      _gpuEncoderUsage = (data['gpuEncoderUsage'] as num?)?.toDouble() ?? 0;
+      _gpuDecoderUsage = (data['gpuDecoderUsage'] as num?)?.toDouble() ?? 0;
+      _cpuPerCoreUsage = ((data['cpuPerCoreUsage'] as List?) ?? const <dynamic>[]).whereType<num>().map((value) => value.toDouble()).toList(growable: false);
       _fanPercent = (data['fanPercent'] as num?)?.toDouble() ?? 0;
       _fanRpm = (data['fanRpm'] as num?)?.toDouble() ?? 0;
       _gpuVendor = data['gpuVendor'] as String? ?? 'Bilinmiyor';
@@ -331,7 +349,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       _cpuModel = data['cpuModel'] as String? ?? 'Bilinmiyor';
       _gpuModel = data['gpuModel'] as String? ?? 'Bilinmiyor';
       _gpuDriver = data['gpuDriver'] as String? ?? 'Bilinmiyor';
-      _hardwareDetectionStatus = data['hardwareDetectionStatus'] as String? ?? 'partial';
+      _hardwareDetectionStatus = data['detectionStatus'] as String? ?? 'partial';
       _gameModeEnabled = data['gameModeEnabled'] as bool? ?? false;
       _gameDetected = data['gameDetected'] as bool? ?? false;
       _gameProcessName = data['gameProcessName'] as String? ?? '';
@@ -677,6 +695,8 @@ Attach this archive to a support issue only after reviewing it for personal info
                       const SizedBox(height: 18),
                       _buildHistoryCard(),
                       const SizedBox(height: 18),
+                      _buildAdvancedTelemetryCard(),
+                      const SizedBox(height: 18),
                       _buildHardwareIdentityCard(),
                       const SizedBox(height: 18),
                       _buildGameModeCard(),
@@ -859,6 +879,78 @@ Attach this archive to a support issue only after reviewing it for personal info
           ),
           const SizedBox(height: 16),
           SizedBox(height: 130, child: _history.isEmpty ? const Center(child: Text('Bridge metrikleri bekleniyor', style: TextStyle(color: Colors.white54, fontSize: 12))) : CustomPaint(painter: _HistoryPainter(_history, Theme.of(context).colorScheme.primary))),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdvancedTelemetryCard() {
+    final hasGpuTelemetry = _gpuVendor != 'Bilinmiyor' && (_gpuUsage > 0 || _gpuPowerWatts > 0 || _gpuCoreClockMHz > 0);
+    return _Panel(
+      padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionTitle('Advanced Telemetry', 'GPU yükü, VRAM, güç, saat hızları ve CPU çekirdekleri'),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              _telemetryChip('GPU', '${_gpuUsage.toStringAsFixed(0)}%'),
+              _telemetryChip('VRAM', '${_gpuMemoryUsage.toStringAsFixed(0)}%'),
+              _telemetryChip('GPU güç', '${_gpuPowerWatts.toStringAsFixed(1)} W'),
+              _telemetryChip('Güç limiti', _gpuPowerLimitWatts > 0 ? '${_gpuPowerLimitWatts.toStringAsFixed(1)} W' : 'N/A'),
+              _telemetryChip('Core clock', _gpuCoreClockMHz > 0 ? '${_gpuCoreClockMHz.toStringAsFixed(0)} MHz' : 'N/A'),
+              _telemetryChip('Memory clock', _gpuMemoryClockMHz > 0 ? '${_gpuMemoryClockMHz.toStringAsFixed(0)} MHz' : 'N/A'),
+              _telemetryChip('P-State', _gpuPState),
+              _telemetryChip('Encoder', '${_gpuEncoderUsage.toStringAsFixed(0)}%'),
+              _telemetryChip('Decoder', '${_gpuDecoderUsage.toStringAsFixed(0)}%'),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (hasGpuTelemetry)
+            LinearProgressIndicator(value: (_gpuPowerLimitWatts > 0 ? _gpuPowerWatts / _gpuPowerLimitWatts : _gpuUsage / 100).clamp(0, 1), minHeight: 4)
+          else
+            const Text('GPU gelişmiş telemetrisi sürücü/backend desteğine bağlıdır.', style: TextStyle(fontSize: 12)),
+          if (_cpuPerCoreUsage.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Text('CPU çekirdek yükü', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(160))),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (var i = 0; i < _cpuPerCoreUsage.length; i++)
+                  SizedBox(width: 42, child: Column(children: [
+                    Text('C${i + 1}', style: const TextStyle(fontSize: 9)),
+                    const SizedBox(height: 3),
+                    LinearProgressIndicator(value: (_cpuPerCoreUsage[i] / 100).clamp(0, 1), minHeight: 4),
+                    const SizedBox(height: 2),
+                    Text('${_cpuPerCoreUsage[i].round()}%', style: const TextStyle(fontSize: 9)),
+                  ])),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _telemetryChip(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Theme.of(context).colorScheme.onSurface.withAlpha(18)),
+        color: Theme.of(context).colorScheme.onSurface.withAlpha(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: TextStyle(fontSize: 9, color: Theme.of(context).colorScheme.onSurface.withAlpha(130))),
+          const SizedBox(height: 2),
+          Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
         ],
       ),
     );
