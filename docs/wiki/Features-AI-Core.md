@@ -1,71 +1,27 @@
 # Local AI Core
 
-HWcontrol2.0 includes a local large-language-model analysis engine built around Gemma 3 1B GGUF and llama.cpp. The model is executed locally; telemetry is not uploaded to a cloud AI service by this component. The selected Gemma 3 1B Instruct Q5_K_M GGUF model is about 851 MB, keeping the model cache below 1 GB.
+HWcontrol2.0 includes a local large-language-model analysis engine built around Gemma 3 1B GGUF and llama.cpp. The model runs locally; this component does not upload telemetry to a cloud AI service. The selected Gemma 3 1B Instruct Q5_K_M GGUF model is about 851 MB.
 
-## What the AI Core does
+## Model lifecycle
 
-The AI engine converts hardware telemetry into a short Turkish explanation. It currently accepts:
+The AI model is optional and is not required to complete the base installation. The installer does not download the model. On the first requested AI analysis, the dashboard downloads the model into the platform-specific HWControl user cache.
 
-- CPU temperature, aggregate load, busiest logical-core load and frequency
-- CPU core count
-- GPU temperature, load and memory utilization
-- GPU power and reported power limit
-- GPU core and memory clocks
-- fan percentage/RPM when available
-- system RAM and disk utilization
-- Game Mode / game detection state
-- GPU vendor/name when supplied by the caller
-
-Unavailable measurements are represented explicitly as missing data. The model is instructed not to invent values.
+The model manager uses HTTPS, verifies the exact expected byte count and SHA-256 digest while streaming, writes through a .part file, and only exposes a verified model as the final filename. Failed model downloads do not block the bridge or hardware monitoring. Obsolete Gemma 2B cache files are removed only after the new model is verified.
 
 ## Safety architecture
 
-The LLM is not the hardware safety authority.
+The LLM is not the hardware safety authority. A deterministic risk layer classifies supplied telemetry as normal, izleme, yuksek, kritik or veri-yetersiz before inference. The LLM only explains measured conditions and is prohibited from directing fan-speed, voltage, clock or power-limit changes.
 
-Before inference, a deterministic risk layer classifies the supplied telemetry as:
+## Telemetry and trends
 
-- `normal`
-- `izleme`
-- `yuksek`
-- `kritik`
-- `veri-yetersiz`
+The AI receives CPU/GPU temperatures and loads, CPU frequency/core information, GPU memory/power/clocks, fan data when available, RAM/disk utilization, Game Mode state, and hardware identity fields supplied by the caller. Missing values remain missing.
 
-The thresholds are conservative observation thresholds, not universal hardware safety limits. The result is passed to the LLM as context so the model explains measured conditions rather than making uncontrolled hardware decisions.
-
-The AI prompt explicitly prohibits instructing the user to change fan speed, voltage, clocks or power limits.
-
-## Trend awareness
-
-The AI engine retains the previous telemetry snapshot for the current runtime session and calculates CPU/GPU temperature deltas. A rapid rise can therefore be reported even when the absolute temperature has not crossed a high threshold.
+The native AI process is persistent during use so the model is loaded once rather than for every request. The GUI requests analysis periodically and manually, while download failures are throttled to avoid repeated network retries.
 
 ## Runtime protocol
 
-`ai_engine --stdio` starts a persistent model process and reads one telemetry request per line. The protocol is intentionally dependency-light and forward-compatible:
+`ai_engine --stdio` reads one telemetry request per line and returns `OK|<analysis>`. Malformed telemetry is rejected explicitly.
 
-```text
-cpu_temp=72.5 cpu_load=91 gpu_temp=82 gpu_load=97 gpu_power=218 gpu_power_limit=250 game_mode=1 game_detected=1
-```
+## Current boundary
 
-String values use hexadecimal fields such as `gpu_name_hex` and `game_process_hex`.
-
-The response is one line:
-
-```text
-OK|<analysis>
-```
-
-Malformed requests return:
-
-```text
-ERROR|invalid-telemetry
-```
-
-The stdio mode is designed for the authenticated local application/bridge integration and avoids repeatedly loading the ~851 MB model for every analysis request.
-
-## Current runtime boundary
-
-The local LLM, telemetry analysis pipeline and desktop runtime integration are implemented. The GUI now starts the persistent AI engine locally and feeds it authenticated bridge telemetry. The Go bridge remains the authoritative hardware/control path, while the LLM is restricted to analysis, explanation and recommendations.
-
-The native engine does not currently claim universal support for AMD/Intel/macOS sensor backends. Missing sensor data remains missing rather than being synthesized.
-
-The deterministic risk engine now also compares consecutive CPU frequency and GPU core-clock samples. A drop of at least 15% under high load and elevated temperature is reported as suspected thermal throttling; the LLM only explains this finding and cannot control hardware.
+The Go bridge remains the authoritative hardware/control path. The LLM is an analysis layer only. Universal AMD/Intel/macOS sensor support is not claimed, and unsupported hardware control remains fail-closed.
