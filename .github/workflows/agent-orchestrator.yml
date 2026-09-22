@@ -45,8 +45,8 @@ jobs:
           set -euo pipefail
           gh run view "$RUN_ID" --repo "$GITHUB_REPOSITORY" --json databaseId,name,headSha,headBranch,event,status,conclusion,url > run.json
           gh run view "$RUN_ID" --repo "$GITHUB_REPOSITORY" --log-failed > failed.log 2>&1 || true
-          # Keep automated issue bodies safely below GitHub's 65,536-character limit.
-          tail -n 50 failed.log | cut -c1-2400 > failed_excerpt.log
+          # Keep automated issue bodies well below GitHub's 65,536-character limit.
+          tail -n 20 failed.log | cut -c1-1600 > failed_excerpt.log
           jq -r '.name' run.json > workflow_name.txt
           echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
           echo "workflow_name=$(cat workflow_name.txt)" >> "$GITHUB_OUTPUT"
@@ -76,7 +76,7 @@ jobs:
             echo "### Run metadata"
             cat run.json
             echo
-            echo "### Failed log excerpt (last 50 lines)"
+            echo "### Failed log excerpt (last 20 lines)"
             echo '```text'
             cat failed_excerpt.log
             echo '```'
