@@ -233,9 +233,9 @@ func nvidiaSMIOutput() ([]byte, error) {
 }
 
 func modelDigest() string {
-	modelPath := os.Getenv("HWCONTROL_MODEL")
+	modelPath := strings.TrimSpace(os.Getenv("HWCONTROL_MODEL"))
 	if modelPath == "" {
-		modelPath = filepath.Join("ai_core", "models", "gemma-3-1b-it-Q5_K_M.gguf")
+		return "managed-by-gui"
 	}
 	file, err := os.Open(modelPath)
 	if err != nil {
@@ -364,15 +364,15 @@ func loadOrCreateSecret() (string, error) {
 
 func diagnosticsSnapshot() map[string]any {
 	metrics := collectMetrics()
-	modelPath := os.Getenv("HWCONTROL_MODEL")
-	if modelPath == "" {
-		modelPath = filepath.Join("ai_core", "models", "gemma-3-1b-it-Q5_K_M.gguf")
-	}
-	modelState := "missing"
-	if info, err := os.Stat(modelPath); err == nil {
-		modelState = "present"
-		if info.Size() <= 0 {
-			modelState = "invalid"
+	modelPath := strings.TrimSpace(os.Getenv("HWCONTROL_MODEL"))
+	modelState := "managed-by-gui"
+	if modelPath != "" {
+		modelState = "missing"
+		if info, err := os.Stat(modelPath); err == nil {
+			modelState = "present"
+			if info.Size() <= 0 {
+				modelState = "invalid"
+			}
 		}
 	}
 	return map[string]any{
