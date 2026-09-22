@@ -14,6 +14,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'model_manager.dart';
+import 'user_data_store.dart';
 
 void main() => runApp(const HWControlApp());
 
@@ -137,6 +138,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _gameProcessName = '';
   final List<_MetricSample> _history = <_MetricSample>[];
   final List<String> _events = <String>[];
+  final HWControlUserDataStore _userData = HWControlUserDataStore();
   String _thermalStatus = 'Veri bekleniyor';
   bool _thermalAlertActive = false;
   Map<String, Map<String, double>> _profiles = {};
@@ -401,6 +403,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _polling = true;
     try {
       await _loadProfiles();
+      await _loadSettings();
       await _loadTelemetryHistory();
       await _loadBridgeKey();
       if (!mounted) return;
@@ -423,34 +426,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  Future<File> get _profilesFile async {
-    final directory = await getApplicationSupportDirectory();
-    final state = Directory(
-      '${directory.path}${Platform.pathSeparator}HWControl',
-    );
-    await state.create(recursive: true);
-    return File(
-      '${state.path}${Platform.pathSeparator}profiles.json',
-    );
-  }
-
   Future<void> _loadProfiles() async {
     try {
-      final file = await _profilesFile;
-      if (!await file.exists()) return;
-      final decoded = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
+      final decoded = await _userData.readProfiles();
       if (!mounted) return;
       final profiles = <String, Map<String, double>>{};
       for (final entry in decoded.entries) {
-        final values = entry.value as Map;
+        if (entry.value is! Map) continue;
+        final values = Map<String, dynamic>.from(entry.value as Map);
+        final fan = (values['fan'] as num?)?.toDouble();
+        final ai = (values['ai'] as num?)?.toDouble();
+        if (fan == null || ai == null) continue;
         profiles[entry.key] = {
-          'fan': (values['fan'] as num).toDouble(),
-          'ai': (values['ai'] as num).toDouble(),
+          'fan': fan.clamp(0, 100),
+          'ai': ai.clamp(0, 100),
         };
       }
       setState(() => _profiles = profiles);
     } catch (_) {
       _addEvent('Profil dosyası okunamadı');
+    }
+  }
+
+  Future<void> _loadSettings() async {
+    try {
+      final settings = await _userData.readSettings();
+      if (!mounted) return;
+      final notifications = settings['notificationsEnabled'];
+      final limit = settings['temperatureLimit'];
+      setState(() {
+        if (notifications is bool) _notificationsEnabled = notifications;
+        if (limit is num) {
+          _temperatureLimit = limit.toDouble().clamp(60, 100);
+        }
+      });
+    } catch (_) {
+      _addEvent('Ayar dosyası okunamadı');
+    }
+  }
+
+  Future<void> _saveSettings() async {
+    try {
+      await _userData.writeSettings(<String, dynamic>{
+        'notificationsEnabled': _notificationsEnabled,
+        'temperatureLimit': _temperatureLimit,
+      });
+    } catch (_) {
+      _addEvent('Ayarlar kaydedilemedi');
     }
   }
 
@@ -549,8 +571,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _saveProfile(String name) async {
     _profiles[name] = {'fan': _fanValue, 'ai': _aiValue};
     try {
-      final file = await _profilesFile;
-      await file.writeAsString(jsonEncode(_profiles));
+      await _userData.writeProfiles(
+        _profiles.map((key, value) => MapEntry(key, value)),
+      );
       _addEvent('$name profili kaydedildi');
     } catch (_) {
       _addEvent('Profil kaydedilemedi');
@@ -859,6 +882,7 @@ Attach this archive to a support issue only after reviewing it for personal info
                   _notificationsEnabled = notificationsEnabled;
                   _temperatureLimit = temperatureLimit;
                 });
+                unawaited(_saveSettings());
                 Navigator.pop(context);
               },
               child: const Text('Kaydet'),
