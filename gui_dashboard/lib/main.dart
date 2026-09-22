@@ -71,6 +71,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   static const _checkFileUrl = 'https://raw.githubusercontent.com/lordkeremello45/HWcontrol2.0/main/updates/check.json';
   Socket? _socket;
   StreamIterator<String>? _responses;
+  Process? _aiProcess;
+  StreamIterator<String>? _aiResponses;
+  bool _aiStarting = false;
+  bool _aiSending = false;
+  DateTime? _lastAiAnalysisAt;
+  String _aiStatus = 'Yerel AI başlatılmadı';
+  String _aiAnalysis = 'Gemma telemetry analizi bekleniyor';
+  DateTime? _aiAnalysisTime;
   String _status = 'Bridge bekleniyor';
   String _lastAction = 'Henüz komut gönderilmedi';
   bool _isConnected = false;
@@ -170,6 +178,175 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return Socket.connect(address, 0, timeout: const Duration(seconds: 3));
     }
     return Socket.connect('127.0.0.1', _bridgePort, timeout: const Duration(seconds: 3));
+  }
+
+  String _defaultModelPath() {
+    if (Platform.isWindows) {
+      final localAppData = Platform.environment['LOCALAPPDATA'];
+      if (localAppData != null && localAppData.isNotEmpty) {
+        return '$localAppData${Platform.pathSeparator}HWControl${Platform.pathSeparator}models${Platform.pathSeparator}gemma-2b-it-q4_k_m.gguf';
+      }
+    } else if (Platform.isMacOS) {
+      final home = Platform.environment['HOME'];
+      if (home != null && home.isNotEmpty) {
+        return '$home${Platform.pathSeparator}Library${Platform.pathSeparator}Application Support${Platform.pathSeparator}HWControl${Platform.pathSeparator}models${Platform.pathSeparator}gemma-2b-it-q4_k_m.gguf';
+      }
+    } else if (Platform.isLinux) {
+      final xdg = Platform.environment['XDG_CACHE_HOME'];
+      if (xdg != null && xdg.isNotEmpty) {
+        return '$xdg${Platform.pathSeparator}HWControl${Platform.pathSeparator}models${Platform.pathSeparator}gemma-2b-it-q4_k_m.gguf';
+      }
+      final home = Platform.environment['HOME'];
+      if (home != null && home.isNotEmpty) {
+        return '$home${Platform.pathSeparator}.cache${Platform.pathSeparator}HWControl${Platform.pathSeparator}models${Platform.pathSeparator}gemma-2b-it-q4_k_m.gguf';
+      }
+    }
+    return 'ai_core${Platform.pathSeparator}models${Platform.pathSeparator}gemma-2b-it-q4_k_m.gguf';
+  }
+
+  Future<String?> _findAiEnginePath() async {
+    final executable = File(Platform.resolvedExecutable);
+    final executableDir = executable.parent.path;
+    final binaryName = Platform.isWindows ? 'ai_engine.exe' : 'ai_engine';
+    final candidates = <String>[
+      '$executableDir${Platform.pathSeparator}$binaryName',
+      '${Directory(executableDir).parent.path}${Platform.pathSeparator}$binaryName',
+      '${Directory(Directory(executableDir).parent.path).parent.path}${Platform.pathSeparator}$binaryName',
+      '${Directory.current.path}${Platform.pathSeparator}$binaryName',
+      '${Directory.current.path}${Platform.pathSeparator}ai_core${Platform.pathSeparator}$binaryName',
+    ];
+    for (final candidate in candidates) {
+      try {
+        if (await File(candidate).exists()) return candidate;
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  String _aiNumber(dynamic value) {
+    final number = value is num ? value.toDouble() : double.nan;
+    return number.isFinite ? number.toStringAsFixed(3) : 'nan';
+  }
+
+  String _aiBool(dynamic value) => value == true ? '1' : '0';
+
+  String _hexEncode(String value) {
+    final bytes = utf8.encode(value);
+    return bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
+  }
+
+  String _buildAiTelemetryLine(Map<String, dynamic> data) {
+    final cores = ((data['cpuPerCoreUsage'] as List?) ?? const <dynamic>[]).whereType<num>();
+    double maxCore = double.nan;
+    for (final value in cores) {
+      final number = value.toDouble();
+      if (number.isFinite && (!maxCore.isFinite || number > maxCore)) {
+        maxCore = number;
+      }
+    }
+    return <String>[
+      'cpu_temp=${_aiNumber(data['cpuTemperature'])}',
+      'cpu_load=${_aiNumber(data['cpuUsage'])}',
+      'cpu_max_core=${maxCore.isFinite ? maxCore.toStringAsFixed(3) : 'nan'}',
+      'cpu_freq=${_aiNumber(data['cpuFrequencyMHz'])}',
+      'cpu_cores=${((data['cpuCoreCount'] as num?)?.toInt() ?? 0)}',
+      'gpu_temp=${_aiNumber(data['gpuTemperature'])}',
+      'gpu_load=${_aiNumber(data['gpuUsage'])}',
+      'gpu_memory=${_aiNumber(data['gpuMemoryUsage'])}',
+      'gpu_power=${_aiNumber(data['powerWatts'])}',
+      'gpu_power_limit=${_aiNumber(data['gpuPowerLimitWatts'])}',
+      'gpu_core_clock=${_aiNumber(data['gpuCoreClockMHz'])}',
+      'gpu_memory_clock=${_aiNumber(data['gpuMemoryClockMHz'])}',
+      'gpu_encoder=${_aiNumber(data['gpuEncoderUsage'])}',
+      'gpu_decoder=${_aiNumber(data['gpuDecoderUsage'])}',
+      'fan=${_aiNumber(data['fanPercent'])}',
+      'fan_rpm=${_aiNumber(data['fanRpm'])}',
+      'ram=${_aiNumber(data['memoryUsage'])}',
+      'disk=${_aiNumber(data['diskUsage'])}',
+      'game_mode=${_aiBool(data['gameModeEnabled'])}',
+      'game_detected=${_aiBool(data['gameDetected'])}',
+      'gpu_vendor_hex=${_hexEncode((data['gpuVendor'] as String?) ?? '')}',
+      'gpu_name_hex=${_hexEncode((data['gpuModel'] as String?) ?? '')}',
+      'game_process_hex=${_hexEncode((data['gameProcessName'] as String?) ?? '')}',
+    ].join(' ');
+  }
+
+  Future<void> _ensureAiEngine() async {
+    if (_aiProcess != null || _aiStarting) return;
+    _aiStarting = true;
+    try {
+      final executablePath = await _findAiEnginePath();
+      final modelPath = _defaultModelPath();
+      if (executablePath == null) {
+        if (mounted) setState(() => _aiStatus = 'ai_engine bulunamadı');
+        return;
+      }
+      if (!await File(modelPath).exists()) {
+        if (mounted) setState(() => _aiStatus = 'Gemma modeli henüz hazır değil');
+        return;
+      }
+
+      final environment = Map<String, String>.from(Platform.environment);
+      environment['HWCONTROL_MODEL'] = modelPath;
+      final process = await Process.start(executablePath, const ['--stdio'], environment: environment, runInShell: false);
+      _aiProcess = process;
+      _aiResponses = StreamIterator(process.stdout.transform(utf8.decoder).transform(const LineSplitter()));
+      process.stderr.transform(utf8.decoder).transform(const LineSplitter()).listen((_) {});
+      process.exitCode.then((code) {
+        if (_aiProcess == process) {
+          _aiProcess = null;
+          _aiResponses = null;
+          if (mounted) setState(() => _aiStatus = code == 0 ? 'Yerel AI kapandı' : 'Yerel AI işlemi sonlandı');
+        }
+      });
+      if (mounted) setState(() => _aiStatus = 'Gemma yerel inference hazır');
+    } catch (_) {
+      _aiProcess = null;
+      _aiResponses = null;
+      if (mounted) setState(() => _aiStatus = 'Yerel AI başlatılamadı');
+    } finally {
+      _aiStarting = false;
+    }
+  }
+
+  Future<void> _requestAiAnalysis(Map<String, dynamic> data, {bool force = false}) async {
+    final now = DateTime.now();
+    if (!force && _lastAiAnalysisAt != null && now.difference(_lastAiAnalysisAt!) < const Duration(seconds: 30)) return;
+    if (_aiSending) return;
+    _lastAiAnalysisAt = now;
+    _aiSending = true;
+    try {
+      await _ensureAiEngine();
+      final process = _aiProcess;
+      final responses = _aiResponses;
+      if (process == null || responses == null) return;
+
+      process.stdin.writeln(_buildAiTelemetryLine(data));
+      await process.stdin.flush();
+      if (!await responses.moveNext().timeout(const Duration(seconds: 25))) {
+        throw StateError('AI response timeout');
+      }
+      final response = responses.current;
+      if (!response.startsWith('OK|')) {
+        throw StateError(response);
+      }
+      final analysis = response.substring(3).trim();
+      if (!mounted) return;
+      setState(() {
+        _aiAnalysis = analysis.isEmpty ? 'AI yanıt üretemedi' : analysis;
+        _aiAnalysisTime = DateTime.now();
+        _aiStatus = 'Gemma inference aktif';
+      });
+    } catch (_) {
+      try {
+        _aiProcess?.kill();
+      } catch (_) {}
+      _aiProcess = null;
+      _aiResponses = null;
+      if (mounted) setState(() => _aiStatus = 'AI analizi başarısız');
+    } finally {
+      _aiSending = false;
+    }
   }
 
   @override
@@ -360,6 +537,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       }
     });
     if (thresholdExceeded) _addEvent('CPU sıcaklığı eşik üstünde');
+    unawaited(_requestAiAnalysis(data));
   }
 
   Future<void> _refreshSecurity() async {
@@ -669,6 +847,8 @@ Attach this archive to a support issue only after reviewing it for personal info
     _connectionGeneration++;
     _responses?.cancel();
     _socket?.destroy();
+    _aiResponses?.cancel();
+    _aiProcess?.kill();
     super.dispose();
   }
 
@@ -696,6 +876,8 @@ Attach this archive to a support issue only after reviewing it for personal info
                       _buildHistoryCard(),
                       const SizedBox(height: 18),
                       _buildAdvancedTelemetryCard(),
+                      const SizedBox(height: 18),
+                      _buildAiAnalysisCard(),
                       const SizedBox(height: 18),
                       _buildHardwareIdentityCard(),
                       const SizedBox(height: 18),
@@ -951,6 +1133,56 @@ Attach this archive to a support issue only after reviewing it for personal info
           Text(label, style: TextStyle(fontSize: 9, color: Theme.of(context).colorScheme.onSurface.withAlpha(130))),
           const SizedBox(height: 2),
           Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAiAnalysisCard() {
+    return _Panel(
+      padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.auto_awesome, size: 20),
+              const SizedBox(width: 10),
+              Expanded(child: _sectionTitle('Local AI Analysis', 'Gerçek telemetry üzerinde yerel Gemma yorumu')),
+              OutlinedButton.icon(
+                onPressed: _aiSending ? null : () async {
+                  final data = await _requestBridgeData('Get Status');
+                  if (data != null) unawaited(_requestAiAnalysis(data, force: true));
+                },
+                icon: const Icon(Icons.refresh, size: 16),
+                label: const Text('Yenile'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: Theme.of(context).colorScheme.onSurface.withAlpha(8),
+              border: Border.all(color: Theme.of(context).colorScheme.onSurface.withAlpha(18)),
+            ),
+            child: Text(
+              _aiAnalysis,
+              style: const TextStyle(fontSize: 14, height: 1.45, fontWeight: FontWeight.w600),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Icon(Icons.circle, size: 7, color: _aiProcess != null ? const Color(0xFF64D8CB) : const Color(0xFFFFB454)),
+              const SizedBox(width: 8),
+              Expanded(child: Text(_aiAnalysisTime == null ? _aiStatus : '$_aiStatus • ${_aiAnalysisTime!.toLocal().toString().substring(11, 19)}', style: const TextStyle(fontSize: 11))),
+              const SizedBox(width: 8),
+              const Text('LLM kontrol yetkisi yok', style: TextStyle(fontSize: 11)),
+            ],
+          ),
         ],
       ),
     );
