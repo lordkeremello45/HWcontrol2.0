@@ -35,10 +35,22 @@ int main() {
         current.cpuTemperatureC = 77.0;
         current.gpuTemperatureC = 83.0;
 
+        current.cpuFrequencyMHz = 2200.0;
+        previous.cpuFrequencyMHz = 3000.0;
+        current.cpuLoadPercent = 92.0;
+        current.gpuCoreClockMHz = 1400.0;
+        previous.gpuCoreClockMHz = 1900.0;
+        current.gpuLoadPercent = 90.0;
+
         const RiskAssessment risk = assessHardwareRisk(current, &previous);
         assert(std::fabs(risk.cpuTemperatureDeltaC - 7.0) < 0.001);
         assert(std::fabs(risk.gpuTemperatureDeltaC - 7.0) < 0.001);
+        assert(risk.cpuFrequencyDropPercent > 26.0 && risk.cpuFrequencyDropPercent < 27.0);
+        assert(risk.gpuCoreClockDropPercent > 26.0 && risk.gpuCoreClockDropPercent < 27.0);
         assert(risk.level == "yuksek");
+        const std::string prompt = buildAnalysisPrompt(current, risk);
+        assert(prompt.find("CPU_freq_drop=") != std::string::npos);
+        assert(prompt.find("GPU_clock_drop=") != std::string::npos);
     }
 
     {
