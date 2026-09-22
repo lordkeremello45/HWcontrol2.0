@@ -32,10 +32,10 @@ class InstallerWizard extends StatefulWidget {
 }
 
 class _InstallerWizardState extends State<InstallerWizard> {
-  static const _modelName = 'gemma-2b-it-q4_k_m.gguf';
-  static const _modelUrl = 'https://huggingface.co/second-state/Gemma-2b-it-GGUF/resolve/main/gemma-2b-it-Q4_K_M.gguf?download=true';
-  static const _modelSha256 = '4d736aa91fa06bb4d72a9e9017ad4e5c6a8fc16fb01b748c9b8332293c855402';
-  static const _modelSize = 1495095008;
+  static const _modelName = 'gemma-3-1b-it-Q5_K_M.gguf';
+  static const _modelUrl = 'https://huggingface.co/second-state/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-Q5_K_M.gguf?download=true';
+  static const _modelSha256 = '586d772e7f50b36b86bf3d04a1912f880206ef77044c5011107adb8915d97b93';
+  static const _modelSize = 851345696;
 
   int _step = 0;
   bool _checking = true;
@@ -118,6 +118,10 @@ class _InstallerWizardState extends State<InstallerWizard> {
   Future<void> _ensureModel() async {
     final directory = await _modelDirectory();
     final target = File('${directory.path}${Platform.pathSeparator}$_modelName');
+    final legacyModels = <File>[
+      File('${directory.path}${Platform.pathSeparator}gemma-2b-it-q4_k_m.gguf'),
+      File('${directory.path}${Platform.pathSeparator}gemma-2b-it-Q4_K_M.gguf'),
+    ];
     _modelFile = target;
     _modelError = null;
 
@@ -160,6 +164,11 @@ class _InstallerWizardState extends State<InstallerWizard> {
         throw StateError('Model SHA-256 doğrulaması başarısız. Beklenen: $_modelSha256, alınan: $digest');
       }
       await partial.rename(target.path);
+      for (final legacy in legacyModels) {
+        try {
+          if (await legacy.exists()) await legacy.delete();
+        } catch (_) {}
+      }
       _modelReady = true;
     } catch (error) {
       _modelReady = false;
@@ -290,7 +299,7 @@ class _InstallerWizardState extends State<InstallerWizard> {
                     ),
                   ]),
                   const SizedBox(height: 12),
-                  Text('Model ilk çalıştırmada indirilir, SHA-256 ile doğrulanır ve kullanıcı uygulama cache dizininde saklanır.', style: Theme.of(context).textTheme.bodySmall),
+                  Text('AI modeli kurulum sırasında yalnızca doğrulanmış şekilde indirilir; uygulama cache dizininde saklanır ve eski Gemma 2B cache'i yeni model doğrulandıktan sonra temizlenir.', style: Theme.of(context).textTheme.bodySmall),
                 ],
               ),
             ),
@@ -311,8 +320,8 @@ class _InstallerWizardState extends State<InstallerWizard> {
   String _bodyForStep() {
     switch (_step) {
       case 0: return 'Bu çalıştırmada $_platformName için uygun paket biçimi $_packageFormats.';
-      case 1: return 'Gemma 2B Instruct Q4_K_M modeli ilk çalıştırmada otomatik olarak indirilir. Eksik veya bozuk cache dosyası yeniden indirilir.';
-      default: return 'Model bulunamazsa veya SHA-256 eşleşmezse uygulama başlamaz; ekranda nedeni ve yeniden deneme seçeneği gösterilir.';
+      case 1: return 'Gemma 3 1B Instruct Q5_K_M modeli ilk çalıştırmada otomatik olarak indirilir. Yaklaşık 851 MB olan model SHA-256 ile doğrulanır. Eksik veya bozuk cache dosyası yeniden indirilir.';
+      default: return 'Model bulunamazsa veya SHA-256 eşleşmezse kurulum tamamlanmaz; ekranda neden ve yeniden deneme seçeneği gösterilir.';
     }
   }
 }
