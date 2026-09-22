@@ -194,24 +194,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (Platform.isWindows) {
       final localAppData = Platform.environment['LOCALAPPDATA'];
       if (localAppData != null && localAppData.isNotEmpty) {
-        return '$localAppData${Platform.pathSeparator}HWControl${Platform.pathSeparator}models${Platform.pathSeparator}gemma-2b-it-q4_k_m.gguf';
+        return '$localAppData${Platform.pathSeparator}HWControl${Platform.pathSeparator}models${Platform.pathSeparator}gemma-3-1b-it-Q5_K_M.gguf';
       }
     } else if (Platform.isMacOS) {
       final home = Platform.environment['HOME'];
       if (home != null && home.isNotEmpty) {
-        return '$home${Platform.pathSeparator}Library${Platform.pathSeparator}Application Support${Platform.pathSeparator}HWControl${Platform.pathSeparator}models${Platform.pathSeparator}gemma-2b-it-q4_k_m.gguf';
+        return '$home${Platform.pathSeparator}Library${Platform.pathSeparator}Application Support${Platform.pathSeparator}HWControl${Platform.pathSeparator}models${Platform.pathSeparator}gemma-3-1b-it-Q5_K_M.gguf';
       }
     } else if (Platform.isLinux) {
       final xdg = Platform.environment['XDG_CACHE_HOME'];
       if (xdg != null && xdg.isNotEmpty) {
-        return '$xdg${Platform.pathSeparator}HWControl${Platform.pathSeparator}models${Platform.pathSeparator}gemma-2b-it-q4_k_m.gguf';
+        return '$xdg${Platform.pathSeparator}HWControl${Platform.pathSeparator}models${Platform.pathSeparator}gemma-3-1b-it-Q5_K_M.gguf';
       }
       final home = Platform.environment['HOME'];
       if (home != null && home.isNotEmpty) {
-        return '$home${Platform.pathSeparator}.cache${Platform.pathSeparator}HWControl${Platform.pathSeparator}models${Platform.pathSeparator}gemma-2b-it-q4_k_m.gguf';
+        return '$home${Platform.pathSeparator}.cache${Platform.pathSeparator}HWControl${Platform.pathSeparator}models${Platform.pathSeparator}gemma-3-1b-it-Q5_K_M.gguf';
       }
     }
-    return 'ai_core${Platform.pathSeparator}models${Platform.pathSeparator}gemma-2b-it-q4_k_m.gguf';
+    return 'ai_core${Platform.pathSeparator}models${Platform.pathSeparator}gemma-3-1b-it-Q5_K_M.gguf';
   }
 
   Future<String?> _findAiEnginePath() async {
@@ -293,7 +293,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return;
       }
       if (!await File(modelPath).exists()) {
-        if (mounted) setState(() => _aiStatus = 'Gemma modeli henüz hazır değil');
+        if (mounted) setState(() => _aiStatus = 'Gemma 3 1B modeli henüz hazır değil');
         return;
       }
 
@@ -310,7 +310,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           if (mounted) setState(() => _aiStatus = code == 0 ? 'Yerel AI kapandı' : 'Yerel AI işlemi sonlandı');
         }
       });
-      if (mounted) setState(() => _aiStatus = 'Gemma yerel inference hazır');
+      if (mounted) setState(() => _aiStatus = 'Gemma 3 1B yerel inference hazır');
     } catch (_) {
       _aiProcess = null;
       _aiResponses = null;
@@ -346,7 +346,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       setState(() {
         _aiAnalysis = analysis.isEmpty ? 'AI yanıt üretemedi' : analysis;
         _aiAnalysisTime = DateTime.now();
-        _aiStatus = 'Gemma inference aktif';
+        _aiStatus = 'Gemma 3 1B inference aktif';
       });
     } catch (_) {
       try {
