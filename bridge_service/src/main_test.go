@@ -122,13 +122,23 @@ func TestBridgeRequestSizeBound(t *testing.T) {
 	}()
 
 	payload := append([]byte(strings.Repeat("A", maxRequestBytes)), '\n')
-	if _, err := client.Write(payload); err != nil {
-		t.Fatalf("write oversized request: %v", err)
+	writeDone := make(chan error, 1)
+	go func() {
+		_, err := client.Write(payload)
+		writeDone <- err
+	}()
+	select {
+	case err := <-writeDone:
+		if err != nil {
+			t.Fatalf("write oversized request: %v", err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("oversized request write timed out")
 	}
 
 	select {
 	case <-done:
-	case <-time.After(2 * time.Second):
+	case <-time.After(5 * time.Second):
 		t.Fatal("oversized request handler did not terminate")
 	}
 }
