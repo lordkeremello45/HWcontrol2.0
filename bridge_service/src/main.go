@@ -84,11 +84,17 @@ type HardwareMetrics struct {
 	DetectionStatus     string  `json:"detectionStatus"`
 	SerialsExcluded     bool    `json:"serialsExcluded"`
 	CPUUsage           float64 `json:"cpuUsage"`
+	CPUPerCoreUsage     []float64 `json:"cpuPerCoreUsage"`
 	CPUCoreCount       int     `json:"cpuCoreCount"`
 	CPUFrequencyMHz    float64 `json:"cpuFrequencyMHz"`
 	CPUTemperature     float64 `json:"cpuTemperature"`
 	GPUTemperature     float64 `json:"gpuTemperature"`
 	GPUUsage           float64 `json:"gpuUsage"`
+	GPUMemoryUsage      float64 `json:"gpuMemoryUsage"`
+	GPUPowerLimitWatts  float64 `json:"gpuPowerLimitWatts"`
+	GPUPState            string  `json:"gpuPState"`
+	GPUEncoderUsage      float64 `json:"gpuEncoderUsage"`
+	GPUDecoderUsage      float64 `json:"gpuDecoderUsage"`
 	FanPercent         float64 `json:"fanPercent"`
 	FanRPM             float64 `json:"fanRpm"`
 	MemoryUsage        float64 `json:"memoryUsage"`
@@ -128,8 +134,11 @@ const (
 
 func collectMetrics() HardwareMetrics {
 	metrics := HardwareMetrics{}
-	if percentages, err := cpu.Percent(time.Second, false); err == nil && len(percentages) > 0 {
-		metrics.CPUUsage = percentages[0]
+	if percentages, err := cpu.Percent(time.Second, true); err == nil && len(percentages) > 0 {
+		var total float64
+		for _, percentage := range percentages { total += percentage }
+		metrics.CPUUsage = total / float64(len(percentages))
+		metrics.CPUPerCoreUsage = append([]float64(nil), percentages...)
 	}
 	if infos, err := cpu.Info(); err == nil && len(infos) > 0 {
 		metrics.CPUCoreCount = int(infos[0].Cores)
@@ -159,20 +168,25 @@ func collectMetrics() HardwareMetrics {
 		lines := strings.Split(strings.TrimSpace(string(output)), "\n")
 		if len(lines) > 0 && strings.TrimSpace(lines[0]) != "" {
 			parts := strings.Split(lines[0], ",")
-			if len(parts) >= 11 {
+			if len(parts) >= 16 {
 				metrics.GPUName = strings.TrimSpace(parts[0])
 				metrics.GPUDriver = strings.TrimSpace(parts[1])
 				metrics.GPUTemperature, _ = strconv.ParseFloat(strings.TrimSpace(parts[2]), 64)
 				metrics.GPUUsage, _ = strconv.ParseFloat(strings.TrimSpace(parts[3]), 64)
-				metrics.FanPercent, _ = strconv.ParseFloat(strings.TrimSpace(parts[4]), 64)
-				metrics.PowerWatts, _ = strconv.ParseFloat(strings.TrimSpace(parts[5]), 64)
-				metrics.Voltage, _ = strconv.ParseFloat(strings.TrimSpace(parts[6]), 64)
-				memoryUsed, _ := strconv.ParseUint(strings.TrimSpace(parts[7]), 10, 64)
-				memoryTotal, _ := strconv.ParseUint(strings.TrimSpace(parts[8]), 10, 64)
+				metrics.GPUMemoryUsage, _ = strconv.ParseFloat(strings.TrimSpace(parts[4]), 64)
+				metrics.FanPercent, _ = strconv.ParseFloat(strings.TrimSpace(parts[5]), 64)
+				metrics.PowerWatts, _ = strconv.ParseFloat(strings.TrimSpace(parts[6]), 64)
+				metrics.GPUPowerLimitWatts, _ = strconv.ParseFloat(strings.TrimSpace(parts[7]), 64)
+				metrics.Voltage, _ = strconv.ParseFloat(strings.TrimSpace(parts[8]), 64)
+				memoryUsed, _ := strconv.ParseUint(strings.TrimSpace(parts[9]), 10, 64)
+				memoryTotal, _ := strconv.ParseUint(strings.TrimSpace(parts[10]), 10, 64)
 				metrics.GPUMemoryUsedBytes = memoryUsed * 1024 * 1024
 				metrics.GPUMemoryTotalBytes = memoryTotal * 1024 * 1024
-				metrics.GPUCoreClockMHz, _ = strconv.ParseFloat(strings.TrimSpace(parts[9]), 64)
-				metrics.GPUMemoryClockMHz, _ = strconv.ParseFloat(strings.TrimSpace(parts[10]), 64)
+				metrics.GPUCoreClockMHz, _ = strconv.ParseFloat(strings.TrimSpace(parts[11]), 64)
+				metrics.GPUMemoryClockMHz, _ = strconv.ParseFloat(strings.TrimSpace(parts[12]), 64)
+				metrics.GPUPState = strings.TrimSpace(parts[13])
+				metrics.GPUEncoderUsage, _ = strconv.ParseFloat(strings.TrimSpace(parts[14]), 64)
+				metrics.GPUDecoderUsage, _ = strconv.ParseFloat(strings.TrimSpace(parts[15]), 64)
 				metrics.GPUVendor = "NVIDIA"
 				metrics.SensorSource = "nvidia-smi"
 			}
@@ -213,7 +227,7 @@ func collectMetrics() HardwareMetrics {
 func nvidiaSMIOutput() ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), nvidiaSMITimeout)
 	defer cancel()
-	return exec.CommandContext(ctx, "nvidia-smi", "--query-gpu=name,driver_version,temperature.gpu,utilization.gpu,fan.speed,power.draw,voltage.gpu,memory.used,memory.total,clocks.gr,clocks.mem", "--format=csv,noheader,nounits").Output()
+	return exec.CommandContext(ctx, "nvidia-smi", "--query-gpu=name,driver_version,temperature.gpu,utilization.gpu,utilization.memory,fan.speed,power.draw,power.limit,voltage.gpu,memory.used,memory.total,clocks.gr,clocks.mem,pstate,utilization.encoder,utilization.decoder", "--format=csv,noheader,nounits").Output()
 }
 
 func modelDigest() string {
