@@ -186,6 +186,34 @@ RiskAssessment assessHardwareRisk(const HardwareTelemetry& current,
                 addFinding(assessment, "GPU sıcaklığı son analize göre hızlı yükseliyor.");
             }
         }
+        if (isFiniteMeasurement(current.cpuFrequencyMHz) &&
+            isFiniteMeasurement(previous->cpuFrequencyMHz) &&
+            previous->cpuFrequencyMHz > 0.0) {
+            assessment.cpuFrequencyDropPercent =
+                100.0 * (previous->cpuFrequencyMHz - current.cpuFrequencyMHz) / previous->cpuFrequencyMHz;
+            if (assessment.cpuFrequencyDropPercent >= 15.0 &&
+                isFiniteMeasurement(current.cpuTemperatureC) &&
+                current.cpuTemperatureC >= 85.0 &&
+                isFiniteMeasurement(current.cpuLoadPercent) &&
+                current.cpuLoadPercent >= 85.0) {
+                elevated = true;
+                addFinding(assessment, "CPU sıcaklık ve yük altında frekans düşüşü termal throttling şüphesi oluşturuyor.");
+            }
+        }
+        if (isFiniteMeasurement(current.gpuCoreClockMHz) &&
+            isFiniteMeasurement(previous->gpuCoreClockMHz) &&
+            previous->gpuCoreClockMHz > 0.0) {
+            assessment.gpuCoreClockDropPercent =
+                100.0 * (previous->gpuCoreClockMHz - current.gpuCoreClockMHz) / previous->gpuCoreClockMHz;
+            if (assessment.gpuCoreClockDropPercent >= 15.0 &&
+                isFiniteMeasurement(current.gpuTemperatureC) &&
+                current.gpuTemperatureC >= 80.0 &&
+                isFiniteMeasurement(current.gpuLoadPercent) &&
+                current.gpuLoadPercent >= 80.0) {
+                elevated = true;
+                addFinding(assessment, "GPU sıcaklık ve yük altında saat düşüşü termal throttling şüphesi oluşturuyor.");
+            }
+        }
     }
 
     if (measuredValues == 0) {
@@ -225,6 +253,12 @@ std::string buildAnalysisPrompt(const HardwareTelemetry& current,
     }
     if (isFiniteMeasurement(assessment.gpuTemperatureDeltaC)) {
         appendMetric(out, "GPU_delta", assessment.gpuTemperatureDeltaC, "C");
+    }
+    if (isFiniteMeasurement(assessment.cpuFrequencyDropPercent)) {
+        appendMetric(out, "CPU_freq_drop", assessment.cpuFrequencyDropPercent, "%");
+    }
+    if (isFiniteMeasurement(assessment.gpuCoreClockDropPercent)) {
+        appendMetric(out, "GPU_clock_drop", assessment.gpuCoreClockDropPercent, "%");
     }
     out << "BULGULAR=";
     for (size_t index = 0; index < assessment.findings.size(); ++index) {
