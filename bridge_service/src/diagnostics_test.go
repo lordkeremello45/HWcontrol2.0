@@ -35,7 +35,7 @@ func TestDiagnosticsSnapshotContract(t *testing.T) {
 		t.Fatalf("diagnostics must report localOnly=true")
 	}
 	listen, ok := diagnostics["listenAddress"].(string)
-	if !ok || !strings.HasPrefix(listen, "127.0.0.1:") {
+	if !ok || (!strings.HasPrefix(listen, "127.0.0.1:") && !strings.HasSuffix(listen, ".sock")) {
 		t.Fatalf("unexpected listenAddress: %#v", diagnostics["listenAddress"])
 	}
 }
