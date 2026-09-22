@@ -18,24 +18,22 @@ jobs:
     steps:
       - name: Mirror repository
         env:
-          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-          GITLAB_REPO_URL: ${{ secrets.GITLAB_REPO_URL }}
+          GITLAB_TOKEN: ${{ secrets.GITLAB_MIRROR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
 
-          if [[ -z "${GITLAB_TOKEN}" || -z "${GITLAB_REPO_URL}" ]]; then
-            echo "::error::GITLAB_TOKEN and GITLAB_REPO_URL GitHub Actions secrets are required."
+          if [[ -z "${GITLAB_TOKEN}" ]]; then
+            echo "::error::GITLAB_MIRROR_TOKEN GitHub Actions secret is required."
             exit 1
           fi
 
           git clone --mirror "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" mirror.git
-
           cd mirror.git
 
           auth_header="$(printf 'oauth2:%s' "${GITLAB_TOKEN}" | base64 -w0)"
           git -c "http.extraheader=Authorization: Basic ${auth_header}" \
-            push --mirror "${GITLAB_REPO_URL}"
+            push --mirror "https://gitlab.com/lordkeremello45/HWcontrol2.0.git"
 
           echo "GitHub → GitLab mirror completed successfully."
