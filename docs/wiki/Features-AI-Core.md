@@ -62,8 +62,8 @@ ERROR|invalid-telemetry
 
 The stdio mode is designed for the authenticated local application/bridge integration and avoids repeatedly loading the ~1.5 GB model for every analysis request.
 
-## Current boundary
+## Current runtime boundary
 
-The local LLM and telemetry analysis pipeline are implemented. The AI engine is still separate from the Go bridge at runtime; a future integration should keep the hardware-control path deterministic and authenticated, while using this engine only for analysis, explanation and recommendations.
+The local LLM, telemetry analysis pipeline and desktop runtime integration are implemented. The GUI now starts the persistent AI engine locally and feeds it authenticated bridge telemetry. The Go bridge remains the authoritative hardware/control path, while the LLM is restricted to analysis, explanation and recommendations.
 
 The native engine does not currently claim universal support for AMD/Intel/macOS sensor backends. Missing sensor data remains missing rather than being synthesized.
