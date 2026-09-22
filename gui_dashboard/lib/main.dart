@@ -448,7 +448,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _notificationsEnabled = settingValues['notificationsEnabled'] as bool;
           }
           if (settingValues['temperatureLimit'] is num) {
-            _temperatureLimit = (settingValues['temperatureLimit'] as num).toDouble().clamp(60, 100);
+            _temperatureLimit = (settingValues['temperatureLimit'] as num).toDouble().clamp(60, 100).toDouble();
           }
         });
       }
