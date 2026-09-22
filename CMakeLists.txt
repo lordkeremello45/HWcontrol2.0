@@ -13,7 +13,7 @@ set(GGML_NATIVE OFF CACHE BOOL "" FORCE)
 
 # The model is a runtime asset. Do not create source-tree directories or
 # download/copy large model files during configuration.
-set(MODEL_PATH "${CMAKE_SOURCE_DIR}/ai_core/models/gemma-2b-it-q4_k_m.gguf")
+set(MODEL_PATH "${CMAKE_SOURCE_DIR}/ai_core/models/gemma-3-1b-it-Q5_K_M.gguf")
 if(NOT EXISTS "${MODEL_PATH}")
   message(STATUS "Model not found: ${MODEL_PATH}. It must be supplied separately for runtime AI features.")
 endif()
