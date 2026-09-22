@@ -104,7 +104,22 @@ verify_gpg_manifest
 install_deb(){ local file="$1"; verify_sha "$file"; verify_extra_hashes "$file"; $SUDO apt-get install -y "$file"; }
 install_rpm(){ local file="$1"; verify_sha "$file"; verify_extra_hashes "$file"; if command -v dnf >/dev/null; then $SUDO dnf install -y "$file"; elif command -v yum >/dev/null; then $SUDO yum install -y "$file"; else echo 'dnf/yum is required for RPM installation.' >&2; exit 1; fi; }
 install_arch(){ local file="$1"; verify_sha "$file"; verify_extra_hashes "$file"; command -v pacman >/dev/null || { echo 'pacman is required for Arch package installation.' >&2; exit 1; }; $SUDO pacman -U --noconfirm "$file"; }
-configure_runtime(){ $SUDO mkdir -p "$(dirname "$KEY_FILE")"; if [ ! -s "$KEY_FILE" ]; then $SUDO mkdir -p "$(dirname "$KEY_FILE")"; $SUDO sh -c 'umask 077; head -c 32 /dev/urandom | od -An -tx1 | tr -d " \n" > /var/lib/hwcontrol/bridge.key'; fi; if [ -f "$INSTALL_DIR/deploy/hwcontrol-bridge.service" ]; then $SUDO install -m0644 "$INSTALL_DIR/deploy/hwcontrol-bridge.service" /etc/systemd/system/hwcontrol-bridge.service; $SUDO systemctl daemon-reload; $SUDO systemctl enable hwcontrol-bridge.service >/dev/null; $SUDO systemctl restart hwcontrol-bridge.service; fi; if [ -d "$INSTALL_DIR/dashboard" ]; then dashboard_bin="$(find "$INSTALL_DIR/dashboard" -type f -name hwcontrol_dashboard -executable | head -n1)"; if [ -n "$dashboard_bin" ]; then $SUDO tee /usr/local/bin/hwcontrol >/dev/null <<EOF
+configure_runtime(){
+  $SUDO mkdir -p "$(dirname "$KEY_FILE")"
+  if [ ! -s "$KEY_FILE" ]; then
+    $SUDO sh -c 'umask 077; head -c 32 /dev/urandom | od -An -tx1 | tr -d " \n" > /var/lib/hwcontrol/bridge.key'
+  fi
+  # The bridge runs as root, while the desktop runs as the invoking user.
+  # Grant only that user read access to the per-install authentication key.
+  if [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != "root" ]; then
+    desktop_group="$(id -gn "$SUDO_USER")"
+    $SUDO chown "$SUDO_USER:$desktop_group" "$KEY_FILE"
+    $SUDO chmod 0640 "$KEY_FILE"
+  else
+    $SUDO chown root:root "$KEY_FILE"
+    $SUDO chmod 0600 "$KEY_FILE"
+  fi
+  if [ -f "$INSTALL_DIR/deploy/hwcontrol-bridge.service" ]; then $SUDO install -m0644 "$INSTALL_DIR/deploy/hwcontrol-bridge.service" /etc/systemd/system/hwcontrol-bridge.service; $SUDO systemctl daemon-reload; $SUDO systemctl enable hwcontrol-bridge.service >/dev/null; $SUDO systemctl restart hwcontrol-bridge.service; fi; if [ -d "$INSTALL_DIR/dashboard" ]; then dashboard_bin="$(find "$INSTALL_DIR/dashboard" -type f -name hwcontrol_dashboard -executable | head -n1)"; if [ -n "$dashboard_bin" ]; then $SUDO tee /usr/local/bin/hwcontrol >/dev/null <<EOF
 #!/usr/bin/env bash
 set -euo pipefail
 export HWCONTROL_KEY="\$(cat /var/lib/hwcontrol/bridge.key)"

@@ -164,8 +164,6 @@ EOF
           if (-not (Test-Path "$env:ProgramFiles\HWControl\HWControl.exe")) { throw 'MSI did not install HWControl.exe' }
           $service = Get-Service -Name HWControlBridge -ErrorAction Stop
           if ($service.Status -ne 'Running') { throw "HWControlBridge is not running: $($service.Status)" }
-          $envKey = (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' -Name HWCONTROL_KEY -ErrorAction Stop).HWCONTROL_KEY
-          if ([string]::IsNullOrWhiteSpace($envKey) -or $envKey -eq 'replace-me') { throw 'HWCONTROL_KEY was not provisioned' }
           $keyFile = "$env:ProgramData\HWControl\bridge.key"
           if (-not (Test-Path -LiteralPath $keyFile -PathType Leaf)) { throw 'MSI did not provision bridge.key' }
           if ((Get-Content -LiteralPath $keyFile -Raw).Trim().Length -lt 32) { throw 'bridge.key is unexpectedly short' }
@@ -272,7 +270,7 @@ EOF
           test -d /Applications/HWControl/HWControl.app
           test -f /Applications/HWControl/com.hwcontrol.bridge.plist
           test -f "/Library/Application Support/HWControl/bridge.key"
-          test "$(/usr/bin/stat -f '%Lp' '/Library/Application Support/HWControl/bridge.key')" = "600"
+          test "$(/usr/bin/stat -f '%Lp' '/Library/Application Support/HWControl/bridge.key')" = "640"
           sudo plutil -lint /Applications/HWControl/com.hwcontrol.bridge.plist
           pkgutil --pkg-info com.hwcontrol.app
           mount_point=$(mktemp -d)

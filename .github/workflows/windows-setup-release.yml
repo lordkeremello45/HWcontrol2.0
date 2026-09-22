@@ -88,9 +88,9 @@ jobs:
           $probe = Test-NetConnection 127.0.0.1 -Port 8080 -WarningAction SilentlyContinue
           if (-not $probe.TcpTestSucceeded) { throw 'HWControlBridge is not listening on 127.0.0.1:8080 after Setup.exe install.' }
 
-          $machineKey = (Get-ItemProperty -Path $machineEnvironmentKey -Name 'HWCONTROL_KEY' -ErrorAction SilentlyContinue).HWCONTROL_KEY
-          if ([string]::IsNullOrWhiteSpace($machineKey)) { throw 'HWCONTROL_KEY was not persisted in the machine environment during install.' }
           if (-not (Test-Path "$programDataDir\bridge.key")) { throw 'Bridge secret file was not created in ProgramData during install.' }
+          $bridgeKey = (Get-Content -LiteralPath "$programDataDir\bridge.key" -Raw).Trim()
+          if ($bridgeKey.Length -lt 32) { throw 'Bridge secret file is unexpectedly short.' }
 
           $uninstall = Start-Process -FilePath $setup -ArgumentList '/uninstall', '/quiet', '/norestart' -Wait -PassThru
           if ($uninstall.ExitCode -ne 0) { throw "Setup.exe uninstall failed with exit code $($uninstall.ExitCode)." }

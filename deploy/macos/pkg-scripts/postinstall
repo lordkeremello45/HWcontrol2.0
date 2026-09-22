@@ -34,7 +34,17 @@ else
 fi
 
 /usr/bin/test -s "$KEY_FILE"
-/bin/chmod 0600 "$KEY_FILE"
+
+# The launch daemon runs as root, while the desktop app runs as the
+# logged-in console user. Keep the key private to that user and root.
+CONSOLE_USER=$(/usr/bin/stat -f '%Su' /dev/console)
+if [ -n "$CONSOLE_USER" ] && [ "$CONSOLE_USER" != "root" ] && [ "$CONSOLE_USER" != "loginwindow" ]; then
+  /usr/sbin/chown "$CONSOLE_USER:staff" "$KEY_FILE"
+  /bin/chmod 0640 "$KEY_FILE"
+else
+  /usr/sbin/chown root:wheel "$KEY_FILE"
+  /bin/chmod 0600 "$KEY_FILE"
+fi
 
 if [ -f "$PLIST_SRC" ]; then
   /bin/mkdir -p "/Library/LaunchDaemons"

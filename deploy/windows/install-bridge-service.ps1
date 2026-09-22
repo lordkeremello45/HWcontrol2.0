@@ -14,7 +14,6 @@ if ([string]::IsNullOrWhiteSpace($HwControlKey) -or $HwControlKey -eq 'replace-m
 }
 
 New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
-[Environment]::SetEnvironmentVariable('HWCONTROL_KEY', $HwControlKey, 'Machine')
 $existing = Get-Service -Name 'HWControlBridge' -ErrorAction SilentlyContinue
 if ($existing) {
     Stop-Service -Name 'HWControlBridge' -ErrorAction SilentlyContinue
@@ -24,4 +23,4 @@ sc.exe create HWControlBridge binPath= "`"$bridgePath`"" start= auto DisplayName
 sc.exe description HWControlBridge "HWControl local authenticated bridge service"
 Start-Service -Name 'HWControlBridge'
 Write-Host 'HWControl Bridge servisi kuruldu ve baslatildi.'
-Write-Host 'HWCONTROL_KEY makine ortamına güvenli şekilde provision edildi.'
+Write-Host 'Bridge anahtarı ProgramData\HWControl\bridge.key üzerinden yönetiliyor; makine ortam değişkenine yazılmıyor.'
