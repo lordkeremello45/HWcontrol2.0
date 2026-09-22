@@ -26,6 +26,7 @@ func TestValidateCommand(t *testing.T) {
 		{"status command", Command{Action: "Get Status"}, true},
 		{"security command", Command{Action: "Get Security"}, true},
 		{"diagnostics command", Command{Action: "Get Diagnostics"}, true},
+		{"health command", Command{Action: "Get Health"}, true},
 	}
 
 	for _, test := range tests {
