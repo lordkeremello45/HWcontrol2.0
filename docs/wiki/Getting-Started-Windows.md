@@ -32,4 +32,4 @@ The repository contains `installer/install.ps1`, which:
 
 ## Bridge
 
-The Windows bridge can run as the `HWControlBridge` Windows service. The default bridge endpoint is loopback address `127.0.0.1:8080`.
+The Windows bridge can run as the `HWControlBridge` Windows service. Windows currently uses the authenticated loopback TCP endpoint `127.0.0.1:8080`; a native named-pipe client is a remaining hardening step.
