@@ -244,8 +244,7 @@ std::string buildAnalysisPrompt(const HardwareTelemetry& current,
         << "Yok olan alanlar için değer uydurma. "
         << "Fan, voltaj, saat hızı veya güç limiti değiştirmeyi emretme. "
         << "Belirsizliği açıkça belirt. Türkçe, en fazla 3 kısa cümle yaz. "
-        << "Önce durum, sonra önemli bulgu, sonra güvenli izleme önerisi ver.
-";
+        << "Önce durum, sonra önemli bulgu, sonra güvenli izleme önerisi ver.\n";
 
     out << "RISK_ENGINE=" << assessment.level << "; ";
     if (isFiniteMeasurement(assessment.cpuTemperatureDeltaC)) {
@@ -265,8 +264,7 @@ std::string buildAnalysisPrompt(const HardwareTelemetry& current,
         if (index > 0) out << " | ";
         out << assessment.findings[index];
     }
-    out << "
-TELEMETRI: ";
+    out << "\nTELEMETRI: ";
     appendMetric(out, "CPU_temp", current.cpuTemperatureC, "C");
     appendMetric(out, "CPU_load", current.cpuLoadPercent, "%");
     appendMetric(out, "CPU_max_core", current.cpuMaxCoreLoadPercent, "%");
@@ -291,8 +289,7 @@ TELEMETRI: ";
         << "; GPU_VENDOR=" << (current.gpuVendor.empty() ? "yok" : current.gpuVendor)
         << "; GPU_NAME=" << (current.gpuName.empty() ? "yok" : current.gpuName)
         << "; GAME_PROCESS=" << (current.gameProcessName.empty() ? "yok" : current.gameProcessName)
-        << '
-';
+        << '\n';
     return out.str();
 }
 
