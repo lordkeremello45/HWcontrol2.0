@@ -29,6 +29,7 @@ jobs:
       - name: Checkout main
         uses: actions/checkout@v4
         with:
+          persist-credentials: false
           ref: main
           fetch-depth: 0
 
