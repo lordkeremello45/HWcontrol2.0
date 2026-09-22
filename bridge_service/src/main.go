@@ -377,7 +377,7 @@ func diagnosticsSnapshot() map[string]any {
 		"fanControlBackend":   metrics.FanControlBackend,
 		"hardwareControlMode": metrics.HardwareControlMode,
 		"localOnly":       true,
-		"listenAddress":   "127.0.0.1:" + bridgePort(),
+		"listenAddress":   bridgeEndpoint(),
 		"uptimeSeconds":   metrics.UptimeSeconds,
 		"gameMode": collectGameModeState(),
 		"hardwareIdentity": map[string]any{
