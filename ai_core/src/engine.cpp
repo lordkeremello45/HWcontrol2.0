@@ -115,7 +115,7 @@ std::string AIEngine::runInference(const std::string& prompt) {
 
     std::string response;
     for (int token_index = 0; token_index < 96; ++token_index) {
-        const llama_token token = llama_sampler_sample(sampler, ctx, -1);
+        llama_token token = llama_sampler_sample(sampler, ctx, -1);
         if (llama_vocab_is_eog(vocab, token)) {
             break;
         }
