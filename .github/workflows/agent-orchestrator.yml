@@ -80,7 +80,7 @@ jobs:
             echo '```'
             echo
             echo "### Required behavior"
-            echo "Do not edit main directly. Create a focused fix branch and PR. Preserve SHA-256/SHA-512/SHA3-512 validation, attestations, signing, smoke tests, and least-privilege permissions."
+            echo "Use a focused fix branch and PR by default. If the repository hotfix policy requires a direct main fix after failed CI, use that policy without weakening validation. Preserve SHA-256/SHA-512/SHA3-512 validation, attestations, signing, smoke tests, and least-privilege permissions."
           } > issue.md
 
           issue_url=$(gh issue create --repo "$GITHUB_REPOSITORY" \
@@ -89,9 +89,10 @@ jobs:
           echo "issue_url=$issue_url" >> "$GITHUB_OUTPUT"
 
       - name: Try Copilot agent handoff when explicitly configured
-        if: ${{ secrets.AGENT_USER_TOKEN != '' }}
         shell: bash
+        if: env.AGENT_USER_TOKEN != ''
         env:
+          AGENT_USER_TOKEN: ${{ secrets.AGENT_USER_TOKEN }}
           GH_TOKEN: ${{ secrets.AGENT_USER_TOKEN }}
           ISSUE_URL: ${{ steps.issue.outputs.issue_url }}
         run: |
