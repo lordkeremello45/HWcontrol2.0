@@ -532,13 +532,13 @@ Attach this archive to a support issue only after reviewing it for personal info
         throw StateError('Bridge response missing');
       }
       final response = jsonDecode(responses.current) as Map<String, dynamic>;
-      if (!mounted) return;
+      if (!mounted) return false;
       setState(() {
         _status = response['message'] as String? ?? 'Yanıt alındı';
         _lastAction = '$action  •  %${value.round()}';
       });
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted) return false;
       setState(() => _status = 'Bridge yanıt vermedi');
       return false;
     } finally {
