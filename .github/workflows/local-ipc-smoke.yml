@@ -56,7 +56,7 @@ jobs:
           key = open(key_path).read().strip()
           action = "Get Status"
           value = "0.000000"
-          auth = hmac.new(bytes.fromhex(key), f"{action}\n{value}".encode(), hashlib.sha256).hexdigest()
+          auth = hmac.new(key.encode(), f"{action}\n{value}".encode(), hashlib.sha256).hexdigest()
           with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
               s.settimeout(5)
               s.connect(sock_path)
@@ -106,7 +106,7 @@ jobs:
           key = open(key_path).read().strip()
           action = "Get Status"
           value = "0.000000"
-          auth = hmac.new(bytes.fromhex(key), f"{action}\n{value}".encode(), hashlib.sha256).hexdigest()
+          auth = hmac.new(key.encode(), f"{action}\n{value}".encode(), hashlib.sha256).hexdigest()
           with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
               s.settimeout(5)
               s.connect(sock_path)
