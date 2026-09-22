@@ -131,6 +131,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _gameProcessName = '';
   final List<_MetricSample> _history = <_MetricSample>[];
   final List<String> _events = <String>[];
+  String _thermalStatus = 'Veri bekleniyor';
+  bool _thermalAlertActive = false;
   Map<String, Map<String, double>> _profiles = {};
 
   String _fileSharedKey = '';
@@ -265,6 +267,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       'disk=${_aiNumber(data['diskUsage'])}',
       'game_mode=${_aiBool(data['gameModeEnabled'])}',
       'game_detected=${_aiBool(data['gameDetected'])}',
+      'thermal_status_hex=${_hexEncode(_thermalStatus)}',
       'gpu_vendor_hex=${_hexEncode((data['gpuVendor'] as String?) ?? '')}',
       'gpu_name_hex=${_hexEncode((data['gpuModel'] as String?) ?? '')}',
       'game_process_hex=${_hexEncode((data['gameProcessName'] as String?) ?? '')}',
@@ -441,6 +444,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         'diagnostics': diagnostics,
         'status': status,
         'events': List<String>.from(_events),
+        'telemetrySamples': _history.map((sample) => {'timestamp': sample.time.toUtc().toIso8601String(), 'cpuTemperature': sample.cpuTemperature, 'cpuUsage': sample.cpuUsage, 'cpuFrequencyMHz': sample.cpuFrequencyMHz, 'gpuTemperature': sample.gpuTemperature, 'gpuUsage': sample.gpuUsage, 'gpuCoreClockMHz': sample.gpuCoreClockMHz, 'gpuPowerWatts': sample.gpuPowerWatts, 'gpuMemoryUsage': sample.gpuMemoryUsage, 'fanPercent': sample.fanPercent, 'fanRpm': sample.fanRpm, 'memoryUsage': sample.memoryUsage, 'diskUsage': sample.diskUsage}).toList(growable: false),
+        'thermalStatus': _thermalStatus,
       };
       final readme = '''HWControl Diagnostic Report
 
@@ -488,6 +493,45 @@ Attach this archive to a support issue only after reviewing it for personal info
     }
   }
 
+  String _evaluateThermalStatus({required double cpuTemperature, required double cpuUsage, required double cpuFrequencyMHz, required double gpuTemperature, required double gpuUsage, required double gpuCoreClockMHz}) {
+    if (_history.length < 3) return 'Veri yetersiz';
+    final previous = _history[_history.length - 2];
+    final current = _history.last;
+    final cpuClockDrop = previous.cpuFrequencyMHz > 0 && cpuFrequencyMHz > 0 ? (previous.cpuFrequencyMHz - cpuFrequencyMHz) / previous.cpuFrequencyMHz : 0.0;
+    final gpuClockDrop = previous.gpuCoreClockMHz > 0 && gpuCoreClockMHz > 0 ? (previous.gpuCoreClockMHz - gpuCoreClockMHz) / previous.gpuCoreClockMHz : 0.0;
+    final cpuSuspected = cpuTemperature >= 85 && cpuUsage >= 85 && cpuClockDrop >= 0.15;
+    final gpuSuspected = gpuTemperature >= 80 && gpuUsage >= 80 && gpuClockDrop >= 0.15;
+    if (cpuSuspected || gpuSuspected) return cpuSuspected && gpuSuspected ? 'CPU + GPU termal throttling şüphesi' : cpuSuspected ? 'CPU termal throttling şüphesi' : 'GPU termal throttling şüphesi';
+    if (cpuTemperature >= 90 || gpuTemperature >= 88) return 'Yüksek sıcaklık';
+    if (current.cpuTemperature > 0 && cpuTemperature - current.cpuTemperature >= 5) return 'Hızlı CPU sıcaklık artışı';
+    return 'Normal';
+  }
+
+  String _csvEscape(String value) {
+    if (!value.contains(',') && !value.contains('"') && !value.contains('\\n')) return value;
+    return '"' + value.replaceAll('"', '""') + '"';
+  }
+
+  Future<void> _exportTelemetryHistory() async {
+    try {
+      final directory = await getDownloadsDirectory() ?? await getApplicationSupportDirectory();
+      await directory.create(recursive: true);
+      final stamp = DateTime.now().toUtc().toIso8601String().replaceAll(RegExp(r'[:.]'), '-');
+      final file = File(directory.path + Platform.pathSeparator + 'HWControl-Telemetry-' + stamp + '.csv');
+      final buffer = StringBuffer('timestamp,cpu_temperature,cpu_usage,cpu_frequency_mhz,gpu_temperature,gpu_usage,gpu_core_clock_mhz,gpu_power_watts,gpu_memory_usage,fan_percent,fan_rpm,memory_usage,disk_usage,thermal_status\\n');
+      for (final sample in _history) {
+        buffer.writeln([sample.time.toUtc().toIso8601String(), sample.cpuTemperature, sample.cpuUsage, sample.cpuFrequencyMHz, sample.gpuTemperature, sample.gpuUsage, sample.gpuCoreClockMHz, sample.gpuPowerWatts, sample.gpuMemoryUsage, sample.fanPercent, sample.fanRpm, sample.memoryUsage, sample.diskUsage, _csvEscape(_thermalStatus)].join(','));
+      }
+      await file.writeAsString(buffer.toString(), flush: true);
+      if (!mounted) return;
+      setState(() => _status = 'Telemetry CSV oluşturuldu: ' + file.path);
+      _addEvent('Telemetry geçmişi dışa aktarıldı');
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _status = 'Telemetry dışa aktarılamadı');
+      _addEvent('Telemetry export hatası: ' + error.toString());
+    }
+  }
   Future<void> _refreshMetrics() async {
     if (!_isConnected || _isSending) return;
     final data = await _requestBridgeData('Get Status');
@@ -530,10 +574,26 @@ Attach this archive to a support issue only after reviewing it for personal info
       _gameModeEnabled = data['gameModeEnabled'] as bool? ?? false;
       _gameDetected = data['gameDetected'] as bool? ?? false;
       _gameProcessName = data['gameProcessName'] as String? ?? '';
-      _history.add(_MetricSample(DateTime.now(), temperature));
+      _history.add(_MetricSample(DateTime.now(), temperature, _cpuUsage, _cpuFrequencyMHz, (data['gpuTemperature'] as num?)?.toDouble() ?? 0, _gpuUsage, _gpuCoreClockMHz, _gpuPowerWatts, _gpuMemoryUsage, _fanPercent, _fanRpm, _memoryUsage, _diskUsage));
       if (_history.length > 720) _history.removeAt(0);
+      _thermalStatus = _evaluateThermalStatus(
+        cpuTemperature: temperature,
+        cpuUsage: _cpuUsage,
+        cpuFrequencyMHz: _cpuFrequencyMHz,
+        gpuTemperature: _history.last.gpuTemperature,
+        gpuUsage: _gpuUsage,
+        gpuCoreClockMHz: _gpuCoreClockMHz,
+      );
+      final thermalAlert = _thermalStatus.contains('şüphesi') || _thermalStatus == 'Yüksek sıcaklık';
+      if (thermalAlert && !_thermalAlertActive) {
+        _events.insert(0, DateTime.now().toLocal().toString().substring(11, 19) + '  ' + _thermalStatus);
+        if (_events.length > 20) _events.removeLast();
+      }
+      _thermalAlertActive = thermalAlert;
       if (thresholdExceeded) {
         _status = 'Sıcaklık uyarısı: ${temperature.toStringAsFixed(1)} °C';
+      } else if (thermalAlert) {
+        _status = _thermalStatus;
       }
     });
     if (thresholdExceeded) _addEvent('CPU sıcaklığı eşik üstünde');
@@ -1048,19 +1108,31 @@ Attach this archive to a support issue only after reviewing it for personal info
   }
 
   Widget _buildHistoryCard() {
-    final maximum = _history.isEmpty ? 0 : _history.map((sample) => sample.temperature).reduce((a, b) => a > b ? a : b);
+    final maximum = _history.isEmpty ? 0 : _history.map((sample) => sample.cpuTemperature).reduce((a, b) => a > b ? a : b);
     return _Panel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Expanded(child: _sectionTitle('Sıcaklık geçmişi', 'Son 1 saat')),
-              Text('Maks. ${maximum.toStringAsFixed(1)} °C', style: const TextStyle(color: Color(0xFFFFB454), fontSize: 12, fontWeight: FontWeight.w700)),
+              Expanded(child: _sectionTitle('Telemetry geçmişi', 'Son 1 saat • 5 saniyelik örnekleme')),
+              Text('Maks. CPU ' + maximum.toStringAsFixed(1) + ' °C', style: const TextStyle(color: Color(0xFFFFB454), fontSize: 12, fontWeight: FontWeight.w700)),
+              const SizedBox(width: 8),
+              IconButton(tooltip: 'CSV dışa aktar', onPressed: _history.isEmpty ? null : _exportTelemetryHistory, icon: const Icon(Icons.download_outlined, size: 18)),
             ],
           ),
-          const SizedBox(height: 16),
-          SizedBox(height: 130, child: _history.isEmpty ? const Center(child: Text('Bridge metrikleri bekleniyor', style: TextStyle(color: Colors.white54, fontSize: 12))) : CustomPaint(painter: _HistoryPainter(_history, Theme.of(context).colorScheme.primary))),
+          const SizedBox(height: 8),
+          Text('Termal durum: ' + _thermalStatus, style: TextStyle(fontSize: 11, color: _thermalAlertActive ? const Color(0xFFFFB454) : Theme.of(context).colorScheme.onSurface.withAlpha(140))),
+          const SizedBox(height: 14),
+          if (_history.isEmpty)
+            const SizedBox(height: 130, child: Center(child: Text('Bridge metrikleri bekleniyor', style: TextStyle(color: Colors.white54, fontSize: 12))))
+          else ...[
+            SizedBox(height: 90, child: CustomPaint(painter: _HistoryPainter(_history, Theme.of(context).colorScheme.primary, (sample) => sample.cpuTemperature))),
+            const SizedBox(height: 8),
+            SizedBox(height: 90, child: CustomPaint(painter: _HistoryPainter(_history, const Color(0xFFFF8C69), (sample) => sample.gpuTemperature))),
+            const SizedBox(height: 8),
+            SizedBox(height: 90, child: CustomPaint(painter: _HistoryPainter(_history, const Color(0xFF8FA7FF), (sample) => sample.cpuUsage))),
+          ],
         ],
       ),
     );
@@ -1366,6 +1438,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           _statusRow('Fan kontrolü', _fanControlSupported ? _fanControlBackend : 'Yalnızca izleme', _fanControlSupported),
           _statusRow('Uyarı eşiği', '${_temperatureLimit.round()} °C', _notificationsEnabled),
           _statusRow('Son sıcaklık', '${_cpuTemperature.toStringAsFixed(1)} °C', _cpuTemperature < _temperatureLimit || _cpuTemperature == 0),
+          _statusRow('Termal durum', _thermalStatus, !_thermalAlertActive),
           _statusRow('Son işlem', _lastAction, true),
           const SizedBox(height: 18),
           Container(
@@ -1446,43 +1519,60 @@ class _MetricData {
 }
 
 class _MetricSample {
-  const _MetricSample(this.time, this.temperature);
+  const _MetricSample(this.time, this.cpuTemperature, this.cpuUsage, this.cpuFrequencyMHz, this.gpuTemperature, this.gpuUsage, this.gpuCoreClockMHz, this.gpuPowerWatts, this.gpuMemoryUsage, this.fanPercent, this.fanRpm, this.memoryUsage, this.diskUsage);
   final DateTime time;
-  final double temperature;
+  final double cpuTemperature;
+  final double cpuUsage;
+  final double cpuFrequencyMHz;
+  final double gpuTemperature;
+  final double gpuUsage;
+  final double gpuCoreClockMHz;
+  final double gpuPowerWatts;
+  final double gpuMemoryUsage;
+  final double fanPercent;
+  final double fanRpm;
+  final double memoryUsage;
+  final double diskUsage;
 }
 
 class _HistoryPainter extends CustomPainter {
-  const _HistoryPainter(this.samples, this.color);
+  const _HistoryPainter(this.samples, this.color, this.selector);
   final List<_MetricSample> samples;
   final Color color;
+  final double Function(_MetricSample) selector;
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (samples.isEmpty) return;
     final line = Paint()..color = color..strokeWidth = 2..style = PaintingStyle.stroke;
     final grid = Paint()..color = color.withAlpha(25)..strokeWidth = 1;
     for (var index = 1; index < 4; index++) {
       final y = size.height * index / 4;
       canvas.drawLine(Offset(0, y), Offset(size.width, y), grid);
     }
-    final minimum = samples.map((sample) => sample.temperature).reduce((a, b) => a < b ? a : b);
-    final maximum = samples.map((sample) => sample.temperature).reduce((a, b) => a > b ? a : b);
+    final values = samples.map(selector).where((value) => value.isFinite).toList(growable: false);
+    if (values.isEmpty) return;
+    final minimum = values.reduce((a, b) => a < b ? a : b);
+    final maximum = values.reduce((a, b) => a > b ? a : b);
     final range = (maximum - minimum).abs() < 0.1 ? 1.0 : maximum - minimum;
     final start = samples.first.time;
     final end = samples.last.time;
     final duration = end.difference(start).inMilliseconds.toDouble();
     final path = Path();
+    var started = false;
     for (var index = 0; index < samples.length; index++) {
-      final x = duration <= 0
-          ? (samples.length == 1 ? 0.0 : size.width * index / (samples.length - 1))
-          : size.width * samples[index].time.difference(start).inMilliseconds / duration;
-      final y = (size.height - ((samples[index].temperature - minimum) / range * (size.height - 8)) - 4).toDouble();
-      if (index == 0) {
+      final value = selector(samples[index]);
+      if (!value.isFinite) continue;
+      final x = duration <= 0 ? (samples.length == 1 ? 0.0 : size.width * index / (samples.length - 1)) : size.width * samples[index].time.difference(start).inMilliseconds / duration;
+      final y = (size.height - ((value - minimum) / range * (size.height - 8)) - 4).toDouble();
+      if (!started) {
         path.moveTo(x, y);
+        started = true;
       } else {
         path.lineTo(x, y);
       }
     }
-    canvas.drawPath(path, line);
+    if (started) canvas.drawPath(path, line);
   }
 
   @override
