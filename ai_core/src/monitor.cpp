@@ -102,6 +102,45 @@ void Monitor::updateHardwareStatus() {
     }
     currentStatus.cpuCoreCount = cores;
 
+    // Derive the busiest logical CPU from the same interval counters. This gives
+    // the local LLM a useful signal that aggregate CPU load can hide.
+    std::ifstream perCoreStat("/proc/stat");
+    std::string cpuLabel;
+    std::vector<unsigned long long> currentIdle;
+    std::vector<unsigned long long> currentTotal;
+    while (perCoreStat >> cpuLabel) {
+        if (cpuLabel.size() <= 3 || cpuLabel.rfind("cpu", 0) != 0 || !std::isdigit(static_cast<unsigned char>(cpuLabel[3]))) {
+            if (cpuLabel == "intr" || cpuLabel == "ctxt" || cpuLabel == "btime" || cpuLabel == "processes" || cpuLabel == "procs_running" || cpuLabel == "procs_blocked" || cpuLabel == "softirq") {
+                std::string rest;
+                std::getline(perCoreStat, rest);
+                continue;
+            }
+            std::string rest;
+            std::getline(perCoreStat, rest);
+            continue;
+        }
+        unsigned long long u = 0, n = 0, s = 0, i = 0, w = 0, irqV = 0, sirq = 0, st = 0;
+        if (!(perCoreStat >> u >> n >> s >> i >> w >> irqV >> sirq >> st)) break;
+        currentIdle.push_back(i + w);
+        currentTotal.push_back(u + n + s + i + w + irqV + sirq + st);
+    }
+    static std::vector<unsigned long long> previousCoreIdle;
+    static std::vector<unsigned long long> previousCoreTotal;
+    if (previousCoreTotal.size() == currentTotal.size() && previousCoreIdle.size() == currentIdle.size()) {
+        double maxLoad = 0.0;
+        for (size_t index = 0; index < currentTotal.size(); ++index) {
+            if (currentTotal[index] < previousCoreTotal[index] || currentIdle[index] < previousCoreIdle[index]) continue;
+            const auto totalDelta = currentTotal[index] - previousCoreTotal[index];
+            const auto idleDelta = currentIdle[index] - previousCoreIdle[index];
+            if (totalDelta > 0 && idleDelta <= totalDelta) {
+                maxLoad = std::max(maxLoad, 100.0 * static_cast<double>(totalDelta - idleDelta) / static_cast<double>(totalDelta));
+            }
+        }
+        currentStatus.cpuMaxCoreLoadPercent = maxLoad;
+    }
+    previousCoreIdle = currentIdle;
+    previousCoreTotal = currentTotal;
+
     const char* thermalPaths[] = {
         "/sys/class/thermal/thermal_zone0/temp",
         "/sys/class/hwmon/hwmon0/temp1_input",
@@ -116,6 +155,20 @@ void Monitor::updateHardwareStatus() {
                 break;
             }
         }
+    }
+
+    std::ifstream memInfo("/proc/meminfo");
+    unsigned long long memTotalKb = 0;
+    unsigned long long memAvailableKb = 0;
+    std::string memKey;
+    unsigned long long memValue = 0;
+    std::string memUnit;
+    while (memInfo >> memKey >> memValue >> memUnit) {
+        if (memKey == "MemTotal:") memTotalKb = memValue;
+        else if (memKey == "MemAvailable:") memAvailableKb = memValue;
+    }
+    if (memTotalKb > 0 && memAvailableKb <= memTotalKb) {
+        currentStatus.memoryUsage = 100.0 * static_cast<double>(memTotalKb - memAvailableKb) / static_cast<double>(memTotalKb);
     }
 
     const std::string nvidia = commandOutput(
@@ -158,7 +211,7 @@ void Monitor::updateHardwareStatus() {
     const std::string nvidia = commandOutput(
         "nvidia-smi --query-gpu=temperature.gpu,utilization.gpu,utilization.memory,"
         "fan.speed,power.draw,power.limit,memory.used,memory.total,clocks.gr,clocks.mem "
-        "--format=csv,noheader,nounits 2>nul");
+        "--format=csv,noheader,nounits 2>/dev/null");
     if (!nvidia.empty()) {
         std::istringstream row(nvidia);
         std::string field;
