@@ -8,12 +8,12 @@ import (
 
 var (
 	redactionPatterns = []*regexp.Regexp{
-		regexp.MustCompile(`(?is)-----BEGIN [A-Z0-9 ]*KEY-----.*?-----END [A-Z0-9 ]*KEY-----`),
-		regexp.MustCompile(`(?i)(Bearer\\s+)([^\\s]+)`),
-		regexp.MustCompile(`(?i)(HWCONTROL_KEY(?:_FILE)?\\s*[=:]\\s*)([^\\s,;]+)`),
-		regexp.MustCompile(`(?i)((HMAC|API[_-]?KEY|ACCESS[_-]?TOKEN|REFRESH[_-]?TOKEN|AUTHORIZATION|PASSWORD|SECRET)\\s*[=:]\\s*)([^\\s,;]+)`),
+		regexp.MustCompile("(?is)-----BEGIN [A-Z0-9 ]*KEY-----.*?-----END [A-Z0-9 ]*KEY-----"),
+		regexp.MustCompile("(?i)(Bearer\\s+)([^\\s]+)"),
+		regexp.MustCompile("(?i)(HWCONTROL_KEY(?:_FILE)?\\s*[=:]\\s*)([^\\s,;]+)"),
+		regexp.MustCompile("(?i)((HMAC|API[_-]?KEY|ACCESS[_-]?TOKEN|REFRESH[_-]?TOKEN|AUTHORIZATION|PASSWORD|SECRET)\\s*[=:]\\s*)([^\\s,;]+)"),
 	}
-	userPathPattern = regexp.MustCompile(`(?i)([A-Z]:[\\\\/]+Users[\\\\/]+)[^\\\\/\\s]+|(/Users/)[^/\\s]+|(/home/)[^/\\s]+`)
+	userPathPattern = regexp.MustCompile("(?i)([A-Z]:[\\\\/]+Users[\\\\/]+)[^\\\\/\\s]+|(/Users/)[^/\\s]+|(/home/)[^/\\s]+")
 )
 
 // redactSensitiveText removes credentials and local usernames before text reaches
