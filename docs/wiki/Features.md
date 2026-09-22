@@ -12,3 +12,5 @@ This section documents the features that are present in the current repository.
 - [Local AI Core](Features-AI-Core.md)
 
 Feature status in this wiki is based on the current source tree; planned functionality is marked explicitly.
+
+- [Telemetry History and Thermal Detection](Features-Telemetry-History.md)
