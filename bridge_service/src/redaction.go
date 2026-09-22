@@ -9,9 +9,11 @@ import (
 var (
 	redactionPatterns = []*regexp.Regexp{
 		regexp.MustCompile("(?is)-----BEGIN [A-Z0-9 ]*KEY-----.*?-----END [A-Z0-9 ]*KEY-----"),
+		regexp.MustCompile("(?i)(Authorization\\s*:\\s*Bearer\\s+)([^\\s]+)"),
 		regexp.MustCompile("(?i)(Bearer\\s+)([^\\s]+)"),
 		regexp.MustCompile("(?i)(HWCONTROL_KEY(?:_FILE)?\\s*[=:]\\s*)([^\\s,;]+)"),
-		regexp.MustCompile("(?i)((HMAC|API[_-]?KEY|ACCESS[_-]?TOKEN|REFRESH[_-]?TOKEN|AUTHORIZATION|PASSWORD|SECRET)\\s*[=:]\\s*)([^\\s,;]+)"),
+		regexp.MustCompile("(?i)((HMAC|API[_-]?KEY|ACCESS[_-]?TOKEN|REFRESH[_-]?TOKEN|PASSWORD|SECRET)\\s*[=:]\\s*)([^\\s,;]+)"),
+		regexp.MustCompile("(?i)(Authorization\\s*:\\s*)([^\\s]+)"),
 	}
 	userPathPattern = regexp.MustCompile("(?i)([A-Z]:[\\\\/]+Users[\\\\/]+)[^\\\\/\\s]+|(/Users/)[^/\\s]+|(/home/)[^/\\s]+")
 )
@@ -25,8 +27,14 @@ func redactSensitiveText(input string) string {
 			if strings.Contains(strings.ToLower(match), "private key") {
 				return "[REDACTED_PRIVATE_KEY]"
 			}
-			if strings.HasPrefix(strings.ToLower(strings.TrimSpace(match)), "bearer") {
-				return "Bearer [REDACTED]"
+			if strings.HasPrefix(strings.ToLower(strings.TrimSpace(match)), "bearer") ||
+				strings.Contains(strings.ToLower(match), "authorization") {
+				if strings.Contains(strings.ToLower(match), "bearer") {
+					return "Bearer [REDACTED]"
+				}
+				if i := strings.IndexAny(match, "=:"); i >= 0 {
+					return match[:i+1] + "[REDACTED]"
+				}
 			}
 			if i := strings.IndexAny(match, "=:"); i >= 0 {
 				return match[:i+1] + "[REDACTED]"
