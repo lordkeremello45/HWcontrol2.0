@@ -241,7 +241,7 @@ func validateCommand(cmd Command) error {
 		return fmt.Errorf("value must be between 0 and 100")
 	}
 	switch cmd.Action {
-	case "Fan Hızı", "AI İşlem Gücü", "Get Status", "Get Security", "Get Diagnostics", "Get Game Mode", "Set Game Mode":
+	case "Fan Hızı", "AI İşlem Gücü", "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Set Game Mode":
 		return nil
 	default:
 		return fmt.Errorf("unsupported action: %s", cmd.Action)
@@ -465,6 +465,11 @@ func handleConnection(conn net.Conn, secret string) {
 			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Metrikler alındı", Data: collectMetrics()}); err != nil {
 				return
 			}
+			continue
+		}
+		if cmd.Action == "Get Health" {
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Health durumu alındı", Data: healthSnapshot()}); err != nil { return }
 			continue
 		}
 		if cmd.Action == "Get Game Mode" {
