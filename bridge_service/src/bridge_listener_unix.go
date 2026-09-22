@@ -61,3 +61,10 @@ func cleanupBridgeEndpoint(endpoint string) {
     }
     _ = os.Remove(endpoint)
 }
+
+func bridgeEndpoint() string {
+    if os.Getenv("HWCONTROL_TCP_COMPAT") == "1" {
+        return "127.0.0.1:" + bridgePort()
+    }
+    return bridgeSocketPath()
+}
