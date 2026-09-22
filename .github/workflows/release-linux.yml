@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*-linux'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag, for example v0.2.5-linux'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -13,6 +18,7 @@ permissions:
 
 env:
   FLUTTER_VERSION: 3.47.2
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
 
 jobs:
   build-linux:
@@ -55,7 +61,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          tag='${GITHUB_REF_NAME}'
+          tag="$RELEASE_TAG"
           version="${tag#v}"; version="${version%-linux}"
           root="HWControl-${tag}-Linux-x64"
           rm -rf package linux-deb
@@ -130,7 +136,7 @@ jobs:
       - name: Install and smoke-test DEB
         run: |
           set -euo pipefail
-          sudo dpkg -i "HWControl-${GITHUB_REF_NAME}-Linux-x64.deb"
+          sudo dpkg -i "HWControl-${RELEASE_TAG}-Linux-x64.deb"
           test -x /usr/bin/hwcontrol
           test -x /opt/hwcontrol/bridge-service
           test -x /opt/hwcontrol/ai_engine
@@ -146,22 +152,22 @@ jobs:
       - name: Generate checksums
         run: |
           set -euo pipefail
-          sha256sum HWControl-${GITHUB_REF_NAME}-Linux-x64.deb HWControl-${GITHUB_REF_NAME}-Linux-x64.tar.gz HWControl-${GITHUB_REF_NAME}-Linux-x64.tar.zst > HWControl-${GITHUB_REF_NAME}-Linux-x64.sha256
+          sha256sum HWControl-${RELEASE_TAG}-Linux-x64.deb HWControl-${GITHUB_REF_NAME}-Linux-x64.tar.gz HWControl-${GITHUB_REF_NAME}-Linux-x64.tar.zst > HWControl-${GITHUB_REF_NAME}-Linux-x64.sha256
           sha256sum -c HWControl-${GITHUB_REF_NAME}-Linux-x64.sha256
 
       - name: Attest release artifacts
         uses: actions/attest@v4
         with:
           subject-path: |
-            HWControl-${{ github.ref_name }}-Linux-x64.deb
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.deb
             HWControl-${{ github.ref_name }}-Linux-x64.tar.gz
             HWControl-${{ github.ref_name }}-Linux-x64.tar.zst
 
       - name: Publish Linux release
         uses: softprops/action-gh-release@v2
         with:
-          name: HWControl ${{ github.ref_name }}
-          tag_name: ${{ github.ref_name }}
+          name: HWControl ${{ env.RELEASE_TAG }}
+          tag_name: ${{ env.RELEASE_TAG }}
           generate_release_notes: true
           files: |
             HWControl-${{ github.ref_name }}-Linux-x64.deb
