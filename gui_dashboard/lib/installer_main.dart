@@ -63,31 +63,6 @@ class _InstallerWizardState extends State<InstallerWizard> {
     }
   }
 
-  Future<Directory> _modelDirectory() async {
-    String basePath;
-    if (Platform.isWindows) {
-      basePath = Platform.environment['LOCALAPPDATA'] ?? (await getApplicationSupportDirectory()).path;
-      basePath = '$basePath${Platform.pathSeparator}HWControl';
-    } else if (Platform.isMacOS) {
-      basePath = Platform.environment['HOME'] != null
-          ? '${Platform.environment['HOME']}'
-          : (await getApplicationSupportDirectory()).path;
-      basePath = '$basePath${Platform.pathSeparator}Library${Platform.pathSeparator}Application Support${Platform.pathSeparator}HWControl';
-    } else if (Platform.isLinux) {
-      final xdgCache = Platform.environment['XDG_CACHE_HOME'];
-      basePath = xdgCache != null && xdgCache.isNotEmpty
-          ? xdgCache
-          : '${Platform.environment['HOME'] ?? (await getApplicationSupportDirectory()).path}${Platform.pathSeparator}.cache';
-      basePath = '$basePath${Platform.pathSeparator}HWControl';
-    } else {
-      basePath = (await getApplicationSupportDirectory()).path;
-    }
-
-    final directory = Directory('$basePath${Platform.pathSeparator}models');
-    await directory.create(recursive: true);
-    return directory;
-  }
-
   Future<void> _inspectInstallation() async {
     try {
       final support = await getApplicationSupportDirectory();
@@ -147,7 +122,6 @@ class _InstallerWizardState extends State<InstallerWizard> {
 
   @override
   Widget build(BuildContext context) {
-    final error = _modelError;
     return Scaffold(
       body: Center(
         child: ConstrainedBox(
@@ -181,7 +155,8 @@ class _InstallerWizardState extends State<InstallerWizard> {
                         color: Theme.of(context).colorScheme.surfaceContainerHighest,
                       ),
                       child: Text(_checking ? 'Kurulum kontrol ediliyor...' : _details),
-                    ),                  const SizedBox(height: 24),
+                    ),
+                  const SizedBox(height: 24),
                   Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                     const SizedBox(width: 8),
                     FilledButton.icon(
