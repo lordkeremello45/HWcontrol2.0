@@ -1,3 +1,4 @@
+#include <cstdint>
 #include "../include/engine.h"
 
 #include <cmath>
@@ -108,14 +109,15 @@ std::string AIEngine::runInference(const std::string& prompt) {
         return "Prompt tokenize edilemedi";
     }
 
-    llama_batch batch = llama_batch_get_one(prompt_tokens.data(), prompt_tokens.size());
+    llama_batch batch = llama_batch_get_one(prompt_tokens.data(), static_cast<int32_t>(prompt_tokens.size()));
     if (llama_decode(ctx, batch) != 0) {
         return "AI decode basarisiz";
     }
 
     std::string response;
     for (int token_index = 0; token_index < 96; ++token_index) {
-        llama_token token = llama_sampler_sample(sampler, ctx, -1);
+        const llama_token sampled_token = llama_sampler_sample(sampler, ctx, -1);
+        llama_token token = static_cast<llama_token>(sampled_token);
         if (llama_vocab_is_eog(vocab, token)) {
             break;
         }
