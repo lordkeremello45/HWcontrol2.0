@@ -35,7 +35,10 @@ class HWControlUserData {
     Map<String, dynamic> defaults,
   ) async {
     final file = await _file(name);
-    if (!await file.exists()) return defaults;
+    if (!await file.exists()) {
+      await _write(name, defaults);
+      return defaults;
+    }
     try {
       final decoded = jsonDecode(await file.readAsString());
       if (decoded is! Map) return defaults;
