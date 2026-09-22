@@ -39,6 +39,8 @@ fi
 # logged-in console user. Keep the key private to that user and root.
 CONSOLE_USER=$(/usr/bin/stat -f '%Su' /dev/console)
 if [ -n "$CONSOLE_USER" ] && [ "$CONSOLE_USER" != "root" ] && [ "$CONSOLE_USER" != "loginwindow" ]; then
+  /usr/sbin/chown "$CONSOLE_USER:staff" "$KEY_DIR"
+  /bin/chmod 0750 "$KEY_DIR"
   /usr/sbin/chown "$CONSOLE_USER:staff" "$KEY_FILE"
   /bin/chmod 0640 "$KEY_FILE"
 else
