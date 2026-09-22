@@ -67,3 +67,5 @@ The stdio mode is designed for the authenticated local application/bridge integr
 The local LLM, telemetry analysis pipeline and desktop runtime integration are implemented. The GUI now starts the persistent AI engine locally and feeds it authenticated bridge telemetry. The Go bridge remains the authoritative hardware/control path, while the LLM is restricted to analysis, explanation and recommendations.
 
 The native engine does not currently claim universal support for AMD/Intel/macOS sensor backends. Missing sensor data remains missing rather than being synthesized.
+
+The deterministic risk engine now also compares consecutive CPU frequency and GPU core-clock samples. A drop of at least 15% under high load and elevated temperature is reported as suspected thermal throttling; the LLM only explains this finding and cannot control hardware.
