@@ -42,6 +42,8 @@ func (b *bridgeService) stopListener() {
 	}
 }
 
+const maxConcurrentConnections = 64
+
 func runBridge(ctx context.Context, service *bridgeService) error {
 	logPath := os.Getenv("HWCONTROL_LOG")
 	if logPath == "" {
@@ -70,6 +72,8 @@ func runBridge(ctx context.Context, service *bridgeService) error {
 	}
 
 	fmt.Println("Bridge Service 2.0 hazır, " + endpoint + " dinleniyor...")
+
+	connectionSlots := make(chan struct{}, maxConcurrentConnections)
 
 	for {
 		if service != nil {
@@ -104,6 +108,16 @@ func runBridge(ctx context.Context, service *bridgeService) error {
 			}
 			return fmt.Errorf("listener stopped: %w", err)
 		}
-		go handleConnection(conn, secret)
+		select {
+		case connectionSlots <- struct{}{}:
+			go func() {
+				defer func() { <-connectionSlots }()
+				handleConnection(conn, secret)
+			}()
+		default:
+			_ = conn.SetWriteDeadline(time.Now().Add(2 * time.Second))
+			_, _ = conn.Write([]byte(`{"status":"ERROR","message":"too many concurrent connections"}\n`))
+			_ = conn.Close()
+		}
 	}
 }
