@@ -113,9 +113,13 @@ configure_runtime(){
   # Grant only that user read access to the per-install authentication key.
   if [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != "root" ]; then
     desktop_group="$(id -gn "$SUDO_USER")"
+    $SUDO chown "$SUDO_USER:$desktop_group" "$(dirname "$KEY_FILE")"
+    $SUDO chmod 2750 "$(dirname "$KEY_FILE")"
     $SUDO chown "$SUDO_USER:$desktop_group" "$KEY_FILE"
     $SUDO chmod 0640 "$KEY_FILE"
   else
+    $SUDO chown root:root "$(dirname "$KEY_FILE")"
+    $SUDO chmod 0750 "$(dirname "$KEY_FILE")"
     $SUDO chown root:root "$KEY_FILE"
     $SUDO chmod 0600 "$KEY_FILE"
   fi
