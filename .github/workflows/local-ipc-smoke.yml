@@ -1,0 +1,166 @@
+name: Local IPC smoke tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: local-ipc-smoke
+  cancel-in-progress: true
+
+jobs:
+  linux:
+    name: Linux Unix socket smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: bridge_service/go.mod
+          cache: false
+      - name: Build bridge
+        working-directory: bridge_service
+        run: go build -buildvcs=false -trimpath -o ../bridge-service ./src
+      - name: Start bridge and exercise authenticated Unix socket
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          key_file="$tmp/bridge.key"
+          socket="$tmp/bridge.sock"
+          python3 - "$key_file" <<'PY'
+          import secrets, sys
+          from pathlib import Path
+          Path(sys.argv[1]).write_text(secrets.token_hex(32) + "\n")
+          PY
+          chmod 600 "$key_file"
+          HWCONTROL_KEY_FILE="$key_file" HWCONTROL_SOCKET="$socket" ./bridge-service >"$tmp/bridge.log" 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true; rm -rf "$tmp"' EXIT
+          for _ in $(seq 1 50); do test -S "$socket" && break; sleep .1; done
+          test -S "$socket"
+          python3 - "$socket" "$key_file" <<'PY'
+          import hashlib, hmac, json, socket, sys
+          sock_path, key_path = sys.argv[1:]
+          key = open(key_path).read().strip()
+          action = "Get Status"
+          value = "0.000000"
+          auth = hmac.new(bytes.fromhex(key), f"{action}\n{value}".encode(), hashlib.sha256).hexdigest()
+          with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
+              s.settimeout(5)
+              s.connect(sock_path)
+              s.sendall((json.dumps({"action": action, "value": 0.0, "auth": auth}) + "\n").encode())
+              response = json.loads(s.makefile("r").readline())
+          assert response["status"] == "SUCCESS", response
+          PY
+
+  macos:
+    name: macOS Unix socket smoke
+    runs-on: macos-14
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: bridge_service/go.mod
+          cache: false
+      - name: Build bridge
+        working-directory: bridge_service
+        run: go build -buildvcs=false -trimpath -o ../bridge-service ./src
+      - name: Start bridge and exercise authenticated Unix socket
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          key_file="$tmp/bridge.key"
+          socket="$tmp/bridge.sock"
+          python3 - "$key_file" <<'PY'
+          import secrets, sys
+          from pathlib import Path
+          Path(sys.argv[1]).write_text(secrets.token_hex(32) + "\n")
+          PY
+          chmod 600 "$key_file"
+          HWCONTROL_KEY_FILE="$key_file" HWCONTROL_SOCKET="$socket" ./bridge-service >"$tmp/bridge.log" 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true; rm -rf "$tmp"' EXIT
+          for _ in $(seq 1 50); do test -S "$socket" && break; sleep .1; done
+          test -S "$socket"
+          python3 - "$socket" "$key_file" <<'PY'
+          import hashlib, hmac, json, socket, sys
+          sock_path, key_path = sys.argv[1:]
+          key = open(key_path).read().strip()
+          action = "Get Status"
+          value = "0.000000"
+          auth = hmac.new(bytes.fromhex(key), f"{action}\n{value}".encode(), hashlib.sha256).hexdigest()
+          with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
+              s.settimeout(5)
+              s.connect(sock_path)
+              s.sendall((json.dumps({"action": action, "value": 0.0, "auth": auth}) + "\n").encode())
+              response = json.loads(s.makefile("r").readline())
+          assert response["status"] == "SUCCESS", response
+          PY
+
+  windows:
+    name: Windows loopback compatibility smoke
+    runs-on: windows-2022
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: bridge_service/go.mod
+          cache: false
+      - name: Build bridge
+        shell: pwsh
+        working-directory: bridge_service
+        run: go build -buildvcs=false -trimpath -o ../bridge-service.exe ./src
+      - name: Start bridge and exercise authenticated TCP
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $key = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+          $env:HWCONTROL_KEY = $key
+          $env:HWCONTROL_PORT = '18080'
+          $process = Start-Process -FilePath "$PWD\bridge-service.exe" -PassThru -RedirectStandardOutput "$env:RUNNER_TEMP\bridge.out" -RedirectStandardError "$env:RUNNER_TEMP\bridge.err"
+          try {
+            $ready = $false
+            for ($i = 0; $i -lt 50; $i++) {
+              Start-Sleep -Milliseconds 100
+              if ((Test-NetConnection 127.0.0.1 -Port 18080 -WarningAction SilentlyContinue).TcpTestSucceeded) { $ready = $true; break }
+            }
+            if (-not $ready) { throw 'Bridge did not start on compatibility TCP endpoint.' }
+            $action = 'Get Status'
+            $value = '0.000000'
+            $payload = "$action`n$value"
+            $hmac = [System.Security.Cryptography.HMACSHA256]::new([Convert]::FromHexString($key))
+            $auth = [Convert]::ToHexString($hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($payload))).ToLowerInvariant()
+            $client = [Net.Sockets.TcpClient]::new('127.0.0.1', 18080)
+            $stream = $client.GetStream()
+            $request = [Text.Encoding]::UTF8.GetBytes((ConvertTo-Json @{ action=$action; value=0.0; auth=$auth; } -Compress) + "`n")
+            $stream.Write($request, 0, $request.Length)
+            $reader = [IO.StreamReader]::new($stream)
+            $response = $reader.ReadLine() | ConvertFrom-Json
+            if ($response.status -ne 'SUCCESS') { throw "Bridge response: $($response.message)" }
+            $client.Dispose()
+          } finally {
+            if ($process -and -not $process.HasExited) { Stop-Process -Id $process.Id -Force }
+          }
