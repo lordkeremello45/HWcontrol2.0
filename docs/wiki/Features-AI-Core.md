@@ -1,6 +1,6 @@
 # Local AI Core
 
-HWcontrol2.0 includes a local large-language-model analysis engine built around Gemma GGUF and llama.cpp. The model is executed locally; telemetry is not uploaded to a cloud AI service by this component.
+HWcontrol2.0 includes a local large-language-model analysis engine built around Gemma 3 1B GGUF and llama.cpp. The model is executed locally; telemetry is not uploaded to a cloud AI service by this component. The selected Gemma 3 1B Instruct Q5_K_M GGUF model is about 851 MB, keeping the model cache below 1 GB.
 
 ## What the AI Core does
 
@@ -60,7 +60,7 @@ Malformed requests return:
 ERROR|invalid-telemetry
 ```
 
-The stdio mode is designed for the authenticated local application/bridge integration and avoids repeatedly loading the ~1.5 GB model for every analysis request.
+The stdio mode is designed for the authenticated local application/bridge integration and avoids repeatedly loading the ~851 MB model for every analysis request.
 
 ## Current runtime boundary
 
