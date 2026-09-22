@@ -13,6 +13,8 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'model_manager.dart';
+
 void main() => runApp(const HWControlApp());
 
 class HWControlApp extends StatefulWidget {
@@ -77,6 +79,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _aiSending = false;
   DateTime? _lastAiAnalysisAt;
   String _aiStatus = 'Yerel AI başlatılmadı';
+  bool _aiModelDownloading = false;
+  double _aiModelProgress = 0;
+  String? _aiModelError;
+  DateTime? _lastAiModelAttemptAt;
   String _aiAnalysis = 'Gemma 3 1B telemetry analizi bekleniyor';
   DateTime? _aiAnalysisTime;
   String _status = 'Bridge bekleniyor';
@@ -190,30 +196,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Socket.connect('127.0.0.1', _bridgePort, timeout: const Duration(seconds: 3));
   }
 
-  String _defaultModelPath() {
-    if (Platform.isWindows) {
-      final localAppData = Platform.environment['LOCALAPPDATA'];
-      if (localAppData != null && localAppData.isNotEmpty) {
-        return '$localAppData${Platform.pathSeparator}HWControl${Platform.pathSeparator}models${Platform.pathSeparator}gemma-3-1b-it-Q5_K_M.gguf';
-      }
-    } else if (Platform.isMacOS) {
-      final home = Platform.environment['HOME'];
-      if (home != null && home.isNotEmpty) {
-        return '$home${Platform.pathSeparator}Library${Platform.pathSeparator}Application Support${Platform.pathSeparator}HWControl${Platform.pathSeparator}models${Platform.pathSeparator}gemma-3-1b-it-Q5_K_M.gguf';
-      }
-    } else if (Platform.isLinux) {
-      final xdg = Platform.environment['XDG_CACHE_HOME'];
-      if (xdg != null && xdg.isNotEmpty) {
-        return '$xdg${Platform.pathSeparator}HWControl${Platform.pathSeparator}models${Platform.pathSeparator}gemma-3-1b-it-Q5_K_M.gguf';
-      }
-      final home = Platform.environment['HOME'];
-      if (home != null && home.isNotEmpty) {
-        return '$home${Platform.pathSeparator}.cache${Platform.pathSeparator}HWControl${Platform.pathSeparator}models${Platform.pathSeparator}gemma-3-1b-it-Q5_K_M.gguf';
-      }
-    }
-    return 'ai_core${Platform.pathSeparator}models${Platform.pathSeparator}gemma-3-1b-it-Q5_K_M.gguf';
+  Future<String> _defaultModelPath() async {
+    return (await HWControlModelManager.modelFile()).path;
   }
-
   Future<String?> _findAiEnginePath() async {
     final executable = File(Platform.resolvedExecutable);
     final executableDir = executable.parent.path;
@@ -286,22 +271,66 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (_aiProcess != null || _aiStarting) return;
     _aiStarting = true;
     try {
+      final now = DateTime.now();
+      if (_lastAiModelAttemptAt != null &&
+          now.difference(_lastAiModelAttemptAt!) < const Duration(minutes: 5) &&
+          !await HWControlModelManager.isReady()) {
+        if (mounted) {
+          setState(() => _aiStatus = _aiModelError ?? 'AI modeli için yeniden deneme bekleniyor');
+        }
+        return;
+      }
       final executablePath = await _findAiEnginePath();
-      final modelPath = _defaultModelPath();
       if (executablePath == null) {
         if (mounted) setState(() => _aiStatus = 'ai_engine bulunamadı');
         return;
       }
-      if (!await File(modelPath).exists()) {
-        if (mounted) setState(() => _aiStatus = 'Gemma 3 1B modeli henüz hazır değil');
-        return;
+      final modelReady = await HWControlModelManager.isReady();
+      if (!modelReady) {
+        _lastAiModelAttemptAt = now;
+        if (mounted) {
+          setState(() {
+            _aiModelDownloading = true;
+            _aiModelProgress = 0;
+            _aiModelError = null;
+            _aiStatus = 'Gemma 3 1B modeli indiriliyor...';
+          });
+        }
+        try {
+          await HWControlModelManager.ensureReady(
+            onProgress: (progress) {
+              if (!mounted) return;
+              setState(() {
+                _aiModelProgress = progress.clamp(0.0, 1.0);
+                _aiStatus = 'Gemma 3 1B modeli indiriliyor %${(_aiModelProgress * 100).round()}';
+              });
+            },
+          );
+        } catch (error) {
+          if (mounted) {
+            setState(() {
+              _aiModelError = 'Model indirilemedi: $error';
+              _aiStatus = 'Gemma 3 1B indirilemedi';
+            });
+          }
+          return;
+        } finally {
+          if (mounted) setState(() => _aiModelDownloading = false);
+        }
       }
-
+      final modelPath = await _defaultModelPath();
       final environment = Map<String, String>.from(Platform.environment);
       environment['HWCONTROL_MODEL'] = modelPath;
-      final process = await Process.start(executablePath, const ['--stdio'], environment: environment, runInShell: false);
+      final process = await Process.start(
+        executablePath,
+        const ['--stdio'],
+        environment: environment,
+        runInShell: false,
+      );
       _aiProcess = process;
-      _aiResponses = StreamIterator(process.stdout.transform(utf8.decoder).transform(const LineSplitter()));
+      _aiResponses = StreamIterator(
+        process.stdout.transform(utf8.decoder).transform(const LineSplitter()),
+      );
       process.stderr.transform(utf8.decoder).transform(const LineSplitter()).listen((_) {});
       process.exitCode.then((code) {
         if (_aiProcess == process) {
@@ -311,15 +340,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         }
       });
       if (mounted) setState(() => _aiStatus = 'Gemma 3 1B yerel inference hazır');
-    } catch (_) {
+    } catch (error) {
       _aiProcess = null;
       _aiResponses = null;
-      if (mounted) setState(() => _aiStatus = 'Yerel AI başlatılamadı');
+      if (mounted) setState(() => _aiStatus = 'Yerel AI başlatılamadı: $error');
     } finally {
       _aiStarting = false;
     }
   }
-
   Future<void> _requestAiAnalysis(Map<String, dynamic> data, {bool force = false}) async {
     final now = DateTime.now();
     if (!force && _lastAiAnalysisAt != null && now.difference(_lastAiAnalysisAt!) < const Duration(seconds: 30)) return;
@@ -1322,6 +1350,24 @@ Attach this archive to a support issue only after reviewing it for personal info
             ],
           ),
           const SizedBox(height: 14),
+          if (_aiModelDownloading) ...[
+            LinearProgressIndicator(value: _aiModelProgress),
+            const SizedBox(height: 8),
+            Text('Gemma 3 1B modeli indiriliyor %${(_aiModelProgress * 100).round()} • ~851 MB', style: const TextStyle(fontSize: 11)),
+            const SizedBox(height: 12),
+          ],
+          if (_aiModelError != null) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: Theme.of(context).colorScheme.errorContainer,
+              ),
+              child: Text(_aiModelError!, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onErrorContainer)),
+            ),
+            const SizedBox(height: 10),
+          ],
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -1349,7 +1395,6 @@ Attach this archive to a support issue only after reviewing it for personal info
       ),
     );
   }
-
   Widget _buildHardwareIdentityCard() {
     final detected = _hardwareDetectionStatus == 'ok';
     return _Panel(
