@@ -277,6 +277,7 @@ EOF
           test -f /Applications/HWControl/com.hwcontrol.bridge.plist
           test -f "/Library/Application Support/HWControl/bridge.key"
           test "$(/usr/bin/stat -f '%Lp' '/Library/Application Support/HWControl/bridge.key')" = "640"
+          test "$(/usr/bin/stat -f '%Lp' '/Library/Application Support/HWControl')" = "750"
           sudo plutil -lint /Applications/HWControl/com.hwcontrol.bridge.plist
           pkgutil --pkg-info com.hwcontrol.app
           mount_point=$(mktemp -d)
