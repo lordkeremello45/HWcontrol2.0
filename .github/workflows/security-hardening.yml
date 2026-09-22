@@ -30,6 +30,14 @@ jobs:
         with:
           go-version-file: bridge_service/go.mod
           cache: false
+      - name: Enforce gofmt
+        run: |
+          files="$(gofmt -l .)"
+          if [ -n "$files" ]; then
+            echo "Unformatted Go files:"
+            printf "%s\n" "$files"
+            exit 1
+          fi
       - name: Vet bridge
         run: go vet ./...
       - name: Test bridge with race detector
