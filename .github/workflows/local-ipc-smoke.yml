@@ -151,7 +151,7 @@ jobs:
             $action = 'Get Status'
             $value = '0.000000'
             $payload = "$action`n$value"
-            $hmac = [System.Security.Cryptography.HMACSHA256]::new([Convert]::FromHexString($key))
+            $hmac = [System.Security.Cryptography.HMACSHA256]::new([Text.Encoding]::UTF8.GetBytes($key))
             $auth = [Convert]::ToHexString($hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($payload))).ToLowerInvariant()
             $client = [Net.Sockets.TcpClient]::new('127.0.0.1', 18080)
             $stream = $client.GetStream()
