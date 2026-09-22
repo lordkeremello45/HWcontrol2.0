@@ -1,0 +1,55 @@
+name: Security hardening
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bridge:
+    name: Go static checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: bridge_service
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: bridge_service/go.mod
+          cache: false
+      - name: Vet bridge
+        run: go vet ./...
+      - name: Test bridge with race detector
+        run: go test -race -count=1 ./...
+
+  repository:
+    name: Repository integrity
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check repository whitespace
+        run: git diff --check HEAD^ HEAD
+      - name: Check for accidental credential material
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -nE --binary-files=without-match '-----BEGIN (RSA|EC|OPENSSH|DSA|PRIVATE) KEY-----|(^|[^[:alnum:]_])(ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})([^A-Za-z0-9_]|$)' -- . ':!docs/wiki'; then
+            echo "Potential credential material found in the repository."
+            exit 1
+          fi
