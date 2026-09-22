@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/hex"
 	"math"
 	"net"
@@ -136,9 +137,17 @@ func TestBridgeRequestSizeBound(t *testing.T) {
 		t.Fatal("oversized request write timed out")
 	}
 
+	reader := bufio.NewReader(client)
+	_ = client.SetReadDeadline(time.Now().Add(2 * time.Second))
+	if response, err := reader.ReadBytes('\n'); err != nil {
+		t.Fatalf("read oversized request response: %v", err)
+	} else if !strings.Contains(string(response), "request too large") {
+		t.Fatalf("unexpected oversized request response: %s", response)
+	}
+
 	select {
 	case <-done:
-	case <-time.After(5 * time.Second):
+	case <-time.After(2 * time.Second):
 		t.Fatal("oversized request handler did not terminate")
 	}
 }
