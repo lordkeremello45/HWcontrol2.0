@@ -152,7 +152,7 @@ jobs:
       - name: Generate checksums
         run: |
           set -euo pipefail
-          sha256sum HWControl-${RELEASE_TAG}-Linux-x64.deb HWControl-${GITHUB_REF_NAME}-Linux-x64.tar.gz HWControl-${GITHUB_REF_NAME}-Linux-x64.tar.zst > HWControl-${GITHUB_REF_NAME}-Linux-x64.sha256
+          sha256sum HWControl-${RELEASE_TAG}-Linux-x64.deb HWControl-${RELEASE_TAG}-Linux-x64.tar.gz HWControl-${RELEASE_TAG}-Linux-x64.tar.zst > HWControl-${RELEASE_TAG}-Linux-x64.sha256
           sha256sum -c HWControl-${GITHUB_REF_NAME}-Linux-x64.sha256
 
       - name: Attest release artifacts
