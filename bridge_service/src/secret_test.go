@@ -35,8 +35,11 @@ func TestLoadOrCreateSecretRejectsUnsafeKeyFile(t *testing.T) {
 	}
 	path := filepath.Join(t.TempDir(), "bridge.key")
 	secret := "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-	if err := os.WriteFile(path, []byte(secret+"\n"), 0660); err != nil {
+	if err := os.WriteFile(path, []byte(secret+"\n"), 0600); err != nil {
 		t.Fatalf("write test key: %v", err)
+	}
+	if err := os.Chmod(path, 0660); err != nil {
+		t.Fatalf("chmod test key: %v", err)
 	}
 	t.Setenv("HWCONTROL_KEY", "")
 	t.Setenv("HWCONTROL_KEY_FILE", path)
