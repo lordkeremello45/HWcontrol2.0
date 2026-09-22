@@ -116,7 +116,30 @@ class HWControlModelManager {
         );
       }
 
-      await partial.rename(target.path);
+      // Dart's rename cannot replace an existing file on every supported OS.
+      // Move the old invalid model aside, install the verified file, then remove
+      // the backup. A failed rename attempts to restore the previous model.
+      File? backup;
+      if (await target.exists()) {
+        backup = File('${target.path}.old');
+        try {
+          if (await backup.exists()) await backup.delete();
+        } catch (_) {}
+        await target.rename(backup.path);
+      }
+      try {
+        await partial.rename(target.path);
+      } catch (_) {
+        if (backup != null && await backup.exists()) {
+          await backup.rename(target.path);
+        }
+        rethrow;
+      }
+      if (backup != null) {
+        try {
+          if (await backup.exists()) await backup.delete();
+        } catch (_) {}
+      }
       await _removeLegacyModels(target.parent);
       onProgress?.call(1.0);
     } catch (_) {
