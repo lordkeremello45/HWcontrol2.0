@@ -50,12 +50,10 @@ class _HWControlAppState extends State<HWControlApp> {
     bool? darkMode,
     bool? animationsEnabled,
   }) async {
-    await HWControlUserData.saveSettings(
-      darkMode: darkMode ?? _darkMode,
-      animationsEnabled: animationsEnabled ?? _animationsEnabled,
-      notificationsEnabled: true,
-      temperatureLimit: 85,
-    );
+    await HWControlUserData.updateSettings({
+      if (darkMode != null) 'theme': darkMode ? 'dark' : 'light',
+      if (animationsEnabled != null) 'animationsEnabled': animationsEnabled,
+    });
   }
 
 
@@ -440,6 +438,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (_polling) return;
     _polling = true;
     try {
+      await HWControlUserData.ensureDefaults();
       await _loadProfiles();
       final settings = await HWControlUserData.loadSettings();
       final settingValues = settings['settings'];
