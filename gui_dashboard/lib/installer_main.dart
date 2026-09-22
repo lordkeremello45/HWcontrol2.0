@@ -84,7 +84,7 @@ class _InstallerWizardState extends State<InstallerWizard> {
       if (!mounted) return;
       setState(() {
         _details = completed
-            ? 'Kurulum daha önce tamamlandı. AI modeli isteğe bağlı olarak kontrol edildi.'
+            ? 'Kurulum daha önce tamamlandı. AI modeli isteğe bağlıdır.'
             : 'Platform: $_platformName\n'
                 'Paket: $_packageFormats\n'
                 'Bridge: ${bridgePresent ? 'bulundu' : 'paketlenmiş kurulumdan bekleniyor'}\n'
@@ -166,7 +166,7 @@ class _InstallerWizardState extends State<InstallerWizard> {
                     ),
                   ]),
                   const SizedBox(height: 12),
-                  Text('AI modeli kurulum sırasında yalnızca doğrulanmış şekilde indirilir; uygulama cache dizininde saklanır ve eski Gemma 2B cache\'i yeni model doğrulandıktan sonra temizlenir.', style: Theme.of(context).textTheme.bodySmall),
+                  Text('AI modeli kurulumdan bağımsızdır. İlk AI analizi istendiğinde indirilir, SHA-256 ile doğrulanır ve uygulama cache dizininde saklanır.', style: Theme.of(context).textTheme.bodySmall),
                 ],
               ),
             ),
