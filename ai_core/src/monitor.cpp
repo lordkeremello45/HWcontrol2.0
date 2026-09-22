@@ -1,20 +1,64 @@
 #include "../include/monitor.h"
-#include <fstream>
-#include <iostream>
-#include <sstream>
+
 #include <cmath>
+#include <fstream>
+#include <sstream>
 #include <string>
+#include <vector>
+
+#if defined(_WIN32) || defined(__APPLE__) || defined(__linux__)
+#include <cstdio>
+#endif
+
+namespace {
+
+double nanValue() {
+    return std::numeric_limits<double>::quiet_NaN();
+}
+
+#if defined(_WIN32) || defined(__APPLE__) || defined(__linux__)
+std::string commandOutput(const char* command) {
+#ifdef _WIN32
+    FILE* pipe = _popen(command, "r");
+#else
+    FILE* pipe = popen(command, "r");
+#endif
+    if (!pipe) {
+        return {};
+    }
+
+    std::string output;
+    char buffer[512];
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+        output += buffer;
+        if (output.size() > 16384) {
+            break;
+        }
+    }
+#ifdef _WIN32
+    _pclose(pipe);
+#else
+    pclose(pipe);
+#endif
+    return output;
+}
+#endif
+
+}  // namespace
 
 Monitor::Monitor()
-    : currentStatus{0.0f, 0.0f, 0.0f, true} {}
+    : currentStatus{
+          nanValue(), nanValue(), nanValue(), nanValue(),
+          nanValue(), nanValue(), nanValue(), nanValue(),
+          nanValue(), nanValue(), nanValue(), nanValue(),
+          nanValue(), 0} {}
 
-// Donanım verisini okuyan/formatlayan sınıf
 void Monitor::updateHardwareStatus() {
 #if defined(__linux__)
-    static unsigned long long previous_idle = 0;
-    static unsigned long long previous_total = 0;
-    static bool have_previous = false;
-    std::ifstream cpu_file("/proc/stat");
+    static std::vector<unsigned long long> previousIdle;
+    static std::vector<unsigned long long> previousTotal;
+
+    std::ifstream cpuFile("/proc/stat");
     std::string label;
     unsigned long long user = 0;
     unsigned long long nice = 0;
@@ -24,39 +68,121 @@ void Monitor::updateHardwareStatus() {
     unsigned long long irq = 0;
     unsigned long long softirq = 0;
     unsigned long long steal = 0;
-    if (cpu_file >> label >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal) {
-        const unsigned long long idle_total = idle + iowait;
+
+    if (cpuFile >> label >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal) {
+        const unsigned long long idleTotal = idle + iowait;
         const unsigned long long total = user + nice + system + idle + iowait + irq + softirq + steal;
-        if (have_previous && total >= previous_total && idle_total >= previous_idle) {
-            const unsigned long long total_delta = total - previous_total;
-            const unsigned long long idle_delta = idle_total - previous_idle;
-            if (total_delta > 0 && idle_delta <= total_delta) {
-                currentStatus.cpuLoad = 100.0f * static_cast<float>(total_delta - idle_delta) / static_cast<float>(total_delta);
+        if (previousTotal.size() == 1 && total >= previousTotal[0] && idleTotal >= previousIdle[0]) {
+            const auto totalDelta = total - previousTotal[0];
+            const auto idleDelta = idleTotal - previousIdle[0];
+            if (totalDelta > 0 && idleDelta <= totalDelta) {
+                currentStatus.cpuLoad = 100.0 * static_cast<double>(totalDelta - idleDelta) / static_cast<double>(totalDelta);
             }
         }
-        previous_idle = idle_total;
-        previous_total = total;
-        have_previous = true;
+        previousIdle = {idleTotal};
+        previousTotal = {total};
     }
 
-    const char* thermal_paths[] = {
+    std::ifstream statusFile("/proc/cpuinfo");
+    std::string line;
+    int cores = 0;
+    while (std::getline(statusFile, line)) {
+        if (line.rfind("processor", 0) == 0) {
+            ++cores;
+        }
+        if (line.rfind("cpu MHz", 0) == 0 && !isFiniteMeasurement(currentStatus.cpuFrequencyMHz)) {
+            const size_t colon = line.find(':');
+            if (colon != std::string::npos) {
+                try {
+                    currentStatus.cpuFrequencyMHz = std::stod(line.substr(colon + 1));
+                } catch (...) {
+                }
+            }
+        }
+    }
+    currentStatus.cpuCoreCount = cores;
+
+    const char* thermalPaths[] = {
         "/sys/class/thermal/thermal_zone0/temp",
         "/sys/class/hwmon/hwmon0/temp1_input",
     };
-    for (const char* path : thermal_paths) {
-        std::ifstream temperature_file(path);
+    for (const char* path : thermalPaths) {
+        std::ifstream temperatureFile(path);
         long temperature = 0;
-        if (temperature_file >> temperature) {
-            const float celsius = static_cast<float>(temperature) / 1000.0f;
-            if (std::isfinite(celsius) && celsius > -40.0f && celsius < 150.0f) {
-                currentStatus.temperature = celsius;
+        if (temperatureFile >> temperature) {
+            const double celsius = static_cast<double>(temperature) / 1000.0;
+            if (std::isfinite(celsius) && celsius > -40.0 && celsius < 150.0) {
+                currentStatus.temperatureC = celsius;
                 break;
             }
         }
     }
-#else
-    currentStatus.temperature = 0.0f;
-    currentStatus.cpuLoad = 0.0f;
+
+    const std::string nvidia = commandOutput(
+        "nvidia-smi --query-gpu=temperature.gpu,utilization.gpu,utilization.memory,"
+        "fan.speed,power.draw,power.limit,memory.used,memory.total,clocks.gr,clocks.mem,"
+        "utilization.encoder,utilization.decoder --format=csv,noheader,nounits 2>/dev/null");
+    if (!nvidia.empty()) {
+        std::istringstream row(nvidia);
+        std::string field;
+        std::vector<std::string> fields;
+        while (std::getline(row, field, ',')) {
+            fields.push_back(field);
+        }
+        if (fields.size() >= 12) {
+            const auto parse = [](const std::string& value) {
+                try {
+                    return std::stod(value);
+                } catch (...) {
+                    return nanValue();
+                }
+            };
+            currentStatus.gpuTemperatureC = parse(fields[0]);
+            currentStatus.gpuLoad = parse(fields[1]);
+            currentStatus.gpuMemoryUsagePercent = parse(fields[2]);
+            currentStatus.fanPercent = parse(fields[3]);
+            currentStatus.gpuPowerWatts = parse(fields[4]);
+            currentStatus.gpuPowerLimitWatts = parse(fields[5]);
+            const double memoryUsedMiB = parse(fields[6]);
+            const double memoryTotalMiB = parse(fields[7]);
+            currentStatus.gpuCoreClockMHz = parse(fields[8]);
+            currentStatus.gpuMemoryClockMHz = parse(fields[9]);
+
+            if (std::isfinite(memoryUsedMiB) && std::isfinite(memoryTotalMiB) && memoryTotalMiB > 0) {
+                currentStatus.gpuMemoryUsagePercent = 100.0 * memoryUsedMiB / memoryTotalMiB;
+            }
+        }
+    }
+
+#elif defined(_WIN32) || defined(__APPLE__)
+    const std::string nvidia = commandOutput(
+        "nvidia-smi --query-gpu=temperature.gpu,utilization.gpu,utilization.memory,"
+        "fan.speed,power.draw,power.limit,memory.used,memory.total,clocks.gr,clocks.mem "
+        "--format=csv,noheader,nounits 2>nul");
+    if (!nvidia.empty()) {
+        std::istringstream row(nvidia);
+        std::string field;
+        std::vector<std::string> fields;
+        while (std::getline(row, field, ',')) fields.push_back(field);
+        if (fields.size() >= 10) {
+            const auto parse = [](const std::string& value) {
+                try { return std::stod(value); } catch (...) { return nanValue(); }
+            };
+            currentStatus.gpuTemperatureC = parse(fields[0]);
+            currentStatus.gpuLoad = parse(fields[1]);
+            currentStatus.gpuMemoryUsagePercent = parse(fields[2]);
+            currentStatus.fanPercent = parse(fields[3]);
+            currentStatus.gpuPowerWatts = parse(fields[4]);
+            currentStatus.gpuPowerLimitWatts = parse(fields[5]);
+            const double memoryUsedMiB = parse(fields[6]);
+            const double memoryTotalMiB = parse(fields[7]);
+            currentStatus.gpuCoreClockMHz = parse(fields[8]);
+            currentStatus.gpuMemoryClockMHz = parse(fields[9]);
+            if (std::isfinite(memoryUsedMiB) && std::isfinite(memoryTotalMiB) && memoryTotalMiB > 0) {
+                currentStatus.gpuMemoryUsagePercent = 100.0 * memoryUsedMiB / memoryTotalMiB;
+            }
+        }
+    }
 #endif
 }
 
@@ -64,6 +190,26 @@ HardwareStatus Monitor::getStatus() const {
     return currentStatus;
 }
 
-float Monitor::getTemperature() const {
-    return currentStatus.temperature;
+double Monitor::getTemperature() const {
+    return currentStatus.temperatureC;
+}
+
+HardwareTelemetry Monitor::getTelemetry() const {
+    HardwareTelemetry telemetry;
+    telemetry.cpuTemperatureC = currentStatus.temperatureC;
+    telemetry.cpuLoadPercent = currentStatus.cpuLoad;
+    telemetry.cpuFrequencyMHz = currentStatus.cpuFrequencyMHz;
+    telemetry.cpuCoreCount = currentStatus.cpuCoreCount;
+    telemetry.gpuTemperatureC = currentStatus.gpuTemperatureC;
+    telemetry.gpuLoadPercent = currentStatus.gpuLoad;
+    telemetry.gpuMemoryUsagePercent = currentStatus.gpuMemoryUsagePercent;
+    telemetry.gpuPowerWatts = currentStatus.gpuPowerWatts;
+    telemetry.gpuPowerLimitWatts = currentStatus.gpuPowerLimitWatts;
+    telemetry.gpuCoreClockMHz = currentStatus.gpuCoreClockMHz;
+    telemetry.gpuMemoryClockMHz = currentStatus.gpuMemoryClockMHz;
+    telemetry.fanPercent = currentStatus.fanPercent;
+    telemetry.fanRPM = currentStatus.fanRPM;
+    telemetry.cpuMaxCoreLoadPercent = currentStatus.cpuMaxCoreLoadPercent;
+    telemetry.memoryUsagePercent = currentStatus.memoryUsage;
+    return telemetry;
 }
