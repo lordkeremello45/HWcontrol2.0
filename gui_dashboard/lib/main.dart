@@ -148,6 +148,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   int get _bridgePort => int.tryParse(Platform.environment['HWCONTROL_PORT'] ?? '8080') ?? 8080;
 
+  String get _bridgeSocketPath {
+    final configured = Platform.environment['HWCONTROL_SOCKET'];
+    if (configured != null && configured.isNotEmpty) return configured;
+    if (Platform.isMacOS) return '/Library/Application Support/HWControl/bridge.sock';
+    return '/var/lib/hwcontrol/bridge.sock';
+  }
+
+  Future<Socket> _openBridgeSocket() {
+    if (Platform.isLinux || Platform.isMacOS) {
+      final address = InternetAddress(_bridgeSocketPath, type: InternetAddressType.unix);
+      return Socket.connect(address, 0, timeout: const Duration(seconds: 3));
+    }
+    return Socket.connect('127.0.0.1', _bridgePort, timeout: const Duration(seconds: 3));
+  }
+
   @override
   void initState() {
     super.initState();
@@ -463,11 +478,7 @@ Attach this archive to a support issue only after reviewing it for personal info
     final generation = ++_connectionGeneration;
     _connecting = true;
     try {
-      final socket = await Socket.connect(
-        '127.0.0.1',
-        _bridgePort,
-        timeout: const Duration(seconds: 3),
-      );
+      final socket = await _openBridgeSocket();
       if (generation != _connectionGeneration || !mounted) {
         socket.destroy();
         return;
