@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
   <Package
     Name="HWControl"
     Manufacturer="HWControl contributors"
@@ -37,7 +38,9 @@
 
   <Fragment>
     <Component Id="BridgeDataComponent" Directory="HWCONTROL_DATA">
-      <CreateFolder />
+      <CreateFolder>
+        <util:PermissionEx User="Users" Read="yes" Traverse="yes" Inheritable="yes" />
+      </CreateFolder>
       <RemoveFile Id="RemoveBridgeKey" Name="bridge.key" On="uninstall" />
       <Environment Id="RemoveHWControlKey" Name="HWCONTROL_KEY" Action="remove" System="yes" />
       <RegistryValue Root="HKLM" Key="Software\HWControl" Name="BridgeDataInstalled" Type="integer" Value="1" KeyPath="yes" />
