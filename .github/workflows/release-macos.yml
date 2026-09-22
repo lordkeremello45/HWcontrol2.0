@@ -110,8 +110,8 @@ jobs:
       - name: Verify package hashes
         run: |
           set -euo pipefail
-          shasum -a 256 "HWControl-${RELEASE_TAG}-macOS-AppleSilicon.pkg" "HWControl-${RELEASE_TAG}-macOS-AppleSilicon.dmg" > "HWControl-${GITHUB_REF_NAME}-macOS-AppleSilicon.sha256"
-          shasum -a 256 "HWControl-${GITHUB_REF_NAME}-macOS-AppleSilicon.sha256"
+          shasum -a 256 "HWControl-${RELEASE_TAG}-macOS-AppleSilicon.pkg" "HWControl-${RELEASE_TAG}-macOS-AppleSilicon.dmg" > "HWControl-${RELEASE_TAG}-macOS-AppleSilicon.sha256"
+          shasum -a 256 -c "HWControl-${RELEASE_TAG}-macOS-AppleSilicon.sha256"
 
       - name: Attest release artifacts
         uses: actions/attest@v4
