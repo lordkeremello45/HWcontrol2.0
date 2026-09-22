@@ -114,9 +114,10 @@ jobs:
           JSON
 
       - name: Publish no-paid-agent fallback status
-        if: ${{ secrets.AGENT_USER_TOKEN == '' }}
+        if: env.AGENT_USER_TOKEN == ''
         shell: bash
         env:
+          AGENT_USER_TOKEN: ${{ secrets.AGENT_USER_TOKEN }}
           GH_TOKEN: ${{ github.token }}
           ISSUE_URL: ${{ steps.issue.outputs.issue_url }}
         run: |
