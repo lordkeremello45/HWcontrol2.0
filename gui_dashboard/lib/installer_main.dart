@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'main.dart' show HWControlApp;
+import 'model_manager.dart';
 
 void main() => runApp(const InstallerApp());
 
@@ -32,19 +33,10 @@ class InstallerWizard extends StatefulWidget {
 }
 
 class _InstallerWizardState extends State<InstallerWizard> {
-  static const _modelName = 'gemma-3-1b-it-Q5_K_M.gguf';
-  static const _modelUrl = 'https://huggingface.co/second-state/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-Q5_K_M.gguf?download=true';
-  static const _modelSha256 = '586d772e7f50b36b86bf3d04a1912f880206ef77044c5011107adb8915d97b93';
-  static const _modelSize = 851345696;
-
   int _step = 0;
   bool _checking = true;
-  bool _modelReady = false;
-  bool _modelDownloading = false;
-  String? _modelError;
   String _details = 'Kurulum bileşenleri kontrol ediliyor...';
   Directory? _stateDirectory;
-  File? _modelFile;
 
   String get _platformName {
     if (Platform.isWindows) return 'Windows';
@@ -96,137 +88,55 @@ class _InstallerWizardState extends State<InstallerWizard> {
     return directory;
   }
 
-  Future<String> _sha256(File file) async {
-    ProcessResult result;
-    if (Platform.isWindows) {
-      result = await Process.run('powershell', [
-        '-NoProfile', '-NonInteractive', '-Command',
-        '(Get-FileHash -Algorithm SHA256 -LiteralPath \$args[0]).Hash.ToLowerInvariant()',
-        file.path,
-      ]);
-    } else if (Platform.isMacOS) {
-      result = await Process.run('shasum', ['-a', '256', file.path]);
-    } else {
-      result = await Process.run('sha256sum', [file.path]);
-    }
-    if (result.exitCode != 0) throw StateError('SHA-256 hesaplanamadı: ${result.stderr}');
-    final match = RegExp(r'[0-9a-fA-F]{64}').firstMatch(result.stdout.toString());
-    if (match == null) throw StateError('SHA-256 çıktısı geçersiz.');
-    return match.group(0)!.toLowerCase();
-  }
-
-  Future<void> _ensureModel() async {
-    final directory = await _modelDirectory();
-    final target = File('${directory.path}${Platform.pathSeparator}$_modelName');
-    final legacyModels = <File>[
-      File('${directory.path}${Platform.pathSeparator}gemma-2b-it-q4_k_m.gguf'),
-      File('${directory.path}${Platform.pathSeparator}gemma-2b-it-Q4_K_M.gguf'),
-    ];
-    _modelFile = target;
-    _modelError = null;
-
-    if (await target.exists()) {
-      final length = await target.length();
-      if (length == _modelSize && await _sha256(target) == _modelSha256) {
-        _modelReady = true;
-        return;
-      }
-      await target.delete();
-    }
-
-    if (!mounted) return;
-    setState(() => _modelDownloading = true);
-    final partial = File('${target.path}.part');
-    try {
-      if (await partial.exists()) await partial.delete();
-      final client = HttpClient()..connectionTimeout = const Duration(seconds: 20);
-      try {
-        final request = await client.getUrl(Uri.parse(_modelUrl));
-        request.followRedirects = true;
-        request.maxRedirects = 5;
-        request.headers.set(HttpHeaders.userAgentHeader, 'HWControl/0.2 model-installer');
-        final response = await request.close().timeout(const Duration(minutes: 2));
-        if (response.statusCode != HttpStatus.ok) {
-          throw StateError('Model sunucusu HTTP ${response.statusCode} döndürdü.');
-        }
-        final sink = partial.openWrite();
-        await response.pipe(sink);
-      } finally {
-        client.close(force: true);
-      }
-
-      final length = await partial.length();
-      if (length != _modelSize) {
-        throw StateError('Model boyutu doğrulanamadı: $length / $_modelSize byte.');
-      }
-      final digest = await _sha256(partial);
-      if (digest != _modelSha256) {
-        throw StateError('Model SHA-256 doğrulaması başarısız. Beklenen: $_modelSha256, alınan: $digest');
-      }
-      await partial.rename(target.path);
-      for (final legacy in legacyModels) {
-        try {
-          if (await legacy.exists()) await legacy.delete();
-        } catch (_) {}
-      }
-      _modelReady = true;
-    } catch (error) {
-      _modelReady = false;
-      _modelError = 'Gemma modeli indirilemedi veya doğrulanamadı.\n$error';
-      if (await partial.exists()) await partial.delete();
-    } finally {
-      if (mounted) setState(() => _modelDownloading = false);
-    }
-  }
-
   Future<void> _inspectInstallation() async {
     try {
       final support = await getApplicationSupportDirectory();
-      _stateDirectory = Directory('${support.path}${Platform.pathSeparator}HWControl');
-      await _ensureModel();
-      final marker = File('${_stateDirectory!.path}${Platform.pathSeparator}setup.complete');
-      final executable = File('${Directory.current.path}${Platform.pathSeparator}bridge-service');
-      final executableWin = File('${Directory.current.path}${Platform.pathSeparator}bridge-service.exe');
+      _stateDirectory = Directory(
+        '${support.path}${Platform.pathSeparator}HWControl',
+      );
+      final modelReady = await HWControlModelManager.isReady();
+      final marker = File(
+        '${_stateDirectory!.path}${Platform.pathSeparator}setup.complete',
+      );
+      final executable = File(
+        '${Directory.current.path}${Platform.pathSeparator}bridge-service',
+      );
+      final executableWin = File(
+        '${Directory.current.path}${Platform.pathSeparator}bridge-service.exe',
+      );
       final bridgePresent = await executable.exists() || await executableWin.exists();
       final completed = await marker.exists();
       if (!mounted) return;
       setState(() {
         _details = completed
-            ? 'Kurulum daha önce tamamlandı. Model cache ve bileşenler yeniden doğrulandı.'
-            : 'Platform: $_platformName\nPaket: $_packageFormats\nBridge: ${bridgePresent ? 'bulundu' : 'paketlenmiş kurulumdan bekleniyor'}\nModel: ${_modelReady ? 'SHA-256 doğrulandı' : 'hazır değil'}\nCache: ${_modelFile?.path ?? 'oluşturulamadı'}';
+            ? 'Kurulum daha önce tamamlandı. AI modeli isteğe bağlı olarak kontrol edildi.'
+            : 'Platform: $_platformName\n'
+                'Paket: $_packageFormats\n'
+                'Bridge: ${bridgePresent ? 'bulundu' : 'paketlenmiş kurulumdan bekleniyor'}\n'
+                'AI modeli: ${modelReady ? 'hazır ve doğrulanmış' : 'isteğe bağlı; ilk AI analizinde indirilir'}';
         _checking = false;
       });
     } catch (error) {
       if (!mounted) return;
       setState(() {
         _checking = false;
-        _modelReady = false;
-        _modelError = 'Model kurulumu başlatılamadı.\n$error';
         _details = 'Kurulum denetimi tamamlanamadı: $error';
       });
     }
   }
-
-  Future<void> _retryModel() async {
-    if (_modelDownloading) return;
-    setState(() {
-      _checking = true;
-      _modelError = null;
-    });
-    await _inspectInstallation();
-  }
-
   Future<void> _complete() async {
-    if (!_modelReady) return;
     try {
       final directory = _stateDirectory ?? await getApplicationSupportDirectory();
       await directory.create(recursive: true);
-      await File('${directory.path}${Platform.pathSeparator}setup.complete').writeAsString(DateTime.now().toUtc().toIso8601String());
+      await File(
+        '${directory.path}${Platform.pathSeparator}setup.complete',
+      ).writeAsString(DateTime.now().toUtc().toIso8601String());
     } catch (_) {}
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const HWControlApp()));
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const HWControlApp()),
+    );
   }
-
   void _next() {
     if (_step < 2) {
       setState(() => _step++);
@@ -262,38 +172,20 @@ class _InstallerWizardState extends State<InstallerWizard> {
                   const SizedBox(height: 12),
                   Text(_bodyForStep()),
                   const SizedBox(height: 18),
-                  if (_step == 2) ...[
-                    if (_modelDownloading) const LinearProgressIndicator(),
-                    if (_modelDownloading) const SizedBox(height: 12),
-                    if (error != null)
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: Theme.of(context).colorScheme.errorContainer,
-                        ),
-                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Row(children: [Icon(Icons.error_outline, color: Theme.of(context).colorScheme.onErrorContainer), const SizedBox(width: 8), const Expanded(child: Text('Model kurulumu başarısız'))]),
-                          const SizedBox(height: 8),
-                          SelectableText(error),
-                          const SizedBox(height: 12),
-                          FilledButton.icon(onPressed: _modelDownloading ? null : _retryModel, icon: const Icon(Icons.refresh), label: const Text('Tekrar dene')),
-                        ]),
-                      )
-                    else
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: Theme.of(context).colorScheme.surfaceContainerHighest),
-                        child: _checking ? const LinearProgressIndicator() : SelectableText(_details),
+                  if (_step == 2)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
                       ),
-                  ],
-                  const SizedBox(height: 24),
+                      child: Text(_checking ? 'Kurulum kontrol ediliyor...' : _details),
+                    ),                  const SizedBox(height: 24),
                   Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                     const SizedBox(width: 8),
                     FilledButton.icon(
-                      onPressed: _checking && _step == 2 || (_step == 2 && !_modelReady) ? null : _next,
+                      onPressed: _checking && _step == 2 ? null : _next,
                       icon: Icon(_step == 2 ? Icons.rocket_launch : Icons.arrow_forward),
                       label: Text(_step == 2 ? 'Kurulumu tamamla' : 'Devam'),
                     ),
@@ -320,8 +212,8 @@ class _InstallerWizardState extends State<InstallerWizard> {
   String _bodyForStep() {
     switch (_step) {
       case 0: return 'Bu çalıştırmada $_platformName için uygun paket biçimi $_packageFormats.';
-      case 1: return 'Gemma 3 1B Instruct Q5_K_M modeli ilk çalıştırmada otomatik olarak indirilir. Yaklaşık 851 MB olan model SHA-256 ile doğrulanır. Eksik veya bozuk cache dosyası yeniden indirilir.';
-      default: return 'Model bulunamazsa veya SHA-256 eşleşmezse kurulum tamamlanmaz; ekranda neden ve yeniden deneme seçeneği gösterilir.';
+      case 1: return 'Gemma 3 1B Instruct Q5_K_M modeli kurulumdan bağımsızdır. Yaklaşık 851 MB model yalnızca ilk AI analizi istendiğinde indirilir ve SHA-256 ile doğrulanır.';
+      default: return 'Model indirme başarısız olsa bile temel uygulama kurulumu tamamlanır; AI paneli daha sonra güvenli biçimde yeniden deneyebilir.';
     }
   }
 }
