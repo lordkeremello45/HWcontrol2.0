@@ -1,30 +1,38 @@
 #ifndef MONITOR_H
 #define MONITOR_H
 
-// Donanım durumlarını saklamak için bir yapı
+#include "telemetry.h"
+
 struct HardwareStatus {
-    float temperature;
-    float cpuLoad;
-    float gpuLoad;
-    bool fanStatus;
+    double temperatureC;
+    double cpuLoad;
+    double gpuLoad;
+    double memoryUsage;
+    double cpuFrequencyMHz;
+    double gpuTemperatureC;
+    double gpuPowerWatts;
+    double gpuPowerLimitWatts;
+    double gpuMemoryUsagePercent;
+    double fanPercent;
+    double fanRPM;
+    double gpuCoreClockMHz;
+    double gpuMemoryClockMHz;
+    double cpuMaxCoreLoadPercent;
+    int cpuCoreCount;
 };
 
 class Monitor {
 public:
-    // Monitor sınıfı başlatıcı
     Monitor();
 
-    // Sensör verilerini günceller (Bridge'den gelen veriyi buraya bağlayacağız)
     void updateHardwareStatus();
-
-    // Güncel donanım bilgilerini döndürür
     HardwareStatus getStatus() const;
+    double getTemperature() const;
 
-    // Tekil veri çekme metodları
-    float getTemperature() const;
+    HardwareTelemetry getTelemetry() const;
 
 private:
     HardwareStatus currentStatus{};
 };
 
-#endif // MONITOR_H
+#endif
