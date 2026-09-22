@@ -25,6 +25,10 @@ Arch, Fedora, RHEL-family and other x64 systems use the portable archive path un
 
 The portable installer can register the included `hwcontrol-bridge.service` with systemd when present.
 
+## Bridge IPC
+
+Linux uses the Unix domain socket `/var/lib/hwcontrol/bridge.sock` by default. The socket is created with mode `0660` and the containing directory is restricted to the desktop user/group. `HWCONTROL_TCP_COMPAT=1` can be used for compatibility testing only.
+
 ## Verification
 
 Use the published SHA-256 manifest before installation. SHA-512 and SHA3-512 can be checked when the corresponding release manifests are published.
