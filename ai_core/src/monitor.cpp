@@ -51,7 +51,7 @@ Monitor::Monitor()
           nanValue(), nanValue(), nanValue(), nanValue(),
           nanValue(), nanValue(), nanValue(), nanValue(),
           nanValue(), nanValue(), nanValue(), nanValue(),
-          nanValue(), 0} {}
+          nanValue(), nanValue(), 0} {}
 
 void Monitor::updateHardwareStatus() {
 #if defined(__linux__)
