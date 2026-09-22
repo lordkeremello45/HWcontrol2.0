@@ -1,0 +1,7 @@
+# Default review owner for project changes.
+* @lordkeremello45
+
+# Release, signing and CI configuration require maintainer review.
+.github/ @lordkeremello45
+docs/CODE_SIGNING_POLICY.md @lordkeremello45
+.github/workflows/ @lordkeremello45
