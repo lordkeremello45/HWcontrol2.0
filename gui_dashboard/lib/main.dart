@@ -4,11 +4,13 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:archive/archive.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 void main() => runApp(const HWControlApp());
@@ -114,7 +116,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final List<String> _events = <String>[];
   Map<String, Map<String, double>> _profiles = {};
 
-  String get _sharedKey => Platform.environment['HWCONTROL_KEY'] ?? _compileTimeKey;
+  String _fileSharedKey = '';
+
+  String get _sharedKey {
+    final environmentKey = Platform.environment['HWCONTROL_KEY'];
+    if (environmentKey != null && environmentKey.isNotEmpty) return environmentKey;
+    if (_fileSharedKey.isNotEmpty) return _fileSharedKey;
+    return _compileTimeKey;
+  }
+
+  Future<void> _loadBridgeKey() async {
+    final candidates = <String>[];
+    if (Platform.isWindows) {
+      final programData = Platform.environment['ProgramData'] ?? r'C:\ProgramData';
+      candidates.add('$programData${Platform.pathSeparator}HWControl${Platform.pathSeparator}bridge.key');
+    } else if (Platform.isMacOS) {
+      candidates.add('/Library/Application Support/HWControl/bridge.key');
+    } else if (Platform.isLinux) {
+      candidates.add('/var/lib/hwcontrol/bridge.key');
+    }
+    for (final path in candidates) {
+      try {
+        final key = (await File(path).readAsString()).trim();
+        if (key.isNotEmpty) {
+          _fileSharedKey = key;
+          return;
+        }
+      } catch (_) {}
+    }
+  }
 
   int get _bridgePort => int.tryParse(Platform.environment['HWCONTROL_PORT'] ?? '8080') ?? 8080;
 
@@ -131,6 +161,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _polling = true;
     try {
       await _loadProfiles();
+      await _loadBridgeKey();
       if (!mounted) return;
       await _connectToBridge();
       if (!mounted) return;
@@ -190,6 +221,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _events.insert(0, '${DateTime.now().toLocal().toString().substring(11, 19)}  $message');
       if (_events.length > 20) _events.removeLast();
     });
+  }
+
+  Future<void> _exportDiagnosticReport() async {
+    if (!_isConnected) {
+      if (mounted) setState(() => _status = 'Tanılama raporu için bridge bağlantısı gerekli');
+      return;
+    }
+    try {
+      final diagnostics = await _requestBridgeData('Get Diagnostics');
+      final status = await _requestBridgeData('Get Status');
+      if (diagnostics == null || status == null) throw StateError('Bridge tanılama verisi alınamadı');
+      final report = <String, dynamic>{
+        'generatedAt': DateTime.now().toUtc().toIso8601String(),
+        'applicationVersion': _appVersion,
+        'platform': Platform.operatingSystem,
+        'architecture': Platform.operatingSystemVersion,
+        'diagnostics': diagnostics,
+        'status': status,
+        'events': List<String>.from(_events),
+      };
+      final readme = '''HWControl Diagnostic Report
+
+This report was generated locally by HWControl. No data was uploaded automatically.
+Authentication keys, tokens, passwords and signing credentials are intentionally excluded.
+Attach this archive to a support issue only after reviewing it for personal information.
+''';
+      final archive = Archive();
+      final jsonBytes = utf8.encode(const JsonEncoder.withIndent('  ').convert(report));
+      archive.addFile(ArchiveFile.bytes('diagnostics.json', jsonBytes));
+      archive.addFile(ArchiveFile.bytes('README.txt', utf8.encode(readme)));
+      final zipBytes = ZipEncoder().encode(archive);
+      final downloads = await getDownloadsDirectory();
+      final directory = downloads ?? await getApplicationSupportDirectory();
+      await directory.create(recursive: true);
+      final stamp = DateTime.now().toUtc().toIso8601String().replaceAll(RegExp(r'[:.]'), '-');
+      final file = File('${directory.path}${Platform.pathSeparator}HWControl-Diagnostic-Report-$stamp.zip');
+      await file.writeAsBytes(zipBytes, flush: true);
+      if (!mounted) return;
+      setState(() => _status = 'Tanılama raporu oluşturuldu: ${file.path}');
+      _addEvent('Tanılama raporu dışa aktarıldı');
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _status = 'Tanılama raporu oluşturulamadı');
+      _addEvent('Tanılama raporu hatası: $error');
+    }
   }
 
   Future<Map<String, dynamic>?> _requestBridgeData(String action) async {
@@ -971,7 +1047,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           const SizedBox(height: 14),
-          OutlinedButton.icon(onPressed: _isConnected ? null : _connectToBridge, icon: const Icon(Icons.refresh, size: 17), label: const Text('Yeniden bağlan')),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              OutlinedButton.icon(onPressed: _isConnected ? null : _connectToBridge, icon: const Icon(Icons.refresh, size: 17), label: const Text('Yeniden bağlan')),
+              OutlinedButton.icon(onPressed: _isConnected ? _exportDiagnosticReport : null, icon: const Icon(Icons.archive_outlined, size: 17), label: const Text('Hata raporu oluştur')),
+            ],
+          ),
           const SizedBox(height: 18),
           _buildEvents(),
         ],
