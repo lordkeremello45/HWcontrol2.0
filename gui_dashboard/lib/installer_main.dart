@@ -179,8 +179,8 @@ class _InstallerWizardState extends State<InstallerWizard> {
   String _titleForStep() {
     switch (_step) {
       case 0: return '1. Paket türünü doğrula';
-      case 1: return '2. Bridge ve modeli hazırla';
-      default: return '3. Modeli doğrula ve kurulumu tamamla';
+      case 1: return '2. Bridge durumunu doğrula';
+      default: return '3. Kurulumu tamamla';
     }
   }
 
