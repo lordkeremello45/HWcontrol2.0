@@ -738,7 +738,6 @@ Attach this archive to a support issue only after reviewing it for personal info
     });
     if (thresholdExceeded) _addEvent('CPU sıcaklığı eşik üstünde');
     if (_samplesSinceHistoryPersist >= 12) unawaited(_persistTelemetryHistory());
-    unawaited(_requestAiAnalysis(data));
   }
 
   Future<void> _refreshSecurity() async {
@@ -1369,14 +1368,23 @@ Attach this archive to a support issue only after reviewing it for personal info
               const SizedBox(width: 10),
               Expanded(child: _sectionTitle('Local AI Analysis', 'Gerçek telemetry üzerinde yerel Gemma yorumu')),
               OutlinedButton.icon(
-                onPressed: _aiSending ? null : () async {
-                  final data = await _requestBridgeData('Get Status');
-                  if (data != null) unawaited(_requestAiAnalysis(data, force: true));
-                },
-                icon: const Icon(Icons.refresh, size: 16),
-                label: const Text('Yenile'),
+                onPressed: _aiSending || _aiStarting || _aiModelDownloading
+                    ? null
+                    : () async {
+                        final data = await _requestBridgeData('Get Status');
+                        if (data != null) {
+                          unawaited(_requestAiAnalysis(data, force: true));
+                        }
+                      },
+                icon: const Icon(Icons.auto_awesome, size: 16),
+                label: const Text('AI analizini çalıştır'),
               ),
             ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'AI modeli isteğe bağlıdır; bu panelden açıkça çalıştırılmadıkça indirilmez veya yüklenmez.',
+            style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurface.withAlpha(130)),
           ),
           const SizedBox(height: 14),
           if (_aiModelDownloading) ...[
