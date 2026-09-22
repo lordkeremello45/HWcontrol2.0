@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"syscall"
 )
 
 const defaultBridgeSocket = "/var/lib/hwcontrol/bridge.sock"
@@ -51,6 +52,18 @@ func listenBridge() (net.Listener, string, error) {
 		_ = listener.Close()
 		_ = os.Remove(path)
 		return nil, path, fmt.Errorf("protect bridge socket: %w", err)
+	}
+	// Installed Unix services create the socket as root. Inherit the parent
+	// directory group so the installing user's existing group membership can
+	// access the socket without making it world-readable.
+	if info, err := os.Stat(filepath.Dir(path)); err == nil {
+		if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+			if err := os.Chown(path, -1, int(stat.Gid)); err != nil {
+				_ = listener.Close()
+				_ = os.Remove(path)
+				return nil, path, fmt.Errorf("set bridge socket group: %w", err)
+			}
+		}
 	}
 	return listener, path, nil
 }
