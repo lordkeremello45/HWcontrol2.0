@@ -503,7 +503,7 @@ Attach this archive to a support issue only after reviewing it for personal info
     final gpuSuspected = gpuTemperature >= 80 && gpuUsage >= 80 && gpuClockDrop >= 0.15;
     if (cpuSuspected || gpuSuspected) return cpuSuspected && gpuSuspected ? 'CPU + GPU termal throttling şüphesi' : cpuSuspected ? 'CPU termal throttling şüphesi' : 'GPU termal throttling şüphesi';
     if (cpuTemperature >= 90 || gpuTemperature >= 88) return 'Yüksek sıcaklık';
-    if (current.cpuTemperature > 0 && cpuTemperature - current.cpuTemperature >= 5) return 'Hızlı CPU sıcaklık artışı';
+    if (current.cpuTemperature > 0 && cpuTemperature - previous.cpuTemperature >= 5) return 'Hızlı CPU sıcaklık artışı';
     return 'Normal';
   }
 
