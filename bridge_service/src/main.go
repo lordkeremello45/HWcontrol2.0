@@ -63,65 +63,65 @@ type Response struct {
 }
 
 type HardwareMetrics struct {
-	GameModeEnabled     bool    `json:"gameModeEnabled"`
-	GameDetected        bool    `json:"gameDetected"`
-	GameProcessName     string  `json:"gameProcessName"`
-	SystemManufacturer  string  `json:"systemManufacturer"`
-	SystemModel         string  `json:"systemModel"`
-	SystemVersion       string  `json:"systemVersion"`
-	BIOSVendor          string  `json:"biosVendor"`
-	BIOSVersion         string  `json:"biosVersion"`
-	MotherboardVendor   string  `json:"motherboardVendor"`
-	MotherboardModel    string  `json:"motherboardModel"`
-	MotherboardVersion  string  `json:"motherboardVersion"`
-	CPUManufacturer    string  `json:"cpuManufacturer"`
-	CPUModel            string  `json:"cpuModel"`
-	CPUArchitecture     string  `json:"cpuArchitecture"`
-	CPUPhysicalCores    int     `json:"cpuPhysicalCores"`
-	CPUThreads          int     `json:"cpuThreads"`
-	GPUModel            string  `json:"gpuModel"`
-	DetectionSource     string  `json:"detectionSource"`
-	DetectionStatus     string  `json:"detectionStatus"`
-	SerialsExcluded     bool    `json:"serialsExcluded"`
-	CPUUsage           float64 `json:"cpuUsage"`
+	GameModeEnabled     bool      `json:"gameModeEnabled"`
+	GameDetected        bool      `json:"gameDetected"`
+	GameProcessName     string    `json:"gameProcessName"`
+	SystemManufacturer  string    `json:"systemManufacturer"`
+	SystemModel         string    `json:"systemModel"`
+	SystemVersion       string    `json:"systemVersion"`
+	BIOSVendor          string    `json:"biosVendor"`
+	BIOSVersion         string    `json:"biosVersion"`
+	MotherboardVendor   string    `json:"motherboardVendor"`
+	MotherboardModel    string    `json:"motherboardModel"`
+	MotherboardVersion  string    `json:"motherboardVersion"`
+	CPUManufacturer     string    `json:"cpuManufacturer"`
+	CPUModel            string    `json:"cpuModel"`
+	CPUArchitecture     string    `json:"cpuArchitecture"`
+	CPUPhysicalCores    int       `json:"cpuPhysicalCores"`
+	CPUThreads          int       `json:"cpuThreads"`
+	GPUModel            string    `json:"gpuModel"`
+	DetectionSource     string    `json:"detectionSource"`
+	DetectionStatus     string    `json:"detectionStatus"`
+	SerialsExcluded     bool      `json:"serialsExcluded"`
+	CPUUsage            float64   `json:"cpuUsage"`
 	CPUPerCoreUsage     []float64 `json:"cpuPerCoreUsage"`
-	CPUCoreCount       int     `json:"cpuCoreCount"`
-	CPUFrequencyMHz    float64 `json:"cpuFrequencyMHz"`
-	CPUTemperature     float64 `json:"cpuTemperature"`
-	GPUTemperature     float64 `json:"gpuTemperature"`
-	GPUUsage           float64 `json:"gpuUsage"`
-	GPUMemoryUsage      float64 `json:"gpuMemoryUsage"`
-	GPUPowerLimitWatts  float64 `json:"gpuPowerLimitWatts"`
-	GPUPState            string  `json:"gpuPState"`
-	GPUEncoderUsage      float64 `json:"gpuEncoderUsage"`
-	GPUDecoderUsage      float64 `json:"gpuDecoderUsage"`
-	FanPercent         float64 `json:"fanPercent"`
-	FanRPM             float64 `json:"fanRpm"`
-	MemoryUsage        float64 `json:"memoryUsage"`
-	MemoryTotalBytes   uint64  `json:"memoryTotalBytes"`
-	DiskUsage          float64 `json:"diskUsage"`
-	DiskTotalBytes     uint64  `json:"diskTotalBytes"`
-	PowerWatts         float64 `json:"powerWatts"`
-	Voltage             float64 `json:"voltage"`
-	UptimeSeconds      uint64  `json:"uptimeSeconds"`
-	Platform            string  `json:"platform"`
-	GPUVendor           string  `json:"gpuVendor"`
-	GPUName             string  `json:"gpuName"`
-	GPUDriver           string  `json:"gpuDriver"`
-	GPUDriverProvider   string  `json:"gpuDriverProvider"`
-	GPUDriverVersion    string  `json:"gpuDriverVersion"`
-	GPUDriverStatus     string  `json:"gpuDriverStatus"`
-	GPUDriverSource     string  `json:"gpuDriverSource"`
-	GPUDriverAction     string  `json:"gpuDriverAction"`
-	GPUDriverReason     string  `json:"gpuDriverReason"`
-	GPUMemoryUsedBytes  uint64  `json:"gpuMemoryUsedBytes"`
-	GPUMemoryTotalBytes uint64  `json:"gpuMemoryTotalBytes"`
-	GPUCoreClockMHz     float64 `json:"gpuCoreClockMHz"`
-	GPUMemoryClockMHz   float64 `json:"gpuMemoryClockMHz"`
-	SensorSource        string  `json:"sensorSource"`
-	FanControlSupported bool   `json:"fanControlSupported"`
-	FanControlBackend   string `json:"fanControlBackend"`
-	HardwareControlMode string `json:"hardwareControlMode"`
+	CPUCoreCount        int       `json:"cpuCoreCount"`
+	CPUFrequencyMHz     float64   `json:"cpuFrequencyMHz"`
+	CPUTemperature      float64   `json:"cpuTemperature"`
+	GPUTemperature      float64   `json:"gpuTemperature"`
+	GPUUsage            float64   `json:"gpuUsage"`
+	GPUMemoryUsage      float64   `json:"gpuMemoryUsage"`
+	GPUPowerLimitWatts  float64   `json:"gpuPowerLimitWatts"`
+	GPUPState           string    `json:"gpuPState"`
+	GPUEncoderUsage     float64   `json:"gpuEncoderUsage"`
+	GPUDecoderUsage     float64   `json:"gpuDecoderUsage"`
+	FanPercent          float64   `json:"fanPercent"`
+	FanRPM              float64   `json:"fanRpm"`
+	MemoryUsage         float64   `json:"memoryUsage"`
+	MemoryTotalBytes    uint64    `json:"memoryTotalBytes"`
+	DiskUsage           float64   `json:"diskUsage"`
+	DiskTotalBytes      uint64    `json:"diskTotalBytes"`
+	PowerWatts          float64   `json:"powerWatts"`
+	Voltage             float64   `json:"voltage"`
+	UptimeSeconds       uint64    `json:"uptimeSeconds"`
+	Platform            string    `json:"platform"`
+	GPUVendor           string    `json:"gpuVendor"`
+	GPUName             string    `json:"gpuName"`
+	GPUDriver           string    `json:"gpuDriver"`
+	GPUDriverProvider   string    `json:"gpuDriverProvider"`
+	GPUDriverVersion    string    `json:"gpuDriverVersion"`
+	GPUDriverStatus     string    `json:"gpuDriverStatus"`
+	GPUDriverSource     string    `json:"gpuDriverSource"`
+	GPUDriverAction     string    `json:"gpuDriverAction"`
+	GPUDriverReason     string    `json:"gpuDriverReason"`
+	GPUMemoryUsedBytes  uint64    `json:"gpuMemoryUsedBytes"`
+	GPUMemoryTotalBytes uint64    `json:"gpuMemoryTotalBytes"`
+	GPUCoreClockMHz     float64   `json:"gpuCoreClockMHz"`
+	GPUMemoryClockMHz   float64   `json:"gpuMemoryClockMHz"`
+	SensorSource        string    `json:"sensorSource"`
+	FanControlSupported bool      `json:"fanControlSupported"`
+	FanControlBackend   string    `json:"fanControlBackend"`
+	HardwareControlMode string    `json:"hardwareControlMode"`
 }
 
 const (
@@ -129,14 +129,16 @@ const (
 	nvidiaSMITimeout  = 3 * time.Second
 	defaultBridgePort = "8080"
 	connectionTimeout = 30 * time.Second
-	maxRequestBytes  = 64 * 1024
+	maxRequestBytes   = 64 * 1024
 )
 
 func collectMetrics() HardwareMetrics {
 	metrics := HardwareMetrics{}
 	if percentages, err := cpu.Percent(time.Second, true); err == nil && len(percentages) > 0 {
 		var total float64
-		for _, percentage := range percentages { total += percentage }
+		for _, percentage := range percentages {
+			total += percentage
+		}
 		metrics.CPUUsage = total / float64(len(percentages))
 		metrics.CPUPerCoreUsage = append([]float64(nil), percentages...)
 	}
@@ -374,47 +376,47 @@ func diagnosticsSnapshot() map[string]any {
 		}
 	}
 	return map[string]any{
-		"bridgeVersion":   bridgeVersion,
-		"platform":        runtime.GOOS,
-		"architecture":    runtime.GOARCH,
-		"goVersion":       runtime.Version(),
-		"keyFile":         defaultKeyFile(),
-		"keyConfigured":   strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "" && strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "replace-me",
-		"modelPath":       modelPath,
-		"modelState":      modelState,
-		"modelSha256":     modelDigest(),
-		"sensorSource":    metrics.SensorSource,
-		"gpuVendor":       metrics.GPUVendor,
-		"gpuDriver":       metrics.GPUDriver,
-		"gpuDriverStatus": metrics.GPUDriverStatus,
+		"bridgeVersion":       bridgeVersion,
+		"platform":            runtime.GOOS,
+		"architecture":        runtime.GOARCH,
+		"goVersion":           runtime.Version(),
+		"keyFile":             defaultKeyFile(),
+		"keyConfigured":       strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "" && strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "replace-me",
+		"modelPath":           modelPath,
+		"modelState":          modelState,
+		"modelSha256":         modelDigest(),
+		"sensorSource":        metrics.SensorSource,
+		"gpuVendor":           metrics.GPUVendor,
+		"gpuDriver":           metrics.GPUDriver,
+		"gpuDriverStatus":     metrics.GPUDriverStatus,
 		"hardwareControl":     metrics.FanControlSupported,
 		"fanControlBackend":   metrics.FanControlBackend,
 		"hardwareControlMode": metrics.HardwareControlMode,
-		"localOnly":       true,
-		"listenAddress":   bridgeEndpoint(),
-		"uptimeSeconds":   metrics.UptimeSeconds,
-		"gameMode": collectGameModeState(),
+		"localOnly":           true,
+		"listenAddress":       bridgeEndpoint(),
+		"uptimeSeconds":       metrics.UptimeSeconds,
+		"gameMode":            collectGameModeState(),
 		"hardwareIdentity": map[string]any{
 			"systemManufacturer": metrics.SystemManufacturer,
-			"systemModel": metrics.SystemModel,
-			"systemVersion": metrics.SystemVersion,
-			"biosVendor": metrics.BIOSVendor,
-			"biosVersion": metrics.BIOSVersion,
-			"motherboardVendor": metrics.MotherboardVendor,
-			"motherboardModel": metrics.MotherboardModel,
+			"systemModel":        metrics.SystemModel,
+			"systemVersion":      metrics.SystemVersion,
+			"biosVendor":         metrics.BIOSVendor,
+			"biosVersion":        metrics.BIOSVersion,
+			"motherboardVendor":  metrics.MotherboardVendor,
+			"motherboardModel":   metrics.MotherboardModel,
 			"motherboardVersion": metrics.MotherboardVersion,
-			"cpuManufacturer": metrics.CPUManufacturer,
-			"cpuModel": metrics.CPUModel,
-			"cpuArchitecture": metrics.CPUArchitecture,
-			"cpuPhysicalCores": metrics.CPUPhysicalCores,
-			"cpuThreads": metrics.CPUThreads,
-			"gpuVendor": metrics.GPUVendor,
-			"gpuModel": metrics.GPUModel,
-			"gpuDriver": metrics.GPUDriver,
-			"gpuDriverVersion": metrics.GPUDriverVersion,
-			"detectionSource": metrics.DetectionSource,
-			"detectionStatus": metrics.DetectionStatus,
-			"serialsExcluded": metrics.SerialsExcluded,
+			"cpuManufacturer":    metrics.CPUManufacturer,
+			"cpuModel":           metrics.CPUModel,
+			"cpuArchitecture":    metrics.CPUArchitecture,
+			"cpuPhysicalCores":   metrics.CPUPhysicalCores,
+			"cpuThreads":         metrics.CPUThreads,
+			"gpuVendor":          metrics.GPUVendor,
+			"gpuModel":           metrics.GPUModel,
+			"gpuDriver":          metrics.GPUDriver,
+			"gpuDriverVersion":   metrics.GPUDriverVersion,
+			"detectionSource":    metrics.DetectionSource,
+			"detectionStatus":    metrics.DetectionStatus,
+			"serialsExcluded":    metrics.SerialsExcluded,
 		},
 	}
 }
@@ -483,12 +485,16 @@ func handleConnection(conn net.Conn, secret string) {
 		}
 		if cmd.Action == "Get Health" {
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Health durumu alındı", Data: healthSnapshot()}); err != nil { return }
+			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Health durumu alındı", Data: healthSnapshot()}); err != nil {
+				return
+			}
 			continue
 		}
 		if cmd.Action == "Get Game Mode" {
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Game Mode durumu alındı", Data: collectGameModeState()}); err != nil { return }
+			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Game Mode durumu alındı", Data: collectGameModeState()}); err != nil {
+				return
+			}
 			continue
 		}
 		if cmd.Action == "Get Security" {

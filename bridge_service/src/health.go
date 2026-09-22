@@ -22,11 +22,11 @@ type HealthSnapshot struct {
 func healthSnapshot() HealthSnapshot {
 	metrics := collectMetrics()
 	checks := map[string]string{
-		"authentication":    "ok",
-		"localTransport":    "ok",
-		"hardwareControl":   "monitor-only",
-		"hardwareIdentity":  "unavailable",
-		"sensors":           "unavailable",
+		"authentication":   "ok",
+		"localTransport":   "ok",
+		"hardwareControl":  "monitor-only",
+		"hardwareIdentity": "unavailable",
+		"sensors":          "unavailable",
 	}
 	warnings := make([]string, 0, 3)
 

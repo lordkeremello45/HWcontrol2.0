@@ -14,7 +14,7 @@ func TestValidBridgeSecret(t *testing.T) {
 			t.Fatalf("expected valid secret to pass validation")
 		}
 	}
-	for _, secret := range []string{"", "replace-me", "short", valid+"0", "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"} {
+	for _, secret := range []string{"", "replace-me", "short", valid + "0", "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"} {
 		if validBridgeSecret(secret) {
 			t.Fatalf("expected invalid secret to fail validation: %q", secret)
 		}

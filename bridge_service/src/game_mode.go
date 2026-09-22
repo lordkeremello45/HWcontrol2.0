@@ -51,10 +51,14 @@ func gameModeEnabled() bool {
 
 func detectGameProcess() (string, uint32, bool) {
 	procs, err := process.Processes()
-	if err != nil { return "", 0, false }
+	if err != nil {
+		return "", 0, false
+	}
 	for _, p := range procs {
 		name, err := p.Name()
-		if err != nil { continue }
+		if err != nil {
+			continue
+		}
 		n := strings.ToLower(strings.TrimSpace(name))
 		if _, ok := knownGameProcesses[n]; ok {
 			if p.Pid <= 0 {
@@ -79,6 +83,8 @@ func collectGameModeState() GameModeState {
 		Enabled: enabled, AutoDetection: true, GameDetected: detected,
 		ProcessName: name, PID: uint32(pid), OptimizationMode: optimization,
 	}
-	if detected { state.DetectedAt = time.Now().UTC().Format(time.RFC3339) }
+	if detected {
+		state.DetectedAt = time.Now().UTC().Format(time.RFC3339)
+	}
 	return state
 }

@@ -10,9 +10,9 @@ import (
 
 type windowsDriverInfo struct {
 	Provider string `json:"provider"`
-	Version string `json:"version"`
-	Name string `json:"name"`
-	Signed bool `json:"signed"`
+	Version  string `json:"version"`
+	Name     string `json:"name"`
+	Signed   bool   `json:"signed"`
 }
 
 const windowsDriverScript = `$ErrorActionPreference = 'SilentlyContinue'
@@ -22,17 +22,31 @@ if ($driver) { [pscustomobject]@{ provider=[string]$driver.DriverProviderName; v
 func mergeDriverInfo(metrics *HardwareMetrics) {
 	output, err := exec.Command("powershell.exe", "-NoProfile", "-NonInteractive", "-Command", windowsDriverScript).Output()
 	if err != nil || strings.TrimSpace(string(output)) == "" {
-		if metrics.GPUDriverStatus == "" { metrics.GPUDriverStatus = "unavailable" }
+		if metrics.GPUDriverStatus == "" {
+			metrics.GPUDriverStatus = "unavailable"
+		}
 		metrics.GPUDriverSource = "Windows PnP"
 		return
 	}
 	var info windowsDriverInfo
-	if json.Unmarshal(output, &info) != nil { return }
-	if info.Provider != "" { metrics.GPUDriverProvider = info.Provider }
-	if info.Version != "" { metrics.GPUDriverVersion = info.Version }
-	if metrics.GPUDriver == "" { metrics.GPUDriver = info.Provider }
-	if info.Name != "" && metrics.GPUName == "" { metrics.GPUName = info.Name }
+	if json.Unmarshal(output, &info) != nil {
+		return
+	}
+	if info.Provider != "" {
+		metrics.GPUDriverProvider = info.Provider
+	}
+	if info.Version != "" {
+		metrics.GPUDriverVersion = info.Version
+	}
+	if metrics.GPUDriver == "" {
+		metrics.GPUDriver = info.Provider
+	}
+	if info.Name != "" && metrics.GPUName == "" {
+		metrics.GPUName = info.Name
+	}
 	metrics.GPUDriverStatus = "ok"
 	metrics.GPUDriverSource = "Windows PnP"
-	if !info.Signed { metrics.GPUDriverStatus = "unsigned" }
+	if !info.Signed {
+		metrics.GPUDriverStatus = "unsigned"
+	}
 }

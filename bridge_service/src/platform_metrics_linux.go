@@ -11,21 +11,27 @@ import (
 
 func readFloatFile(path string) (float64, bool) {
 	data, err := os.ReadFile(path)
-	if err != nil { return 0, false }
+	if err != nil {
+		return 0, false
+	}
 	value, err := strconv.ParseFloat(strings.TrimSpace(string(data)), 64)
 	return value, err == nil
 }
 
 func readUintFile(path string) (uint64, bool) {
 	data, err := os.ReadFile(path)
-	if err != nil { return 0, false }
+	if err != nil {
+		return 0, false
+	}
 	value, err := strconv.ParseUint(strings.TrimSpace(string(data)), 10, 64)
 	return value, err == nil
 }
 
 func readFirstLine(path string) string {
 	data, err := os.ReadFile(path)
-	if err != nil { return "" }
+	if err != nil {
+		return ""
+	}
 	return strings.TrimSpace(strings.SplitN(string(data), "\n", 2)[0])
 }
 
@@ -35,7 +41,9 @@ func mergePlatformMetrics(metrics *HardwareMetrics) {
 	cards, _ := filepath.Glob("/sys/class/drm/card[0-9]*")
 	for _, card := range cards {
 		device := filepath.Join(card, "device")
-		if readFirstLine(filepath.Join(device, "vendor")) != "0x1002" { continue }
+		if readFirstLine(filepath.Join(device, "vendor")) != "0x1002" {
+			continue
+		}
 
 		if value, ok := readFloatFile(filepath.Join(device, "gpu_busy_percent")); ok {
 			metrics.GPUUsage = value

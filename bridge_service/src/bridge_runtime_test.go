@@ -20,14 +20,32 @@ func TestRunBridgeGracefulShutdown(t *testing.T) {
 	oldLog, hadLog := os.LookupEnv("HWCONTROL_LOG")
 	oldCompat, hadCompat := os.LookupEnv("HWCONTROL_TCP_COMPAT")
 	t.Cleanup(func() {
-		if hadPort { _ = os.Setenv("HWCONTROL_PORT", oldPort) } else { _ = os.Unsetenv("HWCONTROL_PORT") }
-		if hadKey { _ = os.Setenv("HWCONTROL_KEY_FILE", oldKey) } else { _ = os.Unsetenv("HWCONTROL_KEY_FILE") }
-		if hadLog { _ = os.Setenv("HWCONTROL_LOG", oldLog) } else { _ = os.Unsetenv("HWCONTROL_LOG") }
-		if hadCompat { _ = os.Setenv("HWCONTROL_TCP_COMPAT", oldCompat) } else { _ = os.Unsetenv("HWCONTROL_TCP_COMPAT") }
+		if hadPort {
+			_ = os.Setenv("HWCONTROL_PORT", oldPort)
+		} else {
+			_ = os.Unsetenv("HWCONTROL_PORT")
+		}
+		if hadKey {
+			_ = os.Setenv("HWCONTROL_KEY_FILE", oldKey)
+		} else {
+			_ = os.Unsetenv("HWCONTROL_KEY_FILE")
+		}
+		if hadLog {
+			_ = os.Setenv("HWCONTROL_LOG", oldLog)
+		} else {
+			_ = os.Unsetenv("HWCONTROL_LOG")
+		}
+		if hadCompat {
+			_ = os.Setenv("HWCONTROL_TCP_COMPAT", oldCompat)
+		} else {
+			_ = os.Unsetenv("HWCONTROL_TCP_COMPAT")
+		}
 	})
 
 	probe, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil { t.Fatalf("reserve test port: %v", err) }
+	if err != nil {
+		t.Fatalf("reserve test port: %v", err)
+	}
 	port := probe.Addr().(*net.TCPAddr).Port
 	_ = probe.Close()
 
@@ -56,7 +74,9 @@ func TestRunBridgeGracefulShutdown(t *testing.T) {
 
 	select {
 	case err := <-done:
-		if err != nil { t.Fatalf("bridge did not shut down cleanly: %v", err) }
+		if err != nil {
+			t.Fatalf("bridge did not shut down cleanly: %v", err)
+		}
 	case <-time.After(3 * time.Second):
 		t.Fatal("bridge graceful shutdown timed out")
 	}
