@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
@@ -85,8 +86,12 @@ class HWControlModelManager {
       }
 
       final sink = partial.openWrite();
-      final digestSink = AccumulatorSink<Digest>();
-      final hasher = sha256.startChunkedConversion(digestSink);
+      Digest? digest;
+      final hasher = sha256.startChunkedConversion(
+        ByteConversionSink.withCallback((bytes) {
+          digest = Digest(bytes);
+        }),
+      );
       var received = 0;
       try {
         await for (final chunk in response.stream.timeout(const Duration(seconds: 30))) {
@@ -109,10 +114,10 @@ class HWControlModelManager {
           'Model boyutu doğrulanamadı: $received / $modelSizeBytes byte.',
         );
       }
-      final digest = digestSink.events.single.toString();
-      if (digest != modelSha256) {
+      final actualDigest = digest?.toString();
+      if (actualDigest == null || actualDigest != modelSha256) {
         throw StateError(
-          'Model SHA-256 doğrulaması başarısız. Beklenen: $modelSha256, alınan: $digest',
+          'Model SHA-256 doğrulaması başarısız. Beklenen: $modelSha256, alınan: ${actualDigest ?? 'yok'}',
         );
       }
 
@@ -155,8 +160,12 @@ class HWControlModelManager {
   }
 
   static Future<String> _sha256(File file) async {
-    final output = AccumulatorSink<Digest>();
-    final input = sha256.startChunkedConversion(output);
+    Digest? digest;
+    final input = sha256.startChunkedConversion(
+      ByteConversionSink.withCallback((bytes) {
+        digest = Digest(bytes);
+      }),
+    );
     try {
       await for (final chunk in file.openRead()) {
         input.add(chunk);
@@ -164,7 +173,7 @@ class HWControlModelManager {
     } finally {
       input.close();
     }
-    return output.events.single.toString();
+    return digest?.toString() ?? '';
   }
 
   static Future<void> _removeLegacyModels(Directory directory) async {
