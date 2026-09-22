@@ -440,15 +440,13 @@ func handleConnection(conn net.Conn, secret string) {
 			log.Printf("connection panic recovered: %v", recovered)
 		}
 	}()
-	reader := bufio.NewReaderSize(conn, 4096)
+	scanner := bufio.NewScanner(conn)
+	scanner.Buffer(make([]byte, 4096), maxRequestBytes+1)
 	encoder := json.NewEncoder(conn)
 	authFailures := 0
-	for {
+	for scanner.Scan() {
 		_ = conn.SetReadDeadline(time.Now().Add(connectionTimeout))
-		line, err := reader.ReadBytes('\n')
-		if err != nil {
-			return
-		}
+		line := scanner.Bytes()
 		if len(line) > maxRequestBytes {
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
 			_ = encoder.Encode(Response{Status: "ERROR", Message: "request too large"})
@@ -521,6 +519,13 @@ func handleConnection(conn net.Conn, secret string) {
 				return
 			}
 		}
+	}
+	if err := scanner.Err(); err != nil {
+		if strings.Contains(err.Error(), "token too long") {
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			_ = encoder.Encode(Response{Status: "ERROR", Message: "request too large"})
+		}
+		return
 	}
 }
 
