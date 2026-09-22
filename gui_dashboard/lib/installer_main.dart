@@ -72,8 +72,25 @@ class _InstallerWizardState extends State<InstallerWizard> {
   }
 
   Future<Directory> _modelDirectory() async {
-    final support = await getApplicationSupportDirectory();
-    final directory = Directory('${support.path}${Platform.pathSeparator}models');
+    String basePath;
+    if (Platform.isWindows) {
+      basePath = Platform.environment['LOCALAPPDATA'] ?? (await getApplicationSupportDirectory()).path;
+    } else if (Platform.isMacOS) {
+      basePath = Platform.environment['HOME'] != null
+          ? '${Platform.environment['HOME']}'
+          : (await getApplicationSupportDirectory()).path;
+      basePath = '$basePath${Platform.pathSeparator}Library${Platform.pathSeparator}Application Support${Platform.pathSeparator}HWControl';
+    } else if (Platform.isLinux) {
+      final xdgCache = Platform.environment['XDG_CACHE_HOME'];
+      basePath = xdgCache != null && xdgCache.isNotEmpty
+          ? xdgCache
+          : '${Platform.environment['HOME'] ?? (await getApplicationSupportDirectory()).path}${Platform.pathSeparator}.cache';
+      basePath = '$basePath${Platform.pathSeparator}HWControl';
+    } else {
+      basePath = (await getApplicationSupportDirectory()).path;
+    }
+
+    final directory = Directory('$basePath${Platform.pathSeparator}models');
     await directory.create(recursive: true);
     return directory;
   }
