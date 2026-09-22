@@ -500,7 +500,6 @@ Attach this archive to a support issue only after reviewing it for personal info
         _status = 'Bridge aktif';
       });
       _addEvent('Bridge bağlantısı kuruldu');
-      await _refreshSecurity();
     } catch (_) {
       if (!mounted || generation != _connectionGeneration) return;
       setState(() {
