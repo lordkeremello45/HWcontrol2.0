@@ -1379,6 +1379,29 @@ Attach this archive to a support issue only after reviewing it for personal info
                 icon: const Icon(Icons.auto_awesome, size: 16),
                 label: const Text('AI analizini çalıştır'),
               ),
+              const SizedBox(width: 8),
+              IconButton(
+                tooltip: 'AI model cache temizle',
+                onPressed: _aiSending || _aiStarting || _aiModelDownloading || _aiProcess != null
+                    ? null
+                    : () async {
+                        try {
+                          await HWControlModelManager.removeCachedModel();
+                          if (!mounted) return;
+                          setState(() {
+                            _aiAnalysis = 'Model cache temizlendi; sonraki analizde yeniden indirilir.';
+                            _aiAnalysisTime = null;
+                            _aiStatus = 'AI modeli hazır değil';
+                            _aiModelError = null;
+                          });
+                        } catch (error) {
+                          if (mounted) {
+                            setState(() => _aiStatus = 'Model cache temizlenemedi: $error');
+                          }
+                        }
+                      },
+                icon: const Icon(Icons.delete_outline, size: 18),
+              ),
             ],
           ),
           const SizedBox(height: 10),
