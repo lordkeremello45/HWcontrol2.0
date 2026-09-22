@@ -123,7 +123,7 @@ func TestBridgeRequestSizeBound(t *testing.T) {
 		close(done)
 	}()
 
-	payload := append([]byte(strings.Repeat("A", maxRequestBytes)), '\n')
+	payload := append([]byte(strings.Repeat("A", maxRequestBytes+1)), '\n')
 	writeDone := make(chan error, 1)
 	go func() {
 		_, err := client.Write(payload)
