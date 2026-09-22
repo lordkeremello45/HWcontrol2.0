@@ -51,32 +51,32 @@ func parsePositiveInt(value string) int {
 }
 
 func extractIORegValue(text, key string) string {
-	needle := """ + key + "" = "
+	quote := string(rune(34))
+	needle := quote + key + quote + " = "
 	start := strings.Index(text, needle)
 	if start < 0 {
 		return ""
 	}
 	value := strings.TrimSpace(text[start+len(needle):])
 	if strings.HasPrefix(value, "<") {
-		q1 := strings.Index(value, """)
+		q1 := strings.Index(value, quote)
 		if q1 < 0 {
 			return ""
 		}
-		q2 := strings.Index(value[q1+1:], """)
+		q2 := strings.Index(value[q1+1:], quote)
 		if q2 < 0 {
 			return ""
 		}
 		return value[q1+1 : q1+1+q2]
 	}
-	if strings.HasPrefix(value, """) {
-		q2 := strings.Index(value[1:], """)
+	if strings.HasPrefix(value, quote) {
+		q2 := strings.Index(value[1:], quote)
 		if q2 < 0 {
 			return ""
 		}
 		return value[1 : 1+q2]
 	}
-	if end := strings.IndexAny(value, "
-"); end >= 0 {
+	if end := strings.IndexAny(value, "\r\n"); end >= 0 {
 		return strings.TrimSpace(value[:end])
 	}
 	return value
