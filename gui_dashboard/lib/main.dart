@@ -940,7 +940,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             _sectionTitle('Game Mode', 'Oyun çalışırken otomatik algılama ve oyun odaklı izleme'),
             const SizedBox(height: 8),
-            Text(_gameDetected ? 'Algılanan oyun: ' + (_gameProcessName.isEmpty ? 'bilinmeyen işlem' : _gameProcessName) : (_gameModeEnabled ? 'Game Mode hazır — oyun bekleniyor' : 'Game Mode kapalı'), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(170))),
+            Text(_gameDetected ? 'Algılanan oyun: ${_gameProcessName.isEmpty ? 'bilinmeyen işlem' : _gameProcessName}' : (_gameModeEnabled ? 'Game Mode hazır — oyun bekleniyor' : 'Game Mode kapalı'), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(170))),
             const SizedBox(height: 4),
             Text(active ? 'Aktif • oyun süreci izleniyor' : 'Donanım kontrolü mevcut değilse fan/clock değişikliği yapılmaz', style: TextStyle(fontSize: 11, color: active ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withAlpha(130))),
           ])),
