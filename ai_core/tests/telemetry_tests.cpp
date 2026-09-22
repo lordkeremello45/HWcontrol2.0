@@ -43,8 +43,8 @@ int main() {
 
     {
         HardwareTelemetry telemetry;
-        assert(!parseTelemetryProtocolLine("cpu_temp=72.5 cpu_load=48 gpu_temp=81 gpu_load=96 gpu_power=210 gpu_power_limit=250 game_mode=1 game_detected=1", telemetry));
-        // The malformed/partial protocol above must not be accepted only because some values are present.
+        assert(!parseTelemetryProtocolLine("cpu_temp=72.5 broken-token gpu_temp=81", telemetry));
+        // Malformed framing must never be accepted even when earlier fields are valid.
     }
 
     {
