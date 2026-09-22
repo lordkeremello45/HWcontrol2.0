@@ -14,6 +14,7 @@ type bridgeService struct {
 	stopOnce sync.Once
 	stopCh   chan struct{}
 	stopped  chan struct{}
+	mu       sync.RWMutex
 	listener net.Listener
 }
 
@@ -25,11 +26,19 @@ func (b *bridgeService) requestStop() {
 	b.stopOnce.Do(func() { close(b.stopCh) })
 }
 
-func (b *bridgeService) setListener(listener net.Listener) { b.listener = listener }
+func (b *bridgeService) setListener(listener net.Listener) {
+	b.mu.Lock()
+	b.listener = listener
+	b.mu.Unlock()
+}
 
 func (b *bridgeService) stopListener() {
-	if b.listener != nil {
-		_ = b.listener.Close()
+	b.mu.Lock()
+	listener := b.listener
+	b.listener = nil
+	b.mu.Unlock()
+	if listener != nil {
+		_ = listener.Close()
 	}
 }
 
