@@ -14,6 +14,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'model_manager.dart';
+import 'user_data.dart';
 
 void main() => runApp(const HWControlApp());
 
@@ -24,7 +25,38 @@ class HWControlApp extends StatefulWidget {
   State<HWControlApp> createState() => _HWControlAppState();
 }
 
-class _HWControlAppState extends State<HWControlApp> {
+class _HWControlAppState extends State<HWControlApp> { 
+  @override
+  void initState() {
+    super.initState();
+    _loadUserSettings();
+  }
+
+  Future<void> _loadUserSettings() async {
+    final root = await HWControlUserData.loadSettings();
+    final settings = root['settings'];
+    if (!mounted || settings is! Map) return;
+    setState(() {
+      if (settings['theme'] is String) {
+        _darkMode = settings['theme'] == 'dark';
+      }
+      if (settings['animationsEnabled'] is bool) {
+        _animationsEnabled = settings['animationsEnabled'] as bool;
+      }
+    });
+  }
+
+  Future<void> _persistUserSettings({
+    bool? darkMode,
+    bool? animationsEnabled,
+  }) async {
+    await HWControlUserData.updateSettings({
+      if (darkMode != null) 'theme': darkMode ? 'dark' : 'light',
+      if (animationsEnabled != null) 'animationsEnabled': animationsEnabled,
+    });
+  }
+
+
   bool _darkMode = true;
   bool _animationsEnabled = true;
 
@@ -36,8 +68,14 @@ class _HWControlAppState extends State<HWControlApp> {
       home: DashboardScreen(
         darkMode: _darkMode,
         animationsEnabled: _animationsEnabled,
-        onThemeChanged: (value) => setState(() => _darkMode = value),
-        onAnimationsChanged: (value) => setState(() => _animationsEnabled = value),
+        onThemeChanged: (value) {
+          setState(() => _darkMode = value);
+          unawaited(_persistUserSettings(darkMode: value));
+        },
+        onAnimationsChanged: (value) {
+          setState(() => _animationsEnabled = value);
+          unawaited(_persistUserSettings(animationsEnabled: value));
+        },
       ),
     );
   }
@@ -400,7 +438,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (_polling) return;
     _polling = true;
     try {
+      await HWControlUserData.ensureDefaults();
       await _loadProfiles();
+      final settings = await HWControlUserData.loadSettings();
+      final settingValues = settings['settings'];
+      if (settingValues is Map && mounted) {
+        setState(() {
+          if (settingValues['notificationsEnabled'] is bool) {
+            _notificationsEnabled = settingValues['notificationsEnabled'] as bool;
+          }
+          if (settingValues['temperatureLimit'] is num) {
+            _temperatureLimit = (settingValues['temperatureLimit'] as num).toDouble().clamp(60, 100).toDouble();
+          }
+        });
+      }
+      final gameMode = await HWControlUserData.loadGameMode();
+      if (mounted && gameMode['enabled'] is bool) {
+        _gameModeEnabled = gameMode['enabled'] as bool;
+      }
       await _loadTelemetryHistory();
       await _loadBridgeKey();
       if (!mounted) return;
@@ -423,31 +478,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  Future<File> get _profilesFile async {
-    final directory = await getApplicationSupportDirectory();
-    final state = Directory(
-      '${directory.path}${Platform.pathSeparator}HWControl',
-    );
-    await state.create(recursive: true);
-    return File(
-      '${state.path}${Platform.pathSeparator}profiles.json',
-    );
-  }
-
   Future<void> _loadProfiles() async {
     try {
-      final file = await _profilesFile;
-      if (!await file.exists()) return;
-      final decoded = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
-      if (!mounted) return;
-      final profiles = <String, Map<String, double>>{};
-      for (final entry in decoded.entries) {
-        final values = entry.value as Map;
-        profiles[entry.key] = {
-          'fan': (values['fan'] as num).toDouble(),
-          'ai': (values['ai'] as num).toDouble(),
-        };
+      final directory = await HWControlUserData.directory;
+      final file = File('${directory.path}${Platform.pathSeparator}profiles.json');
+
+      // Migrate the legacy unversioned profiles.json format once.
+      if (await file.exists()) {
+        final decoded = jsonDecode(await file.readAsString());
+        if (decoded is Map &&
+            decoded['schema'] == null &&
+            decoded.values.every((value) => value is Map)) {
+          final legacy = <String, Map<String, double>>{};
+          for (final entry in decoded.entries) {
+            final values = Map<String, dynamic>.from(entry.value as Map);
+            final fan = (values['fan'] as num?)?.toDouble();
+            final ai = (values['ai'] as num?)?.toDouble();
+            if (fan != null && ai != null) {
+              legacy[entry.key.toString()] = {'fan': fan, 'ai': ai};
+            }
+          }
+          if (legacy.isNotEmpty) {
+            await HWControlUserData.saveProfiles(legacy);
+          }
+        }
       }
+
+      final profiles = await HWControlUserData.loadProfiles();
+      if (!mounted) return;
       setState(() => _profiles = profiles);
     } catch (_) {
       _addEvent('Profil dosyası okunamadı');
@@ -549,8 +607,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _saveProfile(String name) async {
     _profiles[name] = {'fan': _fanValue, 'ai': _aiValue};
     try {
-      final file = await _profilesFile;
-      await file.writeAsString(jsonEncode(_profiles));
+      await HWControlUserData.saveProfiles(_profiles);
       _addEvent('$name profili kaydedildi');
     } catch (_) {
       _addEvent('Profil kaydedilemedi');
@@ -859,6 +916,12 @@ Attach this archive to a support issue only after reviewing it for personal info
                   _notificationsEnabled = notificationsEnabled;
                   _temperatureLimit = temperatureLimit;
                 });
+                unawaited(HWControlUserData.saveSettings(
+                  darkMode: widget.darkMode,
+                  animationsEnabled: widget.animationsEnabled,
+                  notificationsEnabled: notificationsEnabled,
+                  temperatureLimit: temperatureLimit,
+                ));
                 Navigator.pop(context);
               },
               child: const Text('Kaydet'),
@@ -1540,6 +1603,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             if (!mounted) return;
             if (success) {
               setState(() => _gameModeEnabled = enabled);
+              unawaited(HWControlUserData.saveGameMode(enabled));
               await _playGameModeSound(enabled);
               if (mounted) _addEvent(enabled ? 'Game Mode etkinleştirildi' : 'Game Mode devre dışı bırakıldı');
             }
