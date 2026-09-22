@@ -37,6 +37,9 @@ func listenBridge() (net.Listener, string, error) {
 		if info.Mode()&os.ModeSymlink != 0 {
 			return nil, path, fmt.Errorf("bridge socket must not be a symlink")
 		}
+		if info.Mode()&os.ModeSocket == 0 {
+			return nil, path, fmt.Errorf("refusing to replace non-socket endpoint %s", path)
+		}
 		if err := os.Remove(path); err != nil {
 			return nil, path, fmt.Errorf("remove stale bridge socket: %w", err)
 		}
@@ -48,22 +51,22 @@ func listenBridge() (net.Listener, string, error) {
 	if err != nil {
 		return nil, path, fmt.Errorf("listen on unix socket %s: %w", path, err)
 	}
-	if err := os.Chmod(path, 0660); err != nil {
+	// Installed Unix services normally run as root while the GUI runs as the
+	// installing desktop user. Bind the socket to the parent directory owner
+	// and keep it private to that user/root.
+	if info, err := os.Stat(filepath.Dir(path)); err == nil {
+		if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+			if err := os.Chown(path, int(stat.Uid), int(stat.Gid)); err != nil {
+				_ = listener.Close()
+				_ = os.Remove(path)
+				return nil, path, fmt.Errorf("set bridge socket ownership: %w", err)
+			}
+		}
+	}
+	if err := os.Chmod(path, 0600); err != nil {
 		_ = listener.Close()
 		_ = os.Remove(path)
 		return nil, path, fmt.Errorf("protect bridge socket: %w", err)
-	}
-	// Installed Unix services create the socket as root. Inherit the parent
-	// directory group so the installing user's existing group membership can
-	// access the socket without making it world-readable.
-	if info, err := os.Stat(filepath.Dir(path)); err == nil {
-		if stat, ok := info.Sys().(*syscall.Stat_t); ok {
-			if err := os.Chown(path, -1, int(stat.Gid)); err != nil {
-				_ = listener.Close()
-				_ = os.Remove(path)
-				return nil, path, fmt.Errorf("set bridge socket group: %w", err)
-			}
-		}
 	}
 	return listener, path, nil
 }
