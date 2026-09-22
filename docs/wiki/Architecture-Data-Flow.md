@@ -25,7 +25,7 @@ Flutter command payload
         ↓
 HMAC-SHA-256 authentication
         ↓
-127.0.0.1:8080 bridge
+OS-native local IPC endpoint (Unix domain socket on Linux/macOS; loopback TCP compatibility on Windows)
         ↓
 command validation
         ↓
