@@ -1,0 +1,131 @@
+name: Publish macOS release
+
+on:
+  push:
+    tags:
+      - 'v*-macos'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag, for example v0.2.5-macos'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+env:
+  FLUTTER_VERSION: 3.47.2
+
+jobs:
+  build-macos:
+    name: Build and package macOS arm64
+    runs-on: macos-14
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          persist-credentials: false
+
+      - name: Install tooling
+        run: brew install zstd
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: bridge_service/go.mod
+          cache: false
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+          architecture: ARM64
+
+      - name: Build and test native/bridge/dashboard
+        run: |
+          set -euo pipefail
+          cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
+          cmake --build build --parallel 2
+          ctest --test-dir build --output-on-failure
+          (cd bridge_service && go vet ./... && go test -count=1 ./... && go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../bridge-service ./src)
+          (cd gui_dashboard && flutter create --platforms=macos --no-pub . && git restore pubspec.yaml test/widget_test.dart && flutter pub get && flutter analyze && flutter test --no-pub && flutter build macos --release -t lib/installer_main.dart)
+
+      - name: Assemble macOS installer root
+        run: |
+          set -euo pipefail
+          tag='${GITHUB_REF_NAME}'
+          version="${tag#v}"; version="${version%-macos}"
+          rm -rf pkg-root dmg-root
+          mkdir -p pkg-root/Applications/HWControl dmg-root
+          cp -R gui_dashboard/build/macos/Build/Products/Release/HWControl.app pkg-root/Applications/HWControl/
+          install -m 0755 build/ai_core/ai_engine pkg-root/Applications/HWControl/ai_engine
+          install -m 0755 bridge-service pkg-root/Applications/HWControl/bridge-service
+          install -m 0644 deploy/macos/com.hwcontrol.bridge.plist pkg-root/Applications/HWControl/com.hwcontrol.bridge.plist
+          cp README.md SECURITY.md THIRD_PARTY_NOTICES pkg-root/Applications/HWControl/
+          cp -R deploy/macos pkg-root/Applications/HWControl/deploy
+          pkgbuild --root pkg-root --identifier com.hwcontrol.hwcontrol --version "$version" --scripts deploy/macos/pkg-scripts --install-location / "HWControl-${tag}-macOS-AppleSilicon.pkg"
+          cp -R pkg-root/Applications/HWControl/HWControl.app dmg-root/
+          cp "HWControl-${tag}-macOS-AppleSilicon.pkg" dmg-root/
+          hdiutil create -volname HWControl -srcfolder dmg-root -ov -format UDZO "HWControl-${tag}-macOS-AppleSilicon.dmg"
+
+      - name: Smoke-test PKG install and uninstall
+        run: |
+          set -euo pipefail
+          tag='${GITHUB_REF_NAME}'
+          sudo installer -pkg "HWControl-${tag}-macOS-AppleSilicon.pkg" -target /
+          test -d /Applications/HWControl/HWControl.app
+          test -x /Applications/HWControl/bridge-service
+          test -x /Applications/HWControl/ai_engine
+          test -s '/Library/Application Support/HWControl/bridge.key'
+          test -f /Library/LaunchDaemons/com.hwcontrol.bridge.plist
+          sudo launchctl print system/com.hwcontrol.bridge >/dev/null
+          sudo launchctl bootout system /Library/LaunchDaemons/com.hwcontrol.bridge.plist || true
+          sudo rm -f /Library/LaunchDaemons/com.hwcontrol.bridge.plist
+          sudo rm -rf /Applications/HWControl
+          sudo rm -rf '/Library/Application Support/HWControl'
+          test ! -e /Applications/HWControl
+
+      - name: Check optional Apple signing configuration
+        id: signing
+        env:
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+        run: |
+          set -euo pipefail
+          if [ -n "${APPLE_SIGNING_IDENTITY:-}" ]; then
+            echo 'configured=true' >> "$GITHUB_OUTPUT"
+            echo 'Apple Developer ID signing is configured.'
+          else
+            echo 'configured=false' >> "$GITHUB_OUTPUT"
+            echo 'Apple Developer ID signing is not configured; release remains unsigned.'
+          fi
+
+      - name: Verify package hashes
+        run: |
+          set -euo pipefail
+          sha256sum "HWControl-${GITHUB_REF_NAME}-macOS-AppleSilicon.pkg" "HWControl-${GITHUB_REF_NAME}-macOS-AppleSilicon.dmg" > "HWControl-${GITHUB_REF_NAME}-macOS-AppleSilicon.sha256"
+          shasum -a 256 -c "HWControl-${GITHUB_REF_NAME}-macOS-AppleSilicon.sha256"
+
+      - name: Attest release artifacts
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            HWControl-${{ github.ref_name }}-macOS-AppleSilicon.pkg
+            HWControl-${{ github.ref_name }}-macOS-AppleSilicon.dmg
+
+      - name: Publish macOS release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: HWControl ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            HWControl-${{ github.ref_name }}-macOS-AppleSilicon.pkg
+            HWControl-${{ github.ref_name }}-macOS-AppleSilicon.dmg
+            HWControl-${{ github.ref_name }}-macOS-AppleSilicon.sha256
