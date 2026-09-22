@@ -134,6 +134,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _thermalStatus = 'Veri bekleniyor';
   bool _thermalAlertActive = false;
   Map<String, Map<String, double>> _profiles = {};
+  bool _historyDirty = false;
+  int _samplesSinceHistoryPersist = 0;
+  static const _historySchema = 1;
+
+  Future<File> get _telemetryHistoryFile async {
+    final directory = await getApplicationSupportDirectory();
+    return File('${directory.path}${Platform.pathSeparator}telemetry-history.json.gz');
+  }
 
   String _fileSharedKey = '';
 
@@ -365,6 +373,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _polling = true;
     try {
       await _loadProfiles();
+      await _loadTelemetryHistory();
       await _loadBridgeKey();
       if (!mounted) return;
       await _connectToBridge();
@@ -405,6 +414,81 @@ class _DashboardScreenState extends State<DashboardScreen> {
       setState(() => _profiles = profiles);
     } catch (_) {
       _addEvent('Profil dosyası okunamadı');
+    }
+  }
+
+  Future<void> _loadTelemetryHistory() async {
+    try {
+      final file = await _telemetryHistoryFile;
+      if (!await file.exists()) return;
+      final compressed = await file.readAsBytes();
+      final decoded = ZLibCodec(gzip: true).decode(compressed);
+      final root = jsonDecode(utf8.decode(decoded)) as Map<String, dynamic>;
+      if (root['schema'] != _historySchema) return;
+      final samples = root['samples'];
+      if (samples is! List) return;
+      final restored = <_MetricSample>[];
+      for (final item in samples) {
+        if (item is! Map) continue;
+        final timestamp = DateTime.tryParse(item['timestamp'] as String? ?? '');
+        if (timestamp == null) continue;
+        double number(String key) => (item[key] as num?)?.toDouble() ?? double.nan;
+        restored.add(_MetricSample(
+          timestamp,
+          number('cpuTemperature'), number('cpuUsage'), number('cpuFrequencyMHz'),
+          number('gpuTemperature'), number('gpuUsage'), number('gpuCoreClockMHz'),
+          number('gpuPowerWatts'), number('gpuMemoryUsage'), number('fanPercent'),
+          number('fanRpm'), number('memoryUsage'), number('diskUsage'),
+        ));
+      }
+      if (restored.length > 720) restored.removeRange(0, restored.length - 720);
+      if (!mounted) return;
+      setState(() {
+        _history
+          ..clear()
+          ..addAll(restored);
+      });
+      _addEvent('Sıkıştırılmış telemetry geçmişi yüklendi');
+    } catch (_) {
+      // Corrupt or incompatible history must never block application startup.
+      _addEvent('Telemetry geçmişi okunamadı; yeni geçmiş başlatıldı');
+    }
+  }
+
+  Future<void> _persistTelemetryHistory() async {
+    if (!_historyDirty) return;
+    try {
+      final file = await _telemetryHistoryFile;
+      await file.parent.create(recursive: true);
+      final payload = <String, dynamic>{
+        'schema': _historySchema,
+        'updatedAt': DateTime.now().toUtc().toIso8601String(),
+        'encoding': 'gzip+json',
+        'samples': _history.map((sample) => <String, dynamic>{
+          'timestamp': sample.time.toUtc().toIso8601String(),
+          'cpuTemperature': sample.cpuTemperature,
+          'cpuUsage': sample.cpuUsage,
+          'cpuFrequencyMHz': sample.cpuFrequencyMHz,
+          'gpuTemperature': sample.gpuTemperature,
+          'gpuUsage': sample.gpuUsage,
+          'gpuCoreClockMHz': sample.gpuCoreClockMHz,
+          'gpuPowerWatts': sample.gpuPowerWatts,
+          'gpuMemoryUsage': sample.gpuMemoryUsage,
+          'fanPercent': sample.fanPercent,
+          'fanRpm': sample.fanRpm,
+          'memoryUsage': sample.memoryUsage,
+          'diskUsage': sample.diskUsage,
+        }).toList(growable: false),
+      };
+      final json = utf8.encode(jsonEncode(payload));
+      final compressed = ZLibCodec(gzip: true, level: 6).encode(json);
+      final temporary = File('undefined.tmp');
+      await temporary.writeAsBytes(compressed, flush: true);
+      await temporary.rename(file.path);
+      _historyDirty = false;
+      _samplesSinceHistoryPersist = 0;
+    } catch (_) {
+      // Persistence is best-effort; telemetry collection must continue.
     }
   }
 
@@ -576,6 +660,8 @@ Attach this archive to a support issue only after reviewing it for personal info
       _gameProcessName = data['gameProcessName'] as String? ?? '';
       _history.add(_MetricSample(DateTime.now(), temperature, _cpuUsage, _cpuFrequencyMHz, (data['gpuTemperature'] as num?)?.toDouble() ?? 0, _gpuUsage, _gpuCoreClockMHz, _gpuPowerWatts, _gpuMemoryUsage, _fanPercent, _fanRpm, _memoryUsage, _diskUsage));
       if (_history.length > 720) _history.removeAt(0);
+      _historyDirty = true;
+      _samplesSinceHistoryPersist++;
       _thermalStatus = _evaluateThermalStatus(
         cpuTemperature: temperature,
         cpuUsage: _cpuUsage,
@@ -597,6 +683,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       }
     });
     if (thresholdExceeded) _addEvent('CPU sıcaklığı eşik üstünde');
+    if (_samplesSinceHistoryPersist >= 12) unawaited(_persistTelemetryHistory());
     unawaited(_requestAiAnalysis(data));
   }
 
@@ -904,6 +991,9 @@ Attach this archive to a support issue only after reviewing it for personal info
 
   @override
   void dispose() {
+    // Do not block Flutter disposal; the latest snapshot is already persisted
+    // periodically during normal operation.
+    if (_historyDirty) unawaited(_persistTelemetryHistory());
     _connectionGeneration++;
     _responses?.cancel();
     _socket?.destroy();
