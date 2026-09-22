@@ -423,7 +423,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  Future<File> get _profilesFile async => File('hwcontrol_profiles.json');
+  Future<File> get _profilesFile async {
+    final directory = await getApplicationSupportDirectory();
+    final state = Directory(
+      '${directory.path}${Platform.pathSeparator}HWControl',
+    );
+    await state.create(recursive: true);
+    return File(
+      '${state.path}${Platform.pathSeparator}profiles.json',
+    );
+  }
 
   Future<void> _loadProfiles() async {
     try {
@@ -510,9 +519,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
       };
       final json = utf8.encode(jsonEncode(payload));
       final compressed = ZLibCodec(gzip: true, level: 6).encode(json);
-      final temporary = File('undefined.tmp');
+      final temporary = File('${file.path}.tmp');
+      final backup = File('${file.path}.old');
       await temporary.writeAsBytes(compressed, flush: true);
-      await temporary.rename(file.path);
+      if (await backup.exists()) {
+        await backup.delete();
+      }
+      if (await file.exists()) {
+        await file.rename(backup.path);
+      }
+      try {
+        await temporary.rename(file.path);
+      } catch (_) {
+        if (await backup.exists() && !await file.exists()) {
+          await backup.rename(file.path);
+        }
+        rethrow;
+      }
+      if (await backup.exists()) {
+        await backup.delete();
+      }
       _historyDirty = false;
       _samplesSinceHistoryPersist = 0;
     } catch (_) {
@@ -1003,10 +1029,13 @@ Attach this archive to a support issue only after reviewing it for personal info
       ai = savedProfile['ai'] ?? ai;
       setState(() { _fanValue = fan; _aiValue = ai; });
     }
-    await _sendCommand('Fan Hızı', fan);
-    if (!mounted || !_isConnected) return;
-    await _sendCommand('AI İşlem Gücü', ai);
-    if (mounted) setState(() => _lastAction = '$name profili  •  fan %${fan.round()}  •  AI %${ai.round()}');
+    if (_fanControlSupported) {
+      await _sendCommand('Fan Hızı', fan);
+    }
+    if (mounted) {
+      setState(() => _lastAction =
+          '$name profili  •  fan %${fan.round()}  •  AI analiz seviyesi %${ai.round()}');
+    }
   }
 
   void _resetControls() {
