@@ -232,7 +232,7 @@ func collectMetrics() HardwareMetrics {
 func nvidiaSMIOutput() ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), nvidiaSMITimeout)
 	defer cancel()
-	return exec.CommandContext(ctx, "nvidia-smi", "--query-gpu=name,driver_version,temperature.gpu,utilization.gpu,utilization.memory,fan.speed,power.draw,power.limit,voltage.gpu,memory.used,memory.total,clocks.gr,clocks.mem,pstate,utilization.encoder,utilization.decoder", "--format=csv,noheader,nounits").Output()
+	return exec.CommandContext(ctx, platformExecutable("nvidia-smi"), "--query-gpu=name,driver_version,temperature.gpu,utilization.gpu,utilization.memory,fan.speed,power.draw,power.limit,voltage.gpu,memory.used,memory.total,clocks.gr,clocks.mem,pstate,utilization.encoder,utilization.decoder", "--format=csv,noheader,nounits").Output()
 }
 
 func modelDigest() string {

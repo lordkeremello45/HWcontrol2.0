@@ -38,7 +38,7 @@ const windowsHardwareIdentityScript = "$ErrorActionPreference='SilentlyContinue'
 func collectHardwareIdentity() HardwareIdentity {
 	id := emptyHardwareIdentity()
 	id.DetectionSource = "Windows CIM/WMI"
-	output, err := exec.Command("powershell.exe", "-NoProfile", "-NonInteractive", "-Command", windowsHardwareIdentityScript).Output()
+	output, err := exec.Command(platformExecutable("powershell.exe"), "-NoProfile", "-NonInteractive", "-Command", windowsHardwareIdentityScript).Output()
 	if err != nil || strings.TrimSpace(string(output)) == "" {
 		id.DetectionStatus = "unavailable"
 		return id
