@@ -75,6 +75,7 @@ class _InstallerWizardState extends State<InstallerWizard> {
     String basePath;
     if (Platform.isWindows) {
       basePath = Platform.environment['LOCALAPPDATA'] ?? (await getApplicationSupportDirectory()).path;
+      basePath = '$basePath${Platform.pathSeparator}HWControl';
     } else if (Platform.isMacOS) {
       basePath = Platform.environment['HOME'] != null
           ? '${Platform.environment['HOME']}'
