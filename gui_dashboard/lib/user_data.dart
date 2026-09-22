@@ -92,6 +92,27 @@ class HWControlUserData {
         },
       });
 
+  static Future<void> updateSettings(Map<String, dynamic> patch) async {
+    final root = await loadSettings();
+    final current = <String, dynamic>{
+      if (root['settings'] is Map)
+        ...Map<String, dynamic>.from(root['settings'] as Map),
+    };
+    current.addAll(patch);
+    await _write('settings.json', {
+      'schema': settingsSchema,
+      'settings': current,
+    });
+  }
+
+  static Future<void> ensureDefaults() async {
+    await loadSettings();
+    await loadProfiles();
+    await loadFanCurves();
+    await loadGameMode();
+    await loadState();
+  }
+
   static Future<Map<String, Map<String, double>>> loadProfiles() async {
     final root = await _read(
       'profiles.json',
