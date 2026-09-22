@@ -77,7 +77,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _aiSending = false;
   DateTime? _lastAiAnalysisAt;
   String _aiStatus = 'Yerel AI başlatılmadı';
-  String _aiAnalysis = 'Gemma telemetry analizi bekleniyor';
+  String _aiAnalysis = 'Gemma 3 1B telemetry analizi bekleniyor';
   DateTime? _aiAnalysisTime;
   String _status = 'Bridge bekleniyor';
   String _lastAction = 'Henüz komut gönderilmedi';
