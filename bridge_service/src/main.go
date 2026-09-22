@@ -235,7 +235,7 @@ func nvidiaSMIOutput() ([]byte, error) {
 func modelDigest() string {
 	modelPath := os.Getenv("HWCONTROL_MODEL")
 	if modelPath == "" {
-		modelPath = filepath.Join("ai_core", "models", "gemma-2b-it-q4_k_m.gguf")
+		modelPath = filepath.Join("ai_core", "models", "gemma-3-1b-it-Q5_K_M.gguf")
 	}
 	file, err := os.Open(modelPath)
 	if err != nil {
@@ -366,7 +366,7 @@ func diagnosticsSnapshot() map[string]any {
 	metrics := collectMetrics()
 	modelPath := os.Getenv("HWCONTROL_MODEL")
 	if modelPath == "" {
-		modelPath = filepath.Join("ai_core", "models", "gemma-2b-it-q4_k_m.gguf")
+		modelPath = filepath.Join("ai_core", "models", "gemma-3-1b-it-Q5_K_M.gguf")
 	}
 	modelState := "missing"
 	if info, err := os.Stat(modelPath); err == nil {
