@@ -16,7 +16,7 @@ This monitoring data remains on the user's computer unless the user explicitly e
 
 ## 2. Local bridge communication
 
-The HWControl dashboard communicates with the local bridge service over loopback communication. The bridge is designed to bind to `127.0.0.1` by default and uses authenticated requests between application components.
+The HWControl dashboard communicates with the local bridge service over local IPC. Linux and macOS use permission-protected Unix domain sockets by default; Windows currently uses authenticated loopback TCP at `127.0.0.1`. The bridge is not exposed as a remote telemetry service.
 
 The local bridge is not intended to be a remote telemetry collection service.
 
