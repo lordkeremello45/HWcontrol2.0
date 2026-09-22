@@ -58,18 +58,18 @@ func runBridge(ctx context.Context, service *bridgeService) error {
 		return fmt.Errorf("initialize bridge secret: %w", err)
 	}
 
-	port := bridgePort()
-	listener, err := net.Listen("tcp", "127.0.0.1:"+port)
+	listener, endpoint, err := listenBridge()
 	if err != nil {
-		return fmt.Errorf("listen on 127.0.0.1:%s: %w", port, err)
+		return err
 	}
 	defer listener.Close()
+	defer cleanupBridgeEndpoint(endpoint)
 	if service != nil {
 		service.setListener(listener)
 		defer service.stopListener()
 	}
 
-	fmt.Println("Bridge Service 2.0 hazır, 127.0.0.1:" + port + " dinleniyor...")
+	fmt.Println("Bridge Service 2.0 hazır, " + endpoint + " dinleniyor...")
 
 	for {
 		if service != nil {
@@ -87,11 +87,9 @@ func runBridge(ctx context.Context, service *bridgeService) error {
 		default:
 		}
 
-		tcpListener, ok := listener.(*net.TCPListener)
-		if !ok {
-			return fmt.Errorf("unexpected listener type %T", listener)
+		if deadlineListener, ok := listener.(interface{ SetDeadline(time.Time) error }); ok {
+			_ = deadlineListener.SetDeadline(time.Now().Add(1 * time.Second))
 		}
-		_ = tcpListener.SetDeadline(time.Now().Add(1 * time.Second))
 		conn, err := listener.Accept()
 		if err != nil {
 			if ne, ok := err.(net.Error); ok && ne.Timeout() {
