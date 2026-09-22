@@ -299,7 +299,7 @@ class _InstallerWizardState extends State<InstallerWizard> {
                     ),
                   ]),
                   const SizedBox(height: 12),
-                  Text('AI modeli kurulum sırasında yalnızca doğrulanmış şekilde indirilir; uygulama cache dizininde saklanır ve eski Gemma 2B cache'i yeni model doğrulandıktan sonra temizlenir.', style: Theme.of(context).textTheme.bodySmall),
+                  Text('AI modeli kurulum sırasında yalnızca doğrulanmış şekilde indirilir; uygulama cache dizininde saklanır ve eski Gemma 2B cache\'i yeni model doğrulandıktan sonra temizlenir.', style: Theme.of(context).textTheme.bodySmall),
                 ],
               ),
             ),
