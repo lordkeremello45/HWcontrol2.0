@@ -4,7 +4,7 @@ HWcontrol2.0 includes a local large-language-model analysis engine built around 
 
 ## Model lifecycle
 
-The AI model is optional and is not required to complete the base installation. The installer does not download the model. On the first requested AI analysis, the dashboard downloads the model into the platform-specific HWControl user cache.
+The AI model is optional and is not required to complete the base installation. The installer does not download the model. Only an explicit user request from the Local AI Analysis panel starts model download and inference; telemetry polling never downloads or starts the model.
 
 The model manager uses HTTPS, verifies the exact expected byte count and SHA-256 digest while streaming, writes through a .part file, and only exposes a verified model as the final filename. Failed model downloads do not block the bridge or hardware monitoring. Obsolete Gemma 2B cache files are removed only after the new model is verified.
 
@@ -16,7 +16,7 @@ The LLM is not the hardware safety authority. A deterministic risk layer classif
 
 The AI receives CPU/GPU temperatures and loads, CPU frequency/core information, GPU memory/power/clocks, fan data when available, RAM/disk utilization, Game Mode state, and hardware identity fields supplied by the caller. Missing values remain missing.
 
-The native AI process is persistent during use so the model is loaded once rather than for every request. The GUI requests analysis periodically and manually, while download failures are throttled to avoid repeated network retries.
+The native AI process is persistent during active use so the model is loaded once rather than for every request. The GUI requests analysis manually; failed downloads are throttled to avoid repeated network retries. The user can clear the local model cache from the AI panel.
 
 ## Runtime protocol
 
