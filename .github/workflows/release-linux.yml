@@ -1,0 +1,170 @@
+name: Publish Linux release
+
+on:
+  push:
+    tags:
+      - 'v*-linux'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+env:
+  FLUTTER_VERSION: 3.47.2
+
+jobs:
+  build-linux:
+    name: Build and package Linux x64
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev zstd dpkg-dev
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: bridge_service/go.mod
+          cache: false
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Build and test native/bridge/dashboard
+        run: |
+          set -euo pipefail
+          cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
+          cmake --build build --parallel 2
+          ctest --test-dir build --output-on-failure
+          (cd bridge_service && go vet ./... && go test -count=1 ./... && go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../bridge-service ./src)
+          (cd gui_dashboard && flutter create --platforms=linux --no-pub . && git restore pubspec.yaml test/widget_test.dart && flutter pub get && flutter analyze && flutter test --no-pub && flutter build linux --release -t lib/installer_main.dart)
+
+      - name: Assemble Linux bundle
+        id: bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag='${GITHUB_REF_NAME}'
+          version="${tag#v}"; version="${version%-linux}"
+          root="HWControl-${tag}-Linux-x64"
+          rm -rf package linux-deb
+          mkdir -p "package/$root" linux-deb/DEBIAN linux-deb/opt/hwcontrol linux-deb/usr/bin linux-deb/lib/systemd/system
+          install -m 0755 build/ai_core/ai_engine "package/$root/ai_engine"
+          install -m 0755 bridge-service "package/$root/bridge-service"
+          cp -R gui_dashboard/build/linux/x64/release/bundle "package/$root/dashboard"
+          cp README.md SECURITY.md THIRD_PARTY_NOTICES "package/$root/"
+          cp -R deploy/linux "package/$root/deploy"
+          cp -R "package/$root/." linux-deb/opt/hwcontrol/
+          install -m 0644 deploy/linux/hwcontrol-bridge.service linux-deb/lib/systemd/system/hwcontrol-bridge.service
+          cat > linux-deb/usr/bin/hwcontrol <<'EOF'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          exec /opt/hwcontrol/dashboard/hwcontrol_dashboard "$@"
+          EOF
+          chmod 0755 linux-deb/usr/bin/hwcontrol
+          cat > linux-deb/DEBIAN/control <<EOF
+          Package: hwcontrol
+          Version: ${version}
+          Section: utils
+          Priority: optional
+          Architecture: amd64
+          Maintainer: HWControl contributors
+          Description: HWControl hardware monitoring and control suite
+           Cross-platform local hardware monitoring application.
+          EOF
+          cat > linux-deb/DEBIAN/postinst <<'EOF'
+          #!/bin/sh
+          set -eu
+          KEY_DIR='/var/lib/hwcontrol'
+          KEY_FILE="$KEY_DIR/bridge.key"
+          mkdir -p "$KEY_DIR"
+          chmod 0750 "$KEY_DIR"
+          if [ ! -s "$KEY_FILE" ]; then umask 077; od -An -N32 -tx1 /dev/urandom | tr -d ' \n' > "$KEY_FILE"; fi
+          chmod 0600 "$KEY_FILE"
+          if command -v logname >/dev/null 2>&1; then
+            user="$(logname 2>/dev/null || true)"
+            if [ -n "$user" ] && [ "$user" != root ] && id "$user" >/dev/null 2>&1; then
+              group="$(id -gn "$user")"
+              chown root:"$group" "$KEY_DIR" "$KEY_FILE"
+              chmod 0750 "$KEY_DIR"
+              chmod 0640 "$KEY_FILE"
+            fi
+          fi
+          systemctl daemon-reload
+          systemctl enable hwcontrol-bridge.service >/dev/null
+          systemctl restart hwcontrol-bridge.service
+          exit 0
+          EOF
+          chmod 0755 linux-deb/DEBIAN/postinst
+          cat > linux-deb/DEBIAN/prerm <<'EOF'
+          #!/bin/sh
+          set -eu
+          if [ "$1" = remove ] || [ "$1" = upgrade ]; then systemctl disable --now hwcontrol-bridge.service 2>/dev/null || true; fi
+          exit 0
+          EOF
+          chmod 0755 linux-deb/DEBIAN/prerm
+          cat > linux-deb/DEBIAN/postrm <<'EOF'
+          #!/bin/sh
+          set -eu
+          if [ "$1" = purge ]; then rm -rf /var/lib/hwcontrol; fi
+          systemctl daemon-reload 2>/dev/null || true
+          exit 0
+          EOF
+          chmod 0755 linux-deb/DEBIAN/postrm
+          dpkg-deb --build --root-owner-group linux-deb "HWControl-${tag}-Linux-x64.deb"
+          tar -czf "HWControl-${tag}-Linux-x64.tar.gz" -C package "$root"
+          tar -cf bundle.tar -C package "$root"
+          zstd -f bundle.tar -o "HWControl-${tag}-Linux-x64.tar.zst"
+
+      - name: Install and smoke-test DEB
+        run: |
+          set -euo pipefail
+          sudo dpkg -i "HWControl-${GITHUB_REF_NAME}-Linux-x64.deb"
+          test -x /usr/bin/hwcontrol
+          test -x /opt/hwcontrol/bridge-service
+          test -x /opt/hwcontrol/ai_engine
+          systemctl is-enabled hwcontrol-bridge.service
+          systemctl is-active hwcontrol-bridge.service
+          test -S /var/lib/hwcontrol/bridge.sock
+          sudo systemctl stop hwcontrol-bridge.service
+          sudo dpkg -r hwcontrol
+          test ! -e /opt/hwcontrol
+          test ! -e /usr/bin/hwcontrol
+          sudo rm -rf /var/lib/hwcontrol
+
+      - name: Generate checksums
+        run: |
+          set -euo pipefail
+          sha256sum HWControl-${GITHUB_REF_NAME}-Linux-x64.deb HWControl-${GITHUB_REF_NAME}-Linux-x64.tar.gz HWControl-${GITHUB_REF_NAME}-Linux-x64.tar.zst > HWControl-${GITHUB_REF_NAME}-Linux-x64.sha256
+          sha256sum -c HWControl-${GITHUB_REF_NAME}-Linux-x64.sha256
+
+      - name: Attest release artifacts
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            HWControl-${{ github.ref_name }}-Linux-x64.deb
+            HWControl-${{ github.ref_name }}-Linux-x64.tar.gz
+            HWControl-${{ github.ref_name }}-Linux-x64.tar.zst
+
+      - name: Publish Linux release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: HWControl ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            HWControl-${{ github.ref_name }}-Linux-x64.deb
+            HWControl-${{ github.ref_name }}-Linux-x64.tar.gz
+            HWControl-${{ github.ref_name }}-Linux-x64.tar.zst
+            HWControl-${{ github.ref_name }}-Linux-x64.sha256
