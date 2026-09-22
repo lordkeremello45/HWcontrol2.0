@@ -57,7 +57,10 @@ func detectGameProcess() (string, uint32, bool) {
 		if err != nil { continue }
 		n := strings.ToLower(strings.TrimSpace(name))
 		if _, ok := knownGameProcesses[n]; ok {
-			return name, p.Pid, true
+			if p.Pid <= 0 {
+				continue
+			}
+			return name, uint32(p.Pid), true
 		}
 	}
 	return "", 0, false

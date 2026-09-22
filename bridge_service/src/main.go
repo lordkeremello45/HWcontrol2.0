@@ -63,6 +63,26 @@ type Response struct {
 }
 
 type HardwareMetrics struct {
+	GameModeEnabled     bool    `json:"gameModeEnabled"`
+	GameDetected        bool    `json:"gameDetected"`
+	GameProcessName     string  `json:"gameProcessName"`
+	SystemManufacturer  string  `json:"systemManufacturer"`
+	SystemModel         string  `json:"systemModel"`
+	SystemVersion       string  `json:"systemVersion"`
+	BIOSVendor          string  `json:"biosVendor"`
+	BIOSVersion         string  `json:"biosVersion"`
+	MotherboardVendor   string  `json:"motherboardVendor"`
+	MotherboardModel    string  `json:"motherboardModel"`
+	MotherboardVersion  string  `json:"motherboardVersion"`
+	CPUManufacturer    string  `json:"cpuManufacturer"`
+	CPUModel            string  `json:"cpuModel"`
+	CPUArchitecture     string  `json:"cpuArchitecture"`
+	CPUPhysicalCores    int     `json:"cpuPhysicalCores"`
+	CPUThreads          int     `json:"cpuThreads"`
+	GPUModel            string  `json:"gpuModel"`
+	DetectionSource     string  `json:"detectionSource"`
+	DetectionStatus     string  `json:"detectionStatus"`
+	SerialsExcluded     bool    `json:"serialsExcluded"`
 	CPUUsage           float64 `json:"cpuUsage"`
 	CPUCoreCount       int     `json:"cpuCoreCount"`
 	CPUFrequencyMHz    float64 `json:"cpuFrequencyMHz"`
@@ -258,15 +278,50 @@ func defaultKeyFile() string {
 	}
 }
 
+func validBridgeSecret(secret string) bool {
+	if len(secret) != 64 {
+		return false
+	}
+	_, err := hex.DecodeString(secret)
+	return err == nil
+}
+
+func validateKeyFilePath(path string) error {
+	info, err := os.Lstat(path)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("inspect bridge key file: %w", err)
+	}
+	if info.Mode()&os.ModeSymlink != 0 {
+		return fmt.Errorf("bridge key file must not be a symlink")
+	}
+	if runtime.GOOS != "windows" && info.Mode().Perm()&0022 != 0 {
+		return fmt.Errorf("bridge key file is writable by group/others")
+	}
+	return nil
+}
+
 func loadOrCreateSecret() (string, error) {
 	if secret := strings.TrimSpace(os.Getenv("HWCONTROL_KEY")); secret != "" && secret != "replace-me" {
+		if !validBridgeSecret(secret) {
+			return "", fmt.Errorf("HWCONTROL_KEY must contain exactly 64 hexadecimal characters")
+		}
 		return secret, nil
 	}
 	path := defaultKeyFile()
+	if err := validateKeyFilePath(path); err != nil {
+		return "", err
+	}
 	if data, err := os.ReadFile(path); err == nil {
-		if secret := strings.TrimSpace(string(data)); secret != "" {
-			return secret, nil
+		secret := strings.TrimSpace(string(data))
+		if !validBridgeSecret(secret) {
+			return "", fmt.Errorf("bridge key file contains an invalid secret")
 		}
+		return secret, nil
+	} else if !os.IsNotExist(err) {
+		return "", fmt.Errorf("read bridge key file: %w", err)
 	}
 	key := make([]byte, 32)
 	if _, err := rand.Read(key); err != nil {

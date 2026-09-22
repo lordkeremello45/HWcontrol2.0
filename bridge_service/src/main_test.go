@@ -134,9 +134,6 @@ func TestBridgeRequestSizeBound(t *testing.T) {
 }
 
 func TestBridgeKeyLifecycleUsesAtomicFile(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("Windows persists the active key to the machine environment")
-	}
 
 	root := t.TempDir()
 	keyPath := filepath.Join(root, "bridge.key")
@@ -158,8 +155,10 @@ func TestBridgeKeyLifecycleUsesAtomicFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("stat key file: %v", err)
 	}
-	if mode := info.Mode().Perm(); mode != 0600 {
-		t.Fatalf("key file mode = %o, want 600", mode)
+	if runtime.GOOS != "windows" {
+		if mode := info.Mode().Perm(); mode != 0600 {
+			t.Fatalf("key file mode = %o, want 600", mode)
+		}
 	}
 
 	reloaded, err := loadOrCreateSecret()

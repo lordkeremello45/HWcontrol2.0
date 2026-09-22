@@ -371,7 +371,7 @@ Attach this archive to a support issue only after reviewing it for personal info
         newest = UpdateInfo(tag: tag, releaseUrl: url);
         break;
       }
-      if (!mounted) return true;
+      if (!mounted) return;
       setState(() {
         _updateInfo = newest != null && _isNewerVersion(newest.tag, _appVersion) ? newest : null;
         _updateStatus = newest == null ? 'Güncel release bulunamadı' : _updateInfo == null ? 'Uygulama güncel' : 'Yeni sürüm hazır';
@@ -538,7 +538,7 @@ Attach this archive to a support issue only after reviewing it for personal info
         _lastAction = '$action  •  %${value.round()}';
       });
     } catch (_) {
-      if (!mounted) return false;
+      if (!mounted) return;
       setState(() => _status = 'Bridge yanıt vermedi');
       return false;
     } finally {
