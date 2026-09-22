@@ -1,9 +1,14 @@
 #include "../include/engine.h"
+
 #include <cmath>
 #include <iostream>
 #include <vector>
 
-AIEngine::AIEngine() : model(nullptr), ctx(nullptr), sampler(nullptr), backend_initialized(false) {}
+AIEngine::AIEngine()
+    : model(nullptr),
+      ctx(nullptr),
+      sampler(nullptr),
+      backend_initialized(false) {}
 
 void AIEngine::release() {
     if (sampler) {
@@ -22,6 +27,7 @@ void AIEngine::release() {
         llama_backend_free();
         backend_initialized = false;
     }
+    previousTelemetry.reset();
 }
 
 bool AIEngine::init(const char* modelPath) {
@@ -29,7 +35,6 @@ bool AIEngine::init(const char* modelPath) {
         return false;
     }
 
-    // init() is safe to call repeatedly: never leak or overwrite a previous runtime.
     release();
     llama_backend_init();
     backend_initialized = true;
@@ -53,53 +58,92 @@ bool AIEngine::init(const char* modelPath) {
         release();
         return false;
     }
-    llama_sampler_chain_add(sampler, llama_sampler_init_temp(0.25f));
+    llama_sampler_chain_add(sampler, llama_sampler_init_temp(0.20f));
     llama_sampler_chain_add(sampler, llama_sampler_init_greedy());
 
     return true;
 }
 
 std::string AIEngine::processData(float temp, float load) {
-    if (!std::isfinite(temp) || !std::isfinite(load)) {
-        return "AI girdisi gecersiz";
+    HardwareTelemetry telemetry;
+    telemetry.cpuTemperatureC = temp;
+    telemetry.cpuLoadPercent = load;
+    return processTelemetry(telemetry);
+}
+
+std::string AIEngine::processTelemetry(const HardwareTelemetry& telemetry) {
+    if (!isFiniteMeasurement(telemetry.cpuTemperatureC) &&
+        !isFiniteMeasurement(telemetry.cpuLoadPercent) &&
+        !isFiniteMeasurement(telemetry.gpuTemperatureC) &&
+        !isFiniteMeasurement(telemetry.gpuLoadPercent)) {
+        return "AI girdisi yetersiz";
     }
     if (!model || !ctx || !sampler) {
         return "AI motoru hazir degil";
     }
 
+    const HardwareTelemetry* previous = previousTelemetry ? &*previousTelemetry : nullptr;
+    const RiskAssessment assessment = assessHardwareRisk(telemetry, previous);
+    const std::string prompt = buildAnalysisPrompt(telemetry, assessment);
+    previousTelemetry = telemetry;
+    return runInference(prompt);
+}
+
+std::string AIEngine::runInference(const std::string& prompt) {
     const llama_vocab* vocab = llama_model_get_vocab(model);
     if (!vocab) {
         return "AI vocab bulunamadi";
     }
 
-    const std::string prompt =
-        "Sistem monitoru olarak kisa ve Turkce yanit ver. "
-        "Sicaklik: " + std::to_string(temp) + " C, CPU yuku: " +
-        std::to_string(load) + "%. Risk varsa tek cumleyle belirt.";
     llama_memory_clear(llama_get_memory(ctx), true);
-    const bool is_first = llama_memory_seq_pos_max(llama_get_memory(ctx), 0) == -1;
-    const int token_count = -llama_tokenize(vocab, prompt.c_str(), prompt.size(), nullptr, 0, is_first, true);
-    if (token_count <= 0) return "Prompt tokenize edilemedi";
+    const int token_count = -llama_tokenize(
+        vocab, prompt.c_str(), prompt.size(), nullptr, 0, true, true);
+    if (token_count <= 0) {
+        return "Prompt tokenize edilemedi";
+    }
 
     std::vector<llama_token> prompt_tokens(static_cast<size_t>(token_count));
-    if (llama_tokenize(vocab, prompt.c_str(), prompt.size(), prompt_tokens.data(), prompt_tokens.size(), is_first, true) < 0) {
+    if (llama_tokenize(vocab, prompt.c_str(), prompt.size(),
+                       prompt_tokens.data(), prompt_tokens.size(), true, true) < 0) {
         return "Prompt tokenize edilemedi";
     }
 
     llama_batch batch = llama_batch_get_one(prompt_tokens.data(), prompt_tokens.size());
-    if (llama_decode(ctx, batch) != 0) return "AI decode basarisiz";
+    if (llama_decode(ctx, batch) != 0) {
+        return "AI decode basarisiz";
+    }
 
     std::string response;
     for (int token_index = 0; token_index < 96; ++token_index) {
-        llama_token token = llama_sampler_sample(sampler, ctx, -1);
-        if (llama_vocab_is_eog(vocab, token)) break;
+        const llama_token token = llama_sampler_sample(sampler, ctx, -1);
+        if (llama_vocab_is_eog(vocab, token)) {
+            break;
+        }
+
         char buffer[256];
-        const int piece_size = llama_token_to_piece(vocab, token, buffer, sizeof(buffer), 0, true);
-        if (piece_size <= 0) break;
+        const int piece_size = llama_token_to_piece(
+            vocab, token, buffer, sizeof(buffer), 0, true);
+        if (piece_size <= 0) {
+            break;
+        }
+
         response.append(buffer, static_cast<size_t>(piece_size));
         batch = llama_batch_get_one(&token, 1);
-        if (llama_decode(ctx, batch) != 0) break;
+        if (llama_decode(ctx, batch) != 0) {
+            break;
+        }
     }
+
+    for (char& character : response) {
+        if (character == '\n' || character == '\r') {
+            character = ' ';
+        }
+    }
+
+    if (response.size() > 1200) {
+        response.resize(1200);
+    }
+
     return response.empty() ? "AI yanit uretemedi" : response;
 }
 
