@@ -10,7 +10,7 @@ var (
 	redactionPatterns = []*regexp.Regexp{
 		regexp.MustCompile(`(?i)(HWCONTROL_KEY(?:_FILE)?\s*[=:]\s*)([^\s,;]+)`),
 		regexp.MustCompile(`(?i)((?:HMAC|API[_-]?KEY|ACCESS[_-]?TOKEN|REFRESH[_-]?TOKEN|AUTHORIZATION|BEARER|PASSWORD|SECRET)\s*[=:]\s*)([^\s,;]+)`),
-		regexp.MustCompile(?i)(Bearer\s+)([^\s]+),
+		regexp.MustCompile(`(?i)(Bearer\\s+)([^\\s]+)`),
 		regexp.MustCompile(`(?i)(-----BEGIN [A-Z0-9 ]+PRIVATE KEY-----)([\s\S]*?)(-----END [A-Z0-9 ]+PRIVATE KEY-----)`),
 	}
 	userPathPattern = regexp.MustCompile(`(?i)([A-Z]:[\\/]+Users[\\/]+)[^\\/\s]+|(/Users/)[^/\s]+|(/home/)[^/\s]+`)
