@@ -18,6 +18,7 @@ permissions:
 
 env:
   FLUTTER_VERSION: 3.47.2
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
 
 jobs:
   build-macos:
@@ -60,7 +61,7 @@ jobs:
       - name: Assemble macOS installer root
         run: |
           set -euo pipefail
-          tag='${GITHUB_REF_NAME}'
+          tag="$RELEASE_TAG"
           version="${tag#v}"; version="${version%-macos}"
           rm -rf pkg-root dmg-root
           mkdir -p pkg-root/Applications/HWControl dmg-root
@@ -78,7 +79,7 @@ jobs:
       - name: Smoke-test PKG install and uninstall
         run: |
           set -euo pipefail
-          tag='${GITHUB_REF_NAME}'
+          tag="$RELEASE_TAG"
           sudo installer -pkg "HWControl-${tag}-macOS-AppleSilicon.pkg" -target /
           test -d /Applications/HWControl/HWControl.app
           test -x /Applications/HWControl/bridge-service
@@ -109,23 +110,23 @@ jobs:
       - name: Verify package hashes
         run: |
           set -euo pipefail
-          sha256sum "HWControl-${GITHUB_REF_NAME}-macOS-AppleSilicon.pkg" "HWControl-${GITHUB_REF_NAME}-macOS-AppleSilicon.dmg" > "HWControl-${GITHUB_REF_NAME}-macOS-AppleSilicon.sha256"
-          shasum -a 256 -c "HWControl-${GITHUB_REF_NAME}-macOS-AppleSilicon.sha256"
+          shasum -a 256 "HWControl-${RELEASE_TAG}-macOS-AppleSilicon.pkg" "HWControl-${RELEASE_TAG}-macOS-AppleSilicon.dmg" > "HWControl-${GITHUB_REF_NAME}-macOS-AppleSilicon.sha256"
+          shasum -a 256 "HWControl-${GITHUB_REF_NAME}-macOS-AppleSilicon.sha256"
 
       - name: Attest release artifacts
         uses: actions/attest@v4
         with:
           subject-path: |
-            HWControl-${{ github.ref_name }}-macOS-AppleSilicon.pkg
-            HWControl-${{ github.ref_name }}-macOS-AppleSilicon.dmg
+            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.pkg
+            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.dmg
 
       - name: Publish macOS release
         uses: softprops/action-gh-release@v2
         with:
-          name: HWControl ${{ github.ref_name }}
-          tag_name: ${{ github.ref_name }}
+          name: HWControl ${{ env.RELEASE_TAG }}
+          tag_name: ${{ env.RELEASE_TAG }}
           generate_release_notes: true
           files: |
-            HWControl-${{ github.ref_name }}-macOS-AppleSilicon.pkg
-            HWControl-${{ github.ref_name }}-macOS-AppleSilicon.dmg
-            HWControl-${{ github.ref_name }}-macOS-AppleSilicon.sha256
+            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.pkg
+            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.dmg
+            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.sha256
