@@ -6,6 +6,7 @@ import (
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
+	"errors"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -123,6 +124,8 @@ type HardwareMetrics struct {
 	FanControlBackend   string    `json:"fanControlBackend"`
 	HardwareControlMode string    `json:"hardwareControlMode"`
 }
+
+var errRequestTooLarge = errors.New("request too large")
 
 const (
 	bridgeVersion     = "2.1.0"
@@ -433,6 +436,24 @@ func bridgePort() string {
 	return strconv.Itoa(parsed)
 }
 
+func readBoundedRequest(reader *bufio.Reader, limit int) ([]byte, error) {
+	var line []byte
+	for {
+		fragment, err := reader.ReadSlice('\n')
+		line = append(line, fragment...)
+		if len(line) > limit {
+			return nil, errRequestTooLarge
+		}
+		if err == nil {
+			return line, nil
+		}
+		if errors.Is(err, bufio.ErrBufferFull) {
+			continue
+		}
+		return nil, err
+	}
+}
+
 func handleConnection(conn net.Conn, secret string) {
 	defer conn.Close()
 	defer func() {
@@ -440,16 +461,17 @@ func handleConnection(conn net.Conn, secret string) {
 			log.Printf("connection panic recovered: %v", recovered)
 		}
 	}()
-	scanner := bufio.NewScanner(conn)
-	scanner.Buffer(make([]byte, 4096), maxRequestBytes+1)
+	reader := bufio.NewReaderSize(conn, 4096)
 	encoder := json.NewEncoder(conn)
 	authFailures := 0
-	for scanner.Scan() {
+	for {
 		_ = conn.SetReadDeadline(time.Now().Add(connectionTimeout))
-		line := scanner.Bytes()
-		if len(line) > maxRequestBytes {
-			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-			_ = encoder.Encode(Response{Status: "ERROR", Message: "request too large"})
+		line, err := readBoundedRequest(reader, maxRequestBytes)
+		if err != nil {
+			if errors.Is(err, errRequestTooLarge) {
+				_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+				_ = encoder.Encode(Response{Status: "ERROR", Message: "request too large"})
+			}
 			return
 		}
 		var cmd Command
@@ -520,15 +542,7 @@ func handleConnection(conn net.Conn, secret string) {
 			}
 		}
 	}
-	if err := scanner.Err(); err != nil {
-		if strings.Contains(err.Error(), "token too long") {
-			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-			_ = encoder.Encode(Response{Status: "ERROR", Message: "request too large"})
-		}
-		return
-	}
 }
-
 func main() {
 	handled, err := runWindowsService()
 	if err != nil {
