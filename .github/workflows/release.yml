@@ -170,7 +170,7 @@ jobs:
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: HWControl ${{ github.ref_name }}
+          name: ${{ startsWith(github.ref_name, 'v0.3.0-') && 'HWcontrol2.0 Beta — Windows' || format('HWControl {0}', github.ref_name) }}
           tag_name: ${{ github.ref_name }}
           generate_release_notes: true
           files: |
