@@ -174,52 +174,61 @@ class HWControlUserDataStore {
     });
   }
 
-  /// Simple UI preferences intentionally use INI because they are flat
-  /// key/value settings. Complex application state stays in JSON.
-  Future<Map<String, String>> readUiPreferences() async {
-    final file = await configFile('ui.ini');
-    var text = '';
-    if (await file.exists()) {
-      text = await file.readAsString();
-    } else {
-      final legacy = await _legacyFile('ui.ini');
-      if (await legacy.exists()) {
-        text = await legacy.readAsString();
-        try {
-          await file.writeAsString(text, flush: true);
-          await legacy.delete();
-        } catch (_) {}
-      }
+  /// UI preferences use the same versioned JSON persistence as the rest
+  /// of the user configuration. Values are intentionally dynamic so UI state
+  /// can grow without introducing another parser or file format.
+  Future<Map<String, dynamic>> readUiPreferences() async {
+    final current = await readJsonObject('ui.json');
+    if (current != null) {
+      final ui = current['ui'];
+      return ui is Map ? Map<String, dynamic>.from(ui) : <String, dynamic>{};
     }
 
-    final values = <String, String>{};
-    var section = '';
-    for (final rawLine in const LineSplitter().convert(text)) {
-      final line = rawLine.trim();
-      if (line.isEmpty || line.startsWith(';') || line.startsWith('#')) {
-        continue;
+    // Migrate the short-lived INI implementation if an installation still
+    // contains it. Migration is best-effort and preserves the original file
+    // until the JSON write succeeds.
+    final legacy = await _legacyFile('ui.ini');
+    if (await legacy.exists()) {
+      final values = <String, String>{};
+      try {
+        final text = await legacy.readAsString();
+        var section = '';
+        for (final rawLine in const LineSplitter().convert(text)) {
+          final line = rawLine.trim();
+          if (line.isEmpty || line.startsWith(';') || line.startsWith('#')) {
+            continue;
+          }
+          if (line.startsWith('[') && line.endsWith(']')) {
+            section = line.substring(1, line.length - 1).trim();
+            continue;
+          }
+          final separator = line.indexOf('=');
+          if (separator <= 0) continue;
+          final key = line.substring(0, separator).trim();
+          final value = line.substring(separator + 1).trim();
+          values[section.isEmpty ? key : section + '.' + key] = value;
+        }
+        final migrated = <String, dynamic>{};
+        for (final entry in values.entries) {
+          final key = entry.key.startsWith('ui.')
+              ? entry.key.substring(3)
+              : entry.key;
+          migrated[key] = entry.value;
+        }
+        await writeUiPreferences(migrated);
+        await legacy.delete();
+        return migrated;
+      } catch (_) {
+        // Keep the legacy file if migration cannot be completed safely.
       }
-      if (line.startsWith('[') && line.endsWith(']')) {
-        section = line.substring(1, line.length - 1).trim();
-        continue;
-      }
-      final separator = line.indexOf('=');
-      if (separator <= 0) continue;
-      final key = line.substring(0, separator).trim();
-      final value = line.substring(separator + 1).trim();
-      values[section.isEmpty ? key : '$section.$key'] = value;
     }
-    return values;
+    return <String, dynamic>{};
   }
 
-  Future<void> writeUiPreferences(Map<String, String> values) async {
-    final file = await configFile('ui.ini');
-    final lines = <String>['; HWControl UI preferences', '[ui]'];
-    final keys = values.keys.toList()..sort();
-    for (final key in keys) {
-      final normalized = key.startsWith('ui.') ? key.substring(3) : key;
-      lines.add('$normalized=${values[key] ?? ''}');
-    }
-    await file.writeAsString('${lines.join('\n')}\n', flush: true);
+  Future<void> writeUiPreferences(Map<String, dynamic> values) {
+    return writeJsonObject('ui.json', <String, dynamic>{
+      'schema': currentSchema,
+      'ui': values,
+    });
   }
 }
