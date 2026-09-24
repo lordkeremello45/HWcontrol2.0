@@ -79,7 +79,7 @@ jobs:
             ready=false
             case "$TAG" in
               *-windows)
-                if printf '%s\\n' "$assets" | grep -Eq '\\.(msi|zip)
+                if printf '%s\n' "$assets" | grep -Eq '\\.(msi|zip)
       - name: Verify individual SHA256 files
         run: |
           set -euo pipefail
@@ -328,7 +328,7 @@ jobs:
 ; then ready=true; fi
                 ;;
               *-macos)
-                if printf '%s\\n' "$assets" | grep -Eq '\\.(pkg|dmg)
+                if printf '%s\n' "$assets" | grep -Eq '\\.(pkg|dmg)
       - name: Verify individual SHA256 files
         run: |
           set -euo pipefail
@@ -577,7 +577,7 @@ jobs:
 ; then ready=true; fi
                 ;;
               *-linux)
-                if printf '%s\\n' "$assets" | grep -Eq '\\.(deb|tar\\.gz|tar\\.zst)
+                if printf '%s\n' "$assets" | grep -Eq '\\.(deb|tar\\.gz|tar\\.zst)
       - name: Verify individual SHA256 files
         run: |
           set -euo pipefail
