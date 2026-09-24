@@ -32,6 +32,13 @@ jobs:
           git clone --mirror "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" mirror.git
           cd mirror.git
 
-          git push --mirror "https://oauth2:${GITLAB_TOKEN}@gitlab.com/lordkeremello45/HWcontrol2.0.git"
+          echo "GitHub mirror refs: $(git show-ref | wc -l)"
+
+          git remote add gitlab "https://oauth2:${GITLAB_TOKEN}@gitlab.com/lordkeremello45/HWcontrol2.0.git"
+          echo "Checking GitLab authentication..."
+          git ls-remote gitlab >/dev/null
+          echo "GitLab authentication succeeded."
+
+          git push --mirror gitlab
 
           echo "GitHub → GitLab mirror completed successfully."
