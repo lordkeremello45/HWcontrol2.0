@@ -317,14 +317,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _aiStarting = true;
     try {
       final now = DateTime.now();
-      if (_lastAiModelAttemptAt != null &&
-          now.difference(_lastAiModelAttemptAt!) < const Duration(minutes: 5) &&
-          !await HWControlModelManager.isReady()) {
-        if (mounted) {
-          setState(() => _aiStatus = _aiModelError ?? 'AI modeli için yeniden deneme bekleniyor');
-        }
-        return;
-      }
       final executablePath = await _findAiEnginePath();
       if (executablePath == null) {
         if (mounted) setState(() => _aiStatus = 'ai_engine bulunamadı');
