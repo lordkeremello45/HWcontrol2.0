@@ -79,8 +79,8 @@ jobs:
             ready=false
             case "$TAG" in
               *-windows)
-                if printf '%s\n' "$assets" | grep -Fxq "HWControl-${TAG}-Windows-x64.msi" && \
-                   printf '%s\n' "$assets" | grep -Eq '\.(msix)
+                if printf '%s\n' "$assets" | grep -Eq '\.msi$' && printf '%s\n' "$assets" | grep -Eq '\.msix$'; then ready=true; fi
+                ;;
               *-macos)
                 if printf '%s\n' "$assets" | grep -Eq '\.(pkg|dmg)$'; then ready=true; fi
                 ;;
@@ -103,6 +103,16 @@ jobs:
 
           echo "Timed out waiting for platform release assets for $TAG." >&2
           exit 1
+
+      - name: Download release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          rm -rf release-assets
+          mkdir -p release-assets
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir release-assets --pattern '*' --clobber
 
       - name: Download release assets
         env:
