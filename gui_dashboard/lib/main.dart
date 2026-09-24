@@ -147,6 +147,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   static const _historySchema = 1;
 
   Future<File> get _telemetryHistoryFile async {
+    return _userData.dataFile('telemetry-history.json.gz');
+  }
+
+  Future<File> get _legacyTelemetryHistoryFile async {
     final directory = await getApplicationSupportDirectory();
     return File('${directory.path}${Platform.pathSeparator}telemetry-history.json.gz');
   }
@@ -478,7 +482,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _loadTelemetryHistory() async {
     try {
-      final file = await _telemetryHistoryFile;
+      var file = await _telemetryHistoryFile;
+      var migratedFromLegacy = false;
+      if (!await file.exists()) {
+        final legacy = await _legacyTelemetryHistoryFile;
+        if (await legacy.exists()) {
+          file = legacy;
+          migratedFromLegacy = true;
+        }
+      }
       if (!await file.exists()) return;
       final compressed = await file.readAsBytes();
       final decoded = ZLibCodec(gzip: true).decode(compressed);
@@ -507,7 +519,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ..clear()
           ..addAll(restored);
       });
-      _addEvent('Sıkıştırılmış telemetry geçmişi yüklendi');
+      if (migratedFromLegacy) {
+        try {
+          final target = await _telemetryHistoryFile;
+          await file.copy(target.path);
+          await file.delete();
+          _addEvent('Telemetry geçmişi yeni data dizinine taşındı');
+        } catch (_) {
+          _addEvent('Telemetry geçmişi yüklendi; eski konumdan taşınamadı');
+        }
+      } else {
+        _addEvent('Sıkıştırılmış telemetry geçmişi yüklendi');
+      }
     } catch (_) {
       // Corrupt or incompatible history must never block application startup.
       _addEvent('Telemetry geçmişi okunamadı; yeni geçmiş başlatıldı');
