@@ -67,6 +67,781 @@ jobs:
           echo 'Timed out waiting for Linux extra packages.' >&2
           exit 1
 
+      - name: Wait for platform release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          echo "Waiting for platform assets for $TAG..."
+          for attempt in $(seq 1 90); do
+            assets="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' 2>/dev/null || true)"
+            ready=false
+            case "$TAG" in
+              *-windows)
+                if printf '%s\\n' "$assets" | grep -Eq '\\.(msi|zip)
+      - name: Verify individual SHA256 files
+        run: |
+          set -euo pipefail
+          cd release-assets
+          shopt -s nullglob
+          found=0
+          for checksum in *.sha256; do
+            found=1
+            mapfile -t entries < <(awk 'NF >= 2 {print $1 "\t" $2}' "$checksum")
+            test "${#entries[@]}" -gt 0 || { echo "Empty checksum manifest: $checksum"; exit 1; }
+            for entry in "${entries[@]}"; do
+              expected="${entry%%$'\t'*}"
+              asset="${entry#*$'\t'}"
+              asset="${asset#\*}"
+              test -f "$asset" || { echo "Missing asset for $checksum: $asset"; exit 1; }
+              actual=$(sha256sum "$asset" | awk '{print $1}')
+              test "$expected" = "$actual" || { echo "SHA256 mismatch: $asset"; exit 1; }
+              echo "Verified SHA256: $asset"
+            done
+          done
+          if [ "$found" -eq 0 ]; then
+            echo 'No individual .sha256 files found.' >&2
+            exit 1
+          fi
+
+      - name: Verify individual SHA512 files when present
+        run: |
+          set -euo pipefail
+          cd release-assets
+          shopt -s nullglob
+          for checksum in *.sha512; do
+            mapfile -t entries < <(awk 'NF >= 2 {print $1 "\t" $2}' "$checksum")
+            test "${#entries[@]}" -gt 0 || { echo "Empty SHA512 manifest: $checksum"; exit 1; }
+            for entry in "${entries[@]}"; do
+              expected="${entry%%$'\t'*}"
+              asset="${entry#*$'\t'}"
+              asset="${asset#\*}"
+              test -f "$asset" || { echo "Missing asset for $checksum: $asset"; exit 1; }
+              actual=$(sha512sum "$asset" | awk '{print $1}')
+              test "$expected" = "$actual" || { echo "SHA512 mismatch: $asset"; exit 1; }
+              echo "Verified SHA512: $asset"
+            done
+          done
+
+      - name: Validate expected platform packages
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+          REQUIRE_LINUX_EXTRAS: ${{ steps.policy.outputs.require_linux_extras }}
+        run: |
+          set -euo pipefail
+          cd release-assets
+          case "$TAG" in
+            *-windows)
+              compgen -G '*.msi' >/dev/null || compgen -G '*.zip' >/dev/null || { echo 'Windows release has no MSI or ZIP asset'; exit 1; }
+              ;;
+            *-macos)
+              compgen -G '*.pkg' >/dev/null || compgen -G '*.dmg' >/dev/null || { echo 'macOS release has no PKG or DMG asset'; exit 1; }
+              ;;
+            *-linux)
+              compgen -G '*.deb' >/dev/null || compgen -G '*.tar.gz' >/dev/null || compgen -G '*.tar.zst' >/dev/null || { echo 'Linux release has no DEB/TAR asset'; exit 1; }
+              if [ "$REQUIRE_LINUX_EXTRAS" = 'true' ]; then
+                test -f "HWControl-${TAG}-Linux-x64.rpm"
+                test -f "HWControl-${TAG}-Linux-x64.pkg.tar.zst"
+                test -f "HWControl-${TAG}-Linux-extra.sha256"
+              fi
+              ;;
+            *)
+              echo "Generic/unified tag: package-specific validation skipped."
+              ;;
+          esac
+
+      - name: Generate release-wide SHA256SUMS.txt
+        run: |
+          set -euo pipefail
+          cd release-assets
+          rm -f SHA256SUMS.txt
+          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' ! -name 'SHA512SUMS.txt' ! -name 'SHA3-512SUMS.txt' ! -name 'SHA256SUMS.txt.sig' ! -name 'SHA256SUMS.txt.pub' ! -name 'SHA256SUMS.txt.asc' ! -name 'HWControl-GPG-public.asc' ! -name 'HWControl-GPG-fingerprint.txt' ! -name '*.sha256' ! -name '*.sha512' ! -name '*.sha3-512' -print0 \
+            | sort -z \
+            | xargs -0 sha256sum > SHA256SUMS.txt
+          test -s SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Generate release-wide SHA512SUMS.txt
+        run: |
+          set -euo pipefail
+          cd release-assets
+          rm -f SHA512SUMS.txt
+          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' ! -name 'SHA512SUMS.txt' ! -name 'SHA3-512SUMS.txt' ! -name 'SHA256SUMS.txt.sig' ! -name 'SHA256SUMS.txt.pub' ! -name 'SHA256SUMS.txt.asc' ! -name 'HWControl-GPG-public.asc' ! -name 'HWControl-GPG-fingerprint.txt' ! -name '*.sha256' ! -name '*.sha512' ! -name '*.sha3-512' -print0 \
+            | sort -z \
+            | xargs -0 sha512sum > SHA512SUMS.txt
+          test -s SHA512SUMS.txt
+          cat SHA512SUMS.txt
+
+      - name: Generate release-wide SHA3-512SUMS.txt
+        run: |
+          set -euo pipefail
+          cd release-assets
+          rm -f SHA3-512SUMS.txt
+          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' ! -name 'SHA512SUMS.txt' ! -name 'SHA3-512SUMS.txt' ! -name 'SHA256SUMS.txt.sig' ! -name 'SHA256SUMS.txt.pub' ! -name 'SHA256SUMS.txt.asc' ! -name 'HWControl-GPG-public.asc' ! -name 'HWControl-GPG-fingerprint.txt' ! -name '*.sha256' ! -name '*.sha512' ! -name '*.sha3-512' -print0 \
+            | sort -z \
+            | while IFS= read -r -d '' file; do
+                printf '%s  %s\n' "$(openssl dgst -sha3-512 -r "$file" | awk '{print $1}')" "${file#./}"
+              done > SHA3-512SUMS.txt
+          test -s SHA3-512SUMS.txt
+          cat SHA3-512SUMS.txt
+
+      - name: Verify generated SHA3-512SUMS.txt
+        run: |
+          set -euo pipefail
+          cd release-assets
+          while IFS= read -r line; do
+            expected="${line%%  *}"
+            asset="${line#*  }"
+            test -f "$asset" || { echo "Missing asset for SHA3-512SUMS.txt: $asset"; exit 1; }
+            actual=$(openssl dgst -sha3-512 -r "$asset" | awk '{print $1}')
+            test "$expected" = "$actual" || { echo "SHA3-512 mismatch: $asset"; exit 1; }
+          done < SHA3-512SUMS.txt
+
+      - name: Sign SHA256 release manifest with Ed25519
+        id: ed25519
+        env:
+          ED25519_PRIVATE_KEY_B64: ${{ secrets.ED25519_PRIVATE_KEY_B64 }}
+        run: |
+          set -euo pipefail
+          key="$RUNNER_TEMP/hwcontrol-release-ed25519.pem"
+          derived_pub="$RUNNER_TEMP/hwcontrol-release-ed25519.pub"
+          committed_pub="$GITHUB_WORKSPACE/release-assets/SHA256SUMS.txt.pub"
+          sig="$GITHUB_WORKSPACE/release-assets/SHA256SUMS.txt.sig"
+          cleanup() { rm -f "$key" "$derived_pub"; }
+          trap cleanup EXIT
+
+          if [ -z "${ED25519_PRIVATE_KEY_B64:-}" ]; then
+            echo 'enabled=false' >> "$GITHUB_OUTPUT"
+            echo 'Ed25519 signing is not configured; publishing unsigned checksum manifests.'
+            exit 0
+          fi
+
+          test -s "$committed_pub" || { echo 'Missing committed Ed25519 public key: SHA256SUMS.txt.pub' >&2; exit 1; }
+          printf '%s' "$ED25519_PRIVATE_KEY_B64" | base64 --decode > "$key"
+          chmod 600 "$key"
+
+          openssl pkey -in "$key" -pubout -out "$derived_pub"
+          cmp -s "$derived_pub" "$committed_pub" || {
+            echo 'Ed25519 public-key mismatch: GitHub Secret does not match SHA256SUMS.txt.pub' >&2
+            echo 'Refusing to sign the release with an untrusted key.' >&2
+            exit 1
+          }
+
+          openssl pkeyutl -sign -rawin -inkey "$key" \
+            -in "$GITHUB_WORKSPACE/release-assets/SHA256SUMS.txt" \
+            -out "$sig"
+          openssl pkeyutl -verify -rawin -pubin -inkey "$committed_pub" \
+            -in "$GITHUB_WORKSPACE/release-assets/SHA256SUMS.txt" \
+            -sigfile "$sig"
+
+          test -s "$sig"
+          echo 'Ed25519 manifest signature verified against committed public key.'
+          echo 'enabled=true' >> "$GITHUB_OUTPUT"
+
+      - name: Sign SHA256 release manifest with HWControl GPG
+        id: gpg
+        env:
+          HWCONTROL_GPG_PRIVATE_KEY_B64: ${{ secrets.HWCONTROL_GPG_PRIVATE_KEY_B64 }}
+          HWCONTROL_GPG_PASSPHRASE: ${{ secrets.HWCONTROL_GPG_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          if [ -z "${HWCONTROL_GPG_PRIVATE_KEY_B64:-}" ] || [ -z "${HWCONTROL_GPG_PASSPHRASE:-}" ]; then
+            echo 'enabled=false' >> "$GITHUB_OUTPUT"
+            echo 'HWControl GPG signing is not configured; publishing without a GPG signature.'
+            exit 0
+          fi
+          export GNUPGHOME="$RUNNER_TEMP/hwcontrol-gnupg"
+          mkdir -m 700 -p "$GNUPGHOME"
+          key="$RUNNER_TEMP/hwcontrol-release-gpg.asc"
+          cleanup() { rm -f "$key"; rm -rf "$GNUPGHOME"; }
+          trap cleanup EXIT
+          expected='12DCBEC4A22481A8DBACA6956F1C5F7B37229F37'
+          printf '%s' "$HWCONTROL_GPG_PRIVATE_KEY_B64" | base64 --decode > "$key"
+          chmod 600 "$key"
+          gpg --batch --quiet --import "$key"
+          actual="$(gpg --batch --with-colons --list-secret-keys | awk -F: '$1 == "fpr" {print $10; exit}')"
+          test "$actual" = "$expected" || { echo "Unexpected HWControl GPG signing key fingerprint: $actual" >&2; exit 1; }
+          printf '%s' "$HWCONTROL_GPG_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --local-user "$expected" --armor --detach-sign --output release-assets/SHA256SUMS.txt.asc release-assets/SHA256SUMS.txt
+          gpg --batch --verify release-assets/SHA256SUMS.txt.asc release-assets/SHA256SUMS.txt
+          gpg --batch --armor --export "$expected" > release-assets/HWControl-GPG-public.asc
+          printf '%s\n' "$expected" > release-assets/HWControl-GPG-fingerprint.txt
+          echo "HWControl GPG fingerprint verified: $expected"
+          echo 'enabled=true' >> "$GITHUB_OUTPUT"
+
+      - name: Upload SHA256SUMS.txt to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" release-assets/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+
+      - name: Upload Ed25519 signature and public key
+        if: steps.ed25519.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" \
+            release-assets/SHA256SUMS.txt.sig \
+            release-assets/SHA256SUMS.txt.pub \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+
+      - name: Upload GPG signature, public key and fingerprint
+        if: steps.gpg.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" \
+            release-assets/SHA256SUMS.txt.asc \
+            release-assets/HWControl-GPG-public.asc \
+            release-assets/HWControl-GPG-fingerprint.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+
+      - name: Upload SHA512SUMS.txt to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" release-assets/SHA512SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+
+      - name: Upload SHA3-512SUMS.txt to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" release-assets/SHA3-512SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+; then ready=true; fi
+                ;;
+              *-macos)
+                if printf '%s\\n' "$assets" | grep -Eq '\\.(pkg|dmg)
+      - name: Verify individual SHA256 files
+        run: |
+          set -euo pipefail
+          cd release-assets
+          shopt -s nullglob
+          found=0
+          for checksum in *.sha256; do
+            found=1
+            mapfile -t entries < <(awk 'NF >= 2 {print $1 "\t" $2}' "$checksum")
+            test "${#entries[@]}" -gt 0 || { echo "Empty checksum manifest: $checksum"; exit 1; }
+            for entry in "${entries[@]}"; do
+              expected="${entry%%$'\t'*}"
+              asset="${entry#*$'\t'}"
+              asset="${asset#\*}"
+              test -f "$asset" || { echo "Missing asset for $checksum: $asset"; exit 1; }
+              actual=$(sha256sum "$asset" | awk '{print $1}')
+              test "$expected" = "$actual" || { echo "SHA256 mismatch: $asset"; exit 1; }
+              echo "Verified SHA256: $asset"
+            done
+          done
+          if [ "$found" -eq 0 ]; then
+            echo 'No individual .sha256 files found.' >&2
+            exit 1
+          fi
+
+      - name: Verify individual SHA512 files when present
+        run: |
+          set -euo pipefail
+          cd release-assets
+          shopt -s nullglob
+          for checksum in *.sha512; do
+            mapfile -t entries < <(awk 'NF >= 2 {print $1 "\t" $2}' "$checksum")
+            test "${#entries[@]}" -gt 0 || { echo "Empty SHA512 manifest: $checksum"; exit 1; }
+            for entry in "${entries[@]}"; do
+              expected="${entry%%$'\t'*}"
+              asset="${entry#*$'\t'}"
+              asset="${asset#\*}"
+              test -f "$asset" || { echo "Missing asset for $checksum: $asset"; exit 1; }
+              actual=$(sha512sum "$asset" | awk '{print $1}')
+              test "$expected" = "$actual" || { echo "SHA512 mismatch: $asset"; exit 1; }
+              echo "Verified SHA512: $asset"
+            done
+          done
+
+      - name: Validate expected platform packages
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+          REQUIRE_LINUX_EXTRAS: ${{ steps.policy.outputs.require_linux_extras }}
+        run: |
+          set -euo pipefail
+          cd release-assets
+          case "$TAG" in
+            *-windows)
+              compgen -G '*.msi' >/dev/null || compgen -G '*.zip' >/dev/null || { echo 'Windows release has no MSI or ZIP asset'; exit 1; }
+              ;;
+            *-macos)
+              compgen -G '*.pkg' >/dev/null || compgen -G '*.dmg' >/dev/null || { echo 'macOS release has no PKG or DMG asset'; exit 1; }
+              ;;
+            *-linux)
+              compgen -G '*.deb' >/dev/null || compgen -G '*.tar.gz' >/dev/null || compgen -G '*.tar.zst' >/dev/null || { echo 'Linux release has no DEB/TAR asset'; exit 1; }
+              if [ "$REQUIRE_LINUX_EXTRAS" = 'true' ]; then
+                test -f "HWControl-${TAG}-Linux-x64.rpm"
+                test -f "HWControl-${TAG}-Linux-x64.pkg.tar.zst"
+                test -f "HWControl-${TAG}-Linux-extra.sha256"
+              fi
+              ;;
+            *)
+              echo "Generic/unified tag: package-specific validation skipped."
+              ;;
+          esac
+
+      - name: Generate release-wide SHA256SUMS.txt
+        run: |
+          set -euo pipefail
+          cd release-assets
+          rm -f SHA256SUMS.txt
+          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' ! -name 'SHA512SUMS.txt' ! -name 'SHA3-512SUMS.txt' ! -name 'SHA256SUMS.txt.sig' ! -name 'SHA256SUMS.txt.pub' ! -name 'SHA256SUMS.txt.asc' ! -name 'HWControl-GPG-public.asc' ! -name 'HWControl-GPG-fingerprint.txt' ! -name '*.sha256' ! -name '*.sha512' ! -name '*.sha3-512' -print0 \
+            | sort -z \
+            | xargs -0 sha256sum > SHA256SUMS.txt
+          test -s SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Generate release-wide SHA512SUMS.txt
+        run: |
+          set -euo pipefail
+          cd release-assets
+          rm -f SHA512SUMS.txt
+          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' ! -name 'SHA512SUMS.txt' ! -name 'SHA3-512SUMS.txt' ! -name 'SHA256SUMS.txt.sig' ! -name 'SHA256SUMS.txt.pub' ! -name 'SHA256SUMS.txt.asc' ! -name 'HWControl-GPG-public.asc' ! -name 'HWControl-GPG-fingerprint.txt' ! -name '*.sha256' ! -name '*.sha512' ! -name '*.sha3-512' -print0 \
+            | sort -z \
+            | xargs -0 sha512sum > SHA512SUMS.txt
+          test -s SHA512SUMS.txt
+          cat SHA512SUMS.txt
+
+      - name: Generate release-wide SHA3-512SUMS.txt
+        run: |
+          set -euo pipefail
+          cd release-assets
+          rm -f SHA3-512SUMS.txt
+          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' ! -name 'SHA512SUMS.txt' ! -name 'SHA3-512SUMS.txt' ! -name 'SHA256SUMS.txt.sig' ! -name 'SHA256SUMS.txt.pub' ! -name 'SHA256SUMS.txt.asc' ! -name 'HWControl-GPG-public.asc' ! -name 'HWControl-GPG-fingerprint.txt' ! -name '*.sha256' ! -name '*.sha512' ! -name '*.sha3-512' -print0 \
+            | sort -z \
+            | while IFS= read -r -d '' file; do
+                printf '%s  %s\n' "$(openssl dgst -sha3-512 -r "$file" | awk '{print $1}')" "${file#./}"
+              done > SHA3-512SUMS.txt
+          test -s SHA3-512SUMS.txt
+          cat SHA3-512SUMS.txt
+
+      - name: Verify generated SHA3-512SUMS.txt
+        run: |
+          set -euo pipefail
+          cd release-assets
+          while IFS= read -r line; do
+            expected="${line%%  *}"
+            asset="${line#*  }"
+            test -f "$asset" || { echo "Missing asset for SHA3-512SUMS.txt: $asset"; exit 1; }
+            actual=$(openssl dgst -sha3-512 -r "$asset" | awk '{print $1}')
+            test "$expected" = "$actual" || { echo "SHA3-512 mismatch: $asset"; exit 1; }
+          done < SHA3-512SUMS.txt
+
+      - name: Sign SHA256 release manifest with Ed25519
+        id: ed25519
+        env:
+          ED25519_PRIVATE_KEY_B64: ${{ secrets.ED25519_PRIVATE_KEY_B64 }}
+        run: |
+          set -euo pipefail
+          key="$RUNNER_TEMP/hwcontrol-release-ed25519.pem"
+          derived_pub="$RUNNER_TEMP/hwcontrol-release-ed25519.pub"
+          committed_pub="$GITHUB_WORKSPACE/release-assets/SHA256SUMS.txt.pub"
+          sig="$GITHUB_WORKSPACE/release-assets/SHA256SUMS.txt.sig"
+          cleanup() { rm -f "$key" "$derived_pub"; }
+          trap cleanup EXIT
+
+          if [ -z "${ED25519_PRIVATE_KEY_B64:-}" ]; then
+            echo 'enabled=false' >> "$GITHUB_OUTPUT"
+            echo 'Ed25519 signing is not configured; publishing unsigned checksum manifests.'
+            exit 0
+          fi
+
+          test -s "$committed_pub" || { echo 'Missing committed Ed25519 public key: SHA256SUMS.txt.pub' >&2; exit 1; }
+          printf '%s' "$ED25519_PRIVATE_KEY_B64" | base64 --decode > "$key"
+          chmod 600 "$key"
+
+          openssl pkey -in "$key" -pubout -out "$derived_pub"
+          cmp -s "$derived_pub" "$committed_pub" || {
+            echo 'Ed25519 public-key mismatch: GitHub Secret does not match SHA256SUMS.txt.pub' >&2
+            echo 'Refusing to sign the release with an untrusted key.' >&2
+            exit 1
+          }
+
+          openssl pkeyutl -sign -rawin -inkey "$key" \
+            -in "$GITHUB_WORKSPACE/release-assets/SHA256SUMS.txt" \
+            -out "$sig"
+          openssl pkeyutl -verify -rawin -pubin -inkey "$committed_pub" \
+            -in "$GITHUB_WORKSPACE/release-assets/SHA256SUMS.txt" \
+            -sigfile "$sig"
+
+          test -s "$sig"
+          echo 'Ed25519 manifest signature verified against committed public key.'
+          echo 'enabled=true' >> "$GITHUB_OUTPUT"
+
+      - name: Sign SHA256 release manifest with HWControl GPG
+        id: gpg
+        env:
+          HWCONTROL_GPG_PRIVATE_KEY_B64: ${{ secrets.HWCONTROL_GPG_PRIVATE_KEY_B64 }}
+          HWCONTROL_GPG_PASSPHRASE: ${{ secrets.HWCONTROL_GPG_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          if [ -z "${HWCONTROL_GPG_PRIVATE_KEY_B64:-}" ] || [ -z "${HWCONTROL_GPG_PASSPHRASE:-}" ]; then
+            echo 'enabled=false' >> "$GITHUB_OUTPUT"
+            echo 'HWControl GPG signing is not configured; publishing without a GPG signature.'
+            exit 0
+          fi
+          export GNUPGHOME="$RUNNER_TEMP/hwcontrol-gnupg"
+          mkdir -m 700 -p "$GNUPGHOME"
+          key="$RUNNER_TEMP/hwcontrol-release-gpg.asc"
+          cleanup() { rm -f "$key"; rm -rf "$GNUPGHOME"; }
+          trap cleanup EXIT
+          expected='12DCBEC4A22481A8DBACA6956F1C5F7B37229F37'
+          printf '%s' "$HWCONTROL_GPG_PRIVATE_KEY_B64" | base64 --decode > "$key"
+          chmod 600 "$key"
+          gpg --batch --quiet --import "$key"
+          actual="$(gpg --batch --with-colons --list-secret-keys | awk -F: '$1 == "fpr" {print $10; exit}')"
+          test "$actual" = "$expected" || { echo "Unexpected HWControl GPG signing key fingerprint: $actual" >&2; exit 1; }
+          printf '%s' "$HWCONTROL_GPG_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --local-user "$expected" --armor --detach-sign --output release-assets/SHA256SUMS.txt.asc release-assets/SHA256SUMS.txt
+          gpg --batch --verify release-assets/SHA256SUMS.txt.asc release-assets/SHA256SUMS.txt
+          gpg --batch --armor --export "$expected" > release-assets/HWControl-GPG-public.asc
+          printf '%s\n' "$expected" > release-assets/HWControl-GPG-fingerprint.txt
+          echo "HWControl GPG fingerprint verified: $expected"
+          echo 'enabled=true' >> "$GITHUB_OUTPUT"
+
+      - name: Upload SHA256SUMS.txt to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" release-assets/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+
+      - name: Upload Ed25519 signature and public key
+        if: steps.ed25519.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" \
+            release-assets/SHA256SUMS.txt.sig \
+            release-assets/SHA256SUMS.txt.pub \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+
+      - name: Upload GPG signature, public key and fingerprint
+        if: steps.gpg.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" \
+            release-assets/SHA256SUMS.txt.asc \
+            release-assets/HWControl-GPG-public.asc \
+            release-assets/HWControl-GPG-fingerprint.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+
+      - name: Upload SHA512SUMS.txt to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" release-assets/SHA512SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+
+      - name: Upload SHA3-512SUMS.txt to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" release-assets/SHA3-512SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+; then ready=true; fi
+                ;;
+              *-linux)
+                if printf '%s\\n' "$assets" | grep -Eq '\\.(deb|tar\\.gz|tar\\.zst)
+      - name: Verify individual SHA256 files
+        run: |
+          set -euo pipefail
+          cd release-assets
+          shopt -s nullglob
+          found=0
+          for checksum in *.sha256; do
+            found=1
+            mapfile -t entries < <(awk 'NF >= 2 {print $1 "\t" $2}' "$checksum")
+            test "${#entries[@]}" -gt 0 || { echo "Empty checksum manifest: $checksum"; exit 1; }
+            for entry in "${entries[@]}"; do
+              expected="${entry%%$'\t'*}"
+              asset="${entry#*$'\t'}"
+              asset="${asset#\*}"
+              test -f "$asset" || { echo "Missing asset for $checksum: $asset"; exit 1; }
+              actual=$(sha256sum "$asset" | awk '{print $1}')
+              test "$expected" = "$actual" || { echo "SHA256 mismatch: $asset"; exit 1; }
+              echo "Verified SHA256: $asset"
+            done
+          done
+          if [ "$found" -eq 0 ]; then
+            echo 'No individual .sha256 files found.' >&2
+            exit 1
+          fi
+
+      - name: Verify individual SHA512 files when present
+        run: |
+          set -euo pipefail
+          cd release-assets
+          shopt -s nullglob
+          for checksum in *.sha512; do
+            mapfile -t entries < <(awk 'NF >= 2 {print $1 "\t" $2}' "$checksum")
+            test "${#entries[@]}" -gt 0 || { echo "Empty SHA512 manifest: $checksum"; exit 1; }
+            for entry in "${entries[@]}"; do
+              expected="${entry%%$'\t'*}"
+              asset="${entry#*$'\t'}"
+              asset="${asset#\*}"
+              test -f "$asset" || { echo "Missing asset for $checksum: $asset"; exit 1; }
+              actual=$(sha512sum "$asset" | awk '{print $1}')
+              test "$expected" = "$actual" || { echo "SHA512 mismatch: $asset"; exit 1; }
+              echo "Verified SHA512: $asset"
+            done
+          done
+
+      - name: Validate expected platform packages
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+          REQUIRE_LINUX_EXTRAS: ${{ steps.policy.outputs.require_linux_extras }}
+        run: |
+          set -euo pipefail
+          cd release-assets
+          case "$TAG" in
+            *-windows)
+              compgen -G '*.msi' >/dev/null || compgen -G '*.zip' >/dev/null || { echo 'Windows release has no MSI or ZIP asset'; exit 1; }
+              ;;
+            *-macos)
+              compgen -G '*.pkg' >/dev/null || compgen -G '*.dmg' >/dev/null || { echo 'macOS release has no PKG or DMG asset'; exit 1; }
+              ;;
+            *-linux)
+              compgen -G '*.deb' >/dev/null || compgen -G '*.tar.gz' >/dev/null || compgen -G '*.tar.zst' >/dev/null || { echo 'Linux release has no DEB/TAR asset'; exit 1; }
+              if [ "$REQUIRE_LINUX_EXTRAS" = 'true' ]; then
+                test -f "HWControl-${TAG}-Linux-x64.rpm"
+                test -f "HWControl-${TAG}-Linux-x64.pkg.tar.zst"
+                test -f "HWControl-${TAG}-Linux-extra.sha256"
+              fi
+              ;;
+            *)
+              echo "Generic/unified tag: package-specific validation skipped."
+              ;;
+          esac
+
+      - name: Generate release-wide SHA256SUMS.txt
+        run: |
+          set -euo pipefail
+          cd release-assets
+          rm -f SHA256SUMS.txt
+          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' ! -name 'SHA512SUMS.txt' ! -name 'SHA3-512SUMS.txt' ! -name 'SHA256SUMS.txt.sig' ! -name 'SHA256SUMS.txt.pub' ! -name 'SHA256SUMS.txt.asc' ! -name 'HWControl-GPG-public.asc' ! -name 'HWControl-GPG-fingerprint.txt' ! -name '*.sha256' ! -name '*.sha512' ! -name '*.sha3-512' -print0 \
+            | sort -z \
+            | xargs -0 sha256sum > SHA256SUMS.txt
+          test -s SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Generate release-wide SHA512SUMS.txt
+        run: |
+          set -euo pipefail
+          cd release-assets
+          rm -f SHA512SUMS.txt
+          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' ! -name 'SHA512SUMS.txt' ! -name 'SHA3-512SUMS.txt' ! -name 'SHA256SUMS.txt.sig' ! -name 'SHA256SUMS.txt.pub' ! -name 'SHA256SUMS.txt.asc' ! -name 'HWControl-GPG-public.asc' ! -name 'HWControl-GPG-fingerprint.txt' ! -name '*.sha256' ! -name '*.sha512' ! -name '*.sha3-512' -print0 \
+            | sort -z \
+            | xargs -0 sha512sum > SHA512SUMS.txt
+          test -s SHA512SUMS.txt
+          cat SHA512SUMS.txt
+
+      - name: Generate release-wide SHA3-512SUMS.txt
+        run: |
+          set -euo pipefail
+          cd release-assets
+          rm -f SHA3-512SUMS.txt
+          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' ! -name 'SHA512SUMS.txt' ! -name 'SHA3-512SUMS.txt' ! -name 'SHA256SUMS.txt.sig' ! -name 'SHA256SUMS.txt.pub' ! -name 'SHA256SUMS.txt.asc' ! -name 'HWControl-GPG-public.asc' ! -name 'HWControl-GPG-fingerprint.txt' ! -name '*.sha256' ! -name '*.sha512' ! -name '*.sha3-512' -print0 \
+            | sort -z \
+            | while IFS= read -r -d '' file; do
+                printf '%s  %s\n' "$(openssl dgst -sha3-512 -r "$file" | awk '{print $1}')" "${file#./}"
+              done > SHA3-512SUMS.txt
+          test -s SHA3-512SUMS.txt
+          cat SHA3-512SUMS.txt
+
+      - name: Verify generated SHA3-512SUMS.txt
+        run: |
+          set -euo pipefail
+          cd release-assets
+          while IFS= read -r line; do
+            expected="${line%%  *}"
+            asset="${line#*  }"
+            test -f "$asset" || { echo "Missing asset for SHA3-512SUMS.txt: $asset"; exit 1; }
+            actual=$(openssl dgst -sha3-512 -r "$asset" | awk '{print $1}')
+            test "$expected" = "$actual" || { echo "SHA3-512 mismatch: $asset"; exit 1; }
+          done < SHA3-512SUMS.txt
+
+      - name: Sign SHA256 release manifest with Ed25519
+        id: ed25519
+        env:
+          ED25519_PRIVATE_KEY_B64: ${{ secrets.ED25519_PRIVATE_KEY_B64 }}
+        run: |
+          set -euo pipefail
+          key="$RUNNER_TEMP/hwcontrol-release-ed25519.pem"
+          derived_pub="$RUNNER_TEMP/hwcontrol-release-ed25519.pub"
+          committed_pub="$GITHUB_WORKSPACE/release-assets/SHA256SUMS.txt.pub"
+          sig="$GITHUB_WORKSPACE/release-assets/SHA256SUMS.txt.sig"
+          cleanup() { rm -f "$key" "$derived_pub"; }
+          trap cleanup EXIT
+
+          if [ -z "${ED25519_PRIVATE_KEY_B64:-}" ]; then
+            echo 'enabled=false' >> "$GITHUB_OUTPUT"
+            echo 'Ed25519 signing is not configured; publishing unsigned checksum manifests.'
+            exit 0
+          fi
+
+          test -s "$committed_pub" || { echo 'Missing committed Ed25519 public key: SHA256SUMS.txt.pub' >&2; exit 1; }
+          printf '%s' "$ED25519_PRIVATE_KEY_B64" | base64 --decode > "$key"
+          chmod 600 "$key"
+
+          openssl pkey -in "$key" -pubout -out "$derived_pub"
+          cmp -s "$derived_pub" "$committed_pub" || {
+            echo 'Ed25519 public-key mismatch: GitHub Secret does not match SHA256SUMS.txt.pub' >&2
+            echo 'Refusing to sign the release with an untrusted key.' >&2
+            exit 1
+          }
+
+          openssl pkeyutl -sign -rawin -inkey "$key" \
+            -in "$GITHUB_WORKSPACE/release-assets/SHA256SUMS.txt" \
+            -out "$sig"
+          openssl pkeyutl -verify -rawin -pubin -inkey "$committed_pub" \
+            -in "$GITHUB_WORKSPACE/release-assets/SHA256SUMS.txt" \
+            -sigfile "$sig"
+
+          test -s "$sig"
+          echo 'Ed25519 manifest signature verified against committed public key.'
+          echo 'enabled=true' >> "$GITHUB_OUTPUT"
+
+      - name: Sign SHA256 release manifest with HWControl GPG
+        id: gpg
+        env:
+          HWCONTROL_GPG_PRIVATE_KEY_B64: ${{ secrets.HWCONTROL_GPG_PRIVATE_KEY_B64 }}
+          HWCONTROL_GPG_PASSPHRASE: ${{ secrets.HWCONTROL_GPG_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          if [ -z "${HWCONTROL_GPG_PRIVATE_KEY_B64:-}" ] || [ -z "${HWCONTROL_GPG_PASSPHRASE:-}" ]; then
+            echo 'enabled=false' >> "$GITHUB_OUTPUT"
+            echo 'HWControl GPG signing is not configured; publishing without a GPG signature.'
+            exit 0
+          fi
+          export GNUPGHOME="$RUNNER_TEMP/hwcontrol-gnupg"
+          mkdir -m 700 -p "$GNUPGHOME"
+          key="$RUNNER_TEMP/hwcontrol-release-gpg.asc"
+          cleanup() { rm -f "$key"; rm -rf "$GNUPGHOME"; }
+          trap cleanup EXIT
+          expected='12DCBEC4A22481A8DBACA6956F1C5F7B37229F37'
+          printf '%s' "$HWCONTROL_GPG_PRIVATE_KEY_B64" | base64 --decode > "$key"
+          chmod 600 "$key"
+          gpg --batch --quiet --import "$key"
+          actual="$(gpg --batch --with-colons --list-secret-keys | awk -F: '$1 == "fpr" {print $10; exit}')"
+          test "$actual" = "$expected" || { echo "Unexpected HWControl GPG signing key fingerprint: $actual" >&2; exit 1; }
+          printf '%s' "$HWCONTROL_GPG_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --local-user "$expected" --armor --detach-sign --output release-assets/SHA256SUMS.txt.asc release-assets/SHA256SUMS.txt
+          gpg --batch --verify release-assets/SHA256SUMS.txt.asc release-assets/SHA256SUMS.txt
+          gpg --batch --armor --export "$expected" > release-assets/HWControl-GPG-public.asc
+          printf '%s\n' "$expected" > release-assets/HWControl-GPG-fingerprint.txt
+          echo "HWControl GPG fingerprint verified: $expected"
+          echo 'enabled=true' >> "$GITHUB_OUTPUT"
+
+      - name: Upload SHA256SUMS.txt to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" release-assets/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+
+      - name: Upload Ed25519 signature and public key
+        if: steps.ed25519.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" \
+            release-assets/SHA256SUMS.txt.sig \
+            release-assets/SHA256SUMS.txt.pub \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+
+      - name: Upload GPG signature, public key and fingerprint
+        if: steps.gpg.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" \
+            release-assets/SHA256SUMS.txt.asc \
+            release-assets/HWControl-GPG-public.asc \
+            release-assets/HWControl-GPG-fingerprint.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+
+      - name: Upload SHA512SUMS.txt to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" release-assets/SHA512SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+
+      - name: Upload SHA3-512SUMS.txt to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" release-assets/SHA3-512SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+; then ready=true; fi
+                ;;
+              *)
+                ready=true
+                ;;
+            esac
+
+            if [ "$ready" = true ]; then
+              echo "Platform release assets are present."
+              exit 0
+            fi
+
+            echo "Assets not ready yet (attempt $attempt/90); waiting 10s..."
+            sleep 10
+          done
+
+          echo "Timed out waiting for platform release assets for $TAG." >&2
+          exit 1
+
       - name: Download release assets
         env:
           GH_TOKEN: ${{ github.token }}
