@@ -79,7 +79,41 @@ jobs:
             ready=false
             case "$TAG" in
               *-windows)
-                if printf '%s\n' "$assets" | grep -Eq '\\.(msi|zip)
+                if printf '%s\n' "$assets" | grep -Eq '\.(msi|zip)$'; then ready=true; fi
+                ;;
+              *-macos)
+                if printf '%s\n' "$assets" | grep -Eq '\.(pkg|dmg)$'; then ready=true; fi
+                ;;
+              *-linux)
+                if printf '%s\n' "$assets" | grep -Eq '\.(deb|tar\.gz|tar\.zst)$'; then ready=true; fi
+                ;;
+              *)
+                ready=true
+                ;;
+            esac
+
+            if [ "$ready" = true ]; then
+              echo "Platform release assets are present."
+              exit 0
+            fi
+
+            echo "Assets not ready yet (attempt $attempt/90); waiting 10s..."
+            sleep 10
+          done
+
+          echo "Timed out waiting for platform release assets for $TAG." >&2
+          exit 1
+
+      - name: Download release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          rm -rf release-assets
+          mkdir -p release-assets
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir release-assets --pattern '*' --clobber
+
       - name: Verify individual SHA256 files
         run: |
           set -euo pipefail
