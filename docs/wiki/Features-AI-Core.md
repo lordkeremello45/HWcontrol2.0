@@ -4,9 +4,9 @@ HWcontrol2.0 includes a local large-language-model analysis engine built around 
 
 ## Model lifecycle
 
-The AI model is optional and is not required to complete the base installation. The installer does not download the model. Only an explicit user request from the Local AI Analysis panel starts model download and inference; telemetry polling never downloads or starts the model.
+The AI model is optional and is not required to complete the base installation. The installer presents a Local AI (Gemma 3 1B) checkbox; when selected, the model is downloaded during installation and verified before use. When unselected, the base installation completes without the model and the first explicit Local AI Analysis request can download it later. Telemetry polling never downloads or starts the model.
 
-The model manager uses HTTPS, verifies the exact expected byte count and SHA-256 digest while streaming, writes through a .part file, and only exposes a verified model as the final filename. Failed model downloads do not block the bridge or hardware monitoring. Obsolete Gemma 2B cache files are removed only after the new model is verified.
+The model manager uses HTTPS, verifies the exact expected byte count and SHA-256 digest while streaming, writes through a .part file, and only exposes a verified model as the final filename. Failed model downloads do not block the bridge or hardware monitoring. If the cached model is missing or fails its size/SHA-256 validation, the same verified download path is retried and the invalid cache is replaced only after the new file is fully verified. Obsolete Gemma 2B cache files are removed only after the new model is verified.
 
 ## Safety architecture
 
