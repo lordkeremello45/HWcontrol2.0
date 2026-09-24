@@ -28,6 +28,45 @@ class HWControlApp extends StatefulWidget {
 class _HWControlAppState extends State<HWControlApp> {
   bool _darkMode = true;
   bool _animationsEnabled = true;
+  final HWControlUserDataStore _userData = HWControlUserDataStore();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUiPreferences();
+  }
+
+  Future<void> _loadUiPreferences() async {
+    try {
+      final preferences = await _userData.readUiPreferences();
+      if (!mounted) return;
+      final darkMode = preferences['darkMode'];
+      final animations = preferences['animationsEnabled'];
+      setState(() {
+        if (darkMode is bool) _darkMode = darkMode;
+        if (animations is bool) _animationsEnabled = animations;
+      });
+    } catch (_) {
+      // UI preference corruption must never prevent the dashboard from starting.
+    }
+  }
+
+  void _saveUiPreferences() {
+    unawaited(_userData.writeUiPreferences(<String, dynamic>{
+      'darkMode': _darkMode,
+      'animationsEnabled': _animationsEnabled,
+    }));
+  }
+
+  void _setDarkMode(bool value) {
+    setState(() => _darkMode = value);
+    _saveUiPreferences();
+  }
+
+  void _setAnimationsEnabled(bool value) {
+    setState(() => _animationsEnabled = value);
+    _saveUiPreferences();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,8 +76,8 @@ class _HWControlAppState extends State<HWControlApp> {
       home: DashboardScreen(
         darkMode: _darkMode,
         animationsEnabled: _animationsEnabled,
-        onThemeChanged: (value) => setState(() => _darkMode = value),
-        onAnimationsChanged: (value) => setState(() => _animationsEnabled = value),
+        onThemeChanged: _setDarkMode,
+        onAnimationsChanged: _setAnimationsEnabled,
       ),
     );
   }
