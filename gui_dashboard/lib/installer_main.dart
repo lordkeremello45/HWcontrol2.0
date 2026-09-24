@@ -35,6 +35,9 @@ class InstallerWizard extends StatefulWidget {
 class _InstallerWizardState extends State<InstallerWizard> {
   int _step = 0;
   bool _checking = true;
+  bool _installAiModel = true;
+  bool _aiDownloading = false;
+  double _aiProgress = 0;
   String _details = 'Kurulum bileşenleri kontrol ediliyor...';
   Directory? _stateDirectory;
 
@@ -100,6 +103,37 @@ class _InstallerWizardState extends State<InstallerWizard> {
     }
   }
   Future<void> _complete() async {
+    if (_installAiModel) {
+      setState(() {
+        _aiDownloading = true;
+        _aiProgress = 0;
+        _details = 'Gemma 3 1B modeli hazırlanıyor...';
+      });
+      try {
+        await HWControlModelManager.ensureReady(
+          onProgress: (progress) {
+            if (!mounted) return;
+            setState(() {
+              _aiProgress = progress.clamp(0.0, 1.0);
+              _details = 'Gemma 3 1B indiriliyor: ${(_aiProgress * 100).toStringAsFixed(0)}%';
+            });
+          },
+        );
+      } catch (error) {
+        if (!mounted) return;
+        setState(() {
+          _aiDownloading = false;
+          _details = 'Gemma kurulamadı: $error\nTemel kurulum devam edebilir; AI daha sonra tekrar denenebilir.';
+        });
+        return;
+      }
+      if (!mounted) return;
+      setState(() {
+        _aiDownloading = false;
+        _aiProgress = 1;
+        _details = 'Gemma 3 1B indirildi ve SHA-256 ile doğrulandı.';
+      });
+    }
     try {
       final directory = _stateDirectory ?? await getApplicationSupportDirectory();
       await directory.create(recursive: true);
@@ -154,19 +188,33 @@ class _InstallerWizardState extends State<InstallerWizard> {
                         borderRadius: BorderRadius.circular(12),
                         color: Theme.of(context).colorScheme.surfaceContainerHighest,
                       ),
-                      child: Text(_checking ? 'Kurulum kontrol ediliyor...' : _details),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(_checking ? 'Kurulum kontrol ediliyor...' : _details),
+                          if (_aiDownloading) ...[
+                            const SizedBox(height: 12),
+                            LinearProgressIndicator(value: _aiProgress),
+                          ],
+                        ],
+                      ),
                     ),
                   const SizedBox(height: 24),
                   Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                     const SizedBox(width: 8),
                     FilledButton.icon(
-                      onPressed: _checking && _step == 2 ? null : _next,
+                      onPressed: (_checking && _step == 2) || _aiDownloading ? null : _next,
                       icon: Icon(_step == 2 ? Icons.rocket_launch : Icons.arrow_forward),
                       label: Text(_step == 2 ? 'Kurulumu tamamla' : 'Devam'),
                     ),
                   ]),
                   const SizedBox(height: 12),
-                  Text('AI modeli kurulumdan bağımsızdır. İlk AI analizi istendiğinde indirilir, SHA-256 ile doğrulanır ve uygulama cache dizininde saklanır.', style: Theme.of(context).textTheme.bodySmall),
+                  Text(
+                    _installAiModel
+                        ? 'AI seçildi: Gemma kurulum sırasında hazırlanır. Eksik veya bozuk model tespit edilirse yeniden indirilerek otomatik onarılır.'
+                        : 'AI seçilmedi: Gemma kurulmaz. İlk AI analizi istendiğinde model güvenli biçimde indirilebilir.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 ],
               ),
             ),
@@ -187,8 +235,8 @@ class _InstallerWizardState extends State<InstallerWizard> {
   String _bodyForStep() {
     switch (_step) {
       case 0: return 'Bu çalıştırmada $_platformName için uygun paket biçimi $_packageFormats.';
-      case 1: return 'Gemma 3 1B Instruct Q5_K_M modeli kurulumdan bağımsızdır. Yaklaşık 851 MB model yalnızca ilk AI analizi istendiğinde indirilir ve SHA-256 ile doğrulanır.';
-      default: return 'Model indirme başarısız olsa bile temel uygulama kurulumu tamamlanır; AI paneli daha sonra güvenli biçimde yeniden deneyebilir.';
+      case 1: return 'Yerel AI bileşenini isteğe bağlı olarak kur. Seçersen Gemma 3 1B Instruct Q5_K_M (~851 MB) kurulum sırasında indirilir ve SHA-256 ile doğrulanır.';
+      default: return _installAiModel ? 'Kurulum son adımında model hazırlanır. Eksik veya bozuk bir model varsa güvenli indirme ile otomatik onarılır.' : 'Temel uygulama kurulumu tamamlanır; AI modeli bu kurulumda indirilmez.';
     }
   }
 }
