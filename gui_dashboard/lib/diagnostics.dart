@@ -10,10 +10,13 @@ import 'package:path_provider/path_provider.dart';
 /// diagnostics in the application support directory so the dashboard remains
 /// functional when cloud services are unavailable or disabled.
 class HWControlDiagnostics {
-  HWControlDiagnostics._();
+  HWControlDiagnostics({Directory? baseDirectory}) : _baseDirectory = baseDirectory;
+
+  HWControlDiagnostics._() : _baseDirectory = null;
 
   static final HWControlDiagnostics instance = HWControlDiagnostics._();
 
+  final Directory? _baseDirectory;
   Future<File>? _logFileFuture;
 
   Future<File> _logFile() {
@@ -21,7 +24,7 @@ class HWControlDiagnostics {
   }
 
   Future<File> _resolveLogFile() async {
-    final directory = await getApplicationSupportDirectory();
+    final directory = _baseDirectory ?? await getApplicationSupportDirectory();
     final diagnosticsDirectory =
         Directory('${directory.path}${Platform.pathSeparator}diagnostics');
     await diagnosticsDirectory.create(recursive: true);
