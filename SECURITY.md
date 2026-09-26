@@ -41,6 +41,7 @@ Hardware control requests are fail-closed at the bridge boundary.
 
 - Fan-control commands are rejected when the backend reports monitor-only or unsupported control.
 - Critical CPU/GPU temperatures at or above 95 °C block fan-control commands.
+- Missing/invalid thermal telemetry also blocks fan-control commands; the control path never treats an unknown temperature as safe.
 - Command values are range-validated before execution.
 - The safety gate is evaluated in the bridge process rather than trusting GUI state.
 
