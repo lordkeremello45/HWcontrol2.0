@@ -485,28 +485,28 @@ func diagnosticsSnapshot() map[string]any {
 		}
 	}
 	return map[string]any{
-		"bridgeVersion":          bridgeVersion,
-		"platform":               runtime.GOOS,
-		"architecture":           runtime.GOARCH,
-		"goVersion":              runtime.Version(),
-		"keyFileConfigured":      strings.TrimSpace(os.Getenv("HWCONTROL_KEY_FILE")) != "",
-		"keyConfigured":          strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "" && strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "replace-me",
-		"keyFile":                defaultKeyFile(),
-		"modelPathConfigured":    modelPath != "",
-		"modelState":             modelState,
-		"modelSha256":            modelDigest(),
-		"sensorSource":           metrics.SensorSource,
-		"gpuVendor":              metrics.GPUVendor,
-		"gpuDriver":              metrics.GPUDriver,
-		"gpuDriverStatus":        metrics.GPUDriverStatus,
-		"hardwareControl":        metrics.FanControlSupported,
-		"fanControlBackend":      metrics.FanControlBackend,
-		"hardwareControlMode":    metrics.HardwareControlMode,
-		"thermalSafetyAvailable": metrics.ThermalSafetyAvailable,
-		"localOnly":              true,
-		"listenAddress":          bridgeEndpoint(),
-		"uptimeSeconds":          metrics.UptimeSeconds,
-		"gameMode":               collectGameModeState(),
+				"bridgeVersion":          bridgeVersion,
+				"platform":               runtime.GOOS,
+				"architecture":           runtime.GOARCH,
+				"goVersion":              runtime.Version(),
+				"keyFileConfigured":      strings.TrimSpace(os.Getenv("HWCONTROL_KEY_FILE")) != "",
+				"keyConfigured":          strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "" && strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "replace-me",
+				"keyFile":                defaultKeyFile(),
+				"modelPathConfigured":    modelPath != "",
+				"modelState":             modelState,
+				"modelSha256":            modelDigest(),
+				"sensorSource":           metrics.SensorSource,
+				"gpuVendor":              metrics.GPUVendor,
+				"gpuDriver":              metrics.GPUDriver,
+				"gpuDriverStatus":        metrics.GPUDriverStatus,
+				"hardwareControl":        metrics.FanControlSupported,
+				"fanControlBackend":      metrics.FanControlBackend,
+				"hardwareControlMode":    metrics.HardwareControlMode,
+				"thermalSafetyAvailable": metrics.ThermalSafetyAvailable,
+				"localOnly":              true,
+				"listenAddress":          bridgeEndpoint(),
+				"uptimeSeconds":          metrics.UptimeSeconds,
+				"gameMode":               collectGameModeState(),
 
 		"hardwareIdentity": map[string]any{
 			"systemManufacturer": metrics.SystemManufacturer,
@@ -678,9 +678,9 @@ func handleConnection(conn net.Conn, secret string) {
 		if cmd.Action == "Get Security" {
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
 			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Güvenlik durumu alındı", Data: map[string]any{
-				"hmac":        true,
-				"modelSha256": modelDigest(),
-				"keyFileConfigured": strings.TrimSpace(os.Getenv("HWCONTROL_KEY_FILE")) != "",
+				"hmac":                true,
+				"modelSha256":         modelDigest(),
+				"keyFileConfigured":   strings.TrimSpace(os.Getenv("HWCONTROL_KEY_FILE")) != "",
 			}}); err != nil {
 				return
 			}
