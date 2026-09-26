@@ -15,10 +15,10 @@ import (
 
 func testCommand(action string, value float64) Command {
 	return Command{
-		Action: action,
-		Value: value,
+		Action:    action,
+		Value:     value,
 		Timestamp: time.Now().UnixMilli(),
-		Nonce: "0123456789abcdef0123456789abcdef",
+		Nonce:     "0123456789abcdef0123456789abcdef",
 	}
 }
 
