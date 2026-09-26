@@ -24,6 +24,8 @@ type HardwareIdentity struct {
 	CPUArchitecture    string
 	CPUPhysicalCores   int
 	CPUThreads         int
+	CPUBaseClockMHz    float64
+	CPUMaxClockMHz     float64
 	GPUVendor          string
 	GPUModel           string
 	GPUDriver          string
