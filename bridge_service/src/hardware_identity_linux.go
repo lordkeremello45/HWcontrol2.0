@@ -78,7 +78,6 @@ func collectHardwareIdentity() HardwareIdentity {
 	return id
 }
 
-
 func vendorName(vendor string) string {
 	switch strings.TrimSpace(vendor) {
 	case "0x10de":
@@ -136,7 +135,9 @@ func linuxGPUModels() map[string]string {
 
 func linuxCPUFrequencyMHz(path string) float64 {
 	data, err := os.ReadFile(path)
-	if err != nil { return 0 }
+	if err != nil {
+		return 0
+	}
 	var khz uint64
 	if _, err := fmt.Sscanf(strings.TrimSpace(string(data)), "%d", &khz); err != nil { return 0 }
 	return float64(khz) / 1000
