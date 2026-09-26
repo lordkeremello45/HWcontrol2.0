@@ -102,17 +102,17 @@ jobs:
           $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
           wix extension add -g WixToolset.Util.wixext
           wix --version
-          $version = "${{ github.ref_name }}" -replace '^v', '' -replace '-windows$', ''
-          $packageDir = "package/HWControl-${{ github.ref_name }}-Windows-x64"
-          wix build deploy/windows/HWControl.wxs -arch x64 -d Version=$version -d PackageDir=$packageDir -o "HWControl-${{ github.ref_name }}-Windows-x64.msi"
-          if (-not (Test-Path "HWControl-${{ github.ref_name }}-Windows-x64.msi")) { throw 'MSI was not produced' }
-          if ((Get-Item "HWControl-${{ github.ref_name }}-Windows-x64.msi").Length -lt 4096) { throw 'MSI is unexpectedly small' }
+          $version = "${{ env.RELEASE_TAG }}" -replace '^v', '' -replace '-windows$', ''
+          $packageDir = "package/HWControl-${{ env.RELEASE_TAG }}-Windows-x64"
+          wix build deploy/windows/HWControl.wxs -arch x64 -d Version=$version -d PackageDir=$packageDir -o "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi"
+          if (-not (Test-Path "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi")) { throw 'MSI was not produced' }
+          if ((Get-Item "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi").Length -lt 4096) { throw 'MSI is unexpectedly small' }
 
       - name: Smoke test MSI install and uninstall
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $msi = (Resolve-Path "HWControl-${{ github.ref_name }}-Windows-x64.msi").Path
+          $msi = (Resolve-Path "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi").Path
           $root = Join-Path $env:RUNNER_TEMP 'HWControl-MSI-Validation'
           if (Test-Path $root) { Remove-Item $root -Recurse -Force }
           New-Item -ItemType Directory -Force -Path $root | Out-Null
@@ -134,8 +134,8 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $packageDir = "package/HWControl-${{ github.ref_name }}-Windows-x64"
-          $zip = "HWControl-${{ github.ref_name }}-Windows-x64.zip"
+          $packageDir = "package/HWControl-${{ env.RELEASE_TAG }}-Windows-x64"
+          $zip = "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.zip"
           Compress-Archive -Path "$packageDir/*" -DestinationPath $zip
           Expand-Archive -Path $zip -DestinationPath verify-zip -Force
           if (-not (Test-Path "verify-zip/HWControl.exe")) { throw 'HWControl.exe missing from ZIP' }
@@ -145,31 +145,31 @@ jobs:
       - name: Generate checksums
         shell: pwsh
         run: |
-          $zip = "HWControl-${{ github.ref_name }}-Windows-x64.zip"
-          $msi = "HWControl-${{ github.ref_name }}-Windows-x64.msi"
+          $zip = "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.zip"
+          $msi = "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi"
           $zipHash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
           $msiHash = (Get-FileHash $msi -Algorithm SHA256).Hash.ToLowerInvariant()
-          Set-Content "HWControl-${{ github.ref_name }}-Windows-x64.sha256" @(
+          Set-Content "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.sha256" @(
             "$zipHash  $zip",
             "$msiHash  $msi"
           )
-          if ((Get-Content "HWControl-${{ github.ref_name }}-Windows-x64.sha256").Count -ne 2) { throw 'Invalid checksum manifest' }
+          if ((Get-Content "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.sha256").Count -ne 2) { throw 'Invalid checksum manifest' }
 
       - name: Generate package provenance
         uses: actions/attest@v4
         with:
           subject-path: |
-            HWControl-${{ github.ref_name }}-Windows-x64.zip
-            HWControl-${{ github.ref_name }}-Windows-x64.msi
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.zip
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi
 
       - name: Upload Windows release artifact
         uses: actions/upload-artifact@v4
         with:
-          name: HWControl-${{ github.ref_name }}-Windows-x64
+          name: HWControl-${{ env.RELEASE_TAG }}-Windows-x64
           path: |
-            HWControl-${{ github.ref_name }}-Windows-x64.zip
-            HWControl-${{ github.ref_name }}-Windows-x64.msi
-            HWControl-${{ github.ref_name }}-Windows-x64.sha256
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.zip
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.sha256
 
   release:
     needs: build-windows
@@ -178,14 +178,14 @@ jobs:
       - name: Download Windows release artifact
         uses: actions/download-artifact@v4
         with:
-          name: HWControl-${{ github.ref_name }}-Windows-x64
+          name: HWControl-${{ env.RELEASE_TAG }}-Windows-x64
           path: dist
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: ${{ startsWith(github.ref_name, 'v0.3.0-') && 'HWcontrol2.0 Beta — Windows' || format('HWControl {0}', github.ref_name) }}
-          tag_name: ${{ github.ref_name }}
+          name: ${{ startsWith(env.RELEASE_TAG, 'v0.3.0-') && 'HWcontrol2.0 Beta — Windows' || format('HWControl {0}', env.RELEASE_TAG) }}
+          tag_name: ${{ env.RELEASE_TAG }}
           generate_release_notes: true
           files: |
             dist/*.zip
