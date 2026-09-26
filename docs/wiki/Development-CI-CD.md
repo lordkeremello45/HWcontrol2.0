@@ -6,6 +6,6 @@ Important workflows include:
 
 - `.github/workflows/platform-validation.yml`
 - `.github/workflows/windows-setup-release.yml`
-- `.github/workflows/release-integrity.yml`
+- `.github/workflows/release-integrity-v2.yml`
 
 CI should be treated as part of the build/security surface because packaging, checksums, signing and release publication are all driven by repository-controlled workflows.
