@@ -13,20 +13,29 @@ import (
 	"time"
 )
 
+func testCommand(action string, value float64) Command {
+	return Command{
+		Action: action,
+		Value: value,
+		Timestamp: time.Now().UnixMilli(),
+		Nonce: "0123456789abcdef0123456789abcdef",
+	}
+}
+
 func TestValidateCommand(t *testing.T) {
 	tests := []struct {
 		name    string
 		command Command
 		valid   bool
 	}{
-		{"valid fan command", Command{Action: "Fan Hızı", Value: 50}, true},
-		{"unknown action", Command{Action: "shutdown", Value: 50}, false},
-		{"out of range", Command{Action: "Fan Hızı", Value: 101}, false},
-		{"missing action", Command{Value: 20}, false},
-		{"status command", Command{Action: "Get Status"}, true},
-		{"security command", Command{Action: "Get Security"}, true},
-		{"diagnostics command", Command{Action: "Get Diagnostics"}, true},
-		{"health command", Command{Action: "Get Health"}, true},
+		{"valid fan command", testCommand("Fan Hızı", 50), true},
+		{"unknown action", testCommand("shutdown", 50), false},
+		{"out of range", testCommand("Fan Hızı", 101), false},
+		{"missing action", testCommand("", 20), false},
+		{"status command", testCommand("Get Status", 0), true},
+		{"security command", testCommand("Get Security", 0), true},
+		{"diagnostics command", testCommand("Get Diagnostics", 0), true},
+		{"health command", testCommand("Get Health", 0), true},
 	}
 
 	for _, test := range tests {
@@ -39,15 +48,15 @@ func TestValidateCommand(t *testing.T) {
 }
 
 func TestCommandPayloadIsStable(t *testing.T) {
-	command := Command{Action: "Fan Hızı", Value: 42.5}
-	want := "Fan Hızı\n42.500000"
+	command := Command{Action: "Fan Hızı", Value: 42.5, Timestamp: 1710000000123, Nonce: "0123456789abcdef0123456789abcdef"}
+	want := "Fan Hızı\n42.500000\n1710000000123\n0123456789abcdef0123456789abcdef"
 	if got := commandPayload(command); got != want {
 		t.Fatalf("commandPayload() = %q, want %q", got, want)
 	}
 }
 
 func TestAuthenticateCommand(t *testing.T) {
-	command := Command{Action: "Fan Hızı", Value: 50}
+	command := testCommand("Fan Hızı", 50)
 	secret := "test-secret"
 	command.Auth = signCommand(command, secret)
 
@@ -61,7 +70,8 @@ func TestAuthenticateCommand(t *testing.T) {
 }
 
 func TestAuthenticateCommandRejectsMalformedAuth(t *testing.T) {
-	command := Command{Action: "Get Status", Auth: "not-hex"}
+	command := testCommand("Get Status", 0)
+	command.Auth = "not-hex"
 	if authenticateCommand(command, "test-secret") {
 		t.Fatal("expected malformed authentication value to be rejected")
 	}
@@ -74,9 +84,35 @@ func TestAuthenticateCommandRejectsMalformedAuth(t *testing.T) {
 
 func TestValidateCommandRejectsNonFiniteAndOutOfRangeValues(t *testing.T) {
 	for _, value := range []float64{-1, 101, math.NaN(), math.Inf(1), math.Inf(-1)} {
-		if err := validateCommand(Command{Action: "Fan Hızı", Value: value}); err == nil {
+		if err := validateCommand(testCommand("Fan Hızı", value)); err == nil {
 			t.Fatalf("validateCommand() accepted invalid value %v", value)
 		}
+	}
+}
+
+
+
+func TestValidateCommandRejectsStaleTimestampAndMalformedNonce(t *testing.T) {
+	stale := testCommand("Get Status", 0)
+	stale.Timestamp = time.Now().Add(-commandClockSkew - time.Second).UnixMilli()
+	if err := validateCommand(stale); err == nil {
+		t.Fatal("expected stale command to be rejected")
+	}
+
+	malformed := testCommand("Get Status", 0)
+	malformed.Nonce = "not-a-nonce"
+	if err := validateCommand(malformed); err == nil {
+		t.Fatal("expected malformed nonce to be rejected")
+	}
+}
+
+func TestCommandNonceReplayProtection(t *testing.T) {
+	nonce := "fedcba9876543210fedcba9876543210"
+	if !consumeCommandNonce(nonce, time.Now()) {
+		t.Fatal("expected first nonce to be accepted")
+	}
+	if consumeCommandNonce(nonce, time.Now()) {
+		t.Fatal("expected replayed nonce to be rejected")
 	}
 }
 
@@ -106,7 +142,7 @@ func TestBridgePortFallsBackToSafeDefault(t *testing.T) {
 
 func TestExecuteHardwareCommandFailsClosed(t *testing.T) {
 	for _, action := range []string{"Fan Hızı", "AI İşlem Gücü"} {
-		err := executeHardwareCommand(Command{Action: action, Value: 50})
+		err := executeHardwareCommand(testCommand(action, 50))
 		if err == nil {
 			t.Fatalf("expected %q to fail without a hardware backend", action)
 		}
