@@ -3,6 +3,7 @@
 package main
 
 import (
+	"encoding/json"
 	"os/exec"
 	"strings"
 )
@@ -25,6 +26,26 @@ func collectHardwareIdentity() HardwareIdentity {
 	id.CPUThreads = parsePositiveInt(macSysctl("hw.logicalcpu"))
 	id.CPUPhysicalCores = parsePositiveInt(macSysctl("hw.physicalcpu"))
 	id.GPUVendor = "Apple"
+	id.MotherboardVendor = "Apple"
+
+	if output, err := exec.Command("system_profiler", "SPDisplaysDataType", "-json").Output(); err == nil {
+		var raw map[string]any
+		if json.Unmarshal(output, &raw) == nil {
+			if displays, ok := raw["SPDisplaysDataType"].([]any); ok {
+				for _, display := range displays {
+					if item, ok := display.(map[string]any); ok {
+						model := stringValue(item["_name"])
+						vendor := stringValue(item["spdisplays_vendor"])
+						if vendor == "" { vendor = "Apple" }
+						id.GPUs = append(id.GPUs, GPUIdentity{
+							Vendor: vendor,
+							Model: model,
+						})
+					}
+				}
+			}
+		}
+	}
 
 	if out, err := exec.Command("ioreg", "-l", "-c", "IOPlatformExpertDevice").Output(); err == nil {
 		text := string(out)
