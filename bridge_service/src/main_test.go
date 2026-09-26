@@ -144,7 +144,7 @@ func TestHardwareControlSafetyGate(t *testing.T) {
 		FanControlBackend:      "test-backend",
 		ThermalSafetyAvailable: true,
 		CPUTemperature:         60,
-		GPUTemperature:      65,
+		GPUTemperature:         65,
 	}
 	if err := hardwareControlSafetyError(base); err != nil {
 		t.Fatalf("expected safe temperatures, got %v", err)
