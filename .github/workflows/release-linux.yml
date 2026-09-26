@@ -24,6 +24,7 @@ permissions:
 env:
   FLUTTER_VERSION: 3.47.2
   RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  SOURCE_REF: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || github.ref_name }}
 
 jobs:
   build-linux:
@@ -35,6 +36,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+          ref: ${{ env.SOURCE_REF }}
 
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev zstd dpkg-dev
