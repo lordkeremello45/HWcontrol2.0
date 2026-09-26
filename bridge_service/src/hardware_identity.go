@@ -1,13 +1,13 @@
 package main
 
 type GPUIdentity struct {
-	Vendor        string
-	Model         string
-	Driver        string
-	DriverVersion string
-	PCIAddress    string
-	DeviceID      string
-	MemoryBytes   uint64
+	Vendor        string `json:"vendor"`
+	Model         string `json:"model"`
+	Driver        string `json:"driver"`
+	DriverVersion string `json:"driverVersion"`
+	PCIAddress    string `json:"pciAddress"`
+	DeviceID      string `json:"deviceId"`
+	MemoryBytes   uint64 `json:"memoryBytes"`
 }
 
 type HardwareIdentity struct {
