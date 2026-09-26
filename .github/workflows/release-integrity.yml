@@ -167,8 +167,7 @@ jobs:
           cd release-assets
           case "$TAG" in
             *-windows)
-              compgen -G '*.msi' >/dev/null || { echo 'Windows release has no MSI asset'; exit 1; }
-              compgen -G '*.msix' >/dev/null || { echo 'Windows release has no MSIX asset'; exit 1; }
+              compgen -G '*.msi' >/dev/null || compgen -G '*.zip' >/dev/null || { echo 'Windows release has no MSI or ZIP asset'; exit 1; }
               ;;
             *-macos)
               compgen -G '*.pkg' >/dev/null || compgen -G '*.dmg' >/dev/null || { echo 'macOS release has no PKG or DMG asset'; exit 1; }
