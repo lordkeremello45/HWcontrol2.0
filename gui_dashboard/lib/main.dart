@@ -714,14 +714,37 @@ Attach this archive to a support issue only after reviewing it for personal info
     }
   }
 
+  String _commandNonce() {
+    final random = math.Random.secure();
+    final bytes = List<int>.generate(16, (_) => random.nextInt(256));
+    return bytes.map((value) => value.toRadixString(16).padLeft(2, '0')).join();
+  }
+
+  String _commandAuth({
+    required String action,
+    required double value,
+    required int timestamp,
+    required String nonce,
+  }) {
+    final payload = '$action\n${value.toStringAsFixed(6)}\n$timestamp\n$nonce';
+    return Hmac(sha256, utf8.encode(_sharedKey)).convert(utf8.encode(payload)).toString();
+  }
+
   Future<Map<String, dynamic>?> _requestBridgeData(String action) async {
     final socket = _socket;
     if (!_isConnected || socket == null || _sharedKey.isEmpty || _isSending) return null;
     _isSending = true;
     try {
-      final payload = '$action\n0.000000';
-      final auth = Hmac(sha256, utf8.encode(_sharedKey)).convert(utf8.encode(payload)).toString();
-      socket.write('${jsonEncode({'action': action, 'value': 0.0, 'auth': auth})}\n');
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final nonce = _commandNonce();
+      final auth = _commandAuth(action: action, value: 0.0, timestamp: timestamp, nonce: nonce);
+      socket.write('${jsonEncode({
+        'action': action,
+        'value': 0.0,
+        'timestamp': timestamp,
+        'nonce': nonce,
+        'auth': auth,
+      })}\n');
       final responses = _responses;
       if (responses == null || !await responses.moveNext().timeout(const Duration(seconds: 4))) return null;
       final response = jsonDecode(responses.current) as Map<String, dynamic>;
@@ -1028,11 +1051,14 @@ Attach this archive to a support issue only after reviewing it for personal info
 
     setState(() => _isSending = true);
     try {
-      final payload = '$action\n${value.toStringAsFixed(6)}';
-      final auth = Hmac(sha256, utf8.encode(_sharedKey)).convert(utf8.encode(payload)).toString();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final nonce = _commandNonce();
+      final auth = _commandAuth(action: action, value: value, timestamp: timestamp, nonce: nonce);
       socket.write('${jsonEncode({
         'action': action,
         'value': value,
+        'timestamp': timestamp,
+        'nonce': nonce,
         'auth': auth,
       })}\n');
 
