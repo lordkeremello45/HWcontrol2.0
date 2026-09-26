@@ -203,7 +203,7 @@ function findGitHubIssueByFeedbackId_(feedbackId) {
   if (!token) throw new Error("Missing Script Property: GITHUB_TOKEN");
 
   const query = encodeURIComponent(
-    "repo:" + GITHUB_OWNER + "/" + GITHUB_REPO + " HWCONTROL-FEEDBACK-ID:"" + feedbackId + """
+    "repo:" + GITHUB_OWNER + "/" + GITHUB_REPO + ' "HWCONTROL-FEEDBACK-ID:' + feedbackId + '" in:body'
   );
   const url = "https://api.github.com/search/issues?q=" + query;
 
