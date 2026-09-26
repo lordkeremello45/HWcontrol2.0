@@ -15,8 +15,8 @@ void main() {
 
     final directory = await getApplicationSupportDirectory();
     final file = File(
-      '\${directory.path}\${Platform.pathSeparator}diagnostics'
-      '\${Platform.pathSeparator}events.jsonl',
+      '${directory.path}${Platform.pathSeparator}diagnostics'
+      '${Platform.pathSeparator}events.jsonl',
     );
     expect(await file.exists(), isTrue);
 
