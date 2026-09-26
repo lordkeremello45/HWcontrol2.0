@@ -32,6 +32,8 @@ func collectHardwareIdentity() HardwareIdentity {
 		if cores, err := cpu.Counts(false); err == nil {
 			id.CPUPhysicalCores = cores
 		}
+		id.CPUBaseClockMHz = linuxCPUFrequencyMHz("/sys/devices/system/cpu/cpu0/cpufreq/base_frequency")
+		id.CPUMaxClockMHz = linuxCPUFrequencyMHz("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq")
 	}
 	gpuModels := linuxGPUModels()
 	cards, _ := filepath.Glob("/sys/class/drm/card[0-9]*")
@@ -130,4 +132,12 @@ func linuxGPUModels() map[string]string {
 		}
 	}
 	return models
+}
+
+func linuxCPUFrequencyMHz(path string) float64 {
+	data, err := os.ReadFile(path)
+	if err != nil { return 0 }
+	var khz uint64
+	if _, err := fmt.Sscanf(strings.TrimSpace(string(data)), "%d", &khz); err != nil { return 0 }
+	return float64(khz) / 1000
 }
