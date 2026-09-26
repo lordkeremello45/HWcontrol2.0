@@ -63,7 +63,7 @@ func listenBridge() (net.Listener, string, error) {
 			}
 		}
 	}
-	if err := os.Chmod(path, 0600); err != nil {
+	if err := os.Chmod(path, 0660); err != nil {
 		_ = listener.Close()
 		_ = os.Remove(path)
 		return nil, path, fmt.Errorf("protect bridge socket: %w", err)
