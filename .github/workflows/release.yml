@@ -17,7 +17,7 @@ on:
         type: string
 
 permissions:
-  contents: write
+  contents: read
   id-token: write
   attestations: write
 
@@ -31,6 +31,14 @@ jobs:
     runs-on: windows-2022
     timeout-minutes: 40
     steps:
+      - name: Validate manual release source
+        if: github.event_name == 'workflow_dispatch'
+        shell: pwsh
+        run: |
+          if ("${{ inputs.source_ref }}" -ne "${{ inputs.tag }}") {
+            throw "Manual releases must build the exact release tag. source_ref must equal tag."
+          }
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -177,6 +185,8 @@ jobs:
   release:
     needs: build-windows
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     steps:
       - name: Download Windows release artifact
         uses: actions/download-artifact@v4
