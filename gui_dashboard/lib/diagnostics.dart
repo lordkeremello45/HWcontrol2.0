@@ -122,8 +122,7 @@ class HWControlDiagnostics {
         'stackTrace': _safeStackTrace(stackTrace),
       };
       await file.writeAsString(
-        '${jsonEncode(payload)}
-',
+        '${jsonEncode(payload)}\n',
         mode: FileMode.append,
         flush: true,
       );
