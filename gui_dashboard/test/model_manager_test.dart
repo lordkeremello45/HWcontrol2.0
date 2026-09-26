@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import '../lib/model_manager.dart';
+import 'package:hwcontrol_dashboard/model_manager.dart';
 
 void main() {
   test('AI model metadata stays within distribution budget', () {
