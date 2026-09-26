@@ -7,8 +7,13 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag, for example v0.2.5-linux'
+        description: 'Existing release tag, for example v0.3.0-beta-linux'
         required: true
+        type: string
+      source_ref:
+        description: 'Source branch or commit to build'
+        required: true
+        default: main
         type: string
 
 permissions:
@@ -160,7 +165,7 @@ jobs:
         with:
           subject-path: |
             HWControl-${{ env.RELEASE_TAG }}-Linux-x64.deb
-            HWControl-${{ github.ref_name }}-Linux-x64.tar.gz
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.gz
             HWControl-${{ github.ref_name }}-Linux-x64.tar.zst
 
       - name: Publish Linux release
