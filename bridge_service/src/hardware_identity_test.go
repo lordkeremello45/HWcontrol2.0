@@ -22,7 +22,6 @@ func TestHardwareIdentityDetectionDoesNotExposeCredentialFields(t *testing.T) {
 	}
 }
 
-
 func TestGPUIdentityContract(t *testing.T) {
 	gpu := GPUIdentity{
 		Vendor: "NVIDIA",
