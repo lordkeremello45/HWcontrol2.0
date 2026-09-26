@@ -8,7 +8,14 @@ import (
 	"strings"
 )
 
-type windowsGPUIdentity struct {\n\tVendor string\n\tModel string\n\tDriver string\n\tDriverVersion string\n}\n\ntype windowsHardwareIdentity struct {
+type windowsGPUIdentity struct {
+	Vendor        string
+	Model         string
+	Driver        string
+	DriverVersion string
+}
+
+type windowsHardwareIdentity struct {
 	SystemManufacturer string
 	SystemModel        string
 	SystemVersion      string
@@ -33,7 +40,8 @@ const windowsHardwareIdentityScript = "$ErrorActionPreference='SilentlyContinue'
 	"$bios=Get-CimInstance Win32_BIOS | Select-Object -First 1\n" +
 	"$board=Get-CimInstance Win32_BaseBoard | Select-Object -First 1\n" +
 	"$cpu=Get-CimInstance Win32_Processor | Select-Object -First 1\n" +
-	"$gpus=@(Get-CimInstance Win32_VideoController | Where-Object {$_.Name} | ForEach-Object { [pscustomobject]@{ vendor=[string]$_.AdapterCompatibility; model=[string]$_.Name; driver=[string]$_.DriverProviderName; driverVersion=[string]$_.DriverVersion } })\n" +\n\t"$gpu=$gpus | Select-Object -First 1\n" +
+	"$gpus=@(Get-CimInstance Win32_VideoController | Where-Object {$_.Name} | ForEach-Object { [pscustomobject]@{ vendor=[string]$_.AdapterCompatibility; model=[string]$_.Name; driver=[string]$_.DriverProviderName; driverVersion=[string]$_.DriverVersion } })\n" +
+	"$gpu=$gpus | Select-Object -First 1\n" +
 	"[pscustomobject]@{ systemManufacturer=[string]$cs.Manufacturer; systemModel=[string]$cs.Model; systemVersion=[string]$cs.SystemFamily; biosVendor=[string]$bios.Manufacturer; biosVersion=[string]$bios.SMBIOSBIOSVersion; motherboardVendor=[string]$board.Manufacturer; motherboardModel=[string]$board.Product; motherboardVersion=[string]$board.Version; cpuManufacturer=[string]$cpu.Manufacturer; cpuModel=[string]$cpu.Name; cpuPhysicalCores=[int]$cpu.NumberOfCores; cpuThreads=[int]$cpu.NumberOfLogicalProcessors; gpuVendor=[string]$gpu.AdapterCompatibility; gpuModel=[string]$gpu.Name; gpuDriver=[string]$gpu.DriverProviderName; gpuDriverVersion=[string]$gpu.DriverVersion; gpus=$gpus } | ConvertTo-Json -Compress"
 
 func collectHardwareIdentity() HardwareIdentity {
