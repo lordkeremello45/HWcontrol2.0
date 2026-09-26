@@ -266,9 +266,15 @@ func modelDigest() string {
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
+const maxActionLength = 64
+
 func validateCommand(cmd Command) error {
-	if strings.TrimSpace(cmd.Action) == "" {
+	action := strings.TrimSpace(cmd.Action)
+	if action == "" {
 		return fmt.Errorf("action is required")
+	}
+	if len(action) > maxActionLength {
+		return fmt.Errorf("action is too long")
 	}
 	if math.IsNaN(cmd.Value) || math.IsInf(cmd.Value, 0) || cmd.Value < 0 || cmd.Value > 100 {
 		return fmt.Errorf("value must be between 0 and 100")
@@ -286,8 +292,19 @@ func validateCommand(cmd Command) error {
 	if _, err := hex.DecodeString(cmd.Nonce); err != nil {
 		return fmt.Errorf("nonce must be hexadecimal")
 	}
-	switch cmd.Action {
-	case "Fan Hızı", "AI İşlem Gücü", "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Set Game Mode":
+	if len(cmd.Auth) != sha256.Size*2 {
+		return fmt.Errorf("auth must contain 64 hexadecimal characters")
+	}
+	if _, err := hex.DecodeString(cmd.Auth); err != nil {
+		return fmt.Errorf("auth must be hexadecimal")
+	}
+	switch action {
+	case "Fan Hızı", "AI İşlem Gücü", "Set Game Mode":
+		return nil
+	case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode":
+		if cmd.Value != 0 {
+			return fmt.Errorf("read-only command value must be zero")
+		}
 		return nil
 	default:
 		return fmt.Errorf("unsupported action: %s", cmd.Action)
@@ -367,6 +384,9 @@ func validBridgeSecret(secret string) bool {
 }
 
 func validateKeyFilePath(path string) error {
+	if !filepath.IsAbs(path) {
+		return fmt.Errorf("bridge key file path must be absolute")
+	}
 	info, err := os.Lstat(path)
 	if os.IsNotExist(err) {
 		return nil
@@ -411,17 +431,36 @@ func loadOrCreateSecret() (string, error) {
 	if err := os.MkdirAll(filepath.Dir(path), 0750); err != nil {
 		return "", fmt.Errorf("create key directory: %w", err)
 	}
-	tmp := path + ".tmp"
-	if err := os.WriteFile(tmp, []byte(secret+"\n"), 0600); err != nil {
+
+	// Create the key with O_EXCL so an attacker cannot pre-place a symlink at a
+	// predictable temporary path and redirect the secret elsewhere.
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+	if err != nil {
+		if os.IsExist(err) {
+			data, readErr := os.ReadFile(path)
+			if readErr != nil {
+				return "", fmt.Errorf("read concurrently-created bridge key: %w", readErr)
+			}
+			loaded := strings.TrimSpace(string(data))
+			if !validBridgeSecret(loaded) {
+				return "", fmt.Errorf("bridge key file contains an invalid secret")
+			}
+			return loaded, nil
+		}
+		return "", fmt.Errorf("create bridge key: %w", err)
+	}
+	if _, err := file.WriteString(secret + "\n"); err != nil {
+		_ = file.Close()
+		_ = os.Remove(path)
 		return "", fmt.Errorf("write bridge key: %w", err)
 	}
-	if err := os.Chmod(tmp, 0600); err != nil && runtime.GOOS != "windows" {
-		_ = os.Remove(tmp)
-		return "", fmt.Errorf("protect bridge key: %w", err)
+	if err := file.Close(); err != nil {
+		_ = os.Remove(path)
+		return "", fmt.Errorf("close bridge key: %w", err)
 	}
-	if err := os.Rename(tmp, path); err != nil {
-		_ = os.Remove(tmp)
-		return "", fmt.Errorf("commit bridge key: %w", err)
+	if err := os.Chmod(path, 0600); err != nil && runtime.GOOS != "windows" {
+		_ = os.Remove(path)
+		return "", fmt.Errorf("protect bridge key: %w", err)
 	}
 	return secret, nil
 }
@@ -444,9 +483,9 @@ func diagnosticsSnapshot() map[string]any {
 		"platform":               runtime.GOOS,
 		"architecture":           runtime.GOARCH,
 		"goVersion":              runtime.Version(),
-		"keyFile":                defaultKeyFile(),
+		"keyFileConfigured":      strings.TrimSpace(os.Getenv("HWCONTROL_KEY_FILE")) != "",
 		"keyConfigured":          strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "" && strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "replace-me",
-		"modelPath":              modelPath,
+		"modelPathConfigured":     modelPath != "",
 		"modelState":             modelState,
 		"modelSha256":            modelDigest(),
 		"sensorSource":           metrics.SensorSource,
@@ -633,7 +672,7 @@ func handleConnection(conn net.Conn, secret string) {
 			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Güvenlik durumu alındı", Data: map[string]any{
 				"hmac":        true,
 				"modelSha256": modelDigest(),
-				"keyFile":     defaultKeyFile(),
+				"keyFileConfigured": strings.TrimSpace(os.Getenv("HWCONTROL_KEY_FILE")) != "",
 			}}); err != nil {
 				return
 			}
