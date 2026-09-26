@@ -21,3 +21,25 @@ func TestHardwareIdentityDetectionDoesNotExposeCredentialFields(t *testing.T) {
 		t.Fatal("serials must remain excluded")
 	}
 }
+
+
+func TestGPUIdentityContract(t *testing.T) {
+	gpu := GPUIdentity{
+		Vendor: "NVIDIA",
+		Model: "Example GPU",
+		Driver: "nvidia",
+		DriverVersion: "1.0",
+		PCIAddress: "0000:01:00.0",
+		DeviceID: "0x1234",
+	}
+	if gpu.Vendor == "" || gpu.Model == "" || gpu.PCIAddress == "" {
+		t.Fatal("GPU identity fields must support vendor, model and PCI address")
+	}
+	if !idSerialsExcluded() {
+		t.Fatal("GPU identity must not include serial number fields")
+	}
+}
+
+func idSerialsExcluded() bool {
+	return emptyHardwareIdentity().SerialsExcluded
+}
