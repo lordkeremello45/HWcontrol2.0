@@ -109,3 +109,14 @@ jobs:
         run: flutter analyze
       - name: Test dashboard
         run: flutter test --no-pub
+
+  integrations:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate Google Apps Script syntax
+        run: node --check integrations/google-feedback/Code.gs
