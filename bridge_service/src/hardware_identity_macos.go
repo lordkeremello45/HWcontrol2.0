@@ -4,8 +4,8 @@ package main
 
 import (
 	"encoding/json"
-	"strconv"
 	"os/exec"
+	"strconv"
 	"strings"
 )
 
@@ -39,7 +39,9 @@ func collectHardwareIdentity() HardwareIdentity {
 					if item, ok := display.(map[string]any); ok {
 						model := macStringValue(item["_name"])
 						vendor := macStringValue(item["spdisplays_vendor"])
-						if vendor == "" { vendor = "Apple" }
+						if vendor == "" {
+							vendor = "Apple"
+						}
 						id.GPUs = append(id.GPUs, GPUIdentity{
 							Vendor: vendor,
 							Model: model,
@@ -64,9 +66,13 @@ func collectHardwareIdentity() HardwareIdentity {
 }
 
 func parseFrequencyMHz(value string) float64 {
-	if value == "" { return 0 }
+	if value == "" {
+		return 0
+	}
 	n, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
-	if err != nil { return 0 }
+	if err != nil {
+		return 0
+	}
 	return n / 1000000
 }
 
@@ -112,7 +118,6 @@ func extractIORegValue(text, key string) string {
 	}
 	return value
 }
-
 
 func macStringValue(value any) string {
 	if text, ok := value.(string); ok {
