@@ -678,9 +678,9 @@ func handleConnection(conn net.Conn, secret string) {
 		if cmd.Action == "Get Security" {
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
 			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Güvenlik durumu alındı", Data: map[string]any{
-				"hmac":                true,
-				"modelSha256":         modelDigest(),
-				"keyFileConfigured":   strings.TrimSpace(os.Getenv("HWCONTROL_KEY_FILE")) != "",
+				"hmac":              true,
+				"modelSha256":       modelDigest(),
+				"keyFileConfigured": strings.TrimSpace(os.Getenv("HWCONTROL_KEY_FILE")) != "",
 			}}); err != nil {
 				return
 			}
