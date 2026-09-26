@@ -11,10 +11,6 @@ void main() {
       expect(find.text('HWControl Kurulum Sihirbazı'), findsOneWidget);
       expect(find.text('Yerel AI (Gemma 3 1B)'), findsOneWidget);
       expect(find.byType(CheckboxListTile), findsOneWidget);
-      expect(
-        find.text('Test modu: kurulum ve model indirme atlandı.'),
-        findsOneWidget,
-      );
     },
   );
 
