@@ -51,16 +51,19 @@ jobs:
           for _ in $(seq 1 50); do test -S "$socket" && break; sleep .1; done
           test -S "$socket"
           python3 - "$socket" "$key_file" <<'PY'
-          import hashlib, hmac, json, socket, sys
+          import hashlib, hmac, json, secrets, socket, sys, time
           sock_path, key_path = sys.argv[1:]
           key = open(key_path).read().strip()
           action = "Get Status"
-          value = "0.000000"
-          auth = hmac.new(key.encode(), f"{action}\n{value}".encode(), hashlib.sha256).hexdigest()
+          value = 0.0
+          timestamp = int(time.time() * 1000)
+          nonce = secrets.token_hex(16)
+          payload = f"{action}\n{value:.6f}\n{timestamp}\n{nonce}"
+          auth = hmac.new(key.encode(), payload.encode(), hashlib.sha256).hexdigest()
           with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
               s.settimeout(5)
               s.connect(sock_path)
-              s.sendall((json.dumps({"action": action, "value": 0.0, "auth": auth}) + "\n").encode())
+              s.sendall((json.dumps({"action": action, "value": value, "timestamp": timestamp, "nonce": nonce, "auth": auth}) + "\n").encode())
               response = json.loads(s.makefile("r").readline())
           assert response["status"] == "SUCCESS", response
           PY
@@ -101,16 +104,19 @@ jobs:
           for _ in $(seq 1 50); do test -S "$socket" && break; sleep .1; done
           test -S "$socket"
           python3 - "$socket" "$key_file" <<'PY'
-          import hashlib, hmac, json, socket, sys
+          import hashlib, hmac, json, secrets, socket, sys, time
           sock_path, key_path = sys.argv[1:]
           key = open(key_path).read().strip()
           action = "Get Status"
-          value = "0.000000"
-          auth = hmac.new(key.encode(), f"{action}\n{value}".encode(), hashlib.sha256).hexdigest()
+          value = 0.0
+          timestamp = int(time.time() * 1000)
+          nonce = secrets.token_hex(16)
+          payload = f"{action}\n{value:.6f}\n{timestamp}\n{nonce}"
+          auth = hmac.new(key.encode(), payload.encode(), hashlib.sha256).hexdigest()
           with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
               s.settimeout(5)
               s.connect(sock_path)
-              s.sendall((json.dumps({"action": action, "value": 0.0, "auth": auth}) + "\n").encode())
+              s.sendall((json.dumps({"action": action, "value": value, "timestamp": timestamp, "nonce": nonce, "auth": auth}) + "\n").encode())
               response = json.loads(s.makefile("r").readline())
           assert response["status"] == "SUCCESS", response
           PY
@@ -149,13 +155,17 @@ jobs:
             }
             if (-not $ready) { throw 'Bridge did not start on compatibility TCP endpoint.' }
             $action = 'Get Status'
-            $value = '0.000000'
-            $payload = "$action`n$value"
+            $value = 0.0
+            $timestamp = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+            $nonceBytes = New-Object byte[] 16
+            [System.Security.Cryptography.RandomNumberGenerator]::Fill($nonceBytes)
+            $nonce = [Convert]::ToHexString($nonceBytes).ToLowerInvariant()
+            $payload = "$action`n{0:F6}`n$timestamp`n$nonce" -f $value
             $hmac = [System.Security.Cryptography.HMACSHA256]::new([Text.Encoding]::UTF8.GetBytes($key))
             $auth = [Convert]::ToHexString($hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($payload))).ToLowerInvariant()
             $client = [Net.Sockets.TcpClient]::new('127.0.0.1', 18080)
             $stream = $client.GetStream()
-            $request = [Text.Encoding]::UTF8.GetBytes((ConvertTo-Json @{ action=$action; value=0.0; auth=$auth; } -Compress) + "`n")
+            $request = [Text.Encoding]::UTF8.GetBytes((ConvertTo-Json @{ action=$action; value=$value; timestamp=$timestamp; nonce=$nonce; auth=$auth; } -Compress) + "`n")
             $stream.Write($request, 0, $request.Length)
             $reader = [IO.StreamReader]::new($stream)
             $response = $reader.ReadLine() | ConvertFrom-Json
