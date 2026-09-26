@@ -49,10 +49,6 @@ jobs:
           if [ -n "$files" ]; then
             echo "Unformatted Go files:"
             printf "%s\n" "$files"
-            for file in $files; do
-              echo "===== $file ====="
-              gofmt -d "$file"
-            done
             exit 1
           fi
       - name: Vet bridge
