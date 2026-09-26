@@ -21,6 +21,10 @@ import 'user_data_store.dart';
 void main() {
   final diagnostics = HWControlDiagnostics.instance;
 
+  unawaited(
+    diagnostics.initializeSession(applicationVersion: '0.2.4'),
+  );
+
   FlutterError.onError = (details) {
     unawaited(
       diagnostics.reportError(
@@ -34,10 +38,11 @@ void main() {
 
   ui.PlatformDispatcher.instance.onError = (error, stack) {
     unawaited(
-      diagnostics.reportError(
+      diagnostics.recordCrash(
         error,
         stack,
         event: 'uncaught_async_error',
+        applicationVersion: '0.2.4',
       ),
     );
     return false;
@@ -706,6 +711,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         'events': List<String>.from(_events),
         'telemetrySamples': _history.map((sample) => {'timestamp': sample.time.toUtc().toIso8601String(), 'cpuTemperature': sample.cpuTemperature, 'cpuUsage': sample.cpuUsage, 'cpuFrequencyMHz': sample.cpuFrequencyMHz, 'gpuTemperature': sample.gpuTemperature, 'gpuUsage': sample.gpuUsage, 'gpuCoreClockMHz': sample.gpuCoreClockMHz, 'gpuPowerWatts': sample.gpuPowerWatts, 'gpuMemoryUsage': sample.gpuMemoryUsage, 'fanPercent': sample.fanPercent, 'fanRpm': sample.fanRpm, 'memoryUsage': sample.memoryUsage, 'diskUsage': sample.diskUsage}).toList(growable: false),
         'thermalStatus': _thermalStatus,
+        'crashHistory': await HWControlDiagnostics.instance.readCrashHistory(),
       };
       final readme = '''HWControl Diagnostic Report
 
