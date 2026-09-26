@@ -4,6 +4,7 @@ package main
 
 import (
 	"encoding/json"
+	"strconv"
 	"os/exec"
 	"strings"
 )
@@ -25,6 +26,8 @@ func collectHardwareIdentity() HardwareIdentity {
 	id.CPUModel = macSysctl("machdep.cpu.brand_string")
 	id.CPUThreads = parsePositiveInt(macSysctl("hw.logicalcpu"))
 	id.CPUPhysicalCores = parsePositiveInt(macSysctl("hw.physicalcpu"))
+	id.CPUBaseClockMHz = parseFrequencyMHz(macSysctl("hw.cpufrequency"))
+	id.CPUMaxClockMHz = parseFrequencyMHz(macSysctl("hw.cpufrequency_max"))
 	id.GPUVendor = "Apple"
 	id.MotherboardVendor = "Apple"
 
@@ -58,6 +61,13 @@ func collectHardwareIdentity() HardwareIdentity {
 		id.DetectionStatus = "ok"
 	}
 	return id
+}
+
+func parseFrequencyMHz(value string) float64 {
+	if value == "" { return 0 }
+	n, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
+	if err != nil { return 0 }
+	return n / 1000000
 }
 
 func parsePositiveInt(value string) int {
