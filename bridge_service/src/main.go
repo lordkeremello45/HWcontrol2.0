@@ -661,13 +661,6 @@ func handleConnection(conn net.Conn, secret string) {
 			_ = encoder.Encode(Response{Status: "ERROR", Message: "invalid request"})
 			continue
 		}
-		if err := validateCommand(cmd); err != nil {
-			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-			if err := encoder.Encode(Response{Status: "ERROR", Message: err.Error()}); err != nil {
-				return
-			}
-			continue
-		}
 		if !authenticateCommand(cmd, secret) {
 			authFailures++
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
@@ -684,6 +677,13 @@ func handleConnection(conn net.Conn, secret string) {
 			continue
 		}
 		authFailures = 0
+		if err := validateCommand(cmd); err != nil {
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			if err := encoder.Encode(Response{Status: "ERROR", Message: err.Error()}); err != nil {
+				return
+			}
+			continue
+		}
 		now := time.Now()
 		if !lastCommandAt.IsZero() && now.Sub(lastCommandAt) < minimumCommandInterval {
 			_ = conn.SetWriteDeadline(now.Add(connectionTimeout))
