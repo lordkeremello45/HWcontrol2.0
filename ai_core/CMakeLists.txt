@@ -30,4 +30,12 @@ if(BUILD_TESTING)
 
     add_test(NAME ai_core_tests COMMAND ai_core_tests)
     add_test(NAME ai_telemetry_tests COMMAND ai_telemetry_tests)
+
+    # Windows CTest must be able to resolve the llama runtime DLLs produced by
+    # the multi-config Visual Studio build. Keep the fix test-local and cross-platform.
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.22")
+        set_tests_properties(ai_core_tests PROPERTIES
+            ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<SHELL_PATH:$<TARGET_FILE_DIR:llama>>"
+        )
+    endif()
 endif()
