@@ -28,6 +28,8 @@ The local bridge requires an HMAC-SHA-256 authentication tag for every IPC reque
 
 - Commands outside a 30-second timestamp window are rejected.
 - Nonces are accepted only once during their validity window, preventing rapid replay of an observed authenticated command.
+- The replay cache is bounded and expired entries are removed to prevent memory growth from unique authenticated requests.
+- Authenticated commands are rate-limited per connection to reduce command-flooding pressure on hardware telemetry/control paths.
 - Authentication failures are limited per connection and the connection is closed after repeated failures.
 - Request bodies are size-bounded and connections have read/write deadlines.
 - Unix deployments use a permission-protected socket by default; Windows uses authenticated loopback TCP.
