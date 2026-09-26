@@ -41,7 +41,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           # Codeberg HTTP auth uses the account name as username and token as password.
-          git remote add codeberg "https://lordkeremello45@codeberg.org/lordkeremello45/HWcontrol2.0.git"
+          git remote add codeberg "https://lordkeremello45@codeberg.org/lordkeremelllo45/HWcontrol2.0.git"
 
           askpass="$(mktemp)"
           trap 'rm -f "$askpass"' EXIT
