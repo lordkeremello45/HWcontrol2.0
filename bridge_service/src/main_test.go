@@ -139,6 +139,31 @@ func TestBridgePortFallsBackToSafeDefault(t *testing.T) {
 	}
 }
 
+func TestHardwareControlSafetyGate(t *testing.T) {
+	base := HardwareMetrics{
+		FanControlSupported: true,
+		FanControlBackend:   "test-backend",
+		CPUTemperature:      60,
+		GPUTemperature:      65,
+	}
+	if err := hardwareControlSafetyError(base); err != nil {
+		t.Fatalf("expected safe temperatures, got %v", err)
+	}
+	critical := base
+	critical.CPUTemperature = criticalCPUTemperature
+	if err := hardwareControlSafetyError(critical); err == nil {
+		t.Fatal("expected critical CPU temperature to block hardware control")
+	}
+	unsupported := base
+	unsupported.FanControlSupported = false
+	if err := validateFanControlRequest(testCommand("Fan Hızı", 50), unsupported); err == nil {
+		t.Fatal("expected unsupported fan control to fail closed")
+	}
+	if err := validateFanControlRequest(testCommand("Get Status", 0), critical); err != nil {
+		t.Fatalf("non-control command should not be blocked by fan safety gate: %v", err)
+	}
+}
+
 func TestExecuteHardwareCommandFailsClosed(t *testing.T) {
 	for _, action := range []string{"Fan Hızı", "AI İşlem Gücü"} {
 		err := executeHardwareCommand(testCommand(action, 50))
