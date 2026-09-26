@@ -6,7 +6,7 @@ import (
 )
 
 func TestValidateCommandAcceptsDiagnostics(t *testing.T) {
-	if err := validateCommand(Command{Action: "Get Diagnostics"}); err != nil {
+	if err := validateCommand(testCommand("Get Diagnostics", 0)); err != nil {
 		t.Fatalf("Get Diagnostics rejected: %v", err)
 	}
 }
@@ -23,6 +23,7 @@ func TestDiagnosticsSnapshotContract(t *testing.T) {
 		"modelSha256",
 		"sensorSource",
 		"hardwareControl",
+		"thermalSafetyAvailable",
 		"localOnly",
 		"listenAddress",
 		"uptimeSeconds",
