@@ -3,21 +3,23 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hwcontrol_dashboard/diagnostics.dart';
-import 'package:path_provider/path_provider.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('diagnostics writes privacy-safe structured JSONL locally', () async {
-    await HWControlDiagnostics.instance.record(
+    final root = await Directory.systemTemp.createTemp('hwcontrol-diagnostics-test-');
+    addTearDown(() => root.delete(recursive: true));
+    final diagnostics = HWControlDiagnostics(baseDirectory: root);
+
+    await diagnostics.record(
       'test_error',
       error: StateError('example failure'),
       stackTrace: StackTrace.current,
     );
 
-    final directory = await getApplicationSupportDirectory();
     final file = File(
-      '${directory.path}${Platform.pathSeparator}diagnostics'
+      '${root.path}${Platform.pathSeparator}diagnostics'
       '${Platform.pathSeparator}events.jsonl',
     );
     expect(await file.exists(), isTrue);
