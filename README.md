@@ -3,6 +3,7 @@
 [![HWControl Website](https://img.shields.io/badge/HWControl-Website-111827?style=for-the-badge&logo=googlechrome&logoColor=white)](https://lordkeremello45.github.io/HWcontrol2.0/)
 [![GitHub Releases](https://img.shields.io/github/v/release/lordkeremello45/HWcontrol2.0?display_name=tag&style=for-the-badge)](https://github.com/lordkeremello45/HWcontrol2.0/releases)
 [![GitLab Mirror](https://img.shields.io/badge/GitLab-Mirror-FCA326?style=for-the-badge&logo=gitlab&logoColor=white)](https://gitlab.com/lordkeremello45/HWcontrol2.0)
+[![Codeberg Mirror](https://img.shields.io/badge/Codeberg-Mirror-2185D0?style=for-the-badge&logo=codeberg&logoColor=white)](https://codeberg.org/lordkeremelllo45/HWcontrol2.0)
 
 HWcontrol2.0 is an open-source, cross-platform desktop hardware monitoring and control suite built around a Flutter/Dart dashboard, an authenticated localhost Go bridge, and a native C++/CMake engine.
 
@@ -98,6 +99,7 @@ HWcontrol2.0 is developed in the open. The public engineering plan focuses on us
 
 - GitHub: https://github.com/lordkeremello45/HWcontrol2.0
 - GitLab mirror: https://gitlab.com/lordkeremello45/HWcontrol2.0
+- Codeberg mirror: https://codeberg.org/lordkeremelllo45/HWcontrol2.0
 - Project website: https://lordkeremello45.github.io/HWcontrol2.0/
 - Wiki: https://github.com/lordkeremello45/HWcontrol2.0/wiki
 - Stack Overflow topic material: [docs/community/Stack-Overflow-Topics.md](docs/community/Stack-Overflow-Topics.md)
