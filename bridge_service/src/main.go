@@ -38,7 +38,7 @@ type Command struct {
 }
 
 const (
-	commandClockSkew        = 30 * time.Second
+	commandClockSkew       = 30 * time.Second
 	minimumCommandInterval = 100 * time.Millisecond
 	maxReplayNonces        = 4096
 )
@@ -134,8 +134,8 @@ type HardwareMetrics struct {
 	SensorSource        string    `json:"sensorSource"`
 	FanControlSupported bool      `json:"fanControlSupported"`
 	FanControlBackend   string    `json:"fanControlBackend"`
-	HardwareControlMode    string    `json:"hardwareControlMode"`
-	ThermalSafetyAvailable bool      `json:"thermalSafetyAvailable"`
+	HardwareControlMode    string `json:"hardwareControlMode"`
+	ThermalSafetyAvailable bool   `json:"thermalSafetyAvailable"`
 }
 
 var errRequestTooLarge = errors.New("request too large")
@@ -453,9 +453,9 @@ func diagnosticsSnapshot() map[string]any {
 		"gpuVendor":           metrics.GPUVendor,
 		"gpuDriver":           metrics.GPUDriver,
 		"gpuDriverStatus":     metrics.GPUDriverStatus,
-		"hardwareControl":     metrics.FanControlSupported,
-		"fanControlBackend":   metrics.FanControlBackend,
-		"hardwareControlMode":   metrics.HardwareControlMode,
+		"hardwareControl":        metrics.FanControlSupported,
+		"fanControlBackend":      metrics.FanControlBackend,
+		"hardwareControlMode":    metrics.HardwareControlMode,
 		"thermalSafetyAvailable": metrics.ThermalSafetyAvailable,
 		"localOnly":           true,
 		"listenAddress":       bridgeEndpoint(),
