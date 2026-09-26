@@ -22,6 +22,19 @@ HWControl follows a **local-first telemetry model**.
 
 This privacy model describes the intended application behavior. It does not claim that the operating system, GPU drivers, GitHub, or other third-party software on the user's machine collect no data of their own.
 
+## Bridge authentication and replay protection
+
+The local bridge requires an HMAC-SHA-256 authentication tag for every IPC request. The authenticated payload includes the action, value, a client-generated timestamp, and a cryptographically random nonce.
+
+- Commands outside a 30-second timestamp window are rejected.
+- Nonces are accepted only once during their validity window, preventing rapid replay of an observed authenticated command.
+- Authentication failures are limited per connection and the connection is closed after repeated failures.
+- Request bodies are size-bounded and connections have read/write deadlines.
+- Unix deployments use a permission-protected socket by default; Windows uses authenticated loopback TCP.
+- The bridge does not grant hardware-control authority to the local AI process.
+
+This is an application-layer defense. Local administrator/root compromise, a compromised desktop user account, or a compromised OS/driver can bypass application-level trust boundaries.
+
 ## Runtime safety — BSOD Shield
 
 HWControl includes a **BSOD Shield** safety layer in the AI/core runtime. The shield monitors the core execution loop and can stop processing when its health/heartbeat checks indicate that the runtime is no longer healthy. This is a **risk-reduction mechanism**, not a guarantee that Windows can never crash.
