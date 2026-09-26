@@ -90,7 +90,6 @@ func TestValidateCommandRejectsNonFiniteAndOutOfRangeValues(t *testing.T) {
 	}
 }
 
-
 func TestValidateCommandRejectsStaleTimestampAndMalformedNonce(t *testing.T) {
 	stale := testCommand("Get Status", 0)
 	stale.Timestamp = time.Now().Add(-commandClockSkew - time.Second).UnixMilli()
@@ -141,10 +140,10 @@ func TestBridgePortFallsBackToSafeDefault(t *testing.T) {
 
 func TestHardwareControlSafetyGate(t *testing.T) {
 	base := HardwareMetrics{
-		FanControlSupported: true,
-		FanControlBackend:   "test-backend",
+		FanControlSupported:    true,
+		FanControlBackend:      "test-backend",
 		ThermalSafetyAvailable: true,
-		CPUTemperature:      60,
+		CPUTemperature:         60,
 		GPUTemperature:      65,
 	}
 	if err := hardwareControlSafetyError(base); err != nil {
