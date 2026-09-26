@@ -201,6 +201,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _cpuArchitecture = 'Bilinmiyor';
   int _cpuPhysicalCores = 0;
   int _cpuThreads = 0;
+  double _cpuBaseClockMHz = 0;
+  double _cpuMaxClockMHz = 0;
   String _gpuModel = 'Bilinmiyor';
   String _gpuDriver = 'Bilinmiyor';
   String _gpuDriverVersion = 'Bilinmiyor';
@@ -854,6 +856,8 @@ Attach this archive to a support issue only after reviewing it for personal info
       _cpuArchitecture = data['cpuArchitecture'] as String? ?? 'Bilinmiyor';
       _cpuPhysicalCores = (data['cpuPhysicalCores'] as num?)?.toInt() ?? 0;
       _cpuThreads = (data['cpuThreads'] as num?)?.toInt() ?? 0;
+      _cpuBaseClockMHz = (data['cpuBaseClockMHz'] as num?)?.toDouble() ?? 0;
+      _cpuMaxClockMHz = (data['cpuMaxClockMHz'] as num?)?.toDouble() ?? 0;
       _gpuModel = data['gpuModel'] as String? ?? 'Bilinmiyor';
       _gpuDriver = data['gpuDriver'] as String? ?? 'Bilinmiyor';
       _gpuDriverVersion = data['gpuDriverVersion'] as String? ?? 'Bilinmiyor';
@@ -1639,7 +1643,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             children: [
               _hardwareIdentityTile(Icons.computer_outlined, 'PC', '$_systemManufacturer $_systemModel'),
               _hardwareIdentityTile(Icons.developer_board_outlined, 'Anakart', '$_motherboardVendor $_motherboardModel${_motherboardVersion == 'Bilinmiyor' ? '' : ' • $_motherboardVersion'}'),
-              _hardwareIdentityTile(Icons.memory_outlined, 'CPU', '$_cpuManufacturer $_cpuModel • $_cpuArchitecture • ${_cpuPhysicalCores > 0 ? '${_cpuPhysicalCores}C/${_cpuThreads}T' : 'çekirdek bilgisi yok'}'),
+              _hardwareIdentityTile(Icons.memory_outlined, 'CPU', '$_cpuManufacturer $_cpuModel • $_cpuArchitecture • ${_cpuPhysicalCores > 0 ? '${_cpuPhysicalCores}C/${_cpuThreads}T' : 'çekirdek bilgisi yok'} • ${_cpuBaseClockMHz > 0 ? '${_cpuBaseClockMHz.toStringAsFixed(0)} MHz' : 'frekans yok'}${_cpuMaxClockMHz > 0 ? ' / ${_cpuMaxClockMHz.toStringAsFixed(0)} MHz max' : ''}'),
               _hardwareIdentityTile(Icons.videogame_asset_outlined, 'GPU', '$_gpuVendor • $_gpuModel'),
               if (_gpuDevices.length > 1)
                 _hardwareIdentityTile(Icons.devices_other_outlined, 'GPU adaptörleri', _gpuDevices.join('\n')),
