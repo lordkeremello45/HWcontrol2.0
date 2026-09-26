@@ -1,5 +1,15 @@
 package main
 
+type GPUIdentity struct {
+	Vendor        string
+	Model         string
+	Driver        string
+	DriverVersion string
+	PCIAddress    string
+	DeviceID      string
+	MemoryBytes   uint64
+}
+
 type HardwareIdentity struct {
 	SystemManufacturer string
 	SystemModel        string
@@ -18,6 +28,7 @@ type HardwareIdentity struct {
 	GPUModel           string
 	GPUDriver          string
 	GPUDriverVersion   string
+	GPUs               []GPUIdentity
 	DetectionSource    string
 	DetectionStatus    string
 	SerialsExcluded    bool
