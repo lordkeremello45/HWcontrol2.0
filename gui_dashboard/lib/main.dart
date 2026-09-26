@@ -198,6 +198,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _cpuModel = 'Bilinmiyor';
   String _gpuModel = 'Bilinmiyor';
   String _gpuDriver = 'Bilinmiyor';
+  List<String> _gpuDevices = <String>[];
   String _hardwareDetectionStatus = 'Kontrol edilmedi';
   bool _gameModeEnabled = false;
   bool _gameDetected = false;
@@ -843,6 +844,20 @@ Attach this archive to a support issue only after reviewing it for personal info
       _cpuModel = data['cpuModel'] as String? ?? 'Bilinmiyor';
       _gpuModel = data['gpuModel'] as String? ?? 'Bilinmiyor';
       _gpuDriver = data['gpuDriver'] as String? ?? 'Bilinmiyor';
+      final detectedGpus = data['gpuDevices'];
+      if (detectedGpus is List) {
+        _gpuDevices = detectedGpus
+            .whereType<Map>()
+            .map((gpu) {
+              final vendor = (gpu['Vendor'] ?? gpu['vendor'] ?? '').toString().trim();
+              final model = (gpu['Model'] ?? gpu['model'] ?? '').toString().trim();
+              final driver = (gpu['Driver'] ?? gpu['driver'] ?? '').toString().trim();
+              final name = [vendor, model].where((value) => value.isNotEmpty).join(' ');
+              return driver.isEmpty ? name : '$name • $driver';
+            })
+            .where((value) => value.isNotEmpty)
+            .toList(growable: false);
+      }
       _hardwareDetectionStatus = data['detectionStatus'] as String? ?? 'partial';
       _gameModeEnabled = data['gameModeEnabled'] as bool? ?? false;
       _gameDetected = data['gameDetected'] as bool? ?? false;
@@ -1611,6 +1626,8 @@ Attach this archive to a support issue only after reviewing it for personal info
               _hardwareIdentityTile(Icons.developer_board_outlined, 'Anakart', '$_motherboardVendor $_motherboardModel'),
               _hardwareIdentityTile(Icons.memory_outlined, 'CPU', '$_cpuManufacturer $_cpuModel'),
               _hardwareIdentityTile(Icons.videogame_asset_outlined, 'GPU', '$_gpuVendor • $_gpuModel'),
+              if (_gpuDevices.length > 1)
+                _hardwareIdentityTile(Icons.devices_other_outlined, 'GPU adaptörleri', _gpuDevices.join('\n')),
               _hardwareIdentityTile(Icons.dns_outlined, 'BIOS', _biosVersion),
               _hardwareIdentityTile(Icons.drive_file_rename_outline, 'GPU sürücüsü', _gpuDriver),
             ],
@@ -1620,7 +1637,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             children: [
               Icon(Icons.verified_outlined, size: 16, color: detected ? const Color(0xFF64D8CB) : const Color(0xFFFFB454)),
               const SizedBox(width: 8),
-              Text('Tanılama: $_hardwareDetectionStatus • Seri numaraları rapora dahil edilmez', style: const TextStyle(fontSize: 11)),
+              Text('Tanılama: $_hardwareDetectionStatus • ${_gpuDevices.isEmpty ? 'GPU ayrıntısı sınırlı' : '${_gpuDevices.length} GPU bulundu'} • Seri numaraları rapora dahil edilmez', style: const TextStyle(fontSize: 11)),
             ],
           ),
         ],
