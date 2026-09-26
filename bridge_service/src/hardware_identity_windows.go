@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-type windowsHardwareIdentity struct {
+type windowsGPUIdentity struct {\n\tVendor string\n\tModel string\n\tDriver string\n\tDriverVersion string\n}\n\ntype windowsHardwareIdentity struct {
 	SystemManufacturer string
 	SystemModel        string
 	SystemVersion      string
@@ -25,6 +25,7 @@ type windowsHardwareIdentity struct {
 	GPUModel           string
 	GPUDriver          string
 	GPUDriverVersion   string
+	GPUs               []windowsGPUIdentity
 }
 
 const windowsHardwareIdentityScript = "$ErrorActionPreference='SilentlyContinue'\n" +
@@ -32,8 +33,8 @@ const windowsHardwareIdentityScript = "$ErrorActionPreference='SilentlyContinue'
 	"$bios=Get-CimInstance Win32_BIOS | Select-Object -First 1\n" +
 	"$board=Get-CimInstance Win32_BaseBoard | Select-Object -First 1\n" +
 	"$cpu=Get-CimInstance Win32_Processor | Select-Object -First 1\n" +
-	"$gpu=Get-CimInstance Win32_VideoController | Where-Object {$_.Name} | Select-Object -First 1\n" +
-	"[pscustomobject]@{ systemManufacturer=[string]$cs.Manufacturer; systemModel=[string]$cs.Model; systemVersion=[string]$cs.SystemFamily; biosVendor=[string]$bios.Manufacturer; biosVersion=[string]$bios.SMBIOSBIOSVersion; motherboardVendor=[string]$board.Manufacturer; motherboardModel=[string]$board.Product; motherboardVersion=[string]$board.Version; cpuManufacturer=[string]$cpu.Manufacturer; cpuModel=[string]$cpu.Name; cpuPhysicalCores=[int]$cpu.NumberOfCores; cpuThreads=[int]$cpu.NumberOfLogicalProcessors; gpuVendor=[string]$gpu.AdapterCompatibility; gpuModel=[string]$gpu.Name; gpuDriver=[string]$gpu.DriverProviderName; gpuDriverVersion=[string]$gpu.DriverVersion } | ConvertTo-Json -Compress"
+	"$gpus=@(Get-CimInstance Win32_VideoController | Where-Object {$_.Name} | ForEach-Object { [pscustomobject]@{ vendor=[string]$_.AdapterCompatibility; model=[string]$_.Name; driver=[string]$_.DriverProviderName; driverVersion=[string]$_.DriverVersion } })\n" +\n\t"$gpu=$gpus | Select-Object -First 1\n" +
+	"[pscustomobject]@{ systemManufacturer=[string]$cs.Manufacturer; systemModel=[string]$cs.Model; systemVersion=[string]$cs.SystemFamily; biosVendor=[string]$bios.Manufacturer; biosVersion=[string]$bios.SMBIOSBIOSVersion; motherboardVendor=[string]$board.Manufacturer; motherboardModel=[string]$board.Product; motherboardVersion=[string]$board.Version; cpuManufacturer=[string]$cpu.Manufacturer; cpuModel=[string]$cpu.Name; cpuPhysicalCores=[int]$cpu.NumberOfCores; cpuThreads=[int]$cpu.NumberOfLogicalProcessors; gpuVendor=[string]$gpu.AdapterCompatibility; gpuModel=[string]$gpu.Name; gpuDriver=[string]$gpu.DriverProviderName; gpuDriverVersion=[string]$gpu.DriverVersion; gpus=$gpus } | ConvertTo-Json -Compress"
 
 func collectHardwareIdentity() HardwareIdentity {
 	id := emptyHardwareIdentity()
@@ -63,7 +64,7 @@ func collectHardwareIdentity() HardwareIdentity {
 	id.GPUVendor = stringValue(raw["gpuVendor"])
 	id.GPUModel = stringValue(raw["gpuModel"])
 	id.GPUDriver = stringValue(raw["gpuDriver"])
-	id.GPUDriverVersion = stringValue(raw["gpuDriverVersion"])
+	id.GPUDriverVersion = stringValue(raw["gpuDriverVersion"])\n\tif rawGPUs, ok := raw["gpus"].([]any); ok {\n\t\tfor _, rawGPU := range rawGPUs {\n\t\t\tif gpuMap, ok := rawGPU.(map[string]any); ok {\n\t\t\t\tid.GPUs = append(id.GPUs, GPUIdentity{Vendor: stringValue(gpuMap["vendor"]), Model: stringValue(gpuMap["model"]), Driver: stringValue(gpuMap["driver"]), DriverVersion: stringValue(gpuMap["driverVersion"])})\n\t\t\t}\n\t\t}\n\t}
 	if id.SystemModel != "" || id.MotherboardModel != "" || id.CPUModel != "" || id.GPUModel != "" {
 		id.DetectionStatus = "ok"
 	}
