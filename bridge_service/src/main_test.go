@@ -91,7 +91,6 @@ func TestValidateCommandRejectsNonFiniteAndOutOfRangeValues(t *testing.T) {
 }
 
 
-
 func TestValidateCommandRejectsStaleTimestampAndMalformedNonce(t *testing.T) {
 	stale := testCommand("Get Status", 0)
 	stale.Timestamp = time.Now().Add(-commandClockSkew - time.Second).UnixMilli()
