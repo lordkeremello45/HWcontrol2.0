@@ -491,6 +491,7 @@ func diagnosticsSnapshot() map[string]any {
 		"goVersion":              runtime.Version(),
 		"keyFileConfigured":      strings.TrimSpace(os.Getenv("HWCONTROL_KEY_FILE")) != "",
 		"keyConfigured":          strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "" && strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "replace-me",
+		"keyFile":                defaultKeyFile(),
 		"modelPathConfigured":     modelPath != "",
 		"modelState":             modelState,
 		"modelSha256":            modelDigest(),
