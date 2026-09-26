@@ -382,6 +382,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
       final modelPath = await _defaultModelPath();
       final environment = Map<String, String>.from(Platform.environment);
+      // The AI engine is an unprivileged optional process. Never pass the
+      // bridge authentication secret or IPC configuration into its environment.
+      for (final key in const <String>[
+        'HWCONTROL_KEY',
+        'HWCONTROL_KEY_FILE',
+        'HWCONTROL_SOCKET',
+        'HWCONTROL_PORT',
+      ]) {
+        environment.remove(key);
+      }
       environment['HWCONTROL_MODEL'] = modelPath;
       final process = await Process.start(
         executablePath,
