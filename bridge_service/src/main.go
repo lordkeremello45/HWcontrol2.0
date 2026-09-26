@@ -114,7 +114,6 @@ type HardwareMetrics struct {
 	MemoryTotalBytes       uint64    `json:"memoryTotalBytes"`
 	DiskUsage              float64   `json:"diskUsage"`
 	DiskTotalBytes         uint64    `json:"diskTotalBytes"`
-	DiskTotalBytes         uint64    `json:"diskTotalBytes"`
 	PowerWatts             float64   `json:"powerWatts"`
 	Voltage                float64   `json:"voltage"`
 	UptimeSeconds          uint64    `json:"uptimeSeconds"`
