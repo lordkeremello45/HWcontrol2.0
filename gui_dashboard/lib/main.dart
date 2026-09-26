@@ -122,7 +122,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _aiModelDownloading = false;
   double _aiModelProgress = 0;
   String? _aiModelError;
-  DateTime? _lastAiModelAttemptAt;
   String _aiAnalysis = 'Gemma 3 1B telemetry analizi bekleniyor';
   DateTime? _aiAnalysisTime;
   String _status = 'Bridge bekleniyor';
@@ -316,7 +315,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (_aiProcess != null || _aiStarting) return;
     _aiStarting = true;
     try {
-      final now = DateTime.now();
       final executablePath = await _findAiEnginePath();
       if (executablePath == null) {
         if (mounted) setState(() => _aiStatus = 'ai_engine bulunamadı');
@@ -324,7 +322,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
       final modelReady = await HWControlModelManager.isReady();
       if (!modelReady) {
-        _lastAiModelAttemptAt = now;
         if (mounted) {
           setState(() {
             _aiModelDownloading = true;
