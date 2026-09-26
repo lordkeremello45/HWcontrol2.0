@@ -30,6 +30,8 @@ jobs:
         with:
           go-version-file: bridge_service/go.mod
           cache: false
+      - name: Show gofmt diff for diagnostics
+        run: gofmt -d .
       - name: Enforce gofmt
         run: |
           files="$(gofmt -l .)"
