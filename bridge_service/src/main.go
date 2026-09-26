@@ -130,7 +130,8 @@ type HardwareMetrics struct {
 	SensorSource        string    `json:"sensorSource"`
 	FanControlSupported bool      `json:"fanControlSupported"`
 	FanControlBackend   string    `json:"fanControlBackend"`
-	HardwareControlMode string    `json:"hardwareControlMode"`
+	HardwareControlMode   string  `json:"hardwareControlMode"`
+	ThermalSafetyAvailable bool   `json:"thermalSafetyAvailable"`
 }
 
 var errRequestTooLarge = errors.New("request too large")
@@ -209,6 +210,7 @@ func collectMetrics() HardwareMetrics {
 	metrics.FanControlSupported = false
 	metrics.FanControlBackend = "monitor-only"
 	metrics.HardwareControlMode = "monitor-only"
+	metrics.ThermalSafetyAvailable = metrics.CPUTemperature > 0 || metrics.GPUTemperature > 0
 	game := collectGameModeState()
 	metrics.GameModeEnabled = game.Enabled
 	metrics.GameDetected = game.GameDetected
@@ -303,6 +305,9 @@ func hardwareControlSafetyError(metrics HardwareMetrics) error {
 func validateFanControlRequest(cmd Command, metrics HardwareMetrics) error {
 	if cmd.Action != "Fan Hızı" {
 		return nil
+	}
+	if !metrics.ThermalSafetyAvailable {
+		return fmt.Errorf("hardware control blocked: no valid thermal sensor available")
 	}
 	if err := hardwareControlSafetyError(metrics); err != nil {
 		return err
