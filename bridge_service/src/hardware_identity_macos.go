@@ -3,7 +3,9 @@
 package main
 
 import (
+	"encoding/json"
 	"os/exec"
+	"strconv"
 	"strings"
 )
 
@@ -24,7 +26,31 @@ func collectHardwareIdentity() HardwareIdentity {
 	id.CPUModel = macSysctl("machdep.cpu.brand_string")
 	id.CPUThreads = parsePositiveInt(macSysctl("hw.logicalcpu"))
 	id.CPUPhysicalCores = parsePositiveInt(macSysctl("hw.physicalcpu"))
+	id.CPUBaseClockMHz = parseFrequencyMHz(macSysctl("hw.cpufrequency"))
+	id.CPUMaxClockMHz = parseFrequencyMHz(macSysctl("hw.cpufrequency_max"))
 	id.GPUVendor = "Apple"
+	id.MotherboardVendor = "Apple"
+
+	if output, err := exec.Command("system_profiler", "SPDisplaysDataType", "-json").Output(); err == nil {
+		var raw map[string]any
+		if json.Unmarshal(output, &raw) == nil {
+			if displays, ok := raw["SPDisplaysDataType"].([]any); ok {
+				for _, display := range displays {
+					if item, ok := display.(map[string]any); ok {
+						model := macStringValue(item["_name"])
+						vendor := macStringValue(item["spdisplays_vendor"])
+						if vendor == "" {
+							vendor = "Apple"
+						}
+						id.GPUs = append(id.GPUs, GPUIdentity{
+							Vendor: vendor,
+							Model: model,
+						})
+					}
+				}
+			}
+		}
+	}
 
 	if out, err := exec.Command("ioreg", "-l", "-c", "IOPlatformExpertDevice").Output(); err == nil {
 		text := string(out)
@@ -37,6 +63,17 @@ func collectHardwareIdentity() HardwareIdentity {
 		id.DetectionStatus = "ok"
 	}
 	return id
+}
+
+func parseFrequencyMHz(value string) float64 {
+	if value == "" {
+		return 0
+	}
+	n, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
+	if err != nil {
+		return 0
+	}
+	return n / 1000000
 }
 
 func parsePositiveInt(value string) int {
@@ -80,4 +117,11 @@ func extractIORegValue(text, key string) string {
 		return strings.TrimSpace(value[:end])
 	}
 	return value
+}
+
+func macStringValue(value any) string {
+	if text, ok := value.(string); ok {
+		return strings.TrimSpace(text)
+	}
+	return ""
 }

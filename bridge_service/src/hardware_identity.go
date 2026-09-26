@@ -1,5 +1,15 @@
 package main
 
+type GPUIdentity struct {
+	Vendor        string `json:"vendor"`
+	Model         string `json:"model"`
+	Driver        string `json:"driver"`
+	DriverVersion string `json:"driverVersion"`
+	PCIAddress    string `json:"pciAddress"`
+	DeviceID      string `json:"deviceId"`
+	MemoryBytes   uint64 `json:"memoryBytes"`
+}
+
 type HardwareIdentity struct {
 	SystemManufacturer string
 	SystemModel        string
@@ -14,10 +24,13 @@ type HardwareIdentity struct {
 	CPUArchitecture    string
 	CPUPhysicalCores   int
 	CPUThreads         int
+	CPUBaseClockMHz    float64
+	CPUMaxClockMHz     float64
 	GPUVendor          string
 	GPUModel           string
 	GPUDriver          string
 	GPUDriverVersion   string
+	GPUs               []GPUIdentity
 	DetectionSource    string
 	DetectionStatus    string
 	SerialsExcluded    bool

@@ -92,6 +92,8 @@ type HardwareMetrics struct {
 	CPUArchitecture        string    `json:"cpuArchitecture"`
 	CPUPhysicalCores       int       `json:"cpuPhysicalCores"`
 	CPUThreads             int       `json:"cpuThreads"`
+	CPUBaseClockMHz        float64   `json:"cpuBaseClockMHz"`
+	CPUMaxClockMHz         float64   `json:"cpuMaxClockMHz"`
 	GPUModel               string    `json:"gpuModel"`
 	DetectionSource        string    `json:"detectionSource"`
 	DetectionStatus        string    `json:"detectionStatus"`
@@ -123,6 +125,7 @@ type HardwareMetrics struct {
 	GPUDriver              string    `json:"gpuDriver"`
 	GPUDriverProvider      string    `json:"gpuDriverProvider"`
 	GPUDriverVersion       string    `json:"gpuDriverVersion"`
+	GPUDevices             []GPUIdentity `json:"gpuDevices"`
 	GPUDriverStatus        string    `json:"gpuDriverStatus"`
 	GPUDriverSource        string    `json:"gpuDriverSource"`
 	GPUDriverAction        string    `json:"gpuDriverAction"`
@@ -233,7 +236,10 @@ func collectMetrics() HardwareMetrics {
 	metrics.CPUArchitecture = identity.CPUArchitecture
 	metrics.CPUPhysicalCores = identity.CPUPhysicalCores
 	metrics.CPUThreads = identity.CPUThreads
+	metrics.CPUBaseClockMHz = identity.CPUBaseClockMHz
+	metrics.CPUMaxClockMHz = identity.CPUMaxClockMHz
 	metrics.GPUModel = identity.GPUModel
+	metrics.GPUDevices = append([]GPUIdentity(nil), identity.GPUs...)
 	metrics.DetectionSource = identity.DetectionSource
 	metrics.DetectionStatus = identity.DetectionStatus
 	metrics.SerialsExcluded = identity.SerialsExcluded
@@ -520,6 +526,7 @@ func diagnosticsSnapshot() map[string]any {
 			"gpuModel":           metrics.GPUModel,
 			"gpuDriver":          metrics.GPUDriver,
 			"gpuDriverVersion":   metrics.GPUDriverVersion,
+			"gpuDevices":         metrics.GPUDevices,
 			"detectionSource":    metrics.DetectionSource,
 			"detectionStatus":    metrics.DetectionStatus,
 			"serialsExcluded":    metrics.SerialsExcluded,
