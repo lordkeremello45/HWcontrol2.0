@@ -191,13 +191,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _fanControlBackend = 'monitor-only';
   String _systemManufacturer = 'Bilinmiyor';
   String _systemModel = 'Bilinmiyor';
+  String _biosVendor = 'Bilinmiyor';
   String _biosVersion = 'Bilinmiyor';
   String _motherboardVendor = 'Bilinmiyor';
   String _motherboardModel = 'Bilinmiyor';
+  String _motherboardVersion = 'Bilinmiyor';
   String _cpuManufacturer = 'Bilinmiyor';
   String _cpuModel = 'Bilinmiyor';
+  String _cpuArchitecture = 'Bilinmiyor';
+  int _cpuPhysicalCores = 0;
+  int _cpuThreads = 0;
   String _gpuModel = 'Bilinmiyor';
   String _gpuDriver = 'Bilinmiyor';
+  String _gpuDriverVersion = 'Bilinmiyor';
+  String _detectionSource = 'Bilinmiyor';
   List<String> _gpuDevices = <String>[];
   String _hardwareDetectionStatus = 'Kontrol edilmedi';
   bool _gameModeEnabled = false;
@@ -837,13 +844,20 @@ Attach this archive to a support issue only after reviewing it for personal info
       _fanControlBackend = data['fanControlBackend'] as String? ?? 'monitor-only';
       _systemManufacturer = data['systemManufacturer'] as String? ?? 'Bilinmiyor';
       _systemModel = data['systemModel'] as String? ?? 'Bilinmiyor';
+      _biosVendor = data['biosVendor'] as String? ?? 'Bilinmiyor';
       _biosVersion = data['biosVersion'] as String? ?? 'Bilinmiyor';
       _motherboardVendor = data['motherboardVendor'] as String? ?? 'Bilinmiyor';
       _motherboardModel = data['motherboardModel'] as String? ?? 'Bilinmiyor';
+      _motherboardVersion = data['motherboardVersion'] as String? ?? 'Bilinmiyor';
       _cpuManufacturer = data['cpuManufacturer'] as String? ?? 'Bilinmiyor';
       _cpuModel = data['cpuModel'] as String? ?? 'Bilinmiyor';
+      _cpuArchitecture = data['cpuArchitecture'] as String? ?? 'Bilinmiyor';
+      _cpuPhysicalCores = (data['cpuPhysicalCores'] as num?)?.toInt() ?? 0;
+      _cpuThreads = (data['cpuThreads'] as num?)?.toInt() ?? 0;
       _gpuModel = data['gpuModel'] as String? ?? 'Bilinmiyor';
       _gpuDriver = data['gpuDriver'] as String? ?? 'Bilinmiyor';
+      _gpuDriverVersion = data['gpuDriverVersion'] as String? ?? 'Bilinmiyor';
+      _detectionSource = data['detectionSource'] as String? ?? 'Bilinmiyor';
       final detectedGpus = data['gpuDevices'];
       if (detectedGpus is List) {
         _gpuDevices = detectedGpus
@@ -1623,13 +1637,13 @@ Attach this archive to a support issue only after reviewing it for personal info
             runSpacing: 14,
             children: [
               _hardwareIdentityTile(Icons.computer_outlined, 'PC', '$_systemManufacturer $_systemModel'),
-              _hardwareIdentityTile(Icons.developer_board_outlined, 'Anakart', '$_motherboardVendor $_motherboardModel'),
-              _hardwareIdentityTile(Icons.memory_outlined, 'CPU', '$_cpuManufacturer $_cpuModel'),
+              _hardwareIdentityTile(Icons.developer_board_outlined, 'Anakart', '$_motherboardVendor $_motherboardModel${_motherboardVersion == 'Bilinmiyor' ? '' : ' • $_motherboardVersion'}'),
+              _hardwareIdentityTile(Icons.memory_outlined, 'CPU', '$_cpuManufacturer $_cpuModel • $_cpuArchitecture • ${_cpuPhysicalCores > 0 ? '$_cpuPhysicalCoresC/$_cpuThreadsT' : 'çekirdek bilgisi yok'}'),
               _hardwareIdentityTile(Icons.videogame_asset_outlined, 'GPU', '$_gpuVendor • $_gpuModel'),
               if (_gpuDevices.length > 1)
                 _hardwareIdentityTile(Icons.devices_other_outlined, 'GPU adaptörleri', _gpuDevices.join('\n')),
-              _hardwareIdentityTile(Icons.dns_outlined, 'BIOS', _biosVersion),
-              _hardwareIdentityTile(Icons.drive_file_rename_outline, 'GPU sürücüsü', _gpuDriver),
+              _hardwareIdentityTile(Icons.dns_outlined, 'BIOS', '$_biosVendor • $_biosVersion'),
+              _hardwareIdentityTile(Icons.drive_file_rename_outline, 'GPU sürücüsü', '$_gpuDriver • $_gpuDriverVersion'),
             ],
           ),
           const SizedBox(height: 12),
@@ -1637,7 +1651,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             children: [
               Icon(Icons.verified_outlined, size: 16, color: detected ? const Color(0xFF64D8CB) : const Color(0xFFFFB454)),
               const SizedBox(width: 8),
-              Text('Tanılama: $_hardwareDetectionStatus • ${_gpuDevices.isEmpty ? 'GPU ayrıntısı sınırlı' : '${_gpuDevices.length} GPU bulundu'} • Seri numaraları rapora dahil edilmez', style: const TextStyle(fontSize: 11)),
+              Text('Tanılama: $_hardwareDetectionStatus • Kaynak: $_detectionSource • ${_gpuDevices.isEmpty ? 'GPU ayrıntısı sınırlı' : '${_gpuDevices.length} GPU bulundu'} • Seri numaraları rapora dahil edilmez', style: const TextStyle(fontSize: 11)),
             ],
           ),
         ],
