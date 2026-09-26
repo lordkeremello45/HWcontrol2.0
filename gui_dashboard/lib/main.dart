@@ -1638,7 +1638,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             children: [
               _hardwareIdentityTile(Icons.computer_outlined, 'PC', '$_systemManufacturer $_systemModel'),
               _hardwareIdentityTile(Icons.developer_board_outlined, 'Anakart', '$_motherboardVendor $_motherboardModel${_motherboardVersion == 'Bilinmiyor' ? '' : ' • $_motherboardVersion'}'),
-              _hardwareIdentityTile(Icons.memory_outlined, 'CPU', '$_cpuManufacturer $_cpuModel • $_cpuArchitecture • ${_cpuPhysicalCores > 0 ? '$_cpuPhysicalCoresC/$_cpuThreadsT' : 'çekirdek bilgisi yok'}'),
+              _hardwareIdentityTile(Icons.memory_outlined, 'CPU', '$_cpuManufacturer $_cpuModel • $_cpuArchitecture • ${_cpuPhysicalCores > 0 ? '${_cpuPhysicalCores}C/${_cpuThreads}T' : 'çekirdek bilgisi yok'}'),
               _hardwareIdentityTile(Icons.videogame_asset_outlined, 'GPU', '$_gpuVendor • $_gpuModel'),
               if (_gpuDevices.length > 1)
                 _hardwareIdentityTile(Icons.devices_other_outlined, 'GPU adaptörleri', _gpuDevices.join('\n')),
