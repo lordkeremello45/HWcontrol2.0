@@ -10,6 +10,7 @@ import 'package:audioplayers/audioplayers.dart';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -144,6 +145,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Process? _aiProcess;
   StreamIterator<String>? _aiResponses;
   bool _aiStarting = false;
+  String _locale = 'en-US';
+  Map<String, Map<String, String>> _translations = <String, Map<String, String>>{};
   bool _aiSending = false;
   DateTime? _lastAiAnalysisAt;
   String _aiStatus = 'Yerel AI başlatılmadı';
@@ -472,6 +475,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (_polling) return;
     _polling = true;
     try {
+      await _loadLanguage();
       await _loadProfiles();
       await _loadSettings();
       await _loadTelemetryHistory();
@@ -518,6 +522,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  String _tr(String key) => _translations[_locale]?[key] ?? _translations['en-US']?[key] ?? key;
+
+  Future<void> _loadLanguage() async {
+    try {
+      final raw = await rootBundle.loadString('assets/localization/language.json');
+      final root = jsonDecode(raw) as Map<String, dynamic>;
+      final rawTranslations = root['translations'];
+      if (rawTranslations is Map) {
+        _translations = rawTranslations.map((locale, values) => MapEntry(
+          locale.toString(),
+          values is Map ? values.map((key, value) => MapEntry(key.toString(), value.toString())) : <String, String>{},
+        ));
+      }
+      final settings = await _userData.readSettings();
+      final savedLocale = settings['language'] as String?;
+      if (savedLocale != null && _translations.containsKey(savedLocale)) _locale = savedLocale;
+    } catch (_) {}
+  }
+
   Future<void> _loadSettings() async {
     try {
       final settings = await _userData.readSettings();
@@ -540,6 +563,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       await _userData.writeSettings(<String, dynamic>{
         'notificationsEnabled': _notificationsEnabled,
         'temperatureLimit': _temperatureLimit,
+        'language': _locale,
       });
     } catch (_) {
       _addEvent('Ayarlar kaydedilemedi');
@@ -949,55 +973,70 @@ Attach this archive to a support issue only after reviewing it for personal info
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
-  Future<void> _openSettings() async {
+  Future<void> _openSettingsMenu() async {
     var notificationsEnabled = _notificationsEnabled;
     var temperatureLimit = _temperatureLimit;
+    var selectedLocale = _locale;
+    const names = <String, String>{
+      'en-US': 'English (US)', 'en-GB': 'English (UK)', 'tr-TR': 'Türkçe',
+      'ja-JP': '日本語', 'de-DE': 'Deutsch', 'fr-FR': 'Français', 'it-IT': 'Italiano',
+    };
     await showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Kullanıcı ayarları'),
+          title: Row(children: [const Icon(Icons.menu), const SizedBox(width: 10), Text(_tr('menu'))]),
           content: SizedBox(
-            width: 420,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Bildirimleri etkinleştir'),
-                  value: notificationsEnabled,
-                  onChanged: (value) => setDialogState(() => notificationsEnabled = value),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Expanded(child: Text('Sıcaklık uyarı eşiği')),
+            width: 460,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(_tr('language'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 8),
+                  for (final locale in const ['en-US', 'en-GB', 'tr-TR', 'ja-JP', 'de-DE', 'fr-FR', 'it-IT'])
+                    RadioListTile<String>(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(names[locale] ?? locale),
+                      value: locale,
+                      groupValue: selectedLocale,
+                      onChanged: (value) { if (value != null) setDialogState(() => selectedLocale = value); },
+                    ),
+                  const Divider(height: 22),
+                  Text(_tr('settings'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(_tr('enableNotifications')),
+                    value: notificationsEnabled,
+                    onChanged: (value) => setDialogState(() => notificationsEnabled = value),
+                  ),
+                  Row(children: [
+                    Expanded(child: Text(_tr('temperatureWarning'))),
                     Text('${temperatureLimit.round()} °C', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700)),
-                  ],
-                ),
-                Slider(
-                  value: temperatureLimit,
-                  min: 60,
-                  max: 100,
-                  divisions: 16,
-                  label: '${temperatureLimit.round()} °C',
-                  onChanged: (value) => setDialogState(() => temperatureLimit = value),
-                ),
-              ],
+                  ]),
+                  Slider(
+                    value: temperatureLimit, min: 60, max: 100, divisions: 16,
+                    label: '${temperatureLimit.round()} °C',
+                    onChanged: (value) => setDialogState(() => temperatureLimit = value),
+                  ),
+                ],
+              ),
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('İptal')),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text(_tr('cancel'))),
             FilledButton(
               onPressed: () {
                 setState(() {
                   _notificationsEnabled = notificationsEnabled;
                   _temperatureLimit = temperatureLimit;
+                  _locale = selectedLocale;
                 });
                 unawaited(_saveSettings());
                 Navigator.pop(context);
               },
-              child: const Text('Kaydet'),
+              child: Text(_tr('save')),
             ),
           ],
         ),
@@ -1279,16 +1318,16 @@ Attach this archive to a support issue only after reviewing it for personal info
           ),
         ),
         IconButton(
-          tooltip: widget.darkMode ? 'Light mode' : 'Dark mode',
+          tooltip: widget.darkMode ? _tr('lightMode') : _tr('darkMode'),
           onPressed: () => widget.onThemeChanged(!widget.darkMode),
           icon: Icon(widget.darkMode ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
         ),
         IconButton(
-          tooltip: widget.animationsEnabled ? 'Animasyonları kapat' : 'Animasyonları aç',
+          tooltip: widget.animationsEnabled ? _tr('animationsOn') : _tr('animationsOff'),
           onPressed: () => widget.onAnimationsChanged(!widget.animationsEnabled),
           icon: Icon(widget.animationsEnabled ? Icons.animation : Icons.animation_outlined),
         ),
-        IconButton(tooltip: 'Kullanıcı ayarları', onPressed: _openSettings, icon: const Icon(Icons.settings_outlined)),
+        IconButton(tooltip: _tr('menu'), onPressed: _openSettingsMenu, icon: const Icon(Icons.menu)),
         _buildConnectionBadge(),
       ],
     );
@@ -1331,7 +1370,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             Icon(available ? Icons.system_update_alt : Icons.verified_user_outlined, color: color),
             const SizedBox(width: 12),
             Expanded(child: Text(available ? '${_updateInfo!.tag} hazır' : _updateStatus, style: TextStyle(color: color, fontWeight: FontWeight.w600))),
-            if (available) TextButton.icon(onPressed: _openUpdate, icon: const Icon(Icons.download, size: 17), label: const Text('Release’i aç')),
+            if (available) TextButton.icon(onPressed: _openUpdate, icon: const Icon(Icons.download, size: 17), label: Text(_tr('releaseOpen'))),
             IconButton(tooltip: 'Güncellemeleri kontrol et', onPressed: _isCheckingUpdate ? null : _checkForUpdate, icon: const Icon(Icons.refresh)),
           ],
         ),
@@ -1717,8 +1756,8 @@ Attach this archive to a support issue only after reviewing it for personal info
         _presetButton('Performans', Icons.speed, 85, 100, const Color(0xFFFF7B7B)),
         _presetButton('Oyun', Icons.sports_esports_outlined, 75, 95, const Color(0xFFB995FF)),
         _presetButton('Manuel', Icons.edit_outlined, _fanValue, _aiValue, const Color(0xFF8FA7FF)),
-        TextButton.icon(onPressed: _isSending || !_fanControlSupported ? null : _resetControls, icon: const Icon(Icons.restart_alt, size: 16), label: const Text('Sıfırla')),
-        TextButton.icon(onPressed: () => _saveProfile('Manuel'), icon: const Icon(Icons.save_outlined, size: 16), label: const Text('Profili kaydet')),
+        TextButton.icon(onPressed: _isSending || !_fanControlSupported ? null : _resetControls, icon: const Icon(Icons.restart_alt, size: 16), label: Text(_tr('reset'))),
+        TextButton.icon(onPressed: () => _saveProfile('Manuel'), icon: const Icon(Icons.save_outlined, size: 16), label: Text(_tr('saveProfile'))),
       ],
     );
   }
@@ -1792,8 +1831,8 @@ Attach this archive to a support issue only after reviewing it for personal info
             spacing: 10,
             runSpacing: 10,
             children: [
-              OutlinedButton.icon(onPressed: _isConnected ? null : _connectToBridge, icon: const Icon(Icons.refresh, size: 17), label: const Text('Yeniden bağlan')),
-              OutlinedButton.icon(onPressed: _isConnected ? _exportDiagnosticReport : null, icon: const Icon(Icons.archive_outlined, size: 17), label: const Text('Hata raporu oluştur')),
+              OutlinedButton.icon(onPressed: _isConnected ? null : _connectToBridge, icon: const Icon(Icons.refresh, size: 17), label: Text(_tr('reconnect'))),
+              OutlinedButton.icon(onPressed: _isConnected ? _exportDiagnosticReport : null, icon: const Icon(Icons.archive_outlined, size: 17), label: Text(_tr('createErrorReport'))),
             ],
           ),
           const SizedBox(height: 18),
@@ -1809,7 +1848,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       children: [
         _sectionTitle('Sistem olayları', 'Son 20 kayıt'),
         const SizedBox(height: 10),
-        if (_events.isEmpty) const Text('Henüz olay yok', style: TextStyle(color: Colors.white54, fontSize: 12)),
+        if (_events.isEmpty) Text(_tr('noEvents'), style: TextStyle(color: Colors.white54, fontSize: 12)),
         for (final event in _events.take(5)) Padding(padding: const EdgeInsets.only(bottom: 6), child: Text(event, style: const TextStyle(fontSize: 11, color: Colors.white60))),
       ],
     );
