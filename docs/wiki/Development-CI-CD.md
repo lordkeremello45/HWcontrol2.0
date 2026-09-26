@@ -6,6 +6,7 @@ Important workflows include:
 
 - `.github/workflows/platform-validation.yml`
 - `.github/workflows/windows-setup-release.yml`
-- `.github/workflows/release-integrity.yml`
+- Platform-specific release workflows (Windows/Linux/macOS) generate and validate package checksums.
+- GitHub artifact attestations are generated where the release workflow enables them.
 
-CI should be treated as part of the build/security surface because packaging, checksums, signing and release publication are all driven by repository-controlled workflows.
+CI should be treated as part of the build/security surface because packaging, checksums, attestations and release publication are repository-controlled. Release-wide GPG/Ed25519 manifest signing is documented as a verification path but is not currently an active push-triggered workflow.
