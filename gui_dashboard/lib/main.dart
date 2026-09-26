@@ -1226,6 +1226,7 @@ Attach this archive to a support issue only after reviewing it for personal info
 
   @override
   void dispose() {
+    unawaited(HWControlDiagnostics.instance.markSessionCleanExit());
     // Do not block Flutter disposal; the latest snapshot is already persisted
     // periodically during normal operation.
     if (_historyDirty) unawaited(_persistTelemetryHistory());
