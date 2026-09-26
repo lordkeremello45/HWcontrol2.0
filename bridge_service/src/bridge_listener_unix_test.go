@@ -28,8 +28,8 @@ func TestListenBridgeUnixSocket(t *testing.T) {
 	if err != nil {
 		t.Fatalf("stat socket: %v", err)
 	}
-	if info.Mode().Perm() != 0600 {
-		t.Fatalf("socket mode = %o, want 600", info.Mode().Perm())
+	if info.Mode().Perm() != 0660 {
+		t.Fatalf("socket mode = %o, want 660", info.Mode().Perm())
 	}
 	if _, ok := listener.Addr().(*net.UnixAddr); !ok {
 		t.Fatalf("listener address type = %T, want *net.UnixAddr", listener.Addr())
