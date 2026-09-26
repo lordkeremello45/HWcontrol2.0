@@ -1,10 +1,6 @@
 name: Release integrity
 
 on:
-  # Release integrity is intentionally not a push check; it requires a published release/tag.
-  push:
-    branches:
-      - '__release_integrity_never__'
   release:
     types: [published]
   workflow_dispatch:
@@ -24,7 +20,6 @@ permissions:
 
 jobs:
   verify-and-publish:
-    if: github.event_name != 'push'
     name: Verify release assets and publish SHA256/SHA512/SHA3-512 manifests
     runs-on: ubuntu-24.04
     steps:
