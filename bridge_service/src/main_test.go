@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"crypto/sha256"
 	"encoding/hex"
 	"math"
 	"net"
@@ -14,12 +15,14 @@ import (
 )
 
 func testCommand(action string, value float64) Command {
-	return Command{
+	cmd := Command{
 		Action:    action,
 		Value:     value,
 		Timestamp: time.Now().UnixMilli(),
 		Nonce:     "0123456789abcdef0123456789abcdef",
 	}
+	cmd.Auth = strings.Repeat("0", sha256.Size*2)
+	return cmd
 }
 
 func TestValidateCommand(t *testing.T) {
@@ -87,6 +90,26 @@ func TestValidateCommandRejectsNonFiniteAndOutOfRangeValues(t *testing.T) {
 		if err := validateCommand(testCommand("Fan Hızı", value)); err == nil {
 			t.Fatalf("validateCommand() accepted invalid value %v", value)
 		}
+	}
+}
+
+func TestValidateCommandRejectsInvalidAuthAndReadOnlyValue(t *testing.T) {
+	invalidAuth := testCommand("Get Status", 0)
+	invalidAuth.Auth = "not-hex"
+	if err := validateCommand(invalidAuth); err == nil {
+		t.Fatal("expected malformed auth to be rejected")
+	}
+
+	for _, action := range []string{"Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode"} {
+		command := testCommand(action, 1)
+		if err := validateCommand(command); err == nil {
+			t.Fatalf("expected non-zero value for %q to be rejected", action)
+		}
+	}
+
+	longAction := testCommand(strings.Repeat("A", maxActionLength+1), 0)
+	if err := validateCommand(longAction); err == nil {
+		t.Fatal("expected oversized action to be rejected")
 	}
 }
 
