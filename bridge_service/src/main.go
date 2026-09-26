@@ -38,9 +38,9 @@ type Command struct {
 }
 
 const (
-	commandClockSkew = 30 * time.Second
+	commandClockSkew        = 30 * time.Second
 	minimumCommandInterval = 100 * time.Millisecond
-	maxReplayNonces = 4096
+	maxReplayNonces        = 4096
 )
 
 func commandPayload(cmd Command) string {
@@ -134,8 +134,8 @@ type HardwareMetrics struct {
 	SensorSource        string    `json:"sensorSource"`
 	FanControlSupported bool      `json:"fanControlSupported"`
 	FanControlBackend   string    `json:"fanControlBackend"`
-	HardwareControlMode   string  `json:"hardwareControlMode"`
-	ThermalSafetyAvailable bool   `json:"thermalSafetyAvailable"`
+	HardwareControlMode    string    `json:"hardwareControlMode"`
+	ThermalSafetyAvailable bool      `json:"thermalSafetyAvailable"`
 }
 
 var errRequestTooLarge = errors.New("request too large")
