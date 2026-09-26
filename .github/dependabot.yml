@@ -8,6 +8,7 @@ updates:
     open-pull-requests-limit: 5
     groups:
       actions-minor-patch:
+        applies-to: "version-updates"
         update-types:
           - "minor"
           - "patch"
@@ -19,6 +20,7 @@ updates:
     open-pull-requests-limit: 5
     groups:
       go-minor-patch:
+        applies-to: "version-updates"
         update-types:
           - "minor"
           - "patch"
@@ -30,6 +32,7 @@ updates:
     open-pull-requests-limit: 5
     groups:
       flutter-minor-patch:
+        applies-to: "version-updates"
         update-types:
           - "minor"
           - "patch"
