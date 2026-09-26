@@ -206,7 +206,7 @@ class HWControlUserDataStore {
           if (separator <= 0) continue;
           final key = line.substring(0, separator).trim();
           final value = line.substring(separator + 1).trim();
-          values[section.isEmpty ? key : section + '.' + key] = value;
+          values[section.isEmpty ? key : '$section.$key'] = value;
         }
         final migrated = <String, dynamic>{};
         for (final entry in values.entries) {
