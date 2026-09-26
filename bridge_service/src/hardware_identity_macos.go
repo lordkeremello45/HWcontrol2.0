@@ -34,8 +34,8 @@ func collectHardwareIdentity() HardwareIdentity {
 			if displays, ok := raw["SPDisplaysDataType"].([]any); ok {
 				for _, display := range displays {
 					if item, ok := display.(map[string]any); ok {
-						model := stringValue(item["_name"])
-						vendor := stringValue(item["spdisplays_vendor"])
+						model := macStringValue(item["_name"])
+						vendor := macStringValue(item["spdisplays_vendor"])
 						if vendor == "" { vendor = "Apple" }
 						id.GPUs = append(id.GPUs, GPUIdentity{
 							Vendor: vendor,
@@ -101,4 +101,12 @@ func extractIORegValue(text, key string) string {
 		return strings.TrimSpace(value[:end])
 	}
 	return value
+}
+
+
+func macStringValue(value any) string {
+	if text, ok := value.(string); ok {
+		return strings.TrimSpace(text)
+	}
+	return ""
 }
