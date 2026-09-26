@@ -1,20 +1,38 @@
 version: 2
 
 updates:
-  - package-ecosystem: github-actions
-    directory: /
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
-      interval: weekly
+      interval: "weekly"
     open-pull-requests-limit: 5
+    groups:
+      actions-minor-patch:
+        applies-to: "version-updates"
+        update-types:
+          - "minor"
+          - "patch"
 
-  - package-ecosystem: gomod
-    directory: /bridge_service
+  - package-ecosystem: "gomod"
+    directory: "/bridge_service"
     schedule:
-      interval: weekly
+      interval: "weekly"
     open-pull-requests-limit: 5
+    groups:
+      go-minor-patch:
+        applies-to: "version-updates"
+        update-types:
+          - "minor"
+          - "patch"
 
-  - package-ecosystem: pub
-    directory: /gui_dashboard
+  - package-ecosystem: "pub"
+    directory: "/gui_dashboard"
     schedule:
-      interval: weekly
+      interval: "weekly"
     open-pull-requests-limit: 5
+    groups:
+      flutter-minor-patch:
+        applies-to: "version-updates"
+        update-types:
+          - "minor"
+          - "patch"
