@@ -119,4 +119,4 @@ jobs:
         with:
           persist-credentials: false
       - name: Validate Google Apps Script syntax
-        run: node --check integrations/google-feedback/Code.gs
+        run: node --check < integrations/google-feedback/Code.gs
