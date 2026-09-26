@@ -23,10 +23,10 @@ class HWControlDiagnostics {
   Future<File> _resolveLogFile() async {
     final directory = await getApplicationSupportDirectory();
     final diagnosticsDirectory =
-        Directory('\${directory.path}\${Platform.pathSeparator}diagnostics');
+        Directory('${directory.path}${Platform.pathSeparator}diagnostics');
     await diagnosticsDirectory.create(recursive: true);
     return File(
-      '\${diagnosticsDirectory.path}\${Platform.pathSeparator}events.jsonl',
+      '${diagnosticsDirectory.path}${Platform.pathSeparator}events.jsonl',
     );
   }
 
@@ -55,7 +55,7 @@ class HWControlDiagnostics {
       }
 
       await file.writeAsString(
-        '\${jsonEncode(payload)}\n',
+        '${jsonEncode(payload)}\n',
         mode: FileMode.append,
         flush: false,
       );
@@ -79,6 +79,6 @@ class HWControlDiagnostics {
   String _safeMessage(String message) {
     const maxLength = 2000;
     if (message.length <= maxLength) return message;
-    return '\${message.substring(0, maxLength)}…';
+    return '${message.substring(0, maxLength)}…';
   }
 }
