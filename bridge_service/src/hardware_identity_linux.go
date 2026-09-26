@@ -112,25 +112,31 @@ func linuxGPUModels() map[string]string {
 			continue
 		}
 		for _, line := range strings.Split(string(output), "\n") {
-			line = strings.TrimSpace(line)
-			if line == "" {
-				continue
-			}
-			colon := strings.Index(line, ": ")
-			if colon < 0 {
-				continue
-			}
-			address := strings.TrimSpace(line[:colon])
-			model := strings.TrimSpace(line[colon+2:])
-			if bracket := strings.Index(model, " ["); bracket >= 0 {
-				model = strings.TrimSpace(model[:bracket])
-			}
-			if model != "" {
+			address, model := parseLspciGPUModelLine(line)
+			if address != "" && model != "" {
 				models[address] = model
 			}
 		}
 	}
 	return models
+}
+
+func parseLspciGPUModelLine(line string) (string, string) {
+	line = strings.TrimSpace(line)
+	fields := strings.Fields(line)
+	if len(fields) == 0 {
+		return "", ""
+	}
+	colon := strings.Index(line, ": ")
+	if colon < 0 {
+		return "", ""
+	}
+	address := fields[0]
+	model := strings.TrimSpace(line[colon+2:])
+	if bracket := strings.Index(model, " ["); bracket >= 0 {
+		model = strings.TrimSpace(model[:bracket])
+	}
+	return address, model
 }
 
 func linuxCPUFrequencyMHz(path string) float64 {
