@@ -288,9 +288,40 @@ func validateCommand(cmd Command) error {
 	}
 }
 
+const (
+	criticalCPUTemperature = 95.0
+	criticalGPUTemperature = 95.0
+)
+
+func hardwareControlSafetyError(metrics HardwareMetrics) error {
+	if metrics.CPUTemperature >= criticalCPUTemperature || metrics.GPUTemperature >= criticalGPUTemperature {
+		return fmt.Errorf("hardware control blocked: critical temperature detected")
+	}
+	return nil
+}
+
+func validateFanControlRequest(cmd Command, metrics HardwareMetrics) error {
+	if cmd.Action != "Fan Hızı" {
+		return nil
+	}
+	if err := hardwareControlSafetyError(metrics); err != nil {
+		return err
+	}
+	if !metrics.FanControlSupported || metrics.FanControlBackend == "" || metrics.FanControlBackend == "monitor-only" {
+		return fmt.Errorf("hardware fan control is unavailable")
+	}
+	return nil
+}
+
 func executeHardwareCommand(cmd Command) error {
 	switch cmd.Action {
-	case "Fan Hızı", "AI İşlem Gücü":
+	case "Fan Hızı":
+		metrics := collectMetrics()
+		if err := validateFanControlRequest(cmd, metrics); err != nil {
+			return err
+		}
+		return fmt.Errorf("hardware control backend is not available on this build")
+	case "AI İşlem Gücü":
 		return fmt.Errorf("hardware control backend is not available on this build")
 	case "Set Game Mode":
 		setGameModeEnabled(cmd.Value >= 50)
