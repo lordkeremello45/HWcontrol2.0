@@ -139,6 +139,8 @@ func linuxCPUFrequencyMHz(path string) float64 {
 		return 0
 	}
 	var khz uint64
-	if _, err := fmt.Sscanf(strings.TrimSpace(string(data)), "%d", &khz); err != nil { return 0 }
+	if _, err := fmt.Sscanf(strings.TrimSpace(string(data)), "%d", &khz); err != nil {
+		return 0
+	}
 	return float64(khz) / 1000
 }
