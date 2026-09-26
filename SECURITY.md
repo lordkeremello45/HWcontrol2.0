@@ -35,6 +35,17 @@ The local bridge requires an HMAC-SHA-256 authentication tag for every IPC reque
 
 This is an application-layer defense. Local administrator/root compromise, a compromised desktop user account, or a compromised OS/driver can bypass application-level trust boundaries.
 
+## Hardware-control safety gate
+
+Hardware control requests are fail-closed at the bridge boundary.
+
+- Fan-control commands are rejected when the backend reports monitor-only or unsupported control.
+- Critical CPU/GPU temperatures at or above 95 °C block fan-control commands.
+- Command values are range-validated before execution.
+- The safety gate is evaluated in the bridge process rather than trusting GUI state.
+
+The 95 °C threshold is an application-level defensive threshold, not a replacement for firmware, driver, motherboard, GPU, or operating-system thermal protections.
+
 ## Runtime safety — BSOD Shield
 
 HWControl includes a **BSOD Shield** safety layer in the AI/core runtime. The shield monitors the core execution loop and can stop processing when its health/heartbeat checks indicate that the runtime is no longer healthy. This is a **risk-reduction mechanism**, not a guarantee that Windows can never crash.
