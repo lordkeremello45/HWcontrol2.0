@@ -7,34 +7,75 @@ HWControl 2.0 is an open-source, cross-platform desktop application for hardware
 - **UI:** Flutter / Dart
 - **Secure local bridge:** Go
 - **Native engine:** C++ with CMake
-- **Supported release targets:** Windows 10/11 x64, macOS 14+ Apple Silicon, Debian/Ubuntu-family Linux x64
+- **Release targets:** Windows 10/11 x64, macOS 14+ Apple Silicon, Debian/Ubuntu-family Linux x64
 - **Website:** https://lordkeremello45.github.io/HWcontrol2.0/
 - **Source:** https://github.com/lordkeremello45/HWcontrol2.0
+- **GitLab mirror:** https://gitlab.com/lordkeremello45/HWcontrol2.0
+- **Current channel:** Beta
 
 ## Current capabilities
 
-The dashboard currently exposes CPU, memory, disk, GPU and fan telemetry where the operating system/driver exposes it. It also provides temperature history, configurable temperature alerts, local profiles, hardware-control commands, security status and update checks.
+The dashboard exposes CPU, memory, disk, GPU and fan telemetry where the operating system/driver exposes it. It also provides temperature history, configurable temperature alerts, local profiles, hardware-control commands, security status, bridge diagnostics and update checks.
 
-The bridge is loopback-only by default and authenticates commands with HMAC-SHA-256.
+Hardware-control availability is capability-driven: if a platform or device does not expose a safe supported control path, the application must remain monitor-only rather than pretending that control is available.
+
+## Beta distribution
+
+Platform-specific Beta release channels are maintained on GitHub:
+
+- Windows: https://github.com/lordkeremello45/HWcontrol2.0/releases/tag/v0.3.0-beta-windows
+- Linux: https://github.com/lordkeremello45/HWcontrol2.0/releases/tag/v0.3.0-beta-linux
+- macOS: https://github.com/lordkeremello45/HWcontrol2.0/releases/tag/v0.3.0-beta-macos
+- All releases: https://github.com/lordkeremello45/HWcontrol2.0/releases
+
+A release is considered distributable only after its platform workflow has produced the expected package assets and checksum manifest.
 
 ## Supported operating systems
 
 | Platform | Release target | Architecture | Primary package |
 |---|---|---|---|
-| Windows 10 / 11 | Supported | x64 | Guided Setup.exe + MSI + portable ZIP |
-| macOS 14+ | Supported release target | Apple Silicon / arm64 | PKG + DMG containing HWControl.app |
-| Debian / Ubuntu family | Supported | x64 | DEB + TAR |
+| Windows 10 / 11 | Beta | x64 | Guided Setup.exe + MSI + portable ZIP |
+| macOS 14+ | Beta | Apple Silicon / arm64 | PKG + DMG containing HWControl.app |
+| Debian / Ubuntu family | Beta | x64 | DEB + TAR.GZ / TAR.ZST |
 | Other x64 Linux families | Portable package path | x64 | TAR.GZ / TAR.ZST |
 
 ## Quick start
 
-1. Open the project website.
-2. Choose your operating system.
-3. Download a published release asset.
-4. Verify the published SHA-256 checksum.
-5. Install the platform package.
-6. Start HWControl and confirm that the local bridge is online.
-7. Open **System status** to inspect telemetry, security and driver state.
+1. Open the project website or the GitHub Beta release for your platform.
+2. Download a published release asset.
+3. Verify its published SHA-256 checksum.
+4. Install the platform package.
+5. Start HWControl and confirm that the local bridge is online.
+6. Open **System status** to inspect telemetry, security and driver state.
+7. If something is wrong, submit a Beta feedback report with hardware and OS details.
+
+## Beta feedback
+
+The feedback pipeline is:
+
+Google Form → Google Sheets → Apps Script → GitHub Issue → GitHub Actions → GitLab mirror
+
+The Apps Script integration:
+
+- avoids duplicate Issue creation;
+- retries transient GitHub API failures;
+- tracks processing status and attempts;
+- filters common contact/private fields from Issue bodies;
+- uses a stable feedback ID for recovery;
+- never stores the GitHub token in repository source.
+
+Setup documentation: integrations/google-feedback/README.md.
+
+## Public engineering / community
+
+The project uses GitHub as the source of truth and GitLab as an automated mirror. Public technical discussion should focus on reproducible engineering problems and useful cross-platform implementation knowledge.
+
+See:
+
+- [Stack Overflow Topics](../community/Stack-Overflow-Topics)
+- [Public Profile Checklist](../community/Public-Profile-Checklist)
+- [Contributing](Development-Contributing)
+- [Support](Troubleshooting)
 
 ## Documentation map
 
