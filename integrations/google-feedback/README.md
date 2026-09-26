@@ -21,7 +21,7 @@ The existing GitHub Actions and GitLab mirror workflows remain independent and u
 
 ## Operational behavior
 
-- Uses an installable spreadsheet form-submit trigger; no polling or Make scenario.
+- Uses an installable spreadsheet form-submit trigger; no polling is required.
 - Adds a `GitHub Issue URL` column and skips rows already linked to an issue.
 - Excludes fields whose headings indicate email, phone, contact, name, or personal contact details from issue bodies.
 - API failures are thrown to Apps Script execution logs; the sheet is not marked as processed, allowing a controlled retry.
