@@ -243,10 +243,49 @@ func collectMetrics() HardwareMetrics {
 	return metrics
 }
 
+func trustedNvidiaSMIPath() (string, error) {
+	var candidates []string
+	switch runtime.GOOS {
+	case "windows":
+		windowsRoot := os.Getenv("SystemRoot")
+		if windowsRoot == "" {
+			windowsRoot = `C:\\Windows`
+		}
+		candidates = []string{
+			filepath.Join(windowsRoot, "System32", "nvidia-smi.exe"),
+			filepath.Join(windowsRoot, "Sysnative", "nvidia-smi.exe"),
+		}
+	case "linux":
+		candidates = []string{"/usr/bin/nvidia-smi", "/usr/local/bin/nvidia-smi"}
+	case "darwin":
+		candidates = []string{"/usr/local/bin/nvidia-smi", "/opt/homebrew/bin/nvidia-smi"}
+	default:
+		return "", fmt.Errorf("unsupported platform for nvidia-smi")
+	}
+	for _, candidate := range candidates {
+		info, err := os.Lstat(candidate)
+		if err != nil {
+			continue
+		}
+		if info.Mode()&os.ModeSymlink != 0 || !info.Mode().IsRegular() {
+			continue
+		}
+		if info.Mode().Perm()&0111 == 0 {
+			continue
+		}
+		return candidate, nil
+	}
+	return "", fmt.Errorf("trusted nvidia-smi executable not found")
+}
+
 func nvidiaSMIOutput() ([]byte, error) {
+	path, err := trustedNvidiaSMIPath()
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), nvidiaSMITimeout)
 	defer cancel()
-	return exec.CommandContext(ctx, "nvidia-smi", "--query-gpu=name,driver_version,temperature.gpu,utilization.gpu,utilization.memory,fan.speed,power.draw,power.limit,voltage.gpu,memory.used,memory.total,clocks.gr,clocks.mem,pstate,utilization.encoder,utilization.decoder", "--format=csv,noheader,nounits").Output()
+	return exec.CommandContext(ctx, path, "--query-gpu=name,driver_version,temperature.gpu,utilization.gpu,utilization.memory,fan.speed,power.draw,power.limit,voltage.gpu,memory.used,memory.total,clocks.gr,clocks.mem,pstate,utilization.encoder,utilization.decoder", "--format=csv,noheader,nounits").Output()
 }
 
 func modelDigest() string {
@@ -610,16 +649,17 @@ func handleConnection(conn net.Conn, secret string) {
 			return
 		}
 		var cmd Command
-		if err := json.Unmarshal(line, &cmd); err != nil {
+		decoder := json.NewDecoder(strings.NewReader(string(line)))
+		decoder.DisallowUnknownFields()
+		if err := decoder.Decode(&cmd); err != nil {
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
 			_ = encoder.Encode(Response{Status: "ERROR", Message: "invalid request"})
 			continue
 		}
-		if err := validateCommand(cmd); err != nil {
+		var extra any
+		if err := decoder.Decode(&extra); err != io.EOF {
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-			if err := encoder.Encode(Response{Status: "ERROR", Message: err.Error()}); err != nil {
-				return
-			}
+			_ = encoder.Encode(Response{Status: "ERROR", Message: "invalid request"})
 			continue
 		}
 		if !authenticateCommand(cmd, secret) {
@@ -638,6 +678,13 @@ func handleConnection(conn net.Conn, secret string) {
 			continue
 		}
 		authFailures = 0
+		if err := validateCommand(cmd); err != nil {
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			if err := encoder.Encode(Response{Status: "ERROR", Message: err.Error()}); err != nil {
+				return
+			}
+			continue
+		}
 		now := time.Now()
 		if !lastCommandAt.IsZero() && now.Sub(lastCommandAt) < minimumCommandInterval {
 			_ = conn.SetWriteDeadline(now.Add(connectionTimeout))

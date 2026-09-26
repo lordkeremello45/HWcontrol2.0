@@ -201,6 +201,37 @@ func TestExecuteHardwareCommandFailsClosed(t *testing.T) {
 	}
 }
 
+func TestBridgeRejectsUnknownJSONFields(t *testing.T) {
+	server, client := net.Pipe()
+	defer client.Close()
+
+	done := make(chan struct{})
+	go func() {
+		handleConnection(server, "test-secret")
+		close(done)
+	}()
+
+	request := `{"action":"Get Status","value":0,"timestamp":1,"nonce":"0123456789abcdef0123456789abcdef","auth":"0000000000000000000000000000000000000000000000000000000000000000","unexpected":"field"}` + "\n"
+	if _, err := client.Write([]byte(request)); err != nil {
+		t.Fatalf("write request: %v", err)
+	}
+	reader := bufio.NewReader(client)
+	_ = client.SetReadDeadline(time.Now().Add(2 * time.Second))
+	response, err := reader.ReadBytes('\n')
+	if err != nil {
+		t.Fatalf("read response: %v", err)
+	}
+	if !strings.Contains(string(response), "invalid request") {
+		t.Fatalf("unexpected response: %s", response)
+	}
+	_ = client.Close()
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("connection handler did not terminate")
+	}
+}
+
 func TestBridgeRequestSizeBound(t *testing.T) {
 	server, client := net.Pipe()
 	defer client.Close()
