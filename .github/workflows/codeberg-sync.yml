@@ -1,0 +1,46 @@
+name: Codeberg Sync
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeberg-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync to Codeberg
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full repository history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Push main and tags to Codeberg
+        env:
+          CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${CODEBERG_TOKEN}" ]; then
+            echo "::error::CODEBERG_TOKEN GitHub Actions secret is not configured."
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git remote add codeberg "https://${CODEBERG_TOKEN}@codeberg.org/lordkeremello45/HWcontrol2.0.git"
+
+          git push codeberg "HEAD:refs/heads/main"
+          git push codeberg --tags
