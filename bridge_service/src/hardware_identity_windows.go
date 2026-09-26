@@ -28,6 +28,8 @@ type windowsHardwareIdentity struct {
 	CPUModel           string
 	CPUPhysicalCores   int
 	CPUThreads         int
+	CPUBaseClockMHz    float64
+	CPUMaxClockMHz     float64
 	GPUVendor          string
 	GPUModel           string
 	GPUDriver          string
@@ -42,7 +44,7 @@ const windowsHardwareIdentityScript = "$ErrorActionPreference='SilentlyContinue'
 	"$cpu=Get-CimInstance Win32_Processor | Select-Object -First 1\n" +
 	"$gpus=@(Get-CimInstance Win32_VideoController | Where-Object {$_.Name} | ForEach-Object { [pscustomobject]@{ vendor=[string]$_.AdapterCompatibility; model=[string]$_.Name; driver=[string]$_.DriverProviderName; driverVersion=[string]$_.DriverVersion } })\n" +
 	"$gpu=$gpus | Select-Object -First 1\n" +
-	"[pscustomobject]@{ systemManufacturer=[string]$cs.Manufacturer; systemModel=[string]$cs.Model; systemVersion=[string]$cs.SystemFamily; biosVendor=[string]$bios.Manufacturer; biosVersion=[string]$bios.SMBIOSBIOSVersion; motherboardVendor=[string]$board.Manufacturer; motherboardModel=[string]$board.Product; motherboardVersion=[string]$board.Version; cpuManufacturer=[string]$cpu.Manufacturer; cpuModel=[string]$cpu.Name; cpuPhysicalCores=[int]$cpu.NumberOfCores; cpuThreads=[int]$cpu.NumberOfLogicalProcessors; gpuVendor=[string]$gpu.AdapterCompatibility; gpuModel=[string]$gpu.Name; gpuDriver=[string]$gpu.DriverProviderName; gpuDriverVersion=[string]$gpu.DriverVersion; gpus=$gpus } | ConvertTo-Json -Compress"
+	"[pscustomobject]@{ systemManufacturer=[string]$cs.Manufacturer; systemModel=[string]$cs.Model; systemVersion=[string]$cs.SystemFamily; biosVendor=[string]$bios.Manufacturer; biosVersion=[string]$bios.SMBIOSBIOSVersion; motherboardVendor=[string]$board.Manufacturer; motherboardModel=[string]$board.Product; motherboardVersion=[string]$board.Version; cpuManufacturer=[string]$cpu.Manufacturer; cpuModel=[string]$cpu.Name; cpuPhysicalCores=[int]$cpu.NumberOfCores; cpuThreads=[int]$cpu.NumberOfLogicalProcessors; cpuBaseClockMHz=[double]$cpu.CurrentClockSpeed; cpuMaxClockMHz=[double]$cpu.MaxClockSpeed; gpuVendor=[string]$gpu.AdapterCompatibility; gpuModel=[string]$gpu.Name; gpuDriver=[string]$gpu.DriverProviderName; gpuDriverVersion=[string]$gpu.DriverVersion; gpus=$gpus } | ConvertTo-Json -Compress"
 
 func collectHardwareIdentity() HardwareIdentity {
 	id := emptyHardwareIdentity()
@@ -69,6 +71,8 @@ func collectHardwareIdentity() HardwareIdentity {
 	id.CPUModel = stringValue(raw["cpuModel"])
 	id.CPUPhysicalCores = intValue(raw["cpuPhysicalCores"])
 	id.CPUThreads = intValue(raw["cpuThreads"])
+	id.CPUBaseClockMHz = floatValue(raw["cpuBaseClockMHz"])
+	id.CPUMaxClockMHz = floatValue(raw["cpuMaxClockMHz"])
 	id.GPUVendor = stringValue(raw["gpuVendor"])
 	id.GPUModel = stringValue(raw["gpuModel"])
 	id.GPUDriver = stringValue(raw["gpuDriver"])
@@ -96,6 +100,11 @@ func stringValue(value any) string {
 		return ""
 	}
 	return strings.TrimSpace(toString(value))
+}
+
+func floatValue(value any) float64 {
+	if v, ok := value.(float64); ok { return v }
+	return 0
 }
 
 func intValue(value any) int {
