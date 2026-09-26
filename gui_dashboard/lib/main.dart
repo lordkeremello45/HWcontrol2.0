@@ -859,6 +859,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       _gpuDriverVersion = data['gpuDriverVersion'] as String? ?? 'Bilinmiyor';
       _detectionSource = data['detectionSource'] as String? ?? 'Bilinmiyor';
       final detectedGpus = data['gpuDevices'];
+      _gpuDevices = <String>[];
       if (detectedGpus is List) {
         _gpuDevices = detectedGpus
             .whereType<Map>()
