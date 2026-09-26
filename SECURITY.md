@@ -32,7 +32,7 @@ The local bridge requires an HMAC-SHA-256 authentication tag for every IPC reque
 - Authenticated commands are rate-limited per connection to reduce command-flooding pressure on hardware telemetry/control paths.
 - Authentication failures are limited per connection and the connection is closed after repeated failures.
 - Request bodies are size-bounded and connections have read/write deadlines.
-- Unix deployments use a permission-protected socket by default; Windows uses authenticated loopback TCP.
+- Unix deployments use a permission-protected `0660` socket owned by the service account and the installer-selected desktop group; Windows uses authenticated loopback TCP.
 - The optional local AI process receives telemetry through its stdio interface and is not given bridge authentication credentials in its process environment.
 - The AI process is not treated as an OS-level security boundary: a same-user compromised process may still access files readable by that user.
 
