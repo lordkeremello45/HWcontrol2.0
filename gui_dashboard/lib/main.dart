@@ -57,8 +57,6 @@ class HWControlApp extends StatefulWidget {
 class _HWControlAppState extends State<HWControlApp> {
   bool _darkMode = true;
   bool _animationsEnabled = true;
-  String _locale = 'en-US';
-  Map<String, Map<String, String>> _translations = <String, Map<String, String>>{};
   final HWControlUserDataStore _userData = HWControlUserDataStore();
 
   @override
@@ -147,6 +145,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Process? _aiProcess;
   StreamIterator<String>? _aiResponses;
   bool _aiStarting = false;
+  String _locale = 'en-US';
+  Map<String, Map<String, String>> _translations = <String, Map<String, String>>{};
   bool _aiSending = false;
   DateTime? _lastAiAnalysisAt;
   String _aiStatus = 'Yerel AI başlatılmadı';
