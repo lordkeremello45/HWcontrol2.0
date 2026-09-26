@@ -66,6 +66,23 @@ jobs:
               s.sendall((json.dumps({"action": action, "value": value, "timestamp": timestamp, "nonce": nonce, "auth": auth}) + "\n").encode())
               response = json.loads(s.makefile("r").readline())
           assert response["status"] == "SUCCESS", response
+          with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
+              s.settimeout(5)
+              s.connect(sock_path)
+              s.sendall((json.dumps({"action": action, "value": value, "timestamp": timestamp, "nonce": nonce, "auth": auth}) + "\n").encode())
+              replay = json.loads(s.makefile("r").readline())
+          assert replay["status"] == "ERROR" and "replayed" in replay["message"], replay
+
+          stale_timestamp = timestamp - 60000
+          stale_nonce = secrets.token_hex(16)
+          stale_payload = f"{action}\n{value:.6f}\n{stale_timestamp}\n{stale_nonce}"
+          stale_auth = hmac.new(key.encode(), stale_payload.encode(), hashlib.sha256).hexdigest()
+          with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
+              s.settimeout(5)
+              s.connect(sock_path)
+              s.sendall((json.dumps({"action": action, "value": value, "timestamp": stale_timestamp, "nonce": stale_nonce, "auth": stale_auth}) + "\n").encode())
+              stale = json.loads(s.makefile("r").readline())
+          assert stale["status"] == "ERROR" and "timestamp" in stale["message"], stale
           PY
 
   macos:
@@ -170,6 +187,28 @@ jobs:
             $reader = [IO.StreamReader]::new($stream)
             $response = $reader.ReadLine() | ConvertFrom-Json
             if ($response.status -ne 'SUCCESS') { throw "Bridge response: $($response.message)" }
+
+            $replayClient = [Net.Sockets.TcpClient]::new('127.0.0.1', 18080)
+            $replayStream = $replayClient.GetStream()
+            $replayRequest = [Text.Encoding]::UTF8.GetBytes((ConvertTo-Json @{ action=$action; value=$value; timestamp=$timestamp; nonce=$nonce; auth=$auth; } -Compress) + "`n")
+            $replayStream.Write($replayRequest, 0, $replayRequest.Length)
+            $replayResponse = [IO.StreamReader]::new($replayStream).ReadLine() | ConvertFrom-Json
+            if ($replayResponse.status -ne 'ERROR' -or $replayResponse.message -notlike '*replayed*') { throw "Replay was not rejected: $($replayResponse.message)" }
+            $replayClient.Dispose()
+
+            $staleTimestamp = $timestamp - 60000
+            $staleBytes = New-Object byte[] 16
+            [System.Security.Cryptography.RandomNumberGenerator]::Fill($staleBytes)
+            $staleNonce = [Convert]::ToHexString($staleBytes).ToLowerInvariant()
+            $stalePayload = "$action`n{0:F6}`n$staleTimestamp`n$staleNonce" -f $value
+            $staleAuth = [Convert]::ToHexString($hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($stalePayload))).ToLowerInvariant()
+            $staleClient = [Net.Sockets.TcpClient]::new('127.0.0.1', 18080)
+            $staleStream = $staleClient.GetStream()
+            $staleRequest = [Text.Encoding]::UTF8.GetBytes((ConvertTo-Json @{ action=$action; value=$value; timestamp=$staleTimestamp; nonce=$staleNonce; auth=$staleAuth; } -Compress) + "`n")
+            $staleStream.Write($staleRequest, 0, $staleRequest.Length)
+            $staleResponse = [IO.StreamReader]::new($staleStream).ReadLine() | ConvertFrom-Json
+            if ($staleResponse.status -ne 'ERROR' -or $staleResponse.message -notlike '*timestamp*') { throw "Stale timestamp was not rejected: $($staleResponse.message)" }
+            $staleClient.Dispose()
             $client.Dispose()
           } finally {
             if ($process -and -not $process.HasExited) { Stop-Process -Id $process.Id -Force }
