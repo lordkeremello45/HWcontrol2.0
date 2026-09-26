@@ -103,7 +103,9 @@ func stringValue(value any) string {
 }
 
 func floatValue(value any) float64 {
-	if v, ok := value.(float64); ok { return v }
+	if v, ok := value.(float64); ok {
+		return v
+	}
 	return 0
 }
 
