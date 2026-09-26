@@ -72,7 +72,19 @@ func collectHardwareIdentity() HardwareIdentity {
 	id.GPUVendor = stringValue(raw["gpuVendor"])
 	id.GPUModel = stringValue(raw["gpuModel"])
 	id.GPUDriver = stringValue(raw["gpuDriver"])
-	id.GPUDriverVersion = stringValue(raw["gpuDriverVersion"])\n\tif rawGPUs, ok := raw["gpus"].([]any); ok {\n\t\tfor _, rawGPU := range rawGPUs {\n\t\t\tif gpuMap, ok := rawGPU.(map[string]any); ok {\n\t\t\t\tid.GPUs = append(id.GPUs, GPUIdentity{Vendor: stringValue(gpuMap["vendor"]), Model: stringValue(gpuMap["model"]), Driver: stringValue(gpuMap["driver"]), DriverVersion: stringValue(gpuMap["driverVersion"])})\n\t\t\t}\n\t\t}\n\t}
+	id.GPUDriverVersion = stringValue(raw["gpuDriverVersion"])
+	if rawGPUs, ok := raw["gpus"].([]any); ok {
+		for _, rawGPU := range rawGPUs {
+			if gpuMap, ok := rawGPU.(map[string]any); ok {
+				id.GPUs = append(id.GPUs, GPUIdentity{
+					Vendor:        stringValue(gpuMap["vendor"]),
+					Model:         stringValue(gpuMap["model"]),
+					Driver:        stringValue(gpuMap["driver"]),
+					DriverVersion: stringValue(gpuMap["driverVersion"]),
+				})
+			}
+		}
+	}
 	if id.SystemModel != "" || id.MotherboardModel != "" || id.CPUModel != "" || id.GPUModel != "" {
 		id.DetectionStatus = "ok"
 	}
