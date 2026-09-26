@@ -29,13 +29,20 @@ import (
 )
 
 type Command struct {
-	Action string  `json:"action"`
-	Value  float64 `json:"value"`
-	Auth   string  `json:"auth"`
+	Action    string  `json:"action"`
+	Value     float64 `json:"value"`
+	Timestamp int64   `json:"timestamp"`
+	Nonce     string  `json:"nonce"`
+	Auth      string  `json:"auth"`
 }
 
+const commandClockSkew = 30 * time.Second
+
 func commandPayload(cmd Command) string {
-	return cmd.Action + "\n" + strconv.FormatFloat(cmd.Value, 'f', 6, 64)
+	return cmd.Action + "\n" +
+		strconv.FormatFloat(cmd.Value, 'f', 6, 64) + "\n" +
+		strconv.FormatInt(cmd.Timestamp, 10) + "\n" +
+		cmd.Nonce
 }
 
 func signCommand(cmd Command, secret string) string {
@@ -259,6 +266,19 @@ func validateCommand(cmd Command) error {
 	if math.IsNaN(cmd.Value) || math.IsInf(cmd.Value, 0) || cmd.Value < 0 || cmd.Value > 100 {
 		return fmt.Errorf("value must be between 0 and 100")
 	}
+	if cmd.Timestamp <= 0 {
+		return fmt.Errorf("timestamp is required")
+	}
+	age := time.Since(time.UnixMilli(cmd.Timestamp))
+	if age > commandClockSkew || age < -commandClockSkew {
+		return fmt.Errorf("command timestamp outside allowed window")
+	}
+	if len(cmd.Nonce) != 32 {
+		return fmt.Errorf("nonce must contain 32 hexadecimal characters")
+	}
+	if _, err := hex.DecodeString(cmd.Nonce); err != nil {
+		return fmt.Errorf("nonce must be hexadecimal")
+	}
 	switch cmd.Action {
 	case "Fan Hızı", "AI İşlem Gücü", "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Set Game Mode":
 		return nil
@@ -454,6 +474,24 @@ func readBoundedRequest(reader *bufio.Reader, limit int) ([]byte, error) {
 	}
 }
 
+var replayMu sync.Mutex
+var replayNonces = map[string]time.Time{}
+
+func consumeCommandNonce(nonce string, now time.Time) bool {
+	replayMu.Lock()
+	defer replayMu.Unlock()
+	for key, expiresAt := range replayNonces {
+		if now.After(expiresAt) {
+			delete(replayNonces, key)
+		}
+	}
+	if _, exists := replayNonces[nonce]; exists {
+		return false
+	}
+	replayNonces[nonce] = now.Add(commandClockSkew)
+	return true
+}
+
 func handleConnection(conn net.Conn, secret string) {
 	defer conn.Close()
 	defer func() {
@@ -491,6 +529,13 @@ func handleConnection(conn net.Conn, secret string) {
 			authFailures++
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
 			if err := encoder.Encode(Response{Status: "ERROR", Message: "authentication failed"}); err != nil || authFailures >= 5 {
+				return
+			}
+			continue
+		}
+		if !consumeCommandNonce(cmd.Nonce, time.Now()) {
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			if err := encoder.Encode(Response{Status: "ERROR", Message: "replayed command rejected"}); err != nil {
 				return
 			}
 			continue
