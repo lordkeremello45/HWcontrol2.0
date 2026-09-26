@@ -6,6 +6,8 @@ import 'package:hwcontrol_dashboard/diagnostics.dart';
 import 'package:path_provider/path_provider.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   test('diagnostics writes privacy-safe structured JSONL locally', () async {
     await HWControlDiagnostics.instance.record(
       'test_error',
