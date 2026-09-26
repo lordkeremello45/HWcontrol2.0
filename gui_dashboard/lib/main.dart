@@ -798,7 +798,7 @@ Attach this archive to a support issue only after reviewing it for personal info
 
   String _csvEscape(String value) {
     if (!value.contains(',') && !value.contains('"') && !value.contains('\\n')) return value;
-    return '"' + value.replaceAll('"', '""') + '"';
+    return '"${value.replaceAll('"', '""')}"';
   }
 
   Future<void> _exportTelemetryHistory() async {
@@ -806,19 +806,19 @@ Attach this archive to a support issue only after reviewing it for personal info
       final directory = await getDownloadsDirectory() ?? await getApplicationSupportDirectory();
       await directory.create(recursive: true);
       final stamp = DateTime.now().toUtc().toIso8601String().replaceAll(RegExp(r'[:.]'), '-');
-      final file = File(directory.path + Platform.pathSeparator + 'HWControl-Telemetry-' + stamp + '.csv');
+      final file = File('${directory.path}${Platform.pathSeparator}HWControl-Telemetry-$stamp.csv');
       final buffer = StringBuffer('timestamp,cpu_temperature,cpu_usage,cpu_frequency_mhz,gpu_temperature,gpu_usage,gpu_core_clock_mhz,gpu_power_watts,gpu_memory_usage,fan_percent,fan_rpm,memory_usage,disk_usage,thermal_status\\n');
       for (final sample in _history) {
         buffer.writeln([sample.time.toUtc().toIso8601String(), sample.cpuTemperature, sample.cpuUsage, sample.cpuFrequencyMHz, sample.gpuTemperature, sample.gpuUsage, sample.gpuCoreClockMHz, sample.gpuPowerWatts, sample.gpuMemoryUsage, sample.fanPercent, sample.fanRpm, sample.memoryUsage, sample.diskUsage, _csvEscape(_thermalStatus)].join(','));
       }
       await file.writeAsString(buffer.toString(), flush: true);
       if (!mounted) return;
-      setState(() => _status = 'Telemetry CSV oluşturuldu: ' + file.path);
+      setState(() => _status = 'Telemetry CSV oluşturuldu: ${file.path}');
       _addEvent('Telemetry geçmişi dışa aktarıldı');
     } catch (error) {
       if (!mounted) return;
       setState(() => _status = 'Telemetry dışa aktarılamadı');
-      _addEvent('Telemetry export hatası: ' + error.toString());
+      _addEvent('Telemetry export hatası: $error');
     }
   }
   Future<void> _refreshMetrics() async {
@@ -901,7 +901,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       );
       final thermalAlert = _thermalStatus.contains('şüphesi') || _thermalStatus == 'Yüksek sıcaklık';
       if (thermalAlert && !_thermalAlertActive) {
-        _events.insert(0, DateTime.now().toLocal().toString().substring(11, 19) + '  ' + _thermalStatus);
+        _events.insert(0, '${DateTime.now().toLocal().toString().substring(11, 19)}  $_thermalStatus');
         if (_events.length > 20) _events.removeLast();
       }
       _thermalAlertActive = thermalAlert;
@@ -1442,13 +1442,13 @@ Attach this archive to a support issue only after reviewing it for personal info
           Row(
             children: [
               Expanded(child: _sectionTitle('Telemetry geçmişi', 'Son 1 saat • 5 saniyelik örnekleme')),
-              Text('Maks. CPU ' + maximum.toStringAsFixed(1) + ' °C', style: const TextStyle(color: Color(0xFFFFB454), fontSize: 12, fontWeight: FontWeight.w700)),
+              Text('Maks. CPU ${maximum.toStringAsFixed(1)} °C', style: const TextStyle(color: Color(0xFFFFB454), fontSize: 12, fontWeight: FontWeight.w700)),
               const SizedBox(width: 8),
               IconButton(tooltip: 'CSV dışa aktar', onPressed: _history.isEmpty ? null : _exportTelemetryHistory, icon: const Icon(Icons.download_outlined, size: 18)),
             ],
           ),
           const SizedBox(height: 8),
-          Text('Termal durum: ' + _thermalStatus, style: TextStyle(fontSize: 11, color: _thermalAlertActive ? const Color(0xFFFFB454) : Theme.of(context).colorScheme.onSurface.withAlpha(140))),
+          Text('Termal durum: $_thermalStatus', style: TextStyle(fontSize: 11, color: _thermalAlertActive ? const Color(0xFFFFB454) : Theme.of(context).colorScheme.onSurface.withAlpha(140))),
           const SizedBox(height: 14),
           if (_history.isEmpty)
             const SizedBox(height: 130, child: Center(child: Text('Bridge metrikleri bekleniyor', style: TextStyle(color: Colors.white54, fontSize: 12))))
