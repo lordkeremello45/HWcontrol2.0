@@ -37,7 +37,11 @@ type Command struct {
 	Auth      string  `json:"auth"`
 }
 
-const commandClockSkew = 30 * time.Second
+const (
+	commandClockSkew = 30 * time.Second
+	minimumCommandInterval = 100 * time.Millisecond
+	maxReplayNonces = 4096
+)
 
 func commandPayload(cmd Command) string {
 	return cmd.Action + "\n" +
@@ -525,6 +529,19 @@ func consumeCommandNonce(nonce string, now time.Time) bool {
 	if _, exists := replayNonces[nonce]; exists {
 		return false
 	}
+	if len(replayNonces) >= maxReplayNonces {
+		var oldestNonce string
+		var oldestExpiry time.Time
+		for key, expiresAt := range replayNonces {
+			if oldestNonce == "" || expiresAt.Before(oldestExpiry) {
+				oldestNonce = key
+				oldestExpiry = expiresAt
+			}
+		}
+		if oldestNonce != "" {
+			delete(replayNonces, oldestNonce)
+		}
+	}
 	replayNonces[nonce] = now.Add(commandClockSkew)
 	return true
 }
@@ -539,6 +556,7 @@ func handleConnection(conn net.Conn, secret string) {
 	reader := bufio.NewReaderSize(conn, 4096)
 	encoder := json.NewEncoder(conn)
 	authFailures := 0
+	var lastCommandAt time.Time
 	for {
 		_ = conn.SetReadDeadline(time.Now().Add(connectionTimeout))
 		line, err := readBoundedRequest(reader, maxRequestBytes)
@@ -578,6 +596,15 @@ func handleConnection(conn net.Conn, secret string) {
 			continue
 		}
 		authFailures = 0
+		now := time.Now()
+		if !lastCommandAt.IsZero() && now.Sub(lastCommandAt) < minimumCommandInterval {
+			_ = conn.SetWriteDeadline(now.Add(connectionTimeout))
+			if err := encoder.Encode(Response{Status: "ERROR", Message: "command rate limit exceeded"}); err != nil {
+				return
+			}
+			continue
+		}
+		lastCommandAt = now
 		if cmd.Action == "Get Status" {
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
 			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Metrikler alındı", Data: collectMetrics()}); err != nil {
