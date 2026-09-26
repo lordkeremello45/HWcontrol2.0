@@ -143,6 +143,7 @@ func TestHardwareControlSafetyGate(t *testing.T) {
 	base := HardwareMetrics{
 		FanControlSupported: true,
 		FanControlBackend:   "test-backend",
+		ThermalSafetyAvailable: true,
 		CPUTemperature:      60,
 		GPUTemperature:      65,
 	}
@@ -153,6 +154,11 @@ func TestHardwareControlSafetyGate(t *testing.T) {
 	critical.CPUTemperature = criticalCPUTemperature
 	if err := hardwareControlSafetyError(critical); err == nil {
 		t.Fatal("expected critical CPU temperature to block hardware control")
+	}
+	noThermal := base
+	noThermal.ThermalSafetyAvailable = false
+	if err := validateFanControlRequest(testCommand("Fan Hızı", 50), noThermal); err == nil {
+		t.Fatal("expected missing thermal telemetry to fail closed")
 	}
 	unsupported := base
 	unsupported.FanControlSupported = false
