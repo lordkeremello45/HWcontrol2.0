@@ -243,10 +243,49 @@ func collectMetrics() HardwareMetrics {
 	return metrics
 }
 
+func trustedNvidiaSMIPath() (string, error) {
+	var candidates []string
+	switch runtime.GOOS {
+	case "windows":
+		windowsRoot := os.Getenv("SystemRoot")
+		if windowsRoot == "" {
+			windowsRoot = `C:\\Windows`
+		}
+		candidates = []string{
+			filepath.Join(windowsRoot, "System32", "nvidia-smi.exe"),
+			filepath.Join(windowsRoot, "Sysnative", "nvidia-smi.exe"),
+		}
+	case "linux":
+		candidates = []string{"/usr/bin/nvidia-smi", "/usr/local/bin/nvidia-smi"}
+	case "darwin":
+		candidates = []string{"/usr/local/bin/nvidia-smi", "/opt/homebrew/bin/nvidia-smi"}
+	default:
+		return "", fmt.Errorf("unsupported platform for nvidia-smi")
+	}
+	for _, candidate := range candidates {
+		info, err := os.Lstat(candidate)
+		if err != nil {
+			continue
+		}
+		if info.Mode()&os.ModeSymlink != 0 || !info.Mode().IsRegular() {
+			continue
+		}
+		if info.Mode().Perm()&0111 == 0 {
+			continue
+		}
+		return candidate, nil
+	}
+	return "", fmt.Errorf("trusted nvidia-smi executable not found")
+}
+
 func nvidiaSMIOutput() ([]byte, error) {
+	path, err := trustedNvidiaSMIPath()
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), nvidiaSMITimeout)
 	defer cancel()
-	return exec.CommandContext(ctx, "nvidia-smi", "--query-gpu=name,driver_version,temperature.gpu,utilization.gpu,utilization.memory,fan.speed,power.draw,power.limit,voltage.gpu,memory.used,memory.total,clocks.gr,clocks.mem,pstate,utilization.encoder,utilization.decoder", "--format=csv,noheader,nounits").Output()
+	return exec.CommandContext(ctx, path, "--query-gpu=name,driver_version,temperature.gpu,utilization.gpu,utilization.memory,fan.speed,power.draw,power.limit,voltage.gpu,memory.used,memory.total,clocks.gr,clocks.mem,pstate,utilization.encoder,utilization.decoder", "--format=csv,noheader,nounits").Output()
 }
 
 func modelDigest() string {
