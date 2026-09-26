@@ -56,6 +56,10 @@ A release pipeline can publish package hashes and provenance attestations while 
 - attestation verification approach;
 - explicit distinction between unsigned and signed artifacts.
 
+## Important Stack Overflow policy note
+
+Stack Overflow currently states that AI-assisted generated content, including ChatGPT-generated content, is not allowed. Treat the topics in this file as engineering notes only: write and verify any eventual post yourself from your own reproducible experience rather than copying generated prose. See the current Stack Overflow Help Center policy before posting.
+
 ## Posting rules
 
 1. Do not post promotional material as a technical question.
