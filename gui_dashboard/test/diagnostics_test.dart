@@ -32,5 +32,23 @@ void main() {
     expect(event['message'], contains('example failure'));
     expect(event.containsKey('hardware'), isFalse);
     expect(event.containsKey('settings'), isFalse);
+
+    await diagnostics.recordCrash(
+      StateError('crash example'),
+      StackTrace.current,
+      applicationVersion: 'test',
+    );
+    final crashes = await diagnostics.readCrashHistory();
+    expect(crashes, isNotEmpty);
+    expect(crashes.first['applicationVersion'], 'test');
+    expect(crashes.first['message'], contains('crash example'));
+
+    await diagnostics.initializeSession(applicationVersion: 'test');
+    await diagnostics.markSessionCleanExit();
+    final session = jsonDecode(await File(
+      '${root.path}${Platform.pathSeparator}diagnostics'
+      '${Platform.pathSeparator}session.json',
+    ).readAsString()) as Map<String, dynamic>;
+    expect(session['cleanExit'], isTrue);
   });
 }
