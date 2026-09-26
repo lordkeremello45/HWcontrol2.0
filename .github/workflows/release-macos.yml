@@ -7,8 +7,13 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag, for example v0.2.5-macos'
+        description: 'Existing release tag, for example v0.3.0-beta-macos'
         required: true
+        type: string
+      source_ref:
+        description: 'Source branch or commit to build'
+        required: true
+        default: main
         type: string
 
 permissions:
@@ -29,7 +34,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || github.ref_name }}
           persist-credentials: false
 
       - name: Install tooling
