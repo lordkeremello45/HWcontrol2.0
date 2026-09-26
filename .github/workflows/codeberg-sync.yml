@@ -40,7 +40,19 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git remote add codeberg "https://${CODEBERG_TOKEN}@codeberg.org/lordkeremello45/HWcontrol2.0.git"
+          # Codeberg HTTP auth uses the account name as username and token as password.
+          git remote add codeberg "https://lordkeremello45@codeberg.org/lordkeremello45/HWcontrol2.0.git"
+
+          askpass="$(mktemp)"
+          trap 'rm -f "$askpass"' EXIT
+          cat > "$askpass" <<'ASKPASS'
+          #!/bin/sh
+          printf '%s\n' "$CODEBERG_TOKEN"
+          ASKPASS
+          chmod 700 "$askpass"
+
+          export GIT_ASKPASS="$askpass"
+          export GIT_TERMINAL_PROMPT=0
 
           git push codeberg "HEAD:refs/heads/main"
           git push codeberg --tags
