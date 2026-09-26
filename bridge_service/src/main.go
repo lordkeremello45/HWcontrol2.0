@@ -609,7 +609,15 @@ func handleConnection(conn net.Conn, secret string) {
 			return
 		}
 		var cmd Command
-		if err := json.Unmarshal(line, &cmd); err != nil {
+		decoder := json.NewDecoder(strings.NewReader(string(line)))
+		decoder.DisallowUnknownFields()
+		if err := decoder.Decode(&cmd); err != nil {
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			_ = encoder.Encode(Response{Status: "ERROR", Message: "invalid request"})
+			continue
+		}
+		var extra any
+		if err := decoder.Decode(&extra); err != io.EOF {
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
 			_ = encoder.Encode(Response{Status: "ERROR", Message: "invalid request"})
 			continue
