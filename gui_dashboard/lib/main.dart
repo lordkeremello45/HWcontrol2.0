@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:archive/archive.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -13,10 +14,37 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'diagnostics.dart';
 import 'model_manager.dart';
 import 'user_data_store.dart';
 
-void main() => runApp(const HWControlApp());
+void main() {
+  final diagnostics = HWControlDiagnostics.instance;
+
+  FlutterError.onError = (details) {
+    unawaited(
+      diagnostics.reportError(
+        details.exception,
+        details.stack ?? StackTrace.current,
+        event: 'flutter_framework_error',
+      ),
+    );
+    FlutterError.presentError(details);
+  };
+
+  ui.PlatformDispatcher.instance.onError = (error, stack) {
+    unawaited(
+      diagnostics.reportError(
+        error,
+        stack,
+        event: 'uncaught_async_error',
+      ),
+    );
+    return false;
+  };
+
+  runApp(const HWControlApp());
+}
 
 class HWControlApp extends StatefulWidget {
   const HWControlApp({super.key});
