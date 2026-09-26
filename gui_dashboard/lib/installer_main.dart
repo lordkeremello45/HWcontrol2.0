@@ -179,6 +179,19 @@ class _InstallerWizardState extends State<InstallerWizard> {
                   Text(_titleForStep(), style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 12),
                   Text(_bodyForStep()),
+                  const SizedBox(height: 14),
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: _installAiModel,
+                    onChanged: _aiDownloading
+                        ? null
+                        : (value) => setState(() => _installAiModel = value ?? false),
+                    title: const Text('Yerel AI (Gemma 3 1B)'),
+                    subtitle: const Text(
+                      'İsteğe bağlı. Seçilirse Gemma 3 1B modeli kurulum sırasında indirilir ve SHA-256 ile doğrulanır.',
+                    ),
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
                   const SizedBox(height: 18),
                   if (_step == 2)
                     Container(
