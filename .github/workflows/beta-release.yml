@@ -125,7 +125,7 @@ jobs:
             "HWControl-$env:RELEASE_TAG-Windows-x64.msi",
             "HWControl-$env:RELEASE_TAG-Windows-x64.zip"
           )
-          $hashes = foreach ($file in $files) { "$(Get-FileHash $file -Algorithm SHA256).Hash  $file" }
+          $hashes = foreach ($file in $files) { "((Get-FileHash $file -Algorithm SHA256).Hash.ToLower())  $file" }
           $hashes | Set-Content "HWControl-$env:RELEASE_TAG-Windows-x64.sha256"
       - uses: actions/attest@v4
         with:
