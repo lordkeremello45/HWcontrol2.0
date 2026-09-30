@@ -13,7 +13,7 @@ type StorageVolume struct {
 	MountPoint       string   `json:"mountPoint"`
 	Device           string   `json:"device"`
 	FileSystem       string   `json:"fileSystem"`
-	Type             string   `json:"type"`
+	Options          string   `json:"options"`
 	TotalBytes       uint64   `json:"totalBytes"`
 	UsedBytes        uint64   `json:"usedBytes"`
 	FreeBytes        uint64   `json:"freeBytes"`
@@ -106,7 +106,7 @@ func collectStorageVolumes() []StorageVolume {
 			MountPoint:   mount,
 			Device:       strings.TrimSpace(partition.Device),
 			FileSystem:   strings.TrimSpace(partition.Fstype),
-			Type:         strings.TrimSpace(partition.Opts),
+			Options:       strings.TrimSpace(partition.Opts),
 			TotalBytes:   usage.Total,
 			UsedBytes:    usage.Used,
 			FreeBytes:    usage.Free,
