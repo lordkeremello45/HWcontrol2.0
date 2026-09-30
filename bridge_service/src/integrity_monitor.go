@@ -73,6 +73,7 @@ func newBridgeIntegrityMonitor() (*bridgeIntegrityMonitor, error) {
 	}
 
 	bridgeIntegrityState.Store(true)
+	bridgeIntegrityTargetCount.Store(int64(len(targets)))
 	m := &bridgeIntegrityMonitor{
 		targets: targets,
 		stopCh: make(chan struct{}),
@@ -217,6 +218,7 @@ func bridgeIntegrityHealthy() bool {
 }
 
 var bridgeIntegrityState atomic.Bool
+var bridgeIntegrityTargetCount atomic.Int64
 
 func init() {
 	bridgeIntegrityState.Store(true)
