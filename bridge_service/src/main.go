@@ -485,7 +485,6 @@ func diagnosticsSnapshot() map[string]any {
 		"goVersion":              runtime.Version(),
 		"keyFileConfigured":      strings.TrimSpace(os.Getenv("HWCONTROL_KEY_FILE")) != "",
 		"keyConfigured":          strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "" && strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "replace-me",
-		"keyFile":                defaultKeyFile(),
 		"modelPathConfigured":    modelPath != "",
 		"modelState":             modelState,
 		"modelSha256":            modelDigest(),
@@ -500,7 +499,10 @@ func diagnosticsSnapshot() map[string]any {
 		"localOnly":              true,
 		"listenAddress":          bridgeEndpoint(),
 		"uptimeSeconds":          metrics.UptimeSeconds,
-		"gameMode":               collectGameModeState(),
+		"gameMode": map[string]any{
+			"enabled":       metrics.GameModeEnabled,
+			"gameDetected":  metrics.GameDetected,
+		},
 
 		"hardwareIdentity": map[string]any{
 			"systemManufacturer": metrics.SystemManufacturer,
