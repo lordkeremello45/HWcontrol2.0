@@ -18,6 +18,7 @@ The bridge reports a per-capability matrix instead of assuming that a GUI contro
 - GPU memory clock
 - GPU memory
 - Hardware identity
+- Storage volumes and storage I/O
 
 Each capability reports `available`, the detected backend, and a reason when unavailable. Unsupported capabilities remain monitor-only.
 
@@ -29,7 +30,8 @@ The health engine detects:
 - invalid thermal telemetry;
 - missing thermal sensors;
 - fan-stall risk when control is available but RPM is absent under thermal load;
-- runtime integrity failures.
+- runtime integrity failures;
+- storage volumes approaching full capacity.
 
 The result is exposed as a structured anomaly list with a stable code, severity and human-readable message.
 
@@ -64,6 +66,20 @@ Recovery is deliberately fail-closed:
 - no validated hardware backend: remain monitor-only.
 
 The application does not silently regenerate or restore tampered security-sensitive files.
+
+## Existing diagnostics and history
+
+## Storage monitoring
+
+**IMPLEMENTED:** The bridge exposes mounted storage volumes with total/used/free capacity, usage percentage, and read/write throughput derived from operating-system I/O counters. The GUI displays these values per volume.
+
+A generic health percentage is intentionally not fabricated. Storage health is reported as `unknown` until a platform-specific reliability source is available. On Windows, the official Storage Reliability Counter API exposes device temperature, errors, wear and power-on information and is a candidate for the next native backend layer. citeturn1search1turn1search0
+
+The current storage implementation is therefore:
+- **Implemented:** capacity and filesystem usage;
+- **Implemented:** read/write throughput where OS I/O counters can be mapped to the volume;
+- **Platform-dependent:** device temperature and health/wear percentage;
+- **Not implemented:** a universal cross-platform SMART/NVMe health percentage.
 
 ## Existing diagnostics and history
 
