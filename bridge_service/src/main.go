@@ -487,6 +487,7 @@ func diagnosticsSnapshot() map[string]any {
 		"keyConfigured":          strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "" && strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "replace-me",
 		"bridgeIntegrityHealthy":  bridgeIntegrityHealthy(),
 		"bridgeIntegrityMonitor":  strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) == "" || strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) == "replace-me",
+		"bridgeIntegrityTargets":  bridgeIntegrityTargetCount.Load(),
 		"modelPathConfigured":    modelPath != "",
 		"modelState":             modelState,
 		"modelSha256":            modelDigest(),
