@@ -67,8 +67,6 @@ Recovery is deliberately fail-closed:
 
 The application does not silently regenerate or restore tampered security-sensitive files.
 
-## Existing diagnostics and history
-
 ## Storage monitoring
 
 **IMPLEMENTED:** The bridge exposes mounted storage volumes with total/used/free capacity, usage percentage, and read/write throughput derived from operating-system I/O counters. The GUI displays these values per volume.
@@ -105,6 +103,7 @@ Go unit tests cover:
 - thermal anomaly detection;
 - fan-stall detection;
 - integrity-triggered FAIL_SAFE state;
+- storage capability and near-full detection;
 - diagnostics contract.
 
 Cross-platform runtime validation still depends on the repository's GitHub Actions and real hardware/device coverage.
