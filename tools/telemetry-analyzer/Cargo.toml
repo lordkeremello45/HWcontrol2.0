@@ -1,0 +1,12 @@
+[package]
+name = "hwcontrol-telemetry-analyzer"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Dependency-free regression validator for HWControl telemetry CSV exports"
+
+[profile.release]
+codegen-units = 1
+lto = true
+panic = "abort"
+strip = true
