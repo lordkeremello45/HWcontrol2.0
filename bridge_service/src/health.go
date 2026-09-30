@@ -56,8 +56,8 @@ func capability(available bool, backend, reason string) HardwareCapability {
 
 func evaluateHardwareHealth(metrics HardwareMetrics) HardwareHealthEvaluation {
     capabilities := map[string]HardwareCapability{
-        "cpuTemperature": capability(isValidTemperature(metrics.CPUTemperature), metrics.SensorSource, "CPU thermal telemetry unavailable"),
-        "gpuTemperature": capability(isValidTemperature(metrics.GPUTemperature), metrics.SensorSource, "GPU thermal telemetry unavailable"),
+        "cpuTemperature": capability(metrics.CPUTemperature > 0 && isValidTemperature(metrics.CPUTemperature), metrics.SensorSource, "CPU thermal telemetry unavailable"),
+        "gpuTemperature": capability(metrics.GPUTemperature > 0 && isValidTemperature(metrics.GPUTemperature), metrics.SensorSource, "GPU thermal telemetry unavailable"),
         "fanRpm": capability(metrics.FanRPM >= 0 && (metrics.FanRPM > 0 || metrics.FanControlSupported), metrics.SensorSource, "Fan RPM telemetry unavailable"),
         "fanControl": capability(metrics.FanControlSupported && metrics.FanControlBackend != "" && metrics.FanControlBackend != "monitor-only", metrics.FanControlBackend, "No validated hardware-control backend"),
         "voltage": capability(isFinitePositive(metrics.Voltage), metrics.SensorSource, "Voltage telemetry unavailable"),
