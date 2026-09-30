@@ -5,8 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
-	"path/filepath"
-	"runtime"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -15,16 +14,15 @@ import (
 const bridgeIntegrityPollInterval = 2 * time.Second
 
 type bridgeIntegrityMonitor struct {
-	path      string
-	baseline  string
-	stopCh    chan struct{}
-	stopOnce  sync.Once
-	healthy   atomic.Bool
+	path     string
+	baseline string
+	stopCh   chan struct{}
+	stopOnce sync.Once
+	healthy  atomic.Bool
 }
 
 func newBridgeIntegrityMonitor() (*bridgeIntegrityMonitor, error) {
-	// Explicit environment provisioning is already outside the file-integrity
-	// model. Production installers use the protected bridge.key file.
+	// Explicit environment provisioning is outside the file-integrity model.
 	if secret := os.Getenv("HWCONTROL_KEY"); secret != "" && secret != "replace-me" {
 		return nil, nil
 	}
@@ -38,6 +36,7 @@ func newBridgeIntegrityMonitor() (*bridgeIntegrityMonitor, error) {
 		return nil, fmt.Errorf("establish bridge key integrity baseline: %w", err)
 	}
 
+	bridgeIntegrityState.Store(true)
 	m := &bridgeIntegrityMonitor{
 		path:     path,
 		baseline: baseline,
@@ -63,37 +62,22 @@ func bridgeKeyDigest(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	secret := string(data)
-	if !validBridgeSecret(trimBridgeSecret(secret)) {
-		return "", fmt.Errorf("bridge key integrity baseline contains an invalid secret")
+	if !validBridgeSecret(strings.TrimSpace(string(data))) {
+		return "", fmt.Errorf("bridge key contains an invalid secret")
 	}
 
 	sum := sha256.Sum256(data)
 	return hex.EncodeToString(sum[:]), nil
 }
 
-func trimBridgeSecret(value string) string {
-	return string([]byte(value)[:len(value)-len(value)+len(value)])[:0] + trimSpace(value)
-}
-
-func trimSpace(value string) string {
-	start, end := 0, len(value)
-	for start < end && (value[start] == ' ' || value[start] == '\n' || value[start] == '\r' || value[start] == '\t') {
-		start++
-	}
-	for end > start && (value[end-1] == ' ' || value[end-1] == '\n' || value[end-1] == '\r' || value[end-1] == '\t') {
-		end--
-	}
-	return value[start:end]
-}
-
-func (m *bridgeIntegrityMonitor) start(ctxDone <-chan struct{}, onViolation func(error)) {
+func (m *bridgeIntegrityMonitor) start(done <-chan struct{}, onViolation func(error)) {
 	go func() {
 		ticker := time.NewTicker(bridgeIntegrityPollInterval)
 		defer ticker.Stop()
+
 		for {
 			select {
-			case <-ctxDone:
+			case <-done:
 				return
 			case <-m.stopCh:
 				return
@@ -114,6 +98,7 @@ func (m *bridgeIntegrityMonitor) start(ctxDone <-chan struct{}, onViolation func
 
 func (m *bridgeIntegrityMonitor) violate(reason error, onViolation func(error)) {
 	if m.healthy.Swap(false) {
+		bridgeIntegrityState.Store(false)
 		if onViolation != nil {
 			onViolation(reason)
 		}
@@ -128,8 +113,6 @@ func (m *bridgeIntegrityMonitor) stop() {
 }
 
 func bridgeIntegrityHealthy() bool {
-	// The process-wide flag is intentionally fail-closed. Once a violation is
-	// detected, active connections must not accept another authenticated command.
 	return bridgeIntegrityState.Load()
 }
 
@@ -138,9 +121,3 @@ var bridgeIntegrityState atomic.Bool
 func init() {
 	bridgeIntegrityState.Store(true)
 }
-
-// Keep the runtime platform distinction explicit: the baseline monitor is
-// cross-platform; OS-specific event APIs can replace the polling loop later
-// without changing the fail-closed policy.
-var _ = runtime.GOOS
-var _ = filepath.Separator
