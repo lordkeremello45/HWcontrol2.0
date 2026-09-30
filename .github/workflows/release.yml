@@ -127,6 +127,8 @@ jobs:
           if (-not (Test-Path "$env:ProgramFiles\HWControl\bridge-service.exe")) { throw 'bridge-service.exe was not installed' }
           $service = Get-Service -Name HWControlBridge -ErrorAction Stop
           if ($service.Status -ne 'Running') { throw "HWControlBridge is not running: $($service.Status)" }
+          $serviceConfig = Get-CimInstance Win32_Service -Filter "Name='HWControlBridge'" -ErrorAction Stop
+          if ($serviceConfig.StartName -ne 'NT AUTHORITY\LocalService') { throw "HWControlBridge must run as NT AUTHORITY\LocalService, found: $($serviceConfig.StartName)" }
           $probe = Test-NetConnection 127.0.0.1 -Port 8080 -WarningAction SilentlyContinue
           if (-not $probe.TcpTestSucceeded) { throw 'Bridge is not listening on 127.0.0.1:8080' }
           & "$PWD\deploy\windows\Invoke-MsiWithTimeout.ps1" -MsiPath $msi -Action Uninstall -LogPath (Join-Path $root 'uninstall.log') -TimeoutSeconds 120
