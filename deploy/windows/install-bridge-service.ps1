@@ -19,7 +19,7 @@ if ($existing) {
     Stop-Service -Name 'HWControlBridge' -ErrorAction SilentlyContinue
     sc.exe delete HWControlBridge | Out-Null
 }
-sc.exe create HWControlBridge binPath= "`"$bridgePath`"" start= auto obj= "NT AUTHORITY\\LocalService" DisplayName= "HWControl Bridge"
+sc.exe create HWControlBridge binPath= "`"$bridgePath`"" start= auto obj= "NT AUTHORITY\LocalService" DisplayName= "HWControl Bridge"
 sc.exe description HWControlBridge "HWControl local authenticated bridge service"
 Start-Service -Name 'HWControlBridge'
 Write-Host 'HWControl Bridge servisi kuruldu ve baslatildi.'
