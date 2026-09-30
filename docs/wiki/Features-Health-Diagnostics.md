@@ -1,35 +1,94 @@
-# Health & Safety Diagnostics
+# Health, Capability & Safety Diagnostics
 
-HWcontrol2.0 exposes an authenticated `Get Health` bridge capability for operational health checks.
+## Current status
 
-## Checks
+**IMPLEMENTED:** HWcontrol2.0 exposes an authenticated `Get Health` bridge capability that evaluates hardware capabilities, telemetry anomalies, runtime integrity and the hardware-control safety state.
 
-- Authentication path
-- Local transport availability
-- Hardware-control capability state
-- Hardware identity detection
-- Sensor source availability
-- Bridge version, platform and architecture
+## Capability matrix
 
-## Safety behavior
+The bridge reports a per-capability matrix instead of assuming that a GUI control implies backend support:
 
-The health report is local-only and does not upload telemetry.
+- CPU temperature
+- GPU temperature
+- Fan RPM
+- Fan control
+- Voltage
+- Power
+- GPU core clock
+- GPU memory clock
+- GPU memory
+- Hardware identity
 
-A `degraded` state indicates that one or more optional hardware capabilities are unavailable. It does not imply that the bridge process itself has failed.
+Each capability reports `available`, the detected backend, and a reason when unavailable. Unsupported capabilities remain monitor-only.
 
-Hardware control remains fail-closed when no native control backend is available.
+## Hardware health engine
 
-## Connection protection
+The health engine detects:
 
-The bridge also enforces:
+- CPU/GPU warning and critical temperatures;
+- invalid thermal telemetry;
+- missing thermal sensors;
+- fan-stall risk when control is available but RPM is absent under thermal load;
+- runtime integrity failures.
 
-- bounded request size
-- bounded authentication failures per connection
-- connection read/write deadlines
-- a concurrent connection ceiling
-- protected bridge-key file handling
-- authenticated command execution
+The result is exposed as a structured anomaly list with a stable code, severity and human-readable message.
+
+## Safety state machine
+
+The bridge evaluates the current state as:
+
+```text
+SAFE
+  ↓
+WARNING
+  ↓
+CRITICAL
+  ↓
+FAIL_SAFE
+```
+
+The states are defensive application states, not replacements for firmware, driver or operating-system protections.
+
+- **SAFE:** no detected safety anomaly.
+- **WARNING:** thermal or telemetry degradation requires monitoring.
+- **CRITICAL:** hardware-control action is blocked while the system cools.
+- **FAIL_SAFE:** runtime integrity is not trusted; sensitive IPC and hardware control remain disabled until trusted repair/reinstallation.
+
+## Recovery behavior
+
+Recovery is deliberately fail-closed:
+
+- thermal critical: stop hardware-control actions and reduce thermal load;
+- missing thermal telemetry: reject fan-control requests;
+- runtime integrity failure: stop sensitive IPC and require trusted repair/reinstallation;
+- no validated hardware backend: remain monitor-only.
+
+The application does not silently regenerate or restore tampered security-sensitive files.
+
+## Existing diagnostics and history
+
+The dashboard already provides:
+
+- diagnostic report export;
+- persistent telemetry history;
+- configurable temperature alerts;
+- local profile persistence;
+- update checking.
+
+The new health evaluation is also included in the bridge diagnostic snapshot so exported diagnostics can explain the detected capability/safety state.
+
+## Security model
+
+The design follows a defense-in-depth model consistent with NIST secure software development guidance. Runtime SHA-256 monitoring remains a detection control; release signing/provenance is the stronger trust chain. Linux deployments can additionally use filesystem mechanisms such as fs-verity where supported.
 
 ## Validation
 
-The security workflow runs Go formatting enforcement, `go vet`, and race-enabled tests. Cross-platform local IPC smoke tests exercise authenticated Unix sockets on Linux/macOS and loopback compatibility on Windows.
+Go unit tests cover:
+
+- capability-matrix availability;
+- thermal anomaly detection;
+- fan-stall detection;
+- integrity-triggered FAIL_SAFE state;
+- diagnostics contract.
+
+Cross-platform runtime validation still depends on the repository's GitHub Actions and real hardware/device coverage.
