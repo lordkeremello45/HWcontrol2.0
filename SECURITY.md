@@ -38,18 +38,37 @@ The local bridge requires an HMAC-SHA-256 authentication tag for every IPC reque
 
 This is an application-layer defense. Local administrator/root compromise, a compromised desktop user account, or a compromised OS/driver can bypass application-level trust boundaries.
 
-## Bridge key integrity monitoring
+## Tamper detection and runtime integrity monitoring
 
-The bridge now establishes a SHA-256 integrity baseline for the file-backed bridge credential and continuously revalidates that file while the bridge is running.
+HWControl uses a defense-in-depth **Tamper Detection & Integrity Monitoring** layer for security-sensitive runtime state.
 
-- The monitored file must remain a regular, non-symlink file containing a valid bridge secret.
-- A missing, malformed, replaced, or content-modified key causes the bridge to enter a **fail-closed** state.
-- Once the integrity state becomes unhealthy, new authenticated commands are rejected and the bridge listener is stopped.
-- The monitor does not automatically restore or regenerate a changed credential; recovery requires a trusted repair/reinstallation path so an attacker cannot choose the replacement secret.
-- The monitor is defense-in-depth. It does not prevent a local administrator/root user from inspecting or modifying the host, and it does not replace OS-enforced IPC authorization.
-- When `HWCONTROL_KEY` is explicitly supplied through the environment, file-backed integrity monitoring is disabled because there is no authoritative credential file to monitor.
+At bridge startup, the monitor establishes a cryptographic baseline for:
 
-This design follows the integrity-monitoring model of establishing a trusted baseline and using detected changes to trigger a recovery/fail-closed response. NIST describes integrity monitoring as a mechanism for establishing a baseline and detecting abnormal file/system changes.
+- the file-backed `bridge.key`;
+- the running bridge executable;
+- the packaged native `ai_engine` executable when present;
+- additional explicitly installed critical executables/libraries supplied through `HWCONTROL_INTEGRITY_FILES`.
+
+Every monitored target must remain a regular, non-symlink file. The monitor continuously recomputes SHA-256 digests while the bridge is running.
+
+A detected missing, replacement, symlink substitution, or content modification causes:
+
+1. an integrity security event to be logged;
+2. the global integrity state to become unhealthy;
+3. new authenticated IPC requests to be rejected;
+4. the bridge listener to be stopped;
+5. hardware-control access to remain fail-closed;
+6. trusted repair/reinstallation to be required.
+
+The monitor does **not** automatically restore or regenerate a changed critical file or credential. A self-healing mechanism based on an untrusted local file could preserve an attacker-controlled replacement.
+
+The runtime hash baseline is a detection control, not a cryptographic root of trust: an attacker who can replace both the executable and its trusted baseline can defeat a local hash-only scheme. For release builds, the stronger trust chain is platform code signing plus release provenance/checksums. Windows uses Authenticode when signing is available; macOS distribution is intended to use Developer ID signing and notarization; Linux packages use release checksums/provenance, with filesystem-level integrity mechanisms such as fs-verity applicable where the deployment supports them.
+
+On Windows, Authenticode verification is provided by the Windows trust provider; on macOS, the operating system can validate signed code and its sealed components. These platform trust mechanisms are preferred over treating a mutable local hash file as the root of trust.
+
+When `HWCONTROL_KEY` is explicitly supplied through the environment, file-backed key monitoring is disabled because there is no authoritative credential file to monitor. Runtime executable/library monitoring remains available through the explicit integrity target configuration.
+
+This layer is defense-in-depth. It does not prevent a local administrator/root compromise, a compromised kernel/driver, or modification of the running process's memory, and it does not replace OS-enforced IPC authorization.
 
 ## Hardware-control safety gate
 
