@@ -40,6 +40,24 @@ Monitoring and control are separate capabilities. A device can expose fan RPM wi
 ### Why aren't all motherboards and GPUs supported?
 Vendors expose different sensors, control interfaces, firmware behavior, and permissions. Support must be implemented and validated per backend and hardware family.
 
+## Storage
+
+### Can HWcontrol2.0 monitor SSDs and HDDs?
+Yes. The bridge and dashboard can report mounted storage volumes, total/used/free capacity, usage percentage, and read/write throughput when the operating system exposes usable I/O counters.
+
+### Does HWcontrol2.0 show SSD/HDD health percentage?
+Not universally yet.
+
+HWcontrol does **not** invent a health percentage when the platform does not provide a trustworthy device-health source. The current generic storage layer reports health as unknown when no platform-specific reliability backend is available.
+
+Windows provides an official Storage Reliability Counter interface with device temperature, errors, wear, and power-on information; a native backend can use that information in a future platform-specific health implementation.
+
+### Why can read/write speed show zero initially?
+Throughput is calculated from changes in cumulative operating-system I/O counters. The first sample establishes a baseline, so a subsequent sample is required before a meaningful bytes-per-second value can be calculated.
+
+### Can a disk being 95%+ full trigger a warning?
+Yes. The hardware health engine can report a storage-near-full warning when a monitored volume reaches the configured high-utilization threshold.
+
 ## Safety and security
 
 ### What is bridge.key?
