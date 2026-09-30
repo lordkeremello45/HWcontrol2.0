@@ -18,7 +18,7 @@ func TestDiagnosticsSnapshotContract(t *testing.T) {
 		"platform",
 		"architecture",
 		"goVersion",
-		"keyFile",
+		"keyFileConfigured",
 		"modelState",
 		"modelSha256",
 		"sensorSource",
@@ -27,6 +27,11 @@ func TestDiagnosticsSnapshotContract(t *testing.T) {
 		"localOnly",
 		"listenAddress",
 		"uptimeSeconds",
+		"healthStatus",
+		"safetyState",
+		"recoveryAction",
+		"hardwareCapabilities",
+		"hardwareAnomalies",
 	} {
 		if _, ok := diagnostics[key]; !ok {
 			t.Fatalf("diagnostics key %q missing", key)
