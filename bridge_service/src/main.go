@@ -611,6 +611,11 @@ func handleConnection(conn net.Conn, secret string) {
 			}
 			return
 		}
+		if !bridgeIntegrityHealthy() {
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			_ = encoder.Encode(Response{Status: "ERROR", Message: "bridge integrity check failed; service is fail-closed"})
+			return
+		}
 		var cmd Command
 		if err := json.Unmarshal(line, &cmd); err != nil {
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
