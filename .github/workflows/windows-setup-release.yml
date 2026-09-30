@@ -91,6 +91,128 @@ jobs:
           if ($service.Status -ne 'Running') { throw "HWControlBridge service is not running: $($service.Status)" }
           $serviceConfig = Get-CimInstance Win32_Service -Filter "Name='HWControlBridge'" -ErrorAction Stop
           if ($serviceConfig.StartName -ne 'NT AUTHORITY\LocalService') { throw "HWControlBridge must run as NT AUTHORITY\LocalService, found: $($serviceConfig.StartName)" }
+          $acl = Get-Acl "$programDataDir"
+          $usersRules = $acl.Access | Where-Object { $_.IdentityReference -match '\\Users          if (-not $probe.TcpTestSucceeded) { throw 'HWControlBridge is not listening on 127.0.0.1:8080 after Setup.exe install.' }
+
+          if (-not (Test-Path "$programDataDir\bridge.key")) { throw 'Bridge secret file was not created in ProgramData during install.' }
+          $bridgeKey = (Get-Content -LiteralPath "$programDataDir\bridge.key" -Raw).Trim()
+          if ($bridgeKey.Length -lt 32) { throw 'Bridge secret file is unexpectedly short.' }
+
+          $uninstall = Start-Process -FilePath $setup -ArgumentList '/uninstall', '/quiet', '/norestart' -Wait -PassThru
+          if ($uninstall.ExitCode -ne 0) { throw "Setup.exe uninstall failed with exit code $($uninstall.ExitCode)." }
+
+          Start-Sleep -Seconds 2
+
+          if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge service still exists after Setup.exe uninstall.' }
+          if (Test-Path $testDir) { throw "Install directory still exists after uninstall: $testDir" }
+          if (Test-Path $programDataDir) { throw "ProgramData directory still exists after uninstall: $programDataDir" }
+          if (Test-Path $localAppDataDir) { throw "LocalAppData directory still exists after uninstall: $localAppDataDir" }
+
+          $remainingMachineKey = (Get-ItemProperty -Path $machineEnvironmentKey -Name 'HWCONTROL_KEY' -ErrorAction SilentlyContinue).HWCONTROL_KEY
+          if (-not [string]::IsNullOrWhiteSpace($remainingMachineKey)) { throw 'Machine HWCONTROL_KEY still exists after Setup.exe uninstall.' }
+
+          $staleProcesses = Get-Process -Name 'HWControl','bridge-service' -ErrorAction SilentlyContinue
+          if ($staleProcesses) {
+            $names = ($staleProcesses | Select-Object -ExpandProperty ProcessName) -join ', '
+            throw "HWControl processes are still running after uninstall: $names"
+          }
+
+          Write-Host 'Complete uninstall cleanup verified: service, machine key, ProgramData, LocalAppData, install directory, and product processes are gone.'
+
+      - name: Check Windows signing configuration
+        id: signing
+        env:
+          WINDOWS_CERTIFICATE_B64: ${{ secrets.WINDOWS_CERTIFICATE_B64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        shell: pwsh
+        run: |
+          $enabled = (-not [string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE_B64)) -and (-not [string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE_PASSWORD))
+          "enabled=$($enabled.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          if ($enabled) {
+            Write-Host 'Windows Authenticode signing is enabled.'
+          } else {
+            Write-Host 'Windows Authenticode signing is not configured; release remains unsigned.'
+          }
+
+      - name: Locate SignTool
+        id: signtool
+        if: steps.signing.outputs.enabled == 'true'
+        shell: pwsh
+        run: |
+          $tool = Get-Command signtool.exe -ErrorAction SilentlyContinue
+          if (-not $tool) {
+            $tool = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\bin' -Filter signtool.exe -Recurse -ErrorAction SilentlyContinue |
+              Where-Object { $_.FullName -match '\\x64\\signtool\.exe$' } |
+              Sort-Object FullName -Descending |
+              Select-Object -First 1
+          }
+          if (-not $tool) { throw 'SignTool was not found on the Windows runner.' }
+          $path = if ($tool.PSObject.Properties.Name -contains 'Source') { $tool.Source } else { $tool.FullName }
+          "path=$path" >> $env:GITHUB_OUTPUT
+
+      - name: Sign Setup.exe
+        if: steps.signing.outputs.enabled == 'true'
+        env:
+          WINDOWS_CERTIFICATE_B64: ${{ secrets.WINDOWS_CERTIFICATE_B64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+          SIGNTOOL: ${{ steps.signtool.outputs.path }}
+          RELEASE_TAG: ${{ github.event.workflow_run.head_branch }}
+        shell: pwsh
+        run: |
+          $cert = Join-Path $env:RUNNER_TEMP 'hwcontrol-code-signing.pfx'
+          try {
+            [IO.File]::WriteAllBytes($cert, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE_B64))
+            $setup = "HWControl-$($env:RELEASE_TAG)-Windows-x64-Setup.exe"
+            & $env:SIGNTOOL sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f $cert /p $env:WINDOWS_CERTIFICATE_PASSWORD /d 'HWControl Setup' $setup
+            if ($LASTEXITCODE -ne 0) { throw 'Setup.exe signing failed.' }
+            & $env:SIGNTOOL verify /pa /all /v $setup
+            if ($LASTEXITCODE -ne 0) { throw 'Setup.exe signature verification failed.' }
+          } finally {
+            Remove-Item $cert -Force -ErrorAction SilentlyContinue
+          }
+
+      - name: Generate Setup checksum and signing status
+        env:
+          RELEASE_TAG: ${{ github.event.workflow_run.head_branch }}
+        shell: pwsh
+        run: |
+          $setup = "HWControl-$($env:RELEASE_TAG)-Windows-x64-Setup.exe"
+          $hash = (Get-FileHash $setup -Algorithm SHA256).Hash.ToLower()
+          Set-Content "HWControl-$($env:RELEASE_TAG)-Windows-x64-Setup.sha256" "$hash  $setup"
+          $status = if ('${{ steps.signing.outputs.enabled }}' -eq 'true') { 'AUTHENTICODE_SIGNED=true' } else { 'AUTHENTICODE_SIGNED=false' }
+          @(
+            "HWCONTROL_RELEASE=$($env:RELEASE_TAG)",
+            $status,
+            'MICROSOFT_HARDWARE_DEV_CENTER_SIGNING=NOT_CONFIGURED',
+            'NOTE=SHA256_AND_GITHUB_ATTESTATION_DO_NOT_REPLACE_OS_TRUSTED_CODE_SIGNING'
+          ) | Set-Content "HWControl-$($env:RELEASE_TAG)-Windows-x64-signing-status.txt"
+
+      - name: Attest Setup.exe
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: HWControl-${{ github.event.workflow_run.head_branch }}-Windows-x64-Setup.exe
+
+      - name: Publish Setup.exe to existing release
+        env:
+          RELEASE_TAG: ${{ github.event.workflow_run.head_branch }}
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
+        with:
+          repository: ${{ github.repository }}
+          tag_name: ${{ env.RELEASE_TAG }}
+          files: |
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64-Setup.exe
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64-Setup.sha256
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64-signing-status.txt
+          fail_on_unmatched_files: true
+ }
+          foreach ($rule in $usersRules) {
+            if (($rule.FileSystemRights -band [Security.AccessControl.FileSystemRights]::Write) -or
+                ($rule.FileSystemRights -band [Security.AccessControl.FileSystemRights]::Modify) -or
+                ($rule.FileSystemRights -band [Security.AccessControl.FileSystemRights]::FullControl) -or
+                $rule.AccessControlType -eq 'Deny') {
+              throw "ProgramData\\HWControl grants Users unsafe write/modify access: $($rule.FileSystemRights) $($rule.AccessControlType)"
+            }
+          }
           $probe = Test-NetConnection 127.0.0.1 -Port 8080 -WarningAction SilentlyContinue
           if (-not $probe.TcpTestSucceeded) { throw 'HWControlBridge is not listening on 127.0.0.1:8080 after Setup.exe install.' }
 
