@@ -11,6 +11,11 @@ permissions:
 
 jobs:
   build-setup:
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+      actions: read
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
       startsWith(github.event.workflow_run.head_branch, 'v') &&
@@ -85,7 +90,7 @@ jobs:
           $service = Get-Service -Name HWControlBridge -ErrorAction Stop
           if ($service.Status -ne 'Running') { throw "HWControlBridge service is not running: $($service.Status)" }
           $serviceConfig = Get-CimInstance Win32_Service -Filter "Name='HWControlBridge'" -ErrorAction Stop
-          if ($serviceConfig.StartName -ne 'LocalSystem') { } else { throw 'HWControlBridge must not run as LocalSystem.' }
+          if ($serviceConfig.StartName -ne 'NT AUTHORITY\LocalService') { throw "HWControlBridge must run as NT AUTHORITY\LocalService, found: $($serviceConfig.StartName)" }
           $probe = Test-NetConnection 127.0.0.1 -Port 8080 -WarningAction SilentlyContinue
           if (-not $probe.TcpTestSucceeded) { throw 'HWControlBridge is not listening on 127.0.0.1:8080 after Setup.exe install.' }
 
