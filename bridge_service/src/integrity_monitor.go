@@ -29,6 +29,7 @@ type bridgeIntegrityMonitor struct {
 }
 
 func newBridgeIntegrityMonitor() (*bridgeIntegrityMonitor, error) {
+	bridgeIntegrityTargetCount.Store(0)
 	// Explicit environment provisioning is outside the file-integrity model.
 	// There is no authoritative file to monitor in this mode.
 	if secret := os.Getenv("HWCONTROL_KEY"); secret != "" && secret != "replace-me" {
