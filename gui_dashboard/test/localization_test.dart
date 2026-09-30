@@ -14,18 +14,12 @@ void main() {
         .map((entry) => entry['code'] as String)
         .toSet();
 
-    expect(
-      locales,
-      containsAll(<String>[
-        'en-US',
-        'en-GB',
-        'tr-TR',
-        'ja-JP',
-        'de-DE',
-        'fr-FR',
-        'it-IT',
-      ]),
-    );
+    expect(locales.length, greaterThanOrEqualTo(30));
+    expect(locales, containsAll(<String>['en-US', 'en-GB', 'tr-TR', 'ja-JP', 'de-DE', 'fr-FR', 'it-IT', 'es-ES', 'pt-BR', 'zh-CN', 'ko-KR', 'ru-RU', 'ar-SA', 'hi-IN']));
+
+    final localeEntries = (root['locales'] as List<dynamic>).whereType<Map<String, dynamic>>();
+    expect(localeEntries.length, locales.length);
+    expect(localeEntries.map((entry) => entry['code']).toSet(), locales);
 
     final translations = root['translations'] as Map<String, dynamic>;
     for (final locale in locales) {
