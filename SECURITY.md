@@ -38,6 +38,19 @@ The local bridge requires an HMAC-SHA-256 authentication tag for every IPC reque
 
 This is an application-layer defense. Local administrator/root compromise, a compromised desktop user account, or a compromised OS/driver can bypass application-level trust boundaries.
 
+## Bridge key integrity monitoring
+
+The bridge now establishes a SHA-256 integrity baseline for the file-backed bridge credential and continuously revalidates that file while the bridge is running.
+
+- The monitored file must remain a regular, non-symlink file containing a valid bridge secret.
+- A missing, malformed, replaced, or content-modified key causes the bridge to enter a **fail-closed** state.
+- Once the integrity state becomes unhealthy, new authenticated commands are rejected and the bridge listener is stopped.
+- The monitor does not automatically restore or regenerate a changed credential; recovery requires a trusted repair/reinstallation path so an attacker cannot choose the replacement secret.
+- The monitor is defense-in-depth. It does not prevent a local administrator/root user from inspecting or modifying the host, and it does not replace OS-enforced IPC authorization.
+- When `HWCONTROL_KEY` is explicitly supplied through the environment, file-backed integrity monitoring is disabled because there is no authoritative credential file to monitor.
+
+This design follows the integrity-monitoring model of establishing a trusted baseline and using detected changes to trigger a recovery/fail-closed response. NIST describes integrity monitoring as a mechanism for establishing a baseline and detecting abnormal file/system changes. citeturn1search11turn0search0
+
 ## Hardware-control safety gate
 
 Hardware control requests are fail-closed at the bridge boundary.
