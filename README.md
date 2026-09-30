@@ -5,7 +5,7 @@
 [![GitLab Mirror](https://img.shields.io/badge/GitLab-Mirror-FCA326?style=for-the-badge&logo=gitlab&logoColor=white)](https://gitlab.com/lordkeremello45/HWcontrol2.0)
 [![Codeberg Mirror](https://img.shields.io/badge/Codeberg-Mirror-2185D0?style=for-the-badge&logo=codeberg&logoColor=white)](https://codeberg.org/lordkeremelllo45/HWcontrol2.0)
 
-HWcontrol2.0 is an open-source, cross-platform desktop hardware monitoring and control suite built around a Flutter/Dart dashboard, an authenticated localhost Go bridge, and a native C++/CMake engine.
+HWcontrol2.0 is an open-source, cross-platform hardware monitoring, control, health and diagnostics platform built around a Flutter/Dart dashboard, an authenticated localhost Go bridge, and a native C++/CMake engine.
 
 > **Current channel: Beta.** Hardware support and control capabilities depend on the operating system, drivers, and detected hardware. Unsupported control paths remain monitor-only.
 
@@ -72,6 +72,8 @@ See [SECURITY.md](SECURITY.md) and the [security documentation](https://github.c
 ## Architecture
 
 Flutter / Dart GUI → Authenticated localhost Go Bridge → Native C++ / CMake Engine → Platform-specific hardware APIs
+
+The native engine provides the low-level hardware integration layer; the overall project covers monitoring, control, health, diagnostics, safety and release integrity.
 
 ## Development
 
