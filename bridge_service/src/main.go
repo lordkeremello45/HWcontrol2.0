@@ -114,6 +114,7 @@ type HardwareMetrics struct {
 	MemoryTotalBytes       uint64    `json:"memoryTotalBytes"`
 	DiskUsage              float64   `json:"diskUsage"`
 	DiskTotalBytes         uint64    `json:"diskTotalBytes"`
+	StorageVolumes         []StorageVolume `json:"storageVolumes"`
 	PowerWatts             float64   `json:"powerWatts"`
 	Voltage                float64   `json:"voltage"`
 	UptimeSeconds          uint64    `json:"uptimeSeconds"`
@@ -173,6 +174,7 @@ func collectMetrics() HardwareMetrics {
 	if uptime, err := host.Uptime(); err == nil {
 		metrics.UptimeSeconds = uptime
 	}
+	metrics.StorageVolumes = collectStorageVolumes()
 	if temperatures, err := host.SensorsTemperatures(); err == nil {
 		for _, sensor := range temperatures {
 			key := strings.ToLower(sensor.SensorKey)
