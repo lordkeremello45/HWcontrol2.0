@@ -147,6 +147,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _aiStarting = false;
   String _locale = 'en-US';
   Map<String, Map<String, String>> _translations = <String, Map<String, String>>{};
+  List<Map<String, String>> _supportedLocales = <Map<String, String>>[];
   bool _aiSending = false;
   DateTime? _lastAiAnalysisAt;
   String _aiStatus = 'Yerel AI başlatılmadı';
@@ -528,6 +529,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final raw = await rootBundle.loadString('assets/localization/language.json');
       final root = jsonDecode(raw) as Map<String, dynamic>;
+      final rawLocales = root['locales'];
+      if (rawLocales is List) {
+        _supportedLocales = rawLocales.whereType<Map>().map((entry) => <String, String>{
+          'code': entry['code'].toString(),
+          'name': entry['name'].toString(),
+        }).where((entry) => entry['code'] != 'null' && entry['name'] != 'null').toList(growable: false);
+      }
       final rawTranslations = root['translations'];
       if (rawTranslations is Map) {
         _translations = rawTranslations.map((locale, values) => MapEntry(
@@ -977,10 +985,6 @@ Attach this archive to a support issue only after reviewing it for personal info
     var notificationsEnabled = _notificationsEnabled;
     var temperatureLimit = _temperatureLimit;
     var selectedLocale = _locale;
-    const names = <String, String>{
-      'en-US': 'English (US)', 'en-GB': 'English (UK)', 'tr-TR': 'Türkçe',
-      'ja-JP': '日本語', 'de-DE': 'Deutsch', 'fr-FR': 'Français', 'it-IT': 'Italiano',
-    };
     await showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -1002,11 +1006,11 @@ Attach this archive to a support issue only after reviewing it for personal info
                     },
                     child: Column(
                       children: [
-                        for (final locale in const ['en-US', 'en-GB', 'tr-TR', 'ja-JP', 'de-DE', 'fr-FR', 'it-IT'])
+                        for (final locale in _supportedLocales)
                           RadioListTile<String>(
                             contentPadding: EdgeInsets.zero,
-                            title: Text(names[locale] ?? locale),
-                            value: locale,
+                            title: Text(locale['name'] ?? locale['code'] ?? ''),
+                            value: locale['code'] ?? '',
                           ),
                       ],
                     ),
