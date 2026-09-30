@@ -35,7 +35,7 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
       - name: Install Linux dependencies
-        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev
+        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
       - name: Build and test native engine
         run: |
           cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
