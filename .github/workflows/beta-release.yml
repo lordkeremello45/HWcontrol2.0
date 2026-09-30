@@ -123,7 +123,26 @@ jobs:
         working-directory: gui_dashboard
         run: |
           $ErrorActionPreference = 'Stop'
-          $version = $env:RELEASE_TAG -replace '^v','' -replace '-beta\.\d+
+          $version = $env:RELEASE_TAG -replace '^v','' -replace '-beta\.\d+$',''
+          dart run msix:create `
+            --build-windows false `
+            --display-name 'HWControl' `
+            --publisher-display-name 'HWControl Beta' `
+            --identity-name 'HWControl.Beta' `
+            --publisher 'CN=HWControl Beta' `
+            --version "$version.0" `
+            --architecture x64 `
+            --languages en-us `
+            --install-certificate false `
+            --sign-msix false `
+            --output-path build/msix `
+            --output-name "HWControl-$env:RELEASE_TAG-Windows-x64-MSIX"
+          if ($LASTEXITCODE -ne 0) { throw "MSIX creation failed with exit code $LASTEXITCODE" }
+          $msix = Get-ChildItem build/msix -Filter '*.msix' -File -Recurse | Select-Object -First 1
+          if (-not $msix) { throw 'MSIX beta package was not produced' }
+          Copy-Item $msix.FullName "../$($msix.Name)" -Force
+          Write-Host "MSIX: $($msix.Name)"
+      - name: Generate Windows checksums
         shell: pwsh
         run: |
           $files = @(
@@ -132,7 +151,7 @@ jobs:
             "HWControl-$env:RELEASE_TAG-Windows-x64.zip",
             "HWControl-$env:RELEASE_TAG-Windows-x64-MSIX.msix"
           )
-          $hashes = foreach ($file in $files) { "((Get-FileHash $file -Algorithm SHA256).Hash.ToLower())  $file" }
+          $hashes = foreach ($file in $files) { "$((Get-FileHash $file -Algorithm SHA256).Hash.ToLower())  $file" }
           $hashes | Set-Content "HWControl-$env:RELEASE_TAG-Windows-x64.sha256"
       - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
@@ -148,22 +167,23 @@ jobs:
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64-Setup.exe
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64.zip
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64-MSIX.msix
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64.sha256
 
   linux:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
       - run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev zstd dpkg-dev
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version-file: bridge_service/go.mod
           cache: false
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
@@ -229,13 +249,13 @@ jobs:
         run: |
           sha256sum HWControl-$RELEASE_TAG-Linux-x64.deb HWControl-$RELEASE_TAG-Linux-x64.tar.gz HWControl-$RELEASE_TAG-Linux-x64.tar.zst > HWControl-$RELEASE_TAG-Linux-x64.sha256
           sha256sum -c HWControl-$RELEASE_TAG-Linux-x64.sha256
-      - uses: actions/attest@v4
+      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: |
             HWControl-${{ env.RELEASE_TAG }}-Linux-x64.deb
             HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.gz
             HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.zst
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: beta-linux-x64
           path: |
@@ -248,16 +268,16 @@ jobs:
     runs-on: macos-14
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
       - run: brew install zstd
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version-file: bridge_service/go.mod
           cache: false
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
@@ -301,12 +321,12 @@ jobs:
         run: |
           shasum -a 256 "HWControl-$RELEASE_TAG-macOS-AppleSilicon.pkg" "HWControl-$RELEASE_TAG-macOS-AppleSilicon.dmg" > "HWControl-$RELEASE_TAG-macOS-AppleSilicon.sha256"
           shasum -a 256 -c "HWControl-$RELEASE_TAG-macOS-AppleSilicon.sha256"
-      - uses: actions/attest@v4
+      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: |
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.pkg
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.dmg
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: beta-macos-arm64
           path: |
@@ -328,7 +348,7 @@ jobs:
           set -euo pipefail
           test -f release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64-Setup.exe
           test -f release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64.msi
-          test -f release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64.zip
+          test -f release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64.zip\n          test -f release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64-MSIX.msix
           test -f release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64-MSIX.msix
           test -f release-assets/beta-macos-arm64/HWControl-${RELEASE_TAG}-macOS-AppleSilicon.pkg
           test -f release-assets/beta-macos-arm64/HWControl-${RELEASE_TAG}-macOS-AppleSilicon.dmg
@@ -400,16 +420,16 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
       - run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev zstd dpkg-dev
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version-file: bridge_service/go.mod
           cache: false
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
@@ -475,13 +495,13 @@ jobs:
         run: |
           sha256sum HWControl-$RELEASE_TAG-Linux-x64.deb HWControl-$RELEASE_TAG-Linux-x64.tar.gz HWControl-$RELEASE_TAG-Linux-x64.tar.zst > HWControl-$RELEASE_TAG-Linux-x64.sha256
           sha256sum -c HWControl-$RELEASE_TAG-Linux-x64.sha256
-      - uses: actions/attest@v4
+      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: |
             HWControl-${{ env.RELEASE_TAG }}-Linux-x64.deb
             HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.gz
             HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.zst
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: beta-linux-x64
           path: |
@@ -494,16 +514,16 @@ jobs:
     runs-on: macos-14
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
       - run: brew install zstd
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version-file: bridge_service/go.mod
           cache: false
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
@@ -547,12 +567,12 @@ jobs:
         run: |
           shasum -a 256 "HWControl-$RELEASE_TAG-macOS-AppleSilicon.pkg" "HWControl-$RELEASE_TAG-macOS-AppleSilicon.dmg" > "HWControl-$RELEASE_TAG-macOS-AppleSilicon.sha256"
           shasum -a 256 -c "HWControl-$RELEASE_TAG-macOS-AppleSilicon.sha256"
-      - uses: actions/attest@v4
+      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: |
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.pkg
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.dmg
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: beta-macos-arm64
           path: |
