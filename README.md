@@ -85,6 +85,8 @@ For contributors:
 
 ## Beta feedback
 
+Found a bug, hardware compatibility issue, or have a suggestion? Please use the **[HWcontrol2.0 Beta Feedback Form](https://docs.google.com/forms/d/e/1FAIpQLSdxSKZIdg6terWsT_k8hbv8yhM-AAx6Begr2wV4JuarU3y9Rw/viewform?usp=dialog)**.
+
 Beta feedback is intentionally routed through Google Forms → Google Sheets → Apps Script → GitHub Issues. The integration filters contact/private fields, adds duplicate protection and retries, and does not require feedback submitters to expose bridge credentials.
 
 - [Beta feedback integration setup](integrations/google-feedback/README.md)
