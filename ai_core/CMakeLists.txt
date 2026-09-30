@@ -11,6 +11,21 @@ add_executable(ai_engine
 target_link_libraries(ai_engine PRIVATE llama)
 target_include_directories(ai_engine PRIVATE include)
 
+# Defense-in-depth hardening for the native engine. CISA recommends compiler
+# and runtime protections while memory-unsafe code remains in a codebase.
+# Keep these flags scoped to HWControl targets so third-party llama.cpp is not
+# rebuilt with project-specific assumptions.
+if(MSVC)
+    target_compile_options(ai_engine PRIVATE /GS /sdl /guard:cf)
+    target_link_options(ai_engine PRIVATE /GUARD:CF /DYNAMICBASE /NXCOMPAT)
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+    target_compile_options(ai_engine PRIVATE -fstack-protector-strong)
+    if(NOT APPLE)
+        target_compile_options(ai_engine PRIVATE -D_FORTIFY_SOURCE=2 -fPIE)
+        target_link_options(ai_engine PRIVATE -Wl,-z,relro,-z,now,-z,noexecstack -pie)
+    endif()
+endif()
+
 include(CTest)
 if(BUILD_TESTING)
     add_executable(ai_core_tests
