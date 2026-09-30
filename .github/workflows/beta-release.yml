@@ -7,7 +7,8 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Beta tag, for example v2.1.0-beta.1'
+        description: 'Beta release tag, for example v0.3.1-beta.1'
+        default: 'v0.3.1-beta.1'
         required: true
         type: string
 
@@ -29,15 +30,15 @@ jobs:
     runs-on: windows-2022
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
-      - uses: actions/setup-go@v5
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.ref || github.ref_name }}
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version-file: bridge_service/go.mod
           cache: false
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           architecture: X64
@@ -127,13 +128,13 @@ jobs:
           )
           $hashes = foreach ($file in $files) { "((Get-FileHash $file -Algorithm SHA256).Hash.ToLower())  $file" }
           $hashes | Set-Content "HWControl-$env:RELEASE_TAG-Windows-x64.sha256"
-      - uses: actions/attest@v4
+      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: |
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64-Setup.exe
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64.zip
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: beta-windows-x64
           path: |
@@ -311,7 +312,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           path: release-assets
       - name: Verify expected beta matrix
@@ -330,11 +331,12 @@ jobs:
         run: |
           find release-assets -type f ! -name '*.sha256' -print0 | sort -z | xargs -0 sha256sum > release-assets/SHA256SUMS
       - name: Publish beta release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
         with:
           tag_name: ${{ env.RELEASE_TAG }}
           name: HWControl 2.0 ${{ env.RELEASE_TAG }}
           prerelease: true
+          target_commitish: ${{ github.sha }}
           generate_release_notes: true
           fail_on_unmatched_files: true
           files: |
