@@ -48,74 +48,80 @@ jobs:
           echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
 
       - name: Dispatch Windows beta release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
-        run: gh workflow run release.yml --ref main -f "tag=v0.3.0-beta-windows" -f "source_ref=$SOURCE_SHA"
-
-      - name: Dispatch Linux beta release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
-        run: gh workflow run release-linux.yml --ref main -f "tag=v0.3.0-beta-linux" -f "source_ref=$SOURCE_SHA"
-
-      - name: Dispatch macOS beta release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
-        run: gh workflow run release-macos.yml --ref main -f "tag=v0.3.0-beta-macos" -f "source_ref=$SOURCE_SHA"
-
-      - name: Wait for all platform releases
+        id: windows
         env:
           GH_TOKEN: ${{ github.token }}
           SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
         shell: bash
         run: |
           set -euo pipefail
-          declare -A workflows=(
-            [windows]="release.yml"
-            [linux]="release-linux.yml"
-            [macos]="release-macos.yml"
-          )
-          declare -A run_ids=()
+          url="$(gh workflow run release.yml --ref main             -f "tag=v0.3.0-beta-windows"             -f "source_ref=$SOURCE_SHA" | tail -n1)"
+          echo "run_id=${url##*/}" >> "$GITHUB_OUTPUT"
 
-          for platform in windows linux macos; do
-            workflow="${workflows[$platform]}"
-            run_id=""
-            for attempt in {1..36}; do
-              run_id="$(gh run list --workflow "$workflow" --event workflow_dispatch --limit 20                 --json databaseId,headSha --jq ".[] | select(.headSha == \"$SOURCE_SHA\") | .databaseId" | head -n1 || true)"
-              [[ -n "$run_id" ]] && break
-              sleep 5
-            done
-            [[ -n "$run_id" ]] || { echo "No $platform release run found"; exit 1; }
-            run_ids[$platform]="$run_id"
-            echo "$platform run: $run_id"
+      - name: Dispatch Linux beta release
+        id: linux
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="$(gh workflow run release-linux.yml --ref main             -f "tag=v0.3.0-beta-linux"             -f "source_ref=$SOURCE_SHA" | tail -n1)"
+          echo "run_id=${url##*/}" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch macOS beta release
+        id: macos
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="$(gh workflow run release-macos.yml --ref main             -f "tag=v0.3.0-beta-macos"             -f "source_ref=$SOURCE_SHA" | tail -n1)"
+          echo "run_id=${url##*/}" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for all platform releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WINDOWS_RUN: ${{ steps.windows.outputs.run_id }}
+          LINUX_RUN: ${{ steps.linux.outputs.run_id }}
+          MACOS_RUN: ${{ steps.macos.outputs.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for run_id in "$WINDOWS_RUN" "$LINUX_RUN" "$MACOS_RUN"; do
+            [[ "$run_id" =~ ^[0-9]+$ ]] || { echo "Invalid workflow run id: $run_id"; exit 1; }
           done
 
           deadline=$((SECONDS + 3300))
           while (( SECONDS < deadline )); do
             all_done=true
             all_success=true
-            for platform in windows linux macos; do
-              run_id="${run_ids[$platform]}"
+
+            for pair in "windows:$WINDOWS_RUN" "linux:$LINUX_RUN" "macos:$MACOS_RUN"; do
+              platform="${pair%%:*}"
+              run_id="${pair##*:}"
               status="$(gh run view "$run_id" --json status --jq '.status')"
               conclusion="$(gh run view "$run_id" --json conclusion --jq '.conclusion')"
               echo "$platform: $status / $conclusion"
+
               if [[ "$status" != "completed" ]]; then
                 all_done=false
               elif [[ "$conclusion" != "success" ]]; then
                 all_success=false
               fi
             done
+
             if [[ "$all_done" == true ]]; then
               [[ "$all_success" == true ]] || { echo "Platform release failed; beta tags remain unchanged."; exit 1; }
               break
             fi
             sleep 15
           done
+
           (( SECONDS < deadline )) || { echo "Timed out waiting for platform releases."; exit 1; }
 
-      - name: Advance beta tags
+      - name: Advance beta tags only after all platforms succeed
         env:
           GH_TOKEN: ${{ github.token }}
           SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
