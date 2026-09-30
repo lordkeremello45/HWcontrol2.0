@@ -467,6 +467,7 @@ func loadOrCreateSecret() (string, error) {
 
 func diagnosticsSnapshot() map[string]any {
 	metrics := collectMetrics()
+	health := evaluateHardwareHealth(metrics)
 	modelPath := strings.TrimSpace(os.Getenv("HWCONTROL_MODEL"))
 	modelState := "managed-by-gui"
 	if modelPath != "" {
@@ -502,6 +503,11 @@ func diagnosticsSnapshot() map[string]any {
 		"localOnly":              true,
 		"listenAddress":          bridgeEndpoint(),
 		"uptimeSeconds":          metrics.UptimeSeconds,
+		"healthStatus":            health.Status,
+		"safetyState":              health.SafetyState,
+		"recoveryAction":           health.RecoveryAction,
+		"hardwareCapabilities":     health.Capabilities,
+		"hardwareAnomalies":        health.Anomalies,
 		"gameMode": map[string]any{
 			"enabled":       metrics.GameModeEnabled,
 			"gameDetected":  metrics.GameDetected,
