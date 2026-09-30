@@ -11,20 +11,20 @@ add_executable(ai_engine
 target_link_libraries(ai_engine PRIVATE llama)
 target_include_directories(ai_engine PRIVATE include)
 
-# Defense-in-depth hardening for the native engine. CISA recommends compiler
-# and runtime protections while memory-unsafe code remains in a codebase.
-# Keep these flags scoped to HWControl targets so third-party llama.cpp is not
-# rebuilt with project-specific assumptions.
-if(MSVC)
-    target_compile_options(ai_engine PRIVATE /GS /sdl /guard:cf)
-    target_link_options(ai_engine PRIVATE /GUARD:CF /DYNAMICBASE /NXCOMPAT)
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
-    target_compile_options(ai_engine PRIVATE -fstack-protector-strong)
-    if(NOT APPLE)
-        target_compile_options(ai_engine PRIVATE -D_FORTIFY_SOURCE=2 -fPIE)
-        target_link_options(ai_engine PRIVATE -Wl,-z,relro,-z,now,-z,noexecstack -pie)
+function(hwcontrol_harden_native_target target)
+    if(MSVC)
+        target_compile_options(${target} PRIVATE /GS /sdl /guard:cf)
+        target_link_options(${target} PRIVATE /GUARD:CF /DYNAMICBASE /NXCOMPAT)
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+        target_compile_options(${target} PRIVATE -fstack-protector-strong)
+        if(NOT APPLE)
+            target_compile_options(${target} PRIVATE -D_FORTIFY_SOURCE=2 -fPIE)
+            target_link_options(${target} PRIVATE -Wl,-z,relro,-z,now,-z,noexecstack -pie)
+        endif()
     endif()
-endif()
+endfunction()
+
+hwcontrol_harden_native_target(ai_engine)
 
 include(CTest)
 if(BUILD_TESTING)
@@ -36,12 +36,14 @@ if(BUILD_TESTING)
     )
     target_link_libraries(ai_core_tests PRIVATE llama)
     target_include_directories(ai_core_tests PRIVATE include)
+    hwcontrol_harden_native_target(ai_core_tests)
 
     add_executable(ai_telemetry_tests
         tests/telemetry_tests.cpp
         src/telemetry.cpp
     )
     target_include_directories(ai_telemetry_tests PRIVATE include)
+    hwcontrol_harden_native_target(ai_telemetry_tests)
 
     add_test(NAME ai_core_tests COMMAND ai_core_tests)
     add_test(NAME ai_telemetry_tests COMMAND ai_telemetry_tests)
