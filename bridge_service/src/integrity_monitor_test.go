@@ -21,6 +21,7 @@ func TestBridgeKeyIntegrityDetectsModification(t *testing.T) {
 		t.Fatalf("create integrity monitor: %v", err)
 	}
 	defer m.stop()
+	defer bridgeIntegrityState.Store(true)
 
 	done := make(chan struct{})
 	m.start(done, nil)
