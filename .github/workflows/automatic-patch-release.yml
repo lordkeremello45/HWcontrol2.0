@@ -1,0 +1,184 @@
+name: Automatic patch release
+
+on:
+  workflow_run:
+    workflows:
+      - Cross-platform package validation
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Create a patch release from the selected commit"
+        required: false
+        default: false
+        type: boolean
+      source_ref:
+        description: "Commit SHA or ref to release"
+        required: false
+        default: main
+        type: string
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: automatic-patch-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: >-
+      (github.event_name == 'workflow_dispatch') ||
+      (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'main'
+      )
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Validate source and classify change
+        id: classify
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || github.event.workflow_run.head_sha }}
+          FORCE_RELEASE: ${{ github.event_name == 'workflow_dispatch' && inputs.force || false }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            SOURCE_SHA="$(gh api "repos/$GITHUB_REPOSITORY/commits/$SOURCE_SHA" --jq '.sha')"
+          fi
+
+          message="$(gh api "repos/$GITHUB_REPOSITORY/commits/$SOURCE_SHA" --jq '.commit.message')"
+          subject="${message%%$'\\n'*}"
+
+          echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
+          echo "subject=$subject" >> "$GITHUB_OUTPUT"
+
+          if [[ "$FORCE_RELEASE" == "true" ]]; then
+            echo "qualifies=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Only maintenance/security/dependency fixes become automatic patch releases.
+          # Feature, docs-only, refactor and workflow-only commits stay out of the
+          # release channel unless explicitly dispatched.
+          if [[ "$subject" =~ ^(fix|security|deps|perf)(\\(|:)|dependabot|patch|hotfix|security ]]; then
+            echo "qualifies=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "qualifies=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Stop for non-release change
+        if: steps.classify.outputs.qualifies != 'true'
+        run: echo "Change is not an automatic patch-release candidate."
+
+      - name: Calculate next patch version
+        if: steps.classify.outputs.qualifies == 'true'
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tags="$(gh api --paginate "repos/$GITHUB_REPOSITORY/tags?per_page=100" --jq '.[].name' || true)"
+          max_major=0
+          max_minor=0
+          max_patch=0
+
+          while IFS= read -r tag; do
+            if [[ "$tag" =~ ^v([0-9]+)\\.([0-9]+)\\.([0-9]+)(-|$) ]]; then
+              major="${BASH_REMATCH[1]}"
+              minor="${BASH_REMATCH[2]}"
+              patch="${BASH_REMATCH[3]}"
+              if (( major > max_major ||
+                    (major == max_major && minor > max_minor) ||
+                    (major == max_major && minor == max_minor && patch > max_patch) )); then
+                max_major="$major"
+                max_minor="$minor"
+                max_patch="$patch"
+              fi
+            fi
+          done <<< "$tags"
+
+          next_patch=$((max_patch + 1))
+          while :; do
+            base="v${max_major}.${max_minor}.${next_patch}"
+            if ! printf '%s\\n' "$tags" | grep -qxF "${base}-windows" &&
+               ! printf '%s\\n' "$tags" | grep -qxF "${base}-linux" &&
+               ! printf '%s\\n' "$tags" | grep -qxF "${base}-macos"; then
+              break
+            fi
+            next_patch=$((next_patch + 1))
+          done
+
+          echo "version=${max_major}.${max_minor}.${next_patch}" >> "$GITHUB_OUTPUT"
+
+      - name: Create immutable release tags
+        if: steps.classify.outputs.qualifies == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ steps.classify.outputs.source_sha }}
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for platform in windows linux macos; do
+            tag="v${VERSION}-${platform}"
+            if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" >/dev/null 2>&1; then
+              echo "Ref already exists: $tag" >&2
+              exit 1
+            fi
+            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
+              -f "ref=refs/tags/$tag" \
+              -f "sha=$SOURCE_SHA" >/dev/null
+          done
+
+      - name: Dispatch platform release workflows
+        if: steps.classify.outputs.qualifies == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ steps.classify.outputs.source_sha }}
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          gh workflow run release.yml \
+            --ref "v${VERSION}-windows" \
+            -f "tag=v${VERSION}-windows" \
+            -f "source_ref=$SOURCE_SHA"
+
+          gh workflow run release-linux.yml \
+            --ref "v${VERSION}-linux" \
+            -f "tag=v${VERSION}-linux" \
+            -f "source_ref=$SOURCE_SHA"
+
+          gh workflow run release-macos.yml \
+            --ref "v${VERSION}-macos" \
+            -f "tag=v${VERSION}-macos" \
+            -f "source_ref=$SOURCE_SHA"
+
+      - name: Publish automation summary
+        if: always()
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          QUALIFIES: ${{ steps.classify.outputs.qualifies }}
+          SUBJECT: ${{ steps.classify.outputs.subject }}
+        run: |
+          {
+            echo "## Automatic patch release"
+            echo
+            echo "- Candidate: $QUALIFIES"
+            echo "- Commit: $SUBJECT"
+            if [[ -n "${VERSION:-}" ]]; then
+              echo "- Version: $VERSION"
+              echo "- Platform tags: `v$VERSION-windows`, `v$VERSION-linux`, `v$VERSION-macos`"
+            fi
+            echo
+            echo "Release workflows are dispatched only after Cross-platform package validation succeeds."
+          } >> "$GITHUB_STEP_SUMMARY"
