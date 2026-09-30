@@ -20,7 +20,7 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Checkout tagged source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
           ref: ${{ github.event.workflow_run.head_sha }}
