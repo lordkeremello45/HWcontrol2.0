@@ -71,9 +71,17 @@ NIST also published an initial public draft of SSDF v1.2 in December 2025. HWcon
 
 ## Hardware / platform integration
 
+### Linux kernel — Block I/O statistics
+- **Use in HWcontrol:** cross-platform Linux storage throughput and block-device telemetry via kernel counters.
+- **Source:** https://www.kernel.org/doc/html/latest/block/stat.html
+
 ### Linux kernel — hwmon
 - **Use in HWcontrol:** Linux hardware-monitoring sensor architecture.
 - **Source:** https://www.kernel.org/doc/html/latest/hwmon/hwmon-kernel-api.html
+
+### Microsoft — Storage Reliability Counter
+- **Use in HWcontrol:** future Windows storage health backend for device temperature, errors, wear, and power-on data.
+- **Source:** https://learn.microsoft.com/en-us/windows-hardware/drivers/storage/msft-storagereliabilitycounter
 
 ### Microsoft — Windows Management Instrumentation
 - **Use in HWcontrol:** Windows hardware/system management integration where applicable.
