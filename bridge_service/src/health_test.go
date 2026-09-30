@@ -9,12 +9,13 @@ func TestEvaluateHardwareHealthCapabilityMatrix(t *testing.T) {
 		FanControlBackend: "test-backend", ThermalSafetyAvailable: true, SensorSource: "test",
 		Voltage: 1.1, PowerWatts: 65, GPUCoreClockMHz: 1500, GPUMemoryClockMHz: 7000,
 		GPUMemoryTotalBytes: 8 * 1024 * 1024 * 1024, DetectionStatus: "ok", DetectionSource: "test",
+		StorageVolumes: []StorageVolume{{MountPoint: "E:", TotalBytes: 1000, UsedBytes: 900, FreeBytes: 100, UsagePercent: 90, HealthStatus: "unknown"}},
 	}
 	evaluation := evaluateHardwareHealth(metrics)
 	if evaluation.SafetyState != "SAFE" {
 		t.Fatalf("safety state = %q, want SAFE", evaluation.SafetyState)
 	}
-	for _, key := range []string{"cpuTemperature", "gpuTemperature", "fanRpm", "fanControl", "voltage", "power", "gpuCoreClock", "gpuMemoryClock", "gpuMemory", "hardwareIdentity"} {
+	for _, key := range []string{"cpuTemperature", "gpuTemperature", "fanRpm", "fanControl", "voltage", "power", "gpuCoreClock", "gpuMemoryClock", "gpuMemory", "hardwareIdentity", "storage"} {
 		if !evaluation.Capabilities[key].Available {
 			t.Fatalf("capability %q unexpectedly unavailable: %#v", key, evaluation.Capabilities[key])
 		}
@@ -56,5 +57,23 @@ func TestEvaluateHardwareHealthDetectsFanStallRisk(t *testing.T) {
 	}
 	if !found {
 		t.Fatal("expected fan-stall-risk anomaly")
+	}
+}
+
+
+func TestEvaluateHardwareHealthFlagsNearlyFullStorage(t *testing.T) {
+	bridgeIntegrityState.Store(true)
+	evaluation := evaluateHardwareHealth(HardwareMetrics{
+		ThermalSafetyAvailable: true,
+		StorageVolumes: []StorageVolume{{MountPoint: "E:", UsagePercent: 96}},
+	})
+	found := false
+	for _, anomaly := range evaluation.Anomalies {
+		if anomaly.Code == "storage-near-full" && anomaly.Severity == "warning" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("expected storage-near-full anomaly")
 	}
 }
