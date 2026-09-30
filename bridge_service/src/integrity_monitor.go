@@ -3,9 +3,11 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"\n\t"io"
+	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
