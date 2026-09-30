@@ -28,6 +28,22 @@ Hardware behavior can vary by motherboard, GPU, firmware, driver, kernel, and op
 
 Explain the user-facing problem and the proposed behavior. For hardware-control features, describe the target hardware/API and the safety constraints.
 
+## Issue resolution and repository updates
+
+For bug fixes and CI failures, use a root-cause-first workflow rather than applying the first plausible patch:
+
+1. Reproduce the failure and inspect the complete error, failing job/step, logs, and affected code path.
+2. Research documented solutions, upstream guidance, relevant specifications, and proven patterns.
+3. Compare the viable solutions, including security, portability, maintainability, testability, regression risk, and release impact.
+4. Eliminate approaches that mask failures, weaken validation, remove tests, suppress errors, or create unnecessary technical debt.
+5. Select the most appropriate solution and consider how it can be strengthened before implementation.
+6. Apply the focused fix to the repository, preferably on `main` when the change is explicitly authorized for direct main-branch maintenance.
+7. Run the relevant build, unit, integration, packaging, or CI validation.
+8. Inspect the resulting repository/CI state and push the validated change.
+9. Document the root cause, fix, validation evidence, and any remaining blocker.
+
+Never declare an issue resolved solely because the code changed or a workflow was edited. A fix is complete only when the relevant validation supports it.
+
 ## Pull requests
 
 Keep changes focused and reviewable.
