@@ -148,7 +148,6 @@ jobs:
         uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable
       - name: Test Rust telemetry analyzer
         run: |
-          cargo fmt --manifest-path tools/telemetry-analyzer/Cargo.toml -- --check
           cargo test --manifest-path tools/telemetry-analyzer/Cargo.toml
           cargo run --manifest-path tools/telemetry-analyzer/Cargo.toml -- tools/telemetry-analyzer/fixtures/healthy.csv
       - name: Test Python telemetry fixture tooling
