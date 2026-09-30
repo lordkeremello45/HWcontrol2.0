@@ -43,6 +43,7 @@ type HealthSnapshot struct {
 	SensorSource      string                        `json:"sensorSource"`
 	DetectionStatus   string                        `json:"detectionStatus"`
 	IdentityAvailable bool                          `json:"identityAvailable"`
+	Storage           []StorageVolume               `json:"storage"`
 }
 
 const (
@@ -66,6 +67,7 @@ func evaluateHardwareHealth(metrics HardwareMetrics) HardwareHealthEvaluation {
 		"gpuMemoryClock":   capability(isFinitePositive(metrics.GPUMemoryClockMHz), metrics.SensorSource, "GPU memory clock telemetry unavailable"),
 		"gpuMemory":        capability(metrics.GPUMemoryTotalBytes > 0, metrics.SensorSource, "GPU memory capacity unavailable"),
 		"hardwareIdentity": capability(strings.TrimSpace(metrics.DetectionStatus) != "" && metrics.DetectionStatus != "unavailable", metrics.DetectionSource, "Hardware identity unavailable"),
+		"storage":          capability(len(metrics.StorageVolumes) > 0, "gopsutil", "No mounted storage volume could be enumerated"),
 	}
 
 	anomalies := make([]HardwareAnomaly, 0, 6)
@@ -90,6 +92,11 @@ func evaluateHardwareHealth(metrics HardwareMetrics) HardwareHealthEvaluation {
 	}
 	if !metrics.ThermalSafetyAvailable {
 		anomalies = append(anomalies, HardwareAnomaly{"thermal-sensor-missing", "warning", "No valid thermal sensor is available; hardware control must remain fail-closed"})
+	}
+	for _, volume := range metrics.StorageVolumes {
+		if volume.UsagePercent >= 95 {
+			anomalies = append(anomalies, HardwareAnomaly{"storage-near-full", "warning", fmt.Sprintf("Storage volume %s is %.1f%% full", volume.MountPoint, volume.UsagePercent)})
+		}
 	}
 
 	safetyState := "SAFE"
@@ -163,5 +170,6 @@ func healthSnapshot() HealthSnapshot {
 		BridgeVersion: bridgeVersion, Platform: runtime.GOOS, Architecture: runtime.GOARCH, LocalOnly: true,
 		HardwareControl: metrics.HardwareControlMode, SensorSource: metrics.SensorSource, DetectionStatus: metrics.DetectionStatus,
 		IdentityAvailable: evaluation.Capabilities["hardwareIdentity"].Available,
+		Storage:           metrics.StorageVolumes,
 	}
 }
