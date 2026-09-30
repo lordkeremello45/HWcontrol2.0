@@ -176,6 +176,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   double _cpuTemperature = 0;
   double _memoryUsage = 0;
   double _diskUsage = 0;
+  List<Map<String, dynamic>> _storageVolumes = <Map<String, dynamic>>[];
   double _gpuUsage = 0;
   double _gpuMemoryUsage = 0;
   double _gpuPowerWatts = 0;
@@ -850,6 +851,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       _cpuTemperature = temperature;
       _memoryUsage = (data['memoryUsage'] as num?)?.toDouble() ?? 0;
       _diskUsage = (data['diskUsage'] as num?)?.toDouble() ?? 0;
+      _storageVolumes = ((data['storageVolumes'] as List?) ?? const <dynamic>[]).whereType<Map>().map((entry) => Map<String, dynamic>.from(entry)).toList(growable: false);
       _gpuUsage = (data['gpuUsage'] as num?)?.toDouble() ?? 0;
       _gpuMemoryUsage = (data['gpuMemoryUsage'] as num?)?.toDouble() ?? 0;
       _gpuPowerWatts = (data['powerWatts'] as num?)?.toDouble() ?? 0;
@@ -1277,6 +1279,8 @@ Attach this archive to a support issue only after reviewing it for personal info
                       const SizedBox(height: 18),
                       _buildHardwareIdentityCard(),
                       const SizedBox(height: 18),
+                      _buildStorageCard(),
+                      const SizedBox(height: 18),
                       _buildGameModeCard(),
                       const SizedBox(height: 18),
                       if (compact)
@@ -1645,6 +1649,93 @@ Attach this archive to a support issue only after reviewing it for personal info
       ),
     );
   }
+  Widget _buildStorageCard() {
+    return _Panel(
+      padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionTitle('Depolama', 'SSD / HDD / NVMe kullanım ve I/O durumu'),
+          const SizedBox(height: 18),
+          if (_storageVolumes.isEmpty)
+            Text('Depolama aygıtı algılanamadı veya telemetry henüz hazır değil.', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(150)))
+          else
+            ..._storageVolumes.map(_storageVolumeTile),
+        ],
+      ),
+    );
+  }
+
+  Widget _storageVolumeTile(Map<String, dynamic> volume) {
+    final mount = (volume['mountPoint'] as String?)?.trim();
+    final device = (volume['device'] as String?)?.trim();
+    final fs = (volume['fileSystem'] as String?)?.trim();
+    final usage = (volume['usagePercent'] as num?)?.toDouble() ?? 0;
+    final free = (volume['freeBytes'] as num?)?.toInt() ?? 0;
+    final read = (volume['readBytesPerSec'] as num?)?.toDouble() ?? 0;
+    final write = (volume['writeBytesPerSec'] as num?)?.toDouble() ?? 0;
+    final health = (volume['healthPercent'] as num?)?.toDouble();
+    final healthStatus = (volume['healthStatus'] as String?) ?? 'unknown';
+    final healthReason = (volume['healthReason'] as String?) ?? '';
+    String bytes(int value) {
+      const units = <String>['B', 'KB', 'MB', 'GB', 'TB'];
+      double size = value.toDouble();
+      var index = 0;
+      while (size >= 1024 && index < units.length - 1) {
+        size /= 1024;
+        index++;
+      }
+      return '${size.toStringAsFixed(index == 0 ? 0 : 1)} ${units[index]}';
+    }
+    String rate(double value) {
+      return '${bytes(value.round())}/s';
+    }
+    final title = (mount == null || mount.isEmpty) ? (device ?? 'Storage') : mount;
+    final usageColor = usage >= 95 ? const Color(0xFFFF7B7B) : usage >= 85 ? const Color(0xFFFFB454) : const Color(0xFF64D8CB);
+    final healthText = health == null ? healthStatus : '${health.toStringAsFixed(0)}%';
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.onSurface.withAlpha(8),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Theme.of(context).colorScheme.onSurface.withAlpha(18)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.storage_outlined, color: usageColor, size: 20),
+              const SizedBox(width: 10),
+              Expanded(child: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700))),
+              Text('${usage.toStringAsFixed(1)}%', style: TextStyle(color: usageColor, fontWeight: FontWeight.w700)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          LinearProgressIndicator(value: (usage / 100).clamp(0, 1), minHeight: 5),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 18,
+            runSpacing: 8,
+            children: [
+              Text('Boş: ${bytes(free)}', style: const TextStyle(fontSize: 11)),
+              Text('Okuma: ${rate(read)}', style: const TextStyle(fontSize: 11)),
+              Text('Yazma: ${rate(write)}', style: const TextStyle(fontSize: 11)),
+              Text('Health: $healthText', style: const TextStyle(fontSize: 11)),
+              if (fs != null && fs.isNotEmpty) Text('FS: $fs', style: const TextStyle(fontSize: 11)),
+            ],
+          ),
+          if (health == null && healthReason.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(healthReason, style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurface.withAlpha(120))),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildHardwareIdentityCard() {
     final detected = _hardwareDetectionStatus == 'ok';
     return _Panel(
