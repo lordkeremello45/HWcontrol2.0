@@ -60,6 +60,21 @@ func runBridge(ctx context.Context, service *bridgeService) error {
 		return fmt.Errorf("initialize bridge secret: %w", err)
 	}
 
+	integrityMonitor, err := newBridgeIntegrityMonitor()
+	if err != nil {
+		return fmt.Errorf("initialize bridge integrity monitor: %w", err)
+	}
+	if integrityMonitor != nil {
+		integrityMonitor.start(ctx.Done(), func(reason error) {
+			log.Printf("SECURITY: bridge integrity violation detected: %v; entering fail-closed state", reason)
+			if service != nil {
+				service.requestStop()
+				service.stopListener()
+			}
+		})
+		defer integrityMonitor.stop()
+	}
+
 	listener, endpoint, err := listenBridge()
 	if err != nil {
 		return err
