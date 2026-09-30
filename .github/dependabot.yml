@@ -4,7 +4,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "daily"
     open-pull-requests-limit: 5
     groups:
       actions-minor-patch:
@@ -16,7 +16,7 @@ updates:
   - package-ecosystem: "gomod"
     directory: "/bridge_service"
     schedule:
-      interval: "weekly"
+      interval: "daily"
     open-pull-requests-limit: 5
     groups:
       go-minor-patch:
@@ -28,7 +28,7 @@ updates:
   - package-ecosystem: "pub"
     directory: "/gui_dashboard"
     schedule:
-      interval: "weekly"
+      interval: "daily"
     open-pull-requests-limit: 5
     groups:
       flutter-minor-patch:
