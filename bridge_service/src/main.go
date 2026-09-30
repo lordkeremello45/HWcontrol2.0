@@ -485,6 +485,8 @@ func diagnosticsSnapshot() map[string]any {
 		"goVersion":              runtime.Version(),
 		"keyFileConfigured":      strings.TrimSpace(os.Getenv("HWCONTROL_KEY_FILE")) != "",
 		"keyConfigured":          strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "" && strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "replace-me",
+		"bridgeIntegrityHealthy":  bridgeIntegrityHealthy(),
+		"bridgeIntegrityMonitor":  strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) == "" || strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) == "replace-me",
 		"modelPathConfigured":    modelPath != "",
 		"modelState":             modelState,
 		"modelSha256":            modelDigest(),
@@ -679,6 +681,7 @@ func handleConnection(conn net.Conn, secret string) {
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
 			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Güvenlik durumu alındı", Data: map[string]any{
 				"hmac":              true,
+				"bridgeIntegrity":   bridgeIntegrityHealthy(),
 				"modelSha256":       modelDigest(),
 				"keyFileConfigured": strings.TrimSpace(os.Getenv("HWCONTROL_KEY_FILE")) != "",
 			}}); err != nil {
