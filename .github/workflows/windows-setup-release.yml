@@ -6,10 +6,8 @@ on:
     types: [completed]
 
 permissions:
-  contents: write
+  contents: read
   actions: read
-  id-token: write
-  attestations: write
 
 jobs:
   build-setup:
@@ -20,13 +18,13 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Checkout tagged source
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
           ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Download Windows MSI artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           repository: ${{ github.repository }}
           run-id: ${{ github.event.workflow_run.id }}
@@ -86,6 +84,8 @@ jobs:
           if (-not (Test-Path "$testDir\bridge-service.exe")) { throw 'Bridge service was not installed into the custom folder.' }
           $service = Get-Service -Name HWControlBridge -ErrorAction Stop
           if ($service.Status -ne 'Running') { throw "HWControlBridge service is not running: $($service.Status)" }
+          $serviceConfig = Get-CimInstance Win32_Service -Filter "Name='HWControlBridge'" -ErrorAction Stop
+          if ($serviceConfig.StartName -ne 'LocalSystem') { } else { throw 'HWControlBridge must not run as LocalSystem.' }
           $probe = Test-NetConnection 127.0.0.1 -Port 8080 -WarningAction SilentlyContinue
           if (-not $probe.TcpTestSucceeded) { throw 'HWControlBridge is not listening on 127.0.0.1:8080 after Setup.exe install.' }
 
@@ -183,14 +183,14 @@ jobs:
           ) | Set-Content "HWControl-$($env:RELEASE_TAG)-Windows-x64-signing-status.txt"
 
       - name: Attest Setup.exe
-        uses: actions/attest@v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: HWControl-${{ github.event.workflow_run.head_branch }}-Windows-x64-Setup.exe
 
       - name: Publish Setup.exe to existing release
         env:
           RELEASE_TAG: ${{ github.event.workflow_run.head_branch }}
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
         with:
           repository: ${{ github.repository }}
           tag_name: ${{ env.RELEASE_TAG }}
