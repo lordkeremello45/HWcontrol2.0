@@ -31,7 +31,7 @@ func TestGuardianRejectsSymlinkCanary(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := os.Symlink(target, canaryPath()); err != nil {
-		t.Fatal(err)
+		t.Skipf("symlink creation unavailable on this platform: %v", err)
 	}
 	if _, err := digest(canaryPath()); err == nil {
 		t.Fatal("expected symlink canary to be rejected")
