@@ -1,0 +1,15 @@
+project Security_Core is
+   for Source_Dirs use ("src", "tests");
+   for Object_Dir use "obj";
+   for Exec_Dir use "bin";
+   for Main use ("security_core_test.adb");
+
+   package Compiler is
+      for Default_Switches ("Ada") use
+        ("-gnatwa", "-gnatwe", "-gnat2022");
+   end Compiler;
+
+   package Builder is
+      for Default_Switches ("Ada") use ("-j0");
+   end Builder;
+end Security_Core;

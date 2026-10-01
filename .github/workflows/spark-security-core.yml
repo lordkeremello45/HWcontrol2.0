@@ -1,0 +1,56 @@
+name: SPARK security core
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "security/spark-core/**"
+      - ".github/workflows/spark-security-core.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "security/spark-core/**"
+      - ".github/workflows/spark-security-core.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: spark-security-core-\${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prove:
+    name: Build, test and formally verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: security/spark-core
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Install Alire
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location             https://github.com/alire-project/alire/releases/download/v2.0.2/alr-2.0.2-bin-x86_64-linux.zip             -o /tmp/alr.zip
+          unzip -q /tmp/alr.zip -d /tmp/alr
+          echo "/tmp/alr/bin" >> "$GITHUB_PATH"
+          /tmp/alr/bin/alr --version
+
+      - name: Resolve pinned toolchain
+        run: alr toolchain
+
+      - name: Build
+        run: alr build
+
+      - name: Runtime tests
+        run: alr run
+
+      - name: GNATprove formal verification
+        run: alr gnatprove -P security_core.gpr --level=2
