@@ -86,3 +86,5 @@ This directory contains the version-controlled source for the project documentat
 ## 📜 License
 
 - [License](License.md)
+
+- [Six-Service Architecture](Architecture-Six-Services.md) — Update, SensorHealth, Diagnostics, Game, Security Guardian, and Fetch Status canary service boundaries.
