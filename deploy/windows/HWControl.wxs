@@ -15,6 +15,7 @@
       <ComponentRef Id="MainExecutableComponent" />
       <ComponentRef Id="BridgeServiceComponent" />
       <ComponentRef Id="SecurityGuardianComponent" />
+      <ComponentRef Id="SecurityGuardianComponent" />
       <ComponentRef Id="BridgeDataComponent" />
     </Feature>
 
@@ -46,6 +47,12 @@
       <ServiceControl Id="SecurityGuardianControl" Name="HWControlSecurityGuardian" Start="install" Stop="both" Remove="uninstall" Wait="yes" />
     </Component>
 
+    <Component Id="SecurityGuardianComponent" Directory="INSTALLFOLDER">
+      <File Id="SecurityGuardianExe" Source="$(var.PackageDir)\security-guardian.exe" KeyPath="yes" />
+      <ServiceInstall Id="SecurityGuardianInstall" Name="HWControlSecurityGuardian" DisplayName="HWControl Security Guardian" Description="HWControl secondary security guardian and canary monitor" ErrorControl="normal" Start="auto" Type="ownProcess" Account="LocalService" Vital="yes" />
+      <ServiceControl Id="SecurityGuardianControl" Name="HWControlSecurityGuardian" Start="install" Stop="both" Remove="uninstall" Wait="yes" />
+    </Component>
+
     <Component Id="BridgeDataComponent" Directory="HWCONTROL_DATA">
       <CreateFolder>
         <util:PermissionEx User="Users" Read="yes" Traverse="yes" Inheritable="yes" />
@@ -59,6 +66,7 @@
       <Files Include="$(var.PackageDir)\**">
         <Exclude Files="$(var.PackageDir)\HWControl.exe" />
         <Exclude Files="$(var.PackageDir)\bridge-service.exe" />
+        <Exclude Files="$(var.PackageDir)\security-guardian.exe" />
         <Exclude Files="$(var.PackageDir)\security-guardian.exe" />
       </Files>
     </ComponentGroup>
