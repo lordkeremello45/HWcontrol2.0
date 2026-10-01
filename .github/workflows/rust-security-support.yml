@@ -49,4 +49,4 @@ jobs:
 
       - name: Tests
         working-directory: security/rust-support
-        run: cargo test --all-features --locked
+        run: cargo test --all-features
