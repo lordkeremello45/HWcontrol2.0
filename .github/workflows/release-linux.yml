@@ -169,6 +169,7 @@ jobs:
             HWControl-${{ env.RELEASE_TAG }}-Linux-x64.deb
             HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.gz
             HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.zst
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.sha256
 
       - name: Replace existing beta release assets
         if: contains(env.RELEASE_TAG, '-beta')
