@@ -133,6 +133,7 @@
   ],
   "translations": {
     "en-US": {
+      "systemDefault": "System Default",
       "menu": "Menu",
       "settings": "Settings",
       "language": "Language",

@@ -18,6 +18,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'diagnostics.dart';
 import 'model_manager.dart';
 import 'user_data_store.dart';
+import 'welcome_screen.dart';
+import 'services/language_service.dart';
 
 void main() {
   final diagnostics = HWControlDiagnostics.instance;
@@ -57,6 +59,8 @@ class HWControlApp extends StatefulWidget {
 class _HWControlAppState extends State<HWControlApp> {
   bool _darkMode = true;
   bool _animationsEnabled = true;
+  bool _showWelcome = true;
+  bool _welcomeSeen = false;
   final HWControlUserDataStore _userData = HWControlUserDataStore();
 
   @override
@@ -71,9 +75,14 @@ class _HWControlAppState extends State<HWControlApp> {
       if (!mounted) return;
       final darkMode = preferences['darkMode'];
       final animations = preferences['animationsEnabled'];
+      final welcomeSeen = preferences['welcomeSeen'];
       setState(() {
         if (darkMode is bool) _darkMode = darkMode;
         if (animations is bool) _animationsEnabled = animations;
+        if (welcomeSeen is bool) {
+          _welcomeSeen = welcomeSeen;
+          _showWelcome = !welcomeSeen;
+        }
       });
     } catch (_) {
       // UI preference corruption must never prevent the dashboard from starting.
@@ -84,7 +93,20 @@ class _HWControlAppState extends State<HWControlApp> {
     unawaited(_userData.writeUiPreferences(<String, dynamic>{
       'darkMode': _darkMode,
       'animationsEnabled': _animationsEnabled,
+      'welcomeSeen': _welcomeSeen,
     }));
+  }
+
+  void _completeWelcome(bool dontShowAgain) {
+    setState(() {
+      _welcomeSeen = dontShowAgain;
+      _showWelcome = false;
+    });
+    _saveUiPreferences();
+  }
+
+  void _openDashboardFromWelcome() {
+    setState(() => _showWelcome = false);
   }
 
   void _setDarkMode(bool value) {
@@ -102,12 +124,17 @@ class _HWControlAppState extends State<HWControlApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: _buildTheme(_darkMode),
-      home: DashboardScreen(
-        darkMode: _darkMode,
-        animationsEnabled: _animationsEnabled,
-        onThemeChanged: _setDarkMode,
-        onAnimationsChanged: _setAnimationsEnabled,
-      ),
+      home: _showWelcome
+          ? HWControlWelcomeScreen(
+              onContinue: _completeWelcome,
+              onSettings: _openDashboardFromWelcome,
+            )
+          : DashboardScreen(
+              darkMode: _darkMode,
+              animationsEnabled: _animationsEnabled,
+              onThemeChanged: _setDarkMode,
+              onAnimationsChanged: _setAnimationsEnabled,
+            ),
     );
   }
 
@@ -146,6 +173,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   StreamIterator<String>? _aiResponses;
   bool _aiStarting = false;
   String _locale = 'en-US';
+  String _languagePreference = HWControlLanguageService.systemDefault;
   Map<String, Map<String, String>> _translations = <String, Map<String, String>>{};
   List<Map<String, String>> _supportedLocales = <Map<String, String>>[];
   bool _aiSending = false;
@@ -546,7 +574,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
       final settings = await _userData.readSettings();
       final savedLocale = settings['language'] as String?;
-      if (savedLocale != null && _translations.containsKey(savedLocale)) _locale = savedLocale;
+      _languagePreference = savedLocale ?? HWControlLanguageService.systemDefault;
+      _locale = HWControlLanguageService.resolveLocale(
+        savedLocale: savedLocale,
+        supportedCodes: _translations.keys,
+      );
     } catch (_) {}
   }
 
@@ -572,7 +604,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       await _userData.writeSettings(<String, dynamic>{
         'notificationsEnabled': _notificationsEnabled,
         'temperatureLimit': _temperatureLimit,
-        'language': _locale,
+        'language': _languagePreference,
       });
     } catch (_) {
       _addEvent('Ayarlar kaydedilemedi');
@@ -986,7 +1018,7 @@ Attach this archive to a support issue only after reviewing it for personal info
   Future<void> _openSettingsMenu() async {
     var notificationsEnabled = _notificationsEnabled;
     var temperatureLimit = _temperatureLimit;
-    var selectedLocale = _locale;
+    var selectedLocale = _languagePreference;
     await showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -1008,6 +1040,12 @@ Attach this archive to a support issue only after reviewing it for personal info
                     },
                     child: Column(
                       children: [
+                        RadioListTile<String>(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(_tr('systemDefault')),
+                          subtitle: Text(HWControlLanguageService.systemLocaleCode),
+                          value: HWControlLanguageService.systemDefault,
+                        ),
                         for (final locale in _supportedLocales)
                           RadioListTile<String>(
                             contentPadding: EdgeInsets.zero,
@@ -1045,7 +1083,11 @@ Attach this archive to a support issue only after reviewing it for personal info
                 setState(() {
                   _notificationsEnabled = notificationsEnabled;
                   _temperatureLimit = temperatureLimit;
-                  _locale = selectedLocale;
+                  _languagePreference = selectedLocale;
+                  _locale = HWControlLanguageService.resolveLocale(
+                    savedLocale: selectedLocale,
+                    supportedCodes: _translations.keys,
+                  );
                 });
                 unawaited(_saveSettings());
                 Navigator.pop(context);
