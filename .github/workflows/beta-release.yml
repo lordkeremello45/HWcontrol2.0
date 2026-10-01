@@ -271,6 +271,7 @@ jobs:
             HWControl-${{ env.RELEASE_TAG }}-Linux-x64.deb
             HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.gz
             HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.zst
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.sha256
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: beta-linux-x64
@@ -346,6 +347,7 @@ jobs:
           subject-path: |
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.pkg
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.dmg
+            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.sha256
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: beta-macos-arm64
