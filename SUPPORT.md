@@ -26,6 +26,10 @@ Hardware telemetry and control depend on the operating system, driver, firmware,
 
 When reporting missing telemetry, provide the detected hardware and driver information if available.
 
+## Crash logs and support email
+
+For crash-log analysis and general support, contact **hwcontrolteam@outlook.com**. Before sending logs, remove passwords, API keys, access tokens, signing credentials, bridge secrets, personal data, and unrelated system information.
+
 ## Security
 
 For vulnerabilities, do not open a public issue. Use the repository's GitHub Security reporting mechanism described in [SECURITY.md](SECURITY.md).
