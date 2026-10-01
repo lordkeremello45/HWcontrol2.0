@@ -24,7 +24,7 @@ jobs:
   prove:
     name: Build, test and formally verify
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 25
     defaults:
       run:
         working-directory: security/spark-core
@@ -34,25 +34,46 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install Alire
+      - name: Install pinned GNAT/SPARK toolchain
         shell: bash
         run: |
           set -euo pipefail
-          curl --fail --silent --show-error --location             https://github.com/alire-project/alire/releases/download/v2.0.2/alr-2.0.2-bin-x86_64-linux.zip             -o /tmp/alr.zip
-          unzip -q /tmp/alr.zip -d /tmp/alr
-          echo "/tmp/alr/bin" >> "$GITHUB_PATH"
-          /tmp/alr/bin/alr --version
 
-      - name: Resolve pinned toolchain
-        run: |
-          alr index --update-all
-          alr -n toolchain --select gnat_native=15.3.0
+          mkdir -p /opt/hwcontrol-ada
+          cd /tmp
+
+          curl --fail --silent --show-error --location \
+            https://github.com/alire-project/GNAT-FSF-builds/releases/download/gnat-15.3.0-1/gnat-x86_64-linux-15.3.0-1.tar.gz \
+            -o gnat.tar.gz
+          echo "a6af58cbe96b8ed92b9d9929f89547c1be2ce96b86bb86422026074094429001  gnat.tar.gz" | sha256sum -c -
+
+          curl --fail --silent --show-error --location \
+            https://github.com/alire-project/GNAT-FSF-builds/releases/download/gprbuild-26.0.0-1/gprbuild-x86_64-linux-26.0.0-1.tar.gz \
+            -o gprbuild.tar.gz
+          echo "e3f27f2515ec04d963f6badade6595993b1c091ba15d1919a7c75aad1b7ed49b  gprbuild.tar.gz" | sha256sum -c -
+
+          curl --fail --silent --show-error --location \
+            https://github.com/alire-project/GNAT-FSF-builds/releases/download/gnatprove-16.1.0-1/gnatprove-x86_64-linux-16.1.0-1.tar.gz \
+            -o gnatprove.tar.gz
+          echo "82528bef29857e239373fcc36732837d743f5a00805d502c70455422ffc97191  gnatprove.tar.gz" | sha256sum -c -
+
+          tar -xzf gnat.tar.gz -C /opt/hwcontrol-ada
+          tar -xzf gprbuild.tar.gz -C /opt/hwcontrol-ada
+          tar -xzf gnatprove.tar.gz -C /opt/hwcontrol-ada
+
+          while IFS= read -r -d '' bin; do
+            echo "$bin" >> "$GITHUB_PATH"
+          done < <(find /opt/hwcontrol-ada -type d -name bin -print0)
+
+          gnat --version
+          gprbuild --version
+          gnatprove --version
 
       - name: Build
-        run: alr -n build
+        run: gprbuild -P security_core.gpr -j0
 
       - name: Runtime tests
-        run: alr -n run
+        run: ./bin/security_core_test
 
       - name: GNATprove formal verification
-        run: alr -n gnatprove -P security_core.gpr --level=2
+        run: gnatprove -P security_core.gpr --level=2
