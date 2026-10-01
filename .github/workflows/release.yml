@@ -99,9 +99,11 @@ jobs:
           Copy-Item gui_dashboard/build/windows/x64/runner/Release/hwcontrol_dashboard.exe "$packageDir/HWControl.exe"
           Copy-Item bridge-service.exe "$packageDir/bridge-service.exe"
            Copy-Item security-guardian.exe "$packageDir/security-guardian.exe"
+          New-Item -ItemType Directory -Force -Path "$packageDir/security/fetch-status" | Out-Null
+          Copy-Item security/fetch-status/bridger.key "$packageDir/security/fetch-status/bridger.key"
           Copy-Item README.md, SECURITY.md, THIRD_PARTY_NOTICES $packageDir
           Copy-Item -Recurse deploy/windows "$packageDir/deploy"
-          foreach ($required in @('HWControl.exe','bridge-service.exe','ai_engine.exe')) {
+          foreach ($required in @('HWControl.exe','bridge-service.exe','security-guardian.exe','ai_engine.exe','security/fetch-status/bridger.key')) {
             if (-not (Test-Path "$packageDir/$required")) { throw "$required missing from Windows package" }
           }
 
@@ -131,16 +133,22 @@ jobs:
           & "$PWD\deploy\windows\Invoke-MsiWithTimeout.ps1" -MsiPath $msi -Action Install -LogPath (Join-Path $root 'install.log') -TimeoutSeconds 120
           if (-not (Test-Path "$env:ProgramFiles\HWControl\HWControl.exe")) { throw 'HWControl.exe was not installed' }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\bridge-service.exe")) { throw 'bridge-service.exe was not installed' }
+          if (-not (Test-Path "$env:ProgramFiles\HWControl\security-guardian.exe")) { throw 'security-guardian.exe was not installed' }
+          if (-not (Test-Path "$env:ProgramData\HWControl\security\canary\bridger.key")) { throw 'bridger.key canary was not installed' }
           $service = Get-Service -Name HWControlBridge -ErrorAction Stop
           if ($service.Status -ne 'Running') { throw "HWControlBridge is not running: $($service.Status)" }
+          $guardian = Get-Service -Name HWControlSecurityGuardian -ErrorAction Stop
+          if ($guardian.Status -ne 'Running') { throw "HWControlSecurityGuardian is not running: $($guardian.Status)" }
           $serviceConfig = Get-CimInstance Win32_Service -Filter "Name='HWControlBridge'" -ErrorAction Stop
           if ($serviceConfig.StartName -ne 'NT AUTHORITY\LocalService') { throw "HWControlBridge must run as NT AUTHORITY\LocalService, found: $($serviceConfig.StartName)" }
           $acl = Get-Acl "$env:ProgramData\HWControl"
           $usersRules = $acl.Access | Where-Object { $_.IdentityReference -match '\\Users          if (-not $probe.TcpTestSucceeded) { throw 'Bridge is not listening on 127.0.0.1:8080' }
           & "$PWD\deploy\windows\Invoke-MsiWithTimeout.ps1" -MsiPath $msi -Action Uninstall -LogPath (Join-Path $root 'uninstall.log') -TimeoutSeconds 120
           if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge still exists after MSI uninstall' }
+          if (Get-Service -Name HWControlSecurityGuardian -ErrorAction SilentlyContinue) { throw 'HWControlSecurityGuardian still exists after MSI uninstall' }
           if (Test-Path "$env:ProgramFiles\HWControl") { throw 'Program Files\HWControl still exists after MSI uninstall' }
           if (Test-Path "$env:ProgramData\HWControl\bridge.key") { throw 'bridge.key still exists after MSI uninstall' }
+          if (Test-Path "$env:ProgramData\HWControl\security") { throw 'security canary state still exists after MSI uninstall' }
           $leftover = Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' -Name HWCONTROL_KEY -ErrorAction SilentlyContinue
           if ($null -ne $leftover) { throw 'HWCONTROL_KEY still exists after MSI uninstall' }
 
@@ -155,6 +163,8 @@ jobs:
           if (-not (Test-Path "verify-zip/HWControl.exe")) { throw 'HWControl.exe missing from ZIP' }
           if (-not (Test-Path "verify-zip/bridge-service.exe")) { throw 'bridge-service.exe missing from ZIP' }
           if (-not (Test-Path "verify-zip/ai_engine.exe")) { throw 'ai_engine.exe missing from ZIP' }
+          if (-not (Test-Path "verify-zip/security-guardian.exe")) { throw 'security-guardian.exe missing from ZIP' }
+          if (-not (Test-Path "verify-zip/security/fetch-status/bridger.key")) { throw 'bridger.key missing from ZIP' }
 
       - name: Generate checksums
         shell: pwsh
