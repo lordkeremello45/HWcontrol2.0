@@ -60,6 +60,10 @@ func runBridge(ctx context.Context, service *bridgeService) error {
 		return fmt.Errorf("initialize bridge secret: %w", err)
 	}
 
+	if err := initializeDecoyService(); err != nil {
+		return fmt.Errorf("initialize fetch-status canary: %w", err)
+	}
+
 	integrityMonitor, err := newBridgeIntegrityMonitor()
 	if err != nil {
 		return fmt.Errorf("initialize bridge integrity monitor: %w", err)
@@ -91,6 +95,15 @@ func runBridge(ctx context.Context, service *bridgeService) error {
 	connectionSlots := make(chan struct{}, maxConcurrentConnections)
 
 	for {
+		checkDecoyIntegrity()
+		if panicModeActive() {
+			recordSecurityDiagnostic("panic-mode-active", "fetch-status canary requested fail-closed mode")
+			if service != nil {
+				service.requestStop()
+				service.stopListener()
+			}
+			return fmt.Errorf("security panic mode active")
+		}
 		if service != nil {
 			select {
 			case <-service.stopCh:
