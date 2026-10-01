@@ -15,7 +15,6 @@
       <ComponentRef Id="MainExecutableComponent" />
       <ComponentRef Id="BridgeServiceComponent" />
       <ComponentRef Id="SecurityGuardianComponent" />
-      <ComponentRef Id="SecurityGuardianComponent" />
       <ComponentRef Id="BridgeDataComponent" />
     </Feature>
 
