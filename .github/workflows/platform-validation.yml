@@ -90,6 +90,7 @@ jobs:
           go vet ./...
           go test -count=1 ./...
           go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../bridge-service.exe ./src
+          go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../security-guardian.exe ./security_guardian
       - name: Prepare and validate dashboard
         working-directory: gui_dashboard
         shell: pwsh
