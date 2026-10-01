@@ -14,4 +14,7 @@ lto = "thin"
 codegen-units = 1
 strip = "symbols"
 
+[features]
+spark-ffi = []
+
 [dependencies]
