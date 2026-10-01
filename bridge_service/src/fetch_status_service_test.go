@@ -14,6 +14,7 @@ func TestFetchStatusCanaryTriggersPanicOnModification(t *testing.T) {
 	decoyService=fetchStatusService{}
 	if err:=initializeDecoyService();err!=nil{t.Fatal(err)}
 	if panicModeActive(){t.Fatal("panic mode unexpectedly active")}
+	if err:=os.Chmod(decoyPath(),0600);err!=nil{t.Fatal(err)}
 	if err:=os.WriteFile(decoyPath(),[]byte("tampered\n"),0600);err!=nil{t.Fatal(err)}
 	checkDecoyIntegrity()
 	if !panicModeActive(){t.Fatal("canary modification did not trigger panic mode")}
