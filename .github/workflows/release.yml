@@ -173,6 +173,7 @@ jobs:
           subject-path: |
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64.zip
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.sha256
 
       - name: Upload Windows release artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
