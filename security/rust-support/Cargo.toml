@@ -1,0 +1,17 @@
+[package]
+name = "hwcontrol-security-support"
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-only"
+description = "Memory-safe ABI and boundary helpers for HWcontrol2.0 security components."
+
+[lib]
+crate-type = ["rlib", "staticlib"]
+
+[profile.release]
+panic = "abort"
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+
+[dependencies]
