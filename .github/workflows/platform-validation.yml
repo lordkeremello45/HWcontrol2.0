@@ -41,6 +41,8 @@ jobs:
           cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
           cmake --build build --parallel 2
           ctest --test-dir build --output-on-failure
+      - name: Test local security tooling
+        run: go test -count=1 ./security/local-audit
       - name: Test and build bridge
         working-directory: bridge_service
         run: |
