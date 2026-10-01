@@ -6,9 +6,6 @@ is
    Maximum_Sensor_Temperature : constant := 125;
 
    subtype Fan_Percent is Integer range 0 .. 100;
-   subtype Sensor_Temperature is
-     Integer range Minimum_Sensor_Temperature .. Maximum_Sensor_Temperature;
-
    type Security_Decision is (Allow, Deny);
 
    function Is_Sensor_Temperature_Valid
