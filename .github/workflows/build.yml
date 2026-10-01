@@ -55,6 +55,9 @@ jobs:
       - name: Build bridge
         working-directory: bridge_service
         run: go build -trimpath -o bridge-service.exe ./src
+      - name: Build security guardian
+        working-directory: bridge_service
+        run: go build -trimpath -o security-guardian.exe ./security_guardian
       - name: Validate Windows sensor adapter binary
         working-directory: bridge_service
         shell: pwsh
