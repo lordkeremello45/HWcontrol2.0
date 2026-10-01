@@ -1,0 +1,52 @@
+name: Rust security support
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "security/rust-support/**"
+      - ".github/workflows/rust-security-support.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "security/rust-support/**"
+      - ".github/workflows/rust-security-support.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rust-security-support-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Install Rust 1.99.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustup toolchain install 1.99.0 --profile minimal --no-self-update
+          rustup default 1.99.0
+          rustc --version
+          cargo --version
+
+      - name: Format check
+        working-directory: security/rust-support
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        working-directory: security/rust-support
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Tests
+        working-directory: security/rust-support
+        run: cargo test --all-features --locked
