@@ -27,10 +27,10 @@ func decoyDir() string {
 		return "/var/lib/hwcontrol/security"
 	}
 }
-func canaryPath() string { return filepath.Join(decoyDir(),canaryName) }
+func canaryPath() string { return filepath.Join(decoyDir(),"canary",canaryName) }
 func panicPath() string {
 	if v:=strings.TrimSpace(os.Getenv("HWCONTROL_PANIC_FILE")); v!="" { return v }
-	return filepath.Join(decoyDir(),"panic-mode.json")
+	return filepath.Join(decoyDir(),"state","panic-mode.json")
 }
 func digest(path string)(string,error){
 	info,err:=os.Lstat(path)
