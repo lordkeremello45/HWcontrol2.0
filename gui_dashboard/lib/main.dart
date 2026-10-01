@@ -173,6 +173,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   StreamIterator<String>? _aiResponses;
   bool _aiStarting = false;
   String _locale = 'en-US';
+  String _languagePreference = HWControlLanguageService.systemDefault;
   Map<String, Map<String, String>> _translations = <String, Map<String, String>>{};
   List<Map<String, String>> _supportedLocales = <Map<String, String>>[];
   bool _aiSending = false;
@@ -573,6 +574,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
       final settings = await _userData.readSettings();
       final savedLocale = settings['language'] as String?;
+      _languagePreference = savedLocale ?? HWControlLanguageService.systemDefault;
       _locale = HWControlLanguageService.resolveLocale(
         savedLocale: savedLocale,
         supportedCodes: _translations.keys,
@@ -602,7 +604,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       await _userData.writeSettings(<String, dynamic>{
         'notificationsEnabled': _notificationsEnabled,
         'temperatureLimit': _temperatureLimit,
-        'language': _locale,
+        'language': _languagePreference,
       });
     } catch (_) {
       _addEvent('Ayarlar kaydedilemedi');
@@ -1016,7 +1018,7 @@ Attach this archive to a support issue only after reviewing it for personal info
   Future<void> _openSettingsMenu() async {
     var notificationsEnabled = _notificationsEnabled;
     var temperatureLimit = _temperatureLimit;
-    var selectedLocale = _locale;
+    var selectedLocale = _languagePreference;
     await showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -1081,7 +1083,11 @@ Attach this archive to a support issue only after reviewing it for personal info
                 setState(() {
                   _notificationsEnabled = notificationsEnabled;
                   _temperatureLimit = temperatureLimit;
-                  _locale = selectedLocale;
+                  _languagePreference = selectedLocale;
+                  _locale = HWControlLanguageService.resolveLocale(
+                    savedLocale: selectedLocale,
+                    supportedCodes: _translations.keys,
+                  );
                 });
                 unawaited(_saveSettings());
                 Navigator.pop(context);
