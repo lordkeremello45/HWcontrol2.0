@@ -73,6 +73,7 @@ jobs:
           cp -R gui_dashboard/build/macos/Build/Products/Release/HWControl.app pkg-root/Applications/HWControl/
           install -m 0755 build/ai_core/ai_engine pkg-root/Applications/HWControl/ai_engine
           install -m 0755 bridge-service pkg-root/Applications/HWControl/bridge-service
+           install -m 0755 security-guardian pkg-root/Applications/HWControl/security-guardian
           install -m 0644 deploy/macos/com.hwcontrol.bridge.plist pkg-root/Applications/HWControl/com.hwcontrol.bridge.plist
           cp README.md SECURITY.md THIRD_PARTY_NOTICES pkg-root/Applications/HWControl/
           cp -R deploy/macos pkg-root/Applications/HWControl/deploy
