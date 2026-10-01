@@ -78,6 +78,7 @@ jobs:
           Push-Location bridge_service
           go test -count=1 ./...
           go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../bridge-service.exe ./src
+           go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../security-guardian.exe ./security_guardian
           Pop-Location
 
           Push-Location gui_dashboard
@@ -261,6 +262,7 @@ jobs:
           Push-Location bridge_service
           go test -count=1 ./...
           go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../bridge-service.exe ./src
+           go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../security-guardian.exe ./security_guardian
           Pop-Location
 
           Push-Location gui_dashboard
@@ -506,6 +508,7 @@ jobs:
           Push-Location bridge_service
           go test -count=1 ./...
           go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../bridge-service.exe ./src
+           go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../security-guardian.exe ./security_guardian
           Pop-Location
 
           Push-Location gui_dashboard
