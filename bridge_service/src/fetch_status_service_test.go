@@ -9,6 +9,7 @@ import (
 func TestFetchStatusCanaryTriggersPanicOnModification(t *testing.T) {
 	dir:=t.TempDir()
 	t.Setenv("HWCONTROL_DECOY_DIR",dir)
+	t.Setenv("HWCONTROL_DECOY_BOOTSTRAP","1")
 	t.Setenv("HWCONTROL_PANIC_FILE",filepath.Join(dir,"panic-mode.json"))
 	decoyService=fetchStatusService{}
 	if err:=initializeDecoyService();err!=nil{t.Fatal(err)}
@@ -20,8 +21,9 @@ func TestFetchStatusCanaryTriggersPanicOnModification(t *testing.T) {
 }
 
 func TestFetchStatusCanaryIsNonSecret(t *testing.T) {
-	dir:=t.TempDir();t.Setenv("HWCONTROL_DECOY_DIR",dir)
+	dir:=t.TempDir();t.Setenv("HWCONTROL_DECOY_DIR",dir);t.Setenv("HWCONTROL_DECOY_BOOTSTRAP","1")
 	if err:=ensureDecoyFile();err!=nil{t.Fatal(err)}
 	data,err:=os.ReadFile(decoyPath());if err!=nil{t.Fatal(err)}
-	if len(data)==0{t.Fatal("empty canary")}
+	if string(data)!=decoyContent{t.Fatal("canary content does not match the non-secret decoy baseline")}
+	if digest,err:=decoyDigest(decoyPath());err!=nil||digest!=decoyExpectedDigest{t.Fatalf("unexpected canary digest: %q %v",digest,err)}
 }
