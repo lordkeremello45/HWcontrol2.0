@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -43,5 +45,23 @@ func TestDiagnosticsSnapshotContract(t *testing.T) {
 	listen, ok := diagnostics["listenAddress"].(string)
 	if !ok || (!strings.HasPrefix(listen, "127.0.0.1:") && !strings.HasSuffix(listen, ".sock")) {
 		t.Fatalf("unexpected listenAddress: %#v", diagnostics["listenAddress"])
+	}
+}
+
+
+func TestAppendCrashRecordPersistsRedactedLocalEvent(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "events.jsonl")
+	if err := appendCrashRecord(path, "line1\nline2"); err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(data), "\nline2") {
+		t.Fatal("diagnostic record contains an unsanitized newline")
+	}
+	if !strings.Contains(string(data), "line1 line2") {
+		t.Fatalf("sanitized diagnostic record missing: %s", data)
 	}
 }
