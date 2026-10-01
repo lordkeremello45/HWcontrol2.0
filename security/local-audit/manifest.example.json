@@ -1,0 +1,6 @@
+{
+  "files": [
+    {"path": "bridge-service"},
+    {"path": "ai_engine"}
+  ]
+}
