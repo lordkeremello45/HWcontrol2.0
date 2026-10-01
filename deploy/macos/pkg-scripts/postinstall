@@ -3,6 +3,8 @@ set -eu
 
 APP_DIR="/Applications/HWControl"
 PLIST_SRC="$APP_DIR/com.hwcontrol.bridge.plist"
+GUARDIAN_PLIST_SRC="$APP_DIR/com.hwcontrol.security-guardian.plist"
+GUARDIAN_PLIST_DST="/Library/LaunchDaemons/com.hwcontrol.security-guardian.plist"
 PLIST_DST="/Library/LaunchDaemons/com.hwcontrol.bridge.plist"
 KEY_DIR="/Library/Application Support/HWControl"
 KEY_FILE="$KEY_DIR/bridge.key"
@@ -60,5 +62,9 @@ else
   exit 1
 fi
 
+if [ -f "$GUARDIAN_PLIST_SRC" ]; then
+  /usr/bin/install -m 0644 "$GUARDIAN_PLIST_SRC" "$GUARDIAN_PLIST_DST"
+  /bin/launchctl bootstrap system "$GUARDIAN_PLIST_DST" 2>/dev/null || /bin/launchctl kickstart -k system/com.hwcontrol.security-guardian 2>/dev/null || true
+fi
 log "postinstall complete"
 exit 0
