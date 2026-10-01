@@ -115,9 +115,10 @@ HWcontrol2.0 is developed in the open. The public engineering plan focuses on us
 
 - Desktop application: **GNU GPLv3**
 - Website source: **GNU AGPLv3-only**
+- Local security tooling under `security/local-audit/`: **Apache License 2.0 (Apache-2.0)**
 - Third-party dependencies: their respective licenses
 
-See [License documentation](docs/wiki/License.md) and [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES).
+See [License documentation](docs/wiki/License.md), [LICENSE-APACHE](LICENSE-APACHE), and [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES).
 
 ## Project status
 
