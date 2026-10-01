@@ -1,8 +1,7 @@
 package main
 
 import (
-	"crypto/rand"
-	"crypto/sha256"
+		"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -15,9 +14,12 @@ import (
 )
 const decoyFileName="bridger.key"
 const panicStateFileName="panic-mode.json"
+const decoyContent="0526be8dc7adb18bc4e82119046c9a9fc8625571311060208a8d0744d71ff671\n"
+const decoyExpectedDigest="16a35fb29082f6c54d534ec8b09a60f8e445b17548f15f2d068db23868613365"
 type fetchStatusService struct{mu sync.Mutex;path string;baseline string;healthy bool;triggered bool;lastReason string}
 var decoyService fetchStatusService
 func decoyDirectory()string{
+
 	if v:=strings.TrimSpace(os.Getenv("HWCONTROL_DECOY_DIR"));v!=""{return v}
 	switch runtime.GOOS{
 	case "windows":
@@ -29,16 +31,24 @@ func decoyDirectory()string{
 func panicStatePath()string{if v:=strings.TrimSpace(os.Getenv("HWCONTROL_PANIC_FILE"));v!=""{return v};return filepath.Join(decoyDirectory(),panicStateFileName)}
 func decoyPath()string{return filepath.Join(decoyDirectory(),decoyFileName)}
 func ensureDecoyFile()error{
-	dir:=decoyDirectory();if err:=os.MkdirAll(dir,0700);err!=nil{return err}
-	p:=decoyPath();if info,err:=os.Lstat(p);err==nil{if info.Mode()&os.ModeSymlink!=0||!info.Mode().IsRegular(){return fmt.Errorf("decoy is not a regular file")};return nil}else if !os.IsNotExist(err){return err}
-	buf:=make([]byte,32);if _,err:=rand.Read(buf);err!=nil{return err}
-	content:="HWCONTROL-DECOY-"+hex.EncodeToString(buf)+"\n"
-	return os.WriteFile(p,[]byte(content),0600)
+	dir:=decoyDirectory()
+	if err:=os.MkdirAll(dir,0700);err!=nil{return err}
+	p:=decoyPath()
+	if info,err:=os.Lstat(p);err==nil{
+		if info.Mode()&os.ModeSymlink!=0||!info.Mode().IsRegular(){return fmt.Errorf("decoy is not a regular file")}
+		return nil
+	}else if !os.IsNotExist(err){return err}
+	if strings.TrimSpace(os.Getenv("HWCONTROL_DECOY_BOOTSTRAP"))!="1"{
+		return fmt.Errorf("decoy canary is missing; installation integrity is not trusted")
+	}
+	return os.WriteFile(p,[]byte(decoyContent),0440)
 }
 func decoyDigest(p string)(string,error){d,err:=os.ReadFile(p);if err!=nil{return "",err};h:=sha256.Sum256(d);return hex.EncodeToString(h[:]),nil}
 func initializeDecoyService()error{
-	if err:=ensureDecoyFile();err!=nil{return err};d,err:=decoyDigest(decoyPath());if err!=nil{return err}
-	decoyService.mu.Lock();decoyService.path=decoyPath();decoyService.baseline=d;decoyService.healthy=true;decoyService.mu.Unlock();return nil
+	if err:=ensureDecoyFile();err!=nil{return err}
+	d,err:=decoyDigest(decoyPath());if err!=nil{return err}
+	if d!=decoyExpectedDigest{return fmt.Errorf("decoy canary baseline mismatch")}
+	decoyService.mu.Lock();decoyService.path=decoyPath();decoyService.baseline=decoyExpectedDigest;decoyService.healthy=true;decoyService.mu.Unlock();return nil
 }
 func checkDecoyIntegrity(){
 	decoyService.mu.Lock();defer decoyService.mu.Unlock();if decoyService.path==""||decoyService.triggered{return}
