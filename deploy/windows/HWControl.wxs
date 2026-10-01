@@ -16,16 +16,26 @@
       <ComponentRef Id="BridgeServiceComponent" />
       <ComponentRef Id="SecurityGuardianComponent" />
       <ComponentRef Id="BridgeDataComponent" />
+      <ComponentRef Id="SecurityCanaryComponent" />
+      <ComponentRef Id="SecurityStateComponent" />
     </Feature>
 
     <Component Id="MainExecutableComponent" Directory="INSTALLFOLDER">
-      <File Id="HWControlExe" Source="$(var.PackageDir)\\HWControl.exe" KeyPath="yes">\n        <Shortcut Id="DesktopShortcut" Name="HWControl" Directory="DesktopFolder" WorkingDirectory="INSTALLFOLDER" Icon="HWControlIcon" />\n      </File>
+      <File Id="HWControlExe" Source="$(var.PackageDir)\HWControl.exe" KeyPath="yes">
+        <Shortcut Id="DesktopShortcut" Name="HWControl" Directory="DesktopFolder" WorkingDirectory="INSTALLFOLDER" Icon="HWControlIcon" />
+      </File>
     </Component>
 
     <Component Id="BridgeServiceComponent" Directory="INSTALLFOLDER">
       <File Id="BridgeServiceExe" Source="$(var.PackageDir)\bridge-service.exe" KeyPath="yes" />
       <ServiceInstall Id="BridgeServiceInstall" Name="HWControlBridge" DisplayName="HWControl Bridge" Description="HWControl local authenticated bridge service" ErrorControl="normal" Start="auto" Type="ownProcess" Account="LocalService" Vital="yes" />
       <ServiceControl Id="BridgeServiceControl" Name="HWControlBridge" Start="install" Stop="both" Remove="uninstall" Wait="yes" />
+    </Component>
+
+    <Component Id="SecurityGuardianComponent" Directory="INSTALLFOLDER">
+      <File Id="SecurityGuardianExe" Source="$(var.PackageDir)\security-guardian.exe" KeyPath="yes" />
+      <ServiceInstall Id="SecurityGuardianInstall" Name="HWControlSecurityGuardian" DisplayName="HWControl Security Guardian" Description="HWControl secondary security guardian and canary monitor" ErrorControl="normal" Start="auto" Type="ownProcess" Account="LocalService" Vital="yes" />
+      <ServiceControl Id="SecurityGuardianControl" Name="HWControlSecurityGuardian" Start="install" Stop="both" Remove="uninstall" Wait="yes" />
     </Component>
   </Package>
 
@@ -35,23 +45,16 @@
       <Directory Id="INSTALLFOLDER" Name="HWControl" />
     </StandardDirectory>
     <StandardDirectory Id="CommonAppDataFolder">
-      <Directory Id="HWCONTROL_DATA" Name="HWControl" />
+      <Directory Id="HWCONTROL_DATA" Name="HWControl">
+        <Directory Id="SECURITY_DATA" Name="security">
+          <Directory Id="SECURITY_CANARY_DATA" Name="canary" />
+          <Directory Id="SECURITY_STATE_DATA" Name="state" />
+        </Directory>
+      </Directory>
     </StandardDirectory>
   </Fragment>
 
   <Fragment>
-    <Component Id="SecurityGuardianComponent" Directory="INSTALLFOLDER">
-      <File Id="SecurityGuardianExe" Source="$(var.PackageDir)\security-guardian.exe" KeyPath="yes" />
-      <ServiceInstall Id="SecurityGuardianInstall" Name="HWControlSecurityGuardian" DisplayName="HWControl Security Guardian" Description="HWControl secondary security guardian and canary monitor" ErrorControl="normal" Start="auto" Type="ownProcess" Account="LocalService" Vital="yes" />
-      <ServiceControl Id="SecurityGuardianControl" Name="HWControlSecurityGuardian" Start="install" Stop="both" Remove="uninstall" Wait="yes" />
-    </Component>
-
-    <Component Id="SecurityGuardianComponent" Directory="INSTALLFOLDER">
-      <File Id="SecurityGuardianExe" Source="$(var.PackageDir)\security-guardian.exe" KeyPath="yes" />
-      <ServiceInstall Id="SecurityGuardianInstall" Name="HWControlSecurityGuardian" DisplayName="HWControl Security Guardian" Description="HWControl secondary security guardian and canary monitor" ErrorControl="normal" Start="auto" Type="ownProcess" Account="LocalService" Vital="yes" />
-      <ServiceControl Id="SecurityGuardianControl" Name="HWControlSecurityGuardian" Start="install" Stop="both" Remove="uninstall" Wait="yes" />
-    </Component>
-
     <Component Id="BridgeDataComponent" Directory="HWCONTROL_DATA">
       <CreateFolder>
         <util:PermissionEx User="Users" Read="yes" Traverse="yes" Inheritable="yes" />
@@ -61,12 +64,24 @@
       <RegistryValue Root="HKLM" Key="Software\HWControl" Name="BridgeDataInstalled" Type="integer" Value="1" KeyPath="yes" />
     </Component>
 
+    <Component Id="SecurityCanaryComponent" Directory="SECURITY_CANARY_DATA">
+      <File Id="BridgerCanaryFile" Source="$(var.PackageDir)\security\fetch-status\bridger.key" KeyPath="yes">
+        <util:PermissionEx User="NT AUTHORITY\LocalService" Read="yes" ReadAttributes="yes" ReadPermission="yes" />
+      </File>
+    </Component>
+
+    <Component Id="SecurityStateComponent" Directory="SECURITY_STATE_DATA">
+      <CreateFolder>
+        <util:PermissionEx User="NT AUTHORITY\LocalService" Read="yes" Write="yes" CreateFile="yes" DeleteChild="yes" Traverse="yes" Inheritable="yes" />
+      </CreateFolder>
+    </Component>
+
     <ComponentGroup Id="ApplicationFiles" Directory="INSTALLFOLDER">
       <Files Include="$(var.PackageDir)\**">
         <Exclude Files="$(var.PackageDir)\HWControl.exe" />
         <Exclude Files="$(var.PackageDir)\bridge-service.exe" />
         <Exclude Files="$(var.PackageDir)\security-guardian.exe" />
-        <Exclude Files="$(var.PackageDir)\security-guardian.exe" />
+        <Exclude Files="$(var.PackageDir)\security\fetch-status\bridger.key" />
       </Files>
     </ComponentGroup>
   </Fragment>
