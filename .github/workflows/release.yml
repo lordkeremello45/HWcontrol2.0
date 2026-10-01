@@ -98,6 +98,7 @@ jobs:
           Copy-Item -Recurse gui_dashboard/build/windows/x64/runner/Release "$packageDir/dashboard"
           Copy-Item gui_dashboard/build/windows/x64/runner/Release/hwcontrol_dashboard.exe "$packageDir/HWControl.exe"
           Copy-Item bridge-service.exe "$packageDir/bridge-service.exe"
+           Copy-Item security-guardian.exe "$packageDir/security-guardian.exe"
           Copy-Item README.md, SECURITY.md, THIRD_PARTY_NOTICES $packageDir
           Copy-Item -Recurse deploy/windows "$packageDir/deploy"
           foreach ($required in @('HWControl.exe','bridge-service.exe','ai_engine.exe')) {
@@ -282,6 +283,7 @@ jobs:
           Copy-Item -Recurse gui_dashboard/build/windows/x64/runner/Release "$packageDir/dashboard"
           Copy-Item gui_dashboard/build/windows/x64/runner/Release/hwcontrol_dashboard.exe "$packageDir/HWControl.exe"
           Copy-Item bridge-service.exe "$packageDir/bridge-service.exe"
+           Copy-Item security-guardian.exe "$packageDir/security-guardian.exe"
           Copy-Item README.md, SECURITY.md, THIRD_PARTY_NOTICES $packageDir
           Copy-Item -Recurse deploy/windows "$packageDir/deploy"
           foreach ($required in @('HWControl.exe','bridge-service.exe','ai_engine.exe')) {
@@ -528,6 +530,7 @@ jobs:
           Copy-Item -Recurse gui_dashboard/build/windows/x64/runner/Release "$packageDir/dashboard"
           Copy-Item gui_dashboard/build/windows/x64/runner/Release/hwcontrol_dashboard.exe "$packageDir/HWControl.exe"
           Copy-Item bridge-service.exe "$packageDir/bridge-service.exe"
+           Copy-Item security-guardian.exe "$packageDir/security-guardian.exe"
           Copy-Item README.md, SECURITY.md, THIRD_PARTY_NOTICES $packageDir
           Copy-Item -Recurse deploy/windows "$packageDir/deploy"
           foreach ($required in @('HWControl.exe','bridge-service.exe','ai_engine.exe')) {
