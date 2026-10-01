@@ -1,5 +1,4 @@
 with Ada.Text_IO; use Ada.Text_IO;
-with Interfaces.C;
 with HWControl_Security; use HWControl_Security;
 
 procedure Security_Core_Test
