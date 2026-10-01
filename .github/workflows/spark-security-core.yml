@@ -61,9 +61,9 @@ jobs:
           tar -xzf gprbuild.tar.gz -C /opt/hwcontrol-ada
           tar -xzf gnatprove.tar.gz -C /opt/hwcontrol-ada
 
-          GNAT_BIN="$(dirname "$(find /opt/hwcontrol-ada -type f -name gnat -print -quit)")"
-          GPRBUILD_BIN="$(dirname "$(find /opt/hwcontrol-ada -type f -name gprbuild -print -quit)")"
-          GNATPROVE_BIN="$(dirname "$(find /opt/hwcontrol-ada -type f -name gnatprove -print -quit)")"
+          GNAT_BIN="$(dirname "$(find /opt/hwcontrol-ada \( -type f -o -type l \) -name gnat -print -quit)")"
+          GPRBUILD_BIN="$(dirname "$(find /opt/hwcontrol-ada \( -type f -o -type l \) -name gprbuild -print -quit)")"
+          GNATPROVE_BIN="$(dirname "$(find /opt/hwcontrol-ada \( -type f -o -type l \) -name gnatprove -print -quit)")"
 
           test -x "$GNAT_BIN/gnat"
           test -x "$GPRBUILD_BIN/gprbuild"
