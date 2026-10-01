@@ -25,6 +25,7 @@ func TestGuardianAcceptsCanonicalCanary(t *testing.T) {
 func TestGuardianRejectsSymlinkCanary(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("HWCONTROL_DECOY_DIR", dir)
+	if err := os.MkdirAll(filepath.Dir(canaryPath()), 0750); err != nil { t.Fatal(err) }
 	target := filepath.Join(dir, "target")
 	if err := os.WriteFile(target, []byte("not the canary"), 0600); err != nil {
 		t.Fatal(err)
