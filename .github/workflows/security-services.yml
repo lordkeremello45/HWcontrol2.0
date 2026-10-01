@@ -1,0 +1,48 @@
+name: Security services
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'bridge_service/src/**'
+      - 'bridge_service/security_guardian/**'
+      - '.github/workflows/security-services.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'bridge_service/src/**'
+      - 'bridge_service/security_guardian/**'
+      - '.github/workflows/security-services.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  services:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: bridge_service
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Go formatting
+        run: |
+          files="$(gofmt -l src security_guardian)"
+          if [ -n "$files" ]; then
+            printf '%s\n' "$files"
+            exit 1
+          fi
+      - name: Test bridge services
+        run: go test -race -count=1 ./src
+      - name: Build security guardian
+        run: go build -trimpath -o security-guardian ./security_guardian
+      - name: Smoke-test guardian build
+        run: ./security-guardian --help >/dev/null 2>&1 || test $? -eq 1
