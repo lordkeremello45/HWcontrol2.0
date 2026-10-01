@@ -1,3 +1,5 @@
+with Interfaces.C;
+
 package HWControl_Security
   with SPARK_Mode => On
 is
@@ -63,5 +65,20 @@ is
           or else Temperature_C >= Critical_Temperature
           then Validate_Raw_Fan_Command'Result = Deny
           else Validate_Raw_Fan_Command'Result = Allow);
+
+   -- C ABI boundary for the Rust support layer. The policy remains in SPARK;
+   -- the exported function only exposes the already-formally-specified gate.
+   function Validate_Raw_Fan_Command_C
+     (Fan_Percent_Value : Interfaces.C.int;
+      Telemetry_Valid   : Interfaces.C.unsigned_char;
+      Temperature_C     : Interfaces.C.int;
+      Integrity_Healthy : Interfaces.C.unsigned_char;
+      Authorized        : Interfaces.C.unsigned_char)
+      return Interfaces.C.unsigned_char
+     with
+       Global => null,
+       Export,
+       Convention => C,
+       External_Name => "hwcontrol_security_validate_fan_command";
 
 end HWControl_Security;
