@@ -19,6 +19,7 @@ import 'diagnostics.dart';
 import 'model_manager.dart';
 import 'user_data_store.dart';
 import 'welcome_screen.dart';
+import 'services/language_service.dart';
 
 void main() {
   final diagnostics = HWControlDiagnostics.instance;
@@ -572,7 +573,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
       final settings = await _userData.readSettings();
       final savedLocale = settings['language'] as String?;
-      if (savedLocale != null && _translations.containsKey(savedLocale)) _locale = savedLocale;
+      _locale = HWControlLanguageService.resolveLocale(
+        savedLocale: savedLocale,
+        supportedCodes: _translations.keys,
+      );
     } catch (_) {}
   }
 
@@ -1034,6 +1038,12 @@ Attach this archive to a support issue only after reviewing it for personal info
                     },
                     child: Column(
                       children: [
+                        RadioListTile<String>(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(_tr('systemDefault')),
+                          subtitle: Text(HWControlLanguageService.systemLocaleCode),
+                          value: HWControlLanguageService.systemDefault,
+                        ),
                         for (final locale in _supportedLocales)
                           RadioListTile<String>(
                             contentPadding: EdgeInsets.zero,
