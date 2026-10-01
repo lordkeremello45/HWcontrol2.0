@@ -112,6 +112,14 @@ The file-backed key remains the canonical daemon credential because HWControl's 
 
 Release checksum manifests are now included as subjects of the GitHub Actions artifact-attestation step alongside the packages they describe. GitHub documents artifact attestations as signed provenance claims and explicitly supports signing manifests containing hashes. Consumers can verify the attestation and the SHA-256 manifest independently. This does not replace platform code signing.
 
+## Secondary security guardian and canary
+
+HWControl also ships a separate **Security Guardian** process as a defense-in-depth boundary. It does not receive the real `bridge.key`, does not perform hardware I/O, and cannot authorize commands. Its purpose is to independently observe the Fetch Status canary and publish a persistent panic state when the canary is missing, replaced, symlinked, unreadable, or changed.
+
+The Fetch Status service contains the non-secret `bridger.key` canary. It is deliberately not a credential and cannot authenticate to the bridge. A canary integrity violation causes the bridge to enter fail-closed panic mode. Existing authenticated connections are also prevented from executing hardware-control actions once panic mode is active.
+
+This is a canary/deception control, not a claim that the machine is compromised with certainty. OWASP documents canary files/records as deceptive assets whose unexpected access can indicate malicious reconnaissance or tampering. The guardian is isolated from the canary's write path on Linux through a dedicated system user and systemd filesystem restrictions; Windows uses a separate SCM service process under LocalService.
+
 ## Hardware-control safety gate
 
 Hardware control requests are fail-closed at the bridge boundary.
