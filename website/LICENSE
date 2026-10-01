@@ -1,0 +1,16 @@
+# Website licensing
+
+The source code under `website/` is licensed separately from the HWcontrol2.0 desktop application.
+
+**License:** GNU Affero General Public License v3.0 only (**AGPL-3.0-only**).
+
+The AGPLv3 is used for the website source because it is intended for network-interactive software and provides stronger copyleft conditions for covered network use than GPLv3. It does **not** itself provide a technical security guarantee.
+
+Official license text:
+https://www.gnu.org/licenses/agpl-3.0.html
+
+SPDX identifier: `AGPL-3.0-only`
+
+The repository root and desktop application remain under the root project's GPLv3 license unless a component explicitly states otherwise. Third-party components retain their own licenses as recorded in [THIRD_PARTY_NOTICES](../THIRD_PARTY_NOTICES).
+
+Copyright © 2026 HWcontrol2.0 contributors.
