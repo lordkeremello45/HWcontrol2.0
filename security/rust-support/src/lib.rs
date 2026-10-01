@@ -65,6 +65,35 @@ pub extern "C" fn hwcontrol_security_can_execute(value: u8) -> u8 {
     hwcontrol_security_decision_from_ffi(value)
 }
 
+#[cfg(feature = "spark-ffi")]
+unsafe extern "C" {
+    fn hwcontrol_security_validate_fan_command(
+        fan_percent: i32,
+        telemetry_valid: u8,
+        temperature_c: i32,
+        integrity_healthy: u8,
+        authorized: u8,
+    ) -> u8;
+}
+
+/// Call the authoritative SPARK gate when the native SPARK library is linked.
+#[cfg(feature = "spark-ffi")]
+pub fn validate_fan_command_with_spark(command: FanCommand) -> SecurityDecision {
+    let decision = unsafe {
+        hwcontrol_security_validate_fan_command(
+            i32::from(command.fan_percent),
+            command.telemetry_valid,
+            i32::from(command.temperature_c),
+            command.integrity_healthy,
+            command.authorized,
+        )
+    };
+    match SecurityDecision::from_ffi(decision) {
+        Some(value) => value,
+        None => SecurityDecision::Deny,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
