@@ -51,3 +51,12 @@ The production rule is that a security-core change is not accepted unless compil
 ## Integration boundary
 
 The intended next integration step is a narrow C ABI between this core and the Go/native boundary. Cryptographic authentication remains in the existing bridge until a separately reviewed, verified implementation is available; SPARK should not be used as a branding-only replacement for proven cryptographic libraries.
+
+
+## Native boundary
+
+The SPARK package now exports hwcontrol_security_validate_fan_command with a C-compatible ABI. The exported function delegates to the same formally specified Validate_Raw_Fan_Command policy; it does not create a second security policy.
+
+The Rust support layer at security/rust-support/ can call this symbol behind its spark-ffi feature. Rust only carries and validates the ALLOW/DENY result and fails closed for unknown decision values.
+
+The live Go/C++ integration remains intentionally gated until the GNAT/SPARK toolchain and native linking are validated on Windows 10/11, Linux x64, and macOS 14+ Apple Silicon.
