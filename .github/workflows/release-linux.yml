@@ -138,7 +138,7 @@ jobs:
           cat > linux-deb/DEBIAN/prerm <<'EOF'
           #!/bin/sh
           set -eu
-          if [ "$1" = remove ] || [ "$1" = upgrade ]; then systemctl disable --now hwcontrol-bridge.service 2>/dev/null || true; fi
+          if [ "$1" = remove ] || [ "$1" = upgrade ]; then systemctl disable --now hwcontrol-security-guardian.service 2>/dev/null || true; systemctl disable --now hwcontrol-bridge.service 2>/dev/null || true; fi
           exit 0
           EOF
           chmod 0755 linux-deb/DEBIAN/prerm
