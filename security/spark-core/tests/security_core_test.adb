@@ -1,4 +1,6 @@
 with Ada.Text_IO; use Ada.Text_IO;
+with Interfaces.C;
+use type Interfaces.C.unsigned_char;
 with HWControl_Security; use HWControl_Security;
 
 procedure Security_Core_Test
