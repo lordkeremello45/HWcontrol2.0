@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>Label</key><string>com.hwcontrol.security-guardian</string>
+<key>ProgramArguments</key><array><string>/Applications/HWControl/security-guardian</string></array>
+<key>EnvironmentVariables</key><dict>
+<key>HWCONTROL_DECOY_DIR</key><string>/Library/Application Support/HWControl/security</string>
+<key>HWCONTROL_PANIC_FILE</key><string>/Library/Application Support/HWControl/security/panic-mode.json</string>
+</dict>
+<key>RunAtLoad</key><true/>
+<key>KeepAlive</key><true/>
+</dict></plist>
