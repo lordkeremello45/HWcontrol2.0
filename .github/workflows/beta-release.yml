@@ -96,8 +96,9 @@ jobs:
           dotnet tool install --global wix --version 6.0.2 --add-source https://api.nuget.org/v3/index.json
           $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
           wix extension add -g WixToolset.Util.wixext/6.0.2
+          & "$PWD/deploy/windows/generate-icon.ps1"
           $version = $env:RELEASE_TAG -replace '^v','' -replace '-beta\.\d+$',''
-          wix build deploy/windows/HWControl.wxs -arch x64 -d Version=$version -d PackageDir="package/HWControl-$env:RELEASE_TAG-Windows-x64" -o "HWControl-$env:RELEASE_TAG-Windows-x64.msi"
+          wix build deploy/windows/HWControl.wxs -arch x64 -d Version=$version -d PackageDir="package/HWControl-$env:RELEASE_TAG-Windows-x64" -d IconPath=deploy/windows/HWControl.ico -o "HWControl-$env:RELEASE_TAG-Windows-x64.msi"
           if (-not (Test-Path "HWControl-$env:RELEASE_TAG-Windows-x64.msi")) { throw 'MSI was not produced' }
       - name: Smoke-test MSI
         shell: pwsh
