@@ -142,7 +142,10 @@ jobs:
           $serviceConfig = Get-CimInstance Win32_Service -Filter "Name='HWControlBridge'" -ErrorAction Stop
           if ($serviceConfig.StartName -ne 'NT AUTHORITY\LocalService') { throw "HWControlBridge must run as NT AUTHORITY\LocalService, found: $($serviceConfig.StartName)" }
           $acl = Get-Acl "$env:ProgramData\HWControl"
-          $usersRules = $acl.Access | Where-Object { $_.IdentityReference -match '\\Users          if (-not $probe.TcpTestSucceeded) { throw 'Bridge is not listening on 127.0.0.1:8080' }
+          $usersRules = $acl.Access | Where-Object { $_.IdentityReference -match '\\Users' }
+          if ($usersRules | Where-Object { $_.FileSystemRights.ToString() -match 'Write|Modify|FullControl' }) { throw 'ProgramData\\HWControl grants Users unsafe write access' }
+          $probe = Test-NetConnection 127.0.0.1 -Port 8080 -WarningAction SilentlyContinue
+          if (-not $probe.TcpTestSucceeded) { throw 'Bridge is not listening on 127.0.0.1:8080' }
           & "$PWD\deploy\windows\Invoke-MsiWithTimeout.ps1" -MsiPath $msi -Action Uninstall -LogPath (Join-Path $root 'uninstall.log') -TimeoutSeconds 120
           if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge still exists after MSI uninstall' }
           if (Get-Service -Name HWControlSecurityGuardian -ErrorAction SilentlyContinue) { throw 'HWControlSecurityGuardian still exists after MSI uninstall' }
