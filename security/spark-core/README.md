@@ -18,11 +18,9 @@ Unknown or unsafe state produces Deny.
 
 ## Toolchain
 
-The project is pinned to the stable GNAT 15.3.0 toolchain for production compatibility with the project's macOS 14+ target. GNAT 16.1.0 is newer, but its current Apple-platform support is officially focused on macOS 15/26, so it is not selected as the project baseline.
+The production baseline is GNAT 15.3.0 because HWcontrol2.0 targets macOS 14+. GNAT 16.1.0 is newer, but its current Apple-platform support is officially focused on macOS 15/26, so it is not the compatibility baseline. GNATprove 16.1.0 is used for formal analysis.
 
-GNATprove 16.1.0 is used for formal analysis.
-
-Alire is the dependency/toolchain manager. Keep the security core isolated from the main CMake graph until its ABI boundary is introduced and validated.
+The repository does not depend on Alire for the CI trust path. CI downloads pinned upstream GNAT, GPRbuild, and GNATprove archives and verifies their SHA-256 digests before use. Alire remains supported for developer workflows when a matching toolchain is installed.
 
 ## Local validation
 
