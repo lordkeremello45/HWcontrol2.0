@@ -90,11 +90,16 @@ jobs:
           test -d /Applications/HWControl/HWControl.app
           test -x /Applications/HWControl/bridge-service
           test -x /Applications/HWControl/ai_engine
+          test -x /Applications/HWControl/security-guardian
           test -s '/Library/Application Support/HWControl/bridge.key'
+          test -f '/Library/Application Support/HWControl/security/canary/bridger.key'
+          test -f /Library/LaunchDaemons/com.hwcontrol.security-guardian.plist
           test -f /Library/LaunchDaemons/com.hwcontrol.bridge.plist
           sudo launchctl print system/com.hwcontrol.bridge >/dev/null
+          sudo launchctl print system/com.hwcontrol.security-guardian >/dev/null
+          sudo launchctl bootout system /Library/LaunchDaemons/com.hwcontrol.security-guardian.plist || true
           sudo launchctl bootout system /Library/LaunchDaemons/com.hwcontrol.bridge.plist || true
-          sudo rm -f /Library/LaunchDaemons/com.hwcontrol.bridge.plist
+          sudo rm -f /Library/LaunchDaemons/com.hwcontrol.security-guardian.plist /Library/LaunchDaemons/com.hwcontrol.bridge.plist
           sudo rm -rf /Applications/HWControl
           sudo rm -rf '/Library/Application Support/HWControl'
           test ! -e /Applications/HWControl
