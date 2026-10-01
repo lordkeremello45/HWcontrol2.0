@@ -12,6 +12,14 @@ The source code under `website/` is separately licensed under **GNU AGPLv3-only 
 
 AGPLv3 is selected for the website source because it is designed for network-interactive software and extends copyleft obligations to covered network use. It is a licensing condition, not a substitute for web security controls.
 
+## Local security tooling
+
+The standalone tooling under `security/local-audit/` is separately licensed under **Apache License 2.0 (Apache-2.0)**. This scope is intended for reusable, offline security and integrity tooling that can be independently tested, integrated, and contributed to without changing the GPLv3 desktop application's license.
+
+Apache-2.0 provides an explicit contributor patent grant and permissive reuse terms. It is compatible with inclusion in GPLv3 projects, but GPLv3-covered code is not being relicensed under Apache-2.0. The Apache scope is limited to files that explicitly identify `Apache-2.0`.
+
+The license text is available in the repository-root `LICENSE-APACHE`; the component also carries its own NOTICE and license pointer. Apache-2.0 is a licensing choice, not a technical security control.
+
 ## Third-party components
 
 Third-party dependencies and bundled components retain their own licenses. See [THIRD_PARTY_NOTICES](../../THIRD_PARTY_NOTICES) and the dependency manifests for applicable terms.
