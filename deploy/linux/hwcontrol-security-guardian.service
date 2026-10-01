@@ -1,0 +1,21 @@
+[Unit]
+Description=HWControl secondary security guardian
+After=hwcontrol-bridge.service
+Requires=hwcontrol-bridge.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/hwcontrol
+Environment=HWCONTROL_DECOY_DIR=/var/lib/hwcontrol/security
+Environment=HWCONTROL_PANIC_FILE=/var/lib/hwcontrol/security/panic-mode.json
+ExecStart=/opt/hwcontrol/security-guardian
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/hwcontrol/security
+
+[Install]
+WantedBy=multi-user.target
