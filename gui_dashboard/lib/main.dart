@@ -18,6 +18,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'diagnostics.dart';
 import 'model_manager.dart';
 import 'user_data_store.dart';
+import 'welcome_screen.dart';
 
 void main() {
   final diagnostics = HWControlDiagnostics.instance;
@@ -57,6 +58,8 @@ class HWControlApp extends StatefulWidget {
 class _HWControlAppState extends State<HWControlApp> {
   bool _darkMode = true;
   bool _animationsEnabled = true;
+  bool _showWelcome = true;
+  bool _welcomeSeen = false;
   final HWControlUserDataStore _userData = HWControlUserDataStore();
 
   @override
@@ -71,9 +74,14 @@ class _HWControlAppState extends State<HWControlApp> {
       if (!mounted) return;
       final darkMode = preferences['darkMode'];
       final animations = preferences['animationsEnabled'];
+      final welcomeSeen = preferences['welcomeSeen'];
       setState(() {
         if (darkMode is bool) _darkMode = darkMode;
         if (animations is bool) _animationsEnabled = animations;
+        if (welcomeSeen is bool) {
+          _welcomeSeen = welcomeSeen;
+          _showWelcome = !welcomeSeen;
+        }
       });
     } catch (_) {
       // UI preference corruption must never prevent the dashboard from starting.
@@ -84,7 +92,20 @@ class _HWControlAppState extends State<HWControlApp> {
     unawaited(_userData.writeUiPreferences(<String, dynamic>{
       'darkMode': _darkMode,
       'animationsEnabled': _animationsEnabled,
+      'welcomeSeen': _welcomeSeen,
     }));
+  }
+
+  void _completeWelcome(bool dontShowAgain) {
+    setState(() {
+      _welcomeSeen = dontShowAgain;
+      _showWelcome = false;
+    });
+    _saveUiPreferences();
+  }
+
+  void _openDashboardFromWelcome() {
+    setState(() => _showWelcome = false);
   }
 
   void _setDarkMode(bool value) {
@@ -102,12 +123,17 @@ class _HWControlAppState extends State<HWControlApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: _buildTheme(_darkMode),
-      home: DashboardScreen(
-        darkMode: _darkMode,
-        animationsEnabled: _animationsEnabled,
-        onThemeChanged: _setDarkMode,
-        onAnimationsChanged: _setAnimationsEnabled,
-      ),
+      home: _showWelcome
+          ? HWControlWelcomeScreen(
+              onContinue: _completeWelcome,
+              onSettings: _openDashboardFromWelcome,
+            )
+          : DashboardScreen(
+              darkMode: _darkMode,
+              animationsEnabled: _animationsEnabled,
+              onThemeChanged: _setDarkMode,
+              onAnimationsChanged: _setAnimationsEnabled,
+            ),
     );
   }
 
