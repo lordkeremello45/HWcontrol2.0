@@ -61,11 +61,11 @@ jobs:
           tar -xzf gprbuild.tar.gz -C /opt/hwcontrol-ada
           tar -xzf gnatprove.tar.gz -C /opt/hwcontrol-ada
 
-          GNAT_BIN="$(dirname "$(find /opt/hwcontrol-ada \( -type f -o -type l \) -name gnat -print -quit)")"
+          GNAT_BIN="$(dirname "$(find /opt/hwcontrol-ada \( -type f -o -type l \) -name gnatmake -print -quit)")"
           GPRBUILD_BIN="$(dirname "$(find /opt/hwcontrol-ada \( -type f -o -type l \) -name gprbuild -print -quit)")"
           GNATPROVE_BIN="$(dirname "$(find /opt/hwcontrol-ada \( -type f -o -type l \) -name gnatprove -print -quit)")"
 
-          test -x "$GNAT_BIN/gnat"
+          test -x "$GNAT_BIN/gnatmake"
           test -x "$GPRBUILD_BIN/gprbuild"
           test -x "$GNATPROVE_BIN/gnatprove"
 
@@ -74,7 +74,7 @@ jobs:
           echo "$GNATPROVE_BIN" >> "$GITHUB_PATH"
 
           export PATH="$GNAT_BIN:$GPRBUILD_BIN:$GNATPROVE_BIN:$PATH"
-          gnat --version
+          gnatmake -v
           gprbuild --version
           gnatprove --version
 
