@@ -75,6 +75,7 @@ jobs:
           mkdir -p "package/$root" linux-deb/DEBIAN linux-deb/opt/hwcontrol linux-deb/usr/bin linux-deb/lib/systemd/system
           install -m 0755 build/ai_core/ai_engine "package/$root/ai_engine"
           install -m 0755 bridge-service "package/$root/bridge-service"
+           install -m 0755 security-guardian "package/$root/security-guardian"
           cp -R gui_dashboard/build/linux/x64/release/bundle "package/$root/dashboard"
           cp README.md SECURITY.md THIRD_PARTY_NOTICES "package/$root/"
           cp -R deploy/linux "package/$root/deploy"
