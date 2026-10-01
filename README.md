@@ -61,6 +61,12 @@ Use the DEB on Debian/Ubuntu-family systems, or the portable TAR package when ap
 
 For detailed platform instructions, see the [Wiki](https://github.com/lordkeremello45/HWcontrol2.0/wiki).
 
+## Language and localization
+
+HWcontrol2.0 provides a **System Default** language option. The Language Service reads the operating system's current locale and resolves it against the localization resources bundled with the application. Manually selected languages are stored in the user's local settings and take precedence over the system locale.
+
+When **System Default** is selected, the application re-evaluates the operating-system locale on startup. If the exact locale is not bundled, HWcontrol2.0 uses the matching language resource when available; otherwise its existing English fallback remains in effect.
+
 ## Security and release integrity
 
 The local bridge listens on loopback and authenticates commands with HMAC-SHA-256. Release workflows publish SHA-256 manifests and GitHub artifact attestations where configured.
