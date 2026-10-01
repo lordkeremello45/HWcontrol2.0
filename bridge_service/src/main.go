@@ -344,14 +344,23 @@ func validateFanControlRequest(cmd Command, metrics HardwareMetrics) error {
 func executeHardwareCommand(cmd Command) error {
 	switch cmd.Action {
 	case "Fan Hızı":
+		if panicModeActive() {
+			return fmt.Errorf("hardware control blocked: security panic mode active")
+		}
 		metrics := collectMetrics()
 		if err := validateFanControlRequest(cmd, metrics); err != nil {
 			return err
 		}
 		return fmt.Errorf("hardware control backend is not available on this build")
 	case "AI İşlem Gücü":
+		if panicModeActive() {
+			return fmt.Errorf("hardware control blocked: security panic mode active")
+		}
 		return fmt.Errorf("hardware control backend is not available on this build")
 	case "Set Game Mode":
+		if panicModeActive() {
+			return fmt.Errorf("hardware control blocked: security panic mode active")
+		}
 		setGameModeEnabled(cmd.Value >= 50)
 		return nil
 	default:
@@ -660,6 +669,16 @@ func handleConnection(conn net.Conn, secret string) {
 			continue
 		}
 		authFailures = 0
+		if panicModeActive() {
+			switch cmd.Action {
+			case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Fetch Status":
+				// Read-only diagnostics remain available so the user can see why the system entered panic mode.
+			default:
+				_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+				if err := encoder.Encode(Response{Status: "ERROR", Message: "security panic mode active; hardware-control request denied"}); err != nil { return }
+				continue
+			}
+		}
 		now := time.Now()
 		if !lastCommandAt.IsZero() && now.Sub(lastCommandAt) < minimumCommandInterval {
 			_ = conn.SetWriteDeadline(now.Add(connectionTimeout))
