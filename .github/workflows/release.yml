@@ -111,9 +111,10 @@ jobs:
           $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
           wix extension add -g WixToolset.Util.wixext/6.0.2
           wix --version
+          & "$PWD/deploy/windows/generate-icon.ps1"
           $version = "${{ env.RELEASE_TAG }}" -replace '^v', '' -replace '-windows$', ''
           $packageDir = "package/HWControl-${{ env.RELEASE_TAG }}-Windows-x64"
-          wix build deploy/windows/HWControl.wxs -arch x64 -d Version=$version -d PackageDir=$packageDir -o "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi"
+          wix build deploy/windows/HWControl.wxs -arch x64 -d Version=$version -d PackageDir=$packageDir -d IconPath=deploy/windows/HWControl.ico -o "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi"
           if (-not (Test-Path "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi")) { throw 'MSI was not produced' }
           if ((Get-Item "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi").Length -lt 4096) { throw 'MSI is unexpectedly small' }
 
