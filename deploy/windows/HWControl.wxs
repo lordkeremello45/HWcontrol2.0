@@ -8,6 +8,7 @@
     UpgradeCode="6E0E6A5E-69A0-4B2A-9C89-8F2507A1D890">
     <MajorUpgrade DowngradeErrorMessage="A newer HWControl version is already installed." />
     <MediaTemplate EmbedCab="yes" />
+    <Icon Id="HWControlIcon" SourceFile="$(var.IconPath)" />
 
     <Feature Id="MainFeature" Title="HWControl" Level="1">
       <ComponentGroupRef Id="ApplicationFiles" />
@@ -28,6 +29,7 @@
   </Package>
 
   <Fragment>
+    <StandardDirectory Id="DesktopFolder" />
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="INSTALLFOLDER" Name="HWControl" />
     </StandardDirectory>
