@@ -64,6 +64,7 @@ jobs:
           go vet ./...
           go test -count=1 ./...
           go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../bridge-service.exe ./src
+          go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../security-guardian.exe ./security_guardian
           Pop-Location
           Push-Location gui_dashboard
           flutter create --platforms=windows --no-pub .
@@ -84,9 +85,12 @@ jobs:
           Copy-Item -Recurse gui_dashboard/build/windows/x64/runner/Release "package/$root/dashboard"
           Copy-Item gui_dashboard/build/windows/x64/runner/Release/hwcontrol_dashboard.exe "package/$root/HWControl.exe"
           Copy-Item bridge-service.exe "package/$root/bridge-service.exe"
+          Copy-Item security-guardian.exe "package/$root/security-guardian.exe"
+          New-Item -ItemType Directory -Force -Path "package/$root/security/fetch-status" | Out-Null
+          Copy-Item security/fetch-status/bridger.key "package/$root/security/fetch-status/bridger.key"
           Copy-Item README.md, SECURITY.md, THIRD_PARTY_NOTICES "package/$root/"
           Copy-Item -Recurse deploy/windows "package/$root/deploy"
-          foreach ($required in @('HWControl.exe','bridge-service.exe','ai_engine.exe')) {
+          foreach ($required in @('HWControl.exe','bridge-service.exe','security-guardian.exe','ai_engine.exe','security/fetch-status/bridger.key')) {
             if (-not (Test-Path "package/$root/$required")) { throw "$required missing" }
           }
       - name: Build MSI
@@ -109,7 +113,10 @@ jobs:
           New-Item -ItemType Directory -Force -Path $root | Out-Null
           & "$PWD\deploy\windows\Invoke-MsiWithTimeout.ps1" -MsiPath $msi -Action Install -LogPath "$root/install.log" -TimeoutSeconds 120
           if (-not (Test-Path "$env:ProgramFiles\HWControl\HWControl.exe")) { throw 'MSI did not install HWControl.exe' }
+          if (-not (Test-Path "$env:ProgramFiles\HWControl\security-guardian.exe")) { throw 'security-guardian.exe missing' }
+          if (-not (Test-Path "$env:ProgramData\HWControl\security\canary\bridger.key")) { throw 'bridger.key canary missing' }
           if (-not (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue)) { throw 'HWControlBridge service missing' }
+          if (-not (Get-Service -Name HWControlSecurityGuardian -ErrorAction SilentlyContinue)) { throw 'HWControlSecurityGuardian service missing' }
           & "$PWD\deploy\windows\Invoke-MsiWithTimeout.ps1" -MsiPath $msi -Action Uninstall -LogPath "$root/uninstall.log" -TimeoutSeconds 120
           if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'MSI uninstall left service behind' }
       - name: Build portable ZIP
@@ -121,6 +128,8 @@ jobs:
           Compress-Archive -Path "$root/*" -DestinationPath $zip
           Expand-Archive $zip -DestinationPath verify-zip -Force
           if (-not (Test-Path "verify-zip/HWControl.exe")) { throw 'Portable ZIP validation failed' }
+          if (-not (Test-Path "verify-zip/security-guardian.exe")) { throw 'Portable ZIP guardian missing' }
+          if (-not (Test-Path "verify-zip/security/fetch-status/bridger.key")) { throw 'Portable ZIP canary missing' }
       - name: Build guided Setup.exe
         shell: pwsh
         run: |
