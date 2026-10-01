@@ -1,4 +1,5 @@
 with Ada.Text_IO; use Ada.Text_IO;
+with Interfaces.C;
 with HWControl_Security; use HWControl_Security;
 
 procedure Security_Core_Test
@@ -75,6 +76,31 @@ begin
    pragma Assert (not Is_Temperature_Safe (False, 60));
    pragma Assert (not Is_Temperature_Safe (True, -41));
    pragma Assert (not Is_Temperature_Safe (True, 126));
+
+   pragma Assert
+     (Validate_Raw_Fan_Command_C
+        (Fan_Percent_Value => 50,
+         Telemetry_Valid => 1,
+         Temperature_C => 60,
+         Integrity_Healthy => 1,
+         Authorized => 1) = 1);
+
+   pragma Assert
+     (Validate_Raw_Fan_Command_C
+        (Fan_Percent_Value => 101,
+         Telemetry_Valid => 1,
+         Temperature_C => 60,
+         Integrity_Healthy => 1,
+         Authorized => 1) = 0);
+
+   pragma Assert
+     (Validate_Raw_Fan_Command_C
+        (Fan_Percent_Value => 50,
+         Telemetry_Valid => 0,
+         Temperature_C => 60,
+         Integrity_Healthy => 1,
+         Authorized => 1) = 0);
+
 
    Put_Line ("HWcontrol SPARK security core: PASS");
 end Security_Core_Test;
