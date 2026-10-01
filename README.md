@@ -111,6 +111,14 @@ HWcontrol2.0 is developed in the open. The public engineering plan focuses on us
 - Stack Overflow topic material: [docs/community/Stack-Overflow-Topics.md](docs/community/Stack-Overflow-Topics.md)
 - Public profile checklist: [docs/community/Public-Profile-Checklist.md](docs/community/Public-Profile-Checklist.md)
 
+## Licensing
+
+- Desktop application: **GNU GPLv3**
+- Website source: **GNU AGPLv3-only**
+- Third-party dependencies: their respective licenses
+
+See [License documentation](docs/wiki/License.md) and [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES).
+
 ## Project status
 
 The project is under active Beta development. CI and release automation are treated as part of the product, not as a substitute for real hardware validation. A platform being buildable does not imply that every motherboard, GPU, sensor or fan controller is supported.
