@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"os"
+	"testing"
+)
 
 func TestHardwareControlSafetyGateFailsClosed(t *testing.T) {
     base := HardwareMetrics{
@@ -82,4 +85,17 @@ func TestHardwareControlSafetyGateDoesNotAffectReadOnlyCommands(t *testing.T) {
     if err := validateFanControlRequest(Command{Action: "Get Status"}, metrics); err != nil {
         t.Fatalf("read-only command should not enter fan-control gate: %v", err)
     }
+}
+
+
+func TestHardwareControlDeniedDuringSecurityPanic(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("HWCONTROL_PANIC_FILE", dir+"/panic-mode.json")
+	if err := os.WriteFile(dir+"/panic-mode.json", []byte(`{"panic":true}
+`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := executeHardwareCommand(Command{Action: "Set Game Mode", Value: 100}); err == nil {
+		t.Fatal("expected Game Mode control to be denied during panic mode")
+	}
 }
