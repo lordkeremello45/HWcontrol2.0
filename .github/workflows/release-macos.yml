@@ -124,6 +124,7 @@ jobs:
           subject-path: |
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.pkg
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.dmg
+            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.sha256
 
       - name: Replace existing beta release assets
         if: contains(env.RELEASE_TAG, '-beta')
