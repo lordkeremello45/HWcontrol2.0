@@ -28,10 +28,10 @@ func decoyDirectory()string{
 	default:return "/var/lib/hwcontrol/security"
 	}
 }
-func panicStatePath()string{if v:=strings.TrimSpace(os.Getenv("HWCONTROL_PANIC_FILE"));v!=""{return v};return filepath.Join(decoyDirectory(),panicStateFileName)}
-func decoyPath()string{return filepath.Join(decoyDirectory(),decoyFileName)}
+func panicStatePath()string{if v:=strings.TrimSpace(os.Getenv("HWCONTROL_PANIC_FILE"));v!=""{return v};return filepath.Join(decoyDirectory(),"state",panicStateFileName)}
+func decoyPath()string{return filepath.Join(decoyDirectory(),"canary",decoyFileName)}
 func ensureDecoyFile()error{
-	dir:=decoyDirectory()
+	dir:=filepath.Dir(decoyPath())
 	if err:=os.MkdirAll(dir,0700);err!=nil{return err}
 	p:=decoyPath()
 	if info,err:=os.Lstat(p);err==nil{
