@@ -1,3 +1,6 @@
+with Interfaces.C;
+use type Interfaces.C.unsigned_char;
+
 package body HWControl_Security
   with SPARK_Mode => On
 is
