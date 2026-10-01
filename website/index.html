@@ -6,6 +6,8 @@
   <meta name="description" content="HWControl 2.0 — open-source hardware monitoring and control for Windows, macOS and Linux, with a secure local bridge and release integrity checks.">
   <meta name="theme-color" content="#17202a">
   <meta name="robots" content="index,follow">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://api.github.com; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
   <link rel="canonical" href="https://lordkeremello45.github.io/HWcontrol2.0/">
   <meta property="og:type" content="website">
   <meta property="og:title" content="HWControl 2.0 — Hardware Control, Simplified">
@@ -35,7 +37,7 @@
     <section id="project" class="section shell">
       <div class="section-head"><div><div class="eyebrow">THE PROJECT</div><h2>One project. <span>Three platforms.</span></h2></div><p>HWControl 2.0 is built as a desktop hardware monitoring and control stack with a Flutter interface, authenticated local Go bridge and native C++ engine.</p></div>
       <div class="cards">
-        <article class="card"><div class="icon">01</div><h3>Windows 10 / 11</h3><p>x64 target with guided setup, MSI and portable ZIP release formats.</p></article>
+        <article class="card"><div class="icon">01</div><h3>Windows 10 / 11</h3><p>x64 target with guided setup, MSI, MSIX and portable ZIP release formats.</p></article>
         <article class="card"><div class="icon">02</div><h3>macOS 14+</h3><p>Apple Silicon target with native application packaging for the supported platform.</p></article>
         <article class="card"><div class="icon">03</div><h3>Linux x64</h3><p>Debian/Ubuntu-oriented packages plus portable archive distribution.</p></article>
         <article class="card"><div class="icon">04</div><h3>Open development</h3><p>Source, CI workflows, release metadata and documentation remain inspectable in the project repository.</p></article>
@@ -71,7 +73,7 @@
     <section id="download" class="download shell">
       <div class="download-copy"><div class="eyebrow">INSTALL HWCONTROL</div><h2>Choose your platform.</h2><p>Start with your operating system, then choose the package that fits your installation method. Package metadata and checksum links are read directly from the latest stable GitHub release.</p></div>
       <div class="platforms" role="tablist" aria-label="Operating system">
-        <button class="platform active" data-platform="windows" type="button" role="tab" aria-selected="true"><span class="platform-icon os-windows" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 3.5 10.8 2.3v9H2zm11-1.5L22 1v10.3h-9zM2 12.7h8.8v9L2 20.5zm11 0H22V23l-9-1.3z"/></svg></span><span><b>Install for Windows</b><small>Guided Setup.exe + .msi + portable .zip</small></span><strong>→</strong></button>
+        <button class="platform active" data-platform="windows" type="button" role="tab" aria-selected="true"><span class="platform-icon os-windows" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 3.5 10.8 2.3v9H2zm11-1.5L22 1v10.3h-9zM2 12.7h8.8v9L2 20.5zm11 0H22V23l-9-1.3z"/></svg></span><span><b>Install for Windows</b><small>Guided Setup.exe + .msi + .msix + portable .zip</small></span><strong>→</strong></button>
         <button class="platform" data-platform="macos" type="button" role="tab" aria-selected="false"><span class="platform-icon os-apple" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16.7 12.7c0-2 1.7-3 1.8-3.1-1-.1-2.3-1.1-3.6-1.1-1.5 0-2.8.9-3.5.9-.7 0-1.8-.9-3-.9-1.5 0-3 .9-3.8 2.3-1.7 3-.4 7.4 1.2 9.8.8 1.2 1.7 2.5 2.9 2.5 1.2 0 1.6-.8 3.1-.8 1.5 0 1.9.8 3.1.8 1.3 0 2.1-1.2 2.9-2.4.9-1.4 1.3-2.8 1.3-2.9-.1 0-2.4-.9-2.4-3.1zM14.4 7c.7-.8 1.1-1.9 1-3-.9 0-2.1.6-2.8 1.4-.6.7-1.1 1.8-1 2.9 1 .1 2.1-.5 2.8-1.3z"/></svg></span><span><b>Install for macOS</b><small>macOS 14+ · Apple Silicon</small></span><strong>→</strong></button>
         <button class="platform" data-platform="linux" type="button" role="tab" aria-selected="false"><span class="platform-icon os-linux" aria-hidden="true"><svg viewBox="0 0 24 24"><defs><linearGradient id="linuxTux" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#171717"/><stop offset="0.68" stop-color="#171717"/><stop offset="0.69" stop-color="#d97706"/><stop offset="1" stop-color="#f59e0b"/></linearGradient></defs><path fill="url(#linuxTux)" d="M12 2.2c-3.1 0-4.5 2.7-4.5 5.6 0 1.4.3 2.6-.6 3.9-.9 1.3-2.2 2.7-2.2 5.1 0 2.5 1.8 4.2 4 4.2 1.4 0 2.1-.7 3.3-.7s1.9.7 3.3.7c2.2 0 4-1.7 4-4.2 0-2.4-1.3-3.8-2.2-5.1-.9-1.3-.6-2.5-.6-3.9 0-2.9-1.4-5.6-4.5-5.6zm-2 6.3c-.7 0-1.2-.5-1.2-1.2s.5-1.2 1.2-1.2 1.2.5 1.2 1.2-.5 1.2-1.2 1.2zm4 0c-.7 0-1.2-.5-1.2-1.2s.5-1.2 1.2-1.2 1.2.5 1.2 1.2-.5 1.2-1.2 1.2zM8.2 14c1.1.6 2.3.9 3.8.9s2.7-.3 3.8-.9c-.1 1.8-1.6 3-3.8 3s-3.7-1.2-3.8-3z"/></svg></span><span><b>Install for Linux</b><small>Linux · x64</small></span><strong>→</strong></button>
       </div>
@@ -82,7 +84,7 @@
 
     <section class="install-flow shell"><div class="flow-intro"><div class="eyebrow">SIMPLE FLOW</div><h2>From click to desktop.</h2></div><div class="flow"><div><span>01</span><b>Choose OS</b><p>Windows, macOS or Linux.</p></div><i>→</i><div><span>02</span><b>Choose package</b><p>Installer, application image or archive.</p></div><i>→</i><div><span>03</span><b>Verify</b><p>Check the SHA-256 manifest when available.</p></div><i>→</i><div><span>04</span><b>Install</b><p>Run the platform installer or archive.</p></div></div></section>
   </main>
-  <footer class="footer shell"><div class="brand"><span class="brand-mark">H</span><span>HWControl <b>2.0</b></span></div><span>GPL-3.0 · Open source</span><a href="https://github.com/lordkeremello45/HWcontrol2.0/releases" target="_blank" rel="noopener noreferrer">All releases ↗</a></div>
+  <footer class="footer shell"><div class="brand"><span class="brand-mark">H</span><span>HWControl <b>2.0</b></span></div><span>GPL-3.0 · Website source: AGPL-3.0-only</span><a href="https://github.com/lordkeremello45/HWcontrol2.0/releases" target="_blank" rel="noopener noreferrer">All releases ↗</a></div>
   <script src="app.js"></script>
 </body>
 </html>
