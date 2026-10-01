@@ -44,13 +44,13 @@ jobs:
           /tmp/alr/bin/alr --version
 
       - name: Resolve pinned toolchain
-        run: alr toolchain
+        run: alr -n toolchain --select gnat_native=15.3.0
 
       - name: Build
-        run: alr build
+        run: alr -n build
 
       - name: Runtime tests
-        run: alr run
+        run: alr -n run
 
       - name: GNATprove formal verification
-        run: alr gnatprove -P security_core.gpr --level=2
+        run: alr -n gnatprove -P security_core.gpr --level=2
