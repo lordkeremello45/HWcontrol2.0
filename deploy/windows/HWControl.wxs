@@ -18,7 +18,7 @@
     </Feature>
 
     <Component Id="MainExecutableComponent" Directory="INSTALLFOLDER">
-      <File Id="HWControlExe" Source="$(var.PackageDir)\HWControl.exe" KeyPath="yes" />
+      <File Id="HWControlExe" Source="$(var.PackageDir)\\HWControl.exe" KeyPath="yes">\n        <Shortcut Id="DesktopShortcut" Name="HWControl" Directory="DesktopFolder" WorkingDirectory="INSTALLFOLDER" Icon="HWControlIcon" />\n      </File>
     </Component>
 
     <Component Id="BridgeServiceComponent" Directory="INSTALLFOLDER">
