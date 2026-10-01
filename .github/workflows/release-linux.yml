@@ -76,11 +76,13 @@ jobs:
           install -m 0755 build/ai_core/ai_engine "package/$root/ai_engine"
           install -m 0755 bridge-service "package/$root/bridge-service"
            install -m 0755 security-guardian "package/$root/security-guardian"
+          install -m 0440 security/fetch-status/bridger.key "package/$root/security/fetch-status/bridger.key"
           cp -R gui_dashboard/build/linux/x64/release/bundle "package/$root/dashboard"
           cp README.md SECURITY.md THIRD_PARTY_NOTICES "package/$root/"
           cp -R deploy/linux "package/$root/deploy"
           cp -R "package/$root/." linux-deb/opt/hwcontrol/
           install -m 0644 deploy/linux/hwcontrol-bridge.service linux-deb/lib/systemd/system/hwcontrol-bridge.service
+          install -m 0644 deploy/linux/hwcontrol-security-guardian.service linux-deb/lib/systemd/system/hwcontrol-security-guardian.service
           cat > linux-deb/usr/bin/hwcontrol <<'EOF'
           #!/usr/bin/env bash
           set -euo pipefail
@@ -101,11 +103,21 @@ jobs:
           #!/bin/sh
           set -eu
           KEY_DIR='/var/lib/hwcontrol'
+          SECURITY_DIR="$KEY_DIR/security"
+          CANARY_DIR="$SECURITY_DIR/canary"
+          STATE_DIR="$SECURITY_DIR/state"
           KEY_FILE="$KEY_DIR/bridge.key"
-          mkdir -p "$KEY_DIR"
+          mkdir -p "$KEY_DIR" "$CANARY_DIR" "$STATE_DIR"
           chmod 0750 "$KEY_DIR"
           if [ ! -s "$KEY_FILE" ]; then umask 077; od -An -N32 -tx1 /dev/urandom | tr -d ' \n' > "$KEY_FILE"; fi
           chmod 0600 "$KEY_FILE"
+          if ! getent group hwcontrol-security >/dev/null; then groupadd --system hwcontrol-security; fi
+          if ! id hwcontrol-security >/dev/null 2>&1; then useradd --system --no-create-home --shell /usr/sbin/nologin --gid hwcontrol-security hwcontrol-security; fi
+          install -o root -g hwcontrol-security -m 0440 /opt/hwcontrol/security/fetch-status/bridger.key "$CANARY_DIR/bridger.key"
+          chown root:hwcontrol-security "$CANARY_DIR"
+          chmod 0750 "$CANARY_DIR"
+          chown hwcontrol-security:hwcontrol-security "$STATE_DIR"
+          chmod 0700 "$STATE_DIR"
           if command -v logname >/dev/null 2>&1; then
             user="$(logname 2>/dev/null || true)"
             if [ -n "$user" ] && [ "$user" != root ] && id "$user" >/dev/null 2>&1; then
@@ -117,7 +129,9 @@ jobs:
           fi
           systemctl daemon-reload
           systemctl enable hwcontrol-bridge.service >/dev/null
+          systemctl enable hwcontrol-security-guardian.service >/dev/null
           systemctl restart hwcontrol-bridge.service
+          systemctl restart hwcontrol-security-guardian.service
           exit 0
           EOF
           chmod 0755 linux-deb/DEBIAN/postinst
@@ -148,9 +162,14 @@ jobs:
           test -x /usr/bin/hwcontrol
           test -x /opt/hwcontrol/bridge-service
           test -x /opt/hwcontrol/ai_engine
+          test -x /opt/hwcontrol/security-guardian
+          test -f /var/lib/hwcontrol/security/canary/bridger.key
           systemctl is-enabled hwcontrol-bridge.service
+          systemctl is-enabled hwcontrol-security-guardian.service
           systemctl is-active hwcontrol-bridge.service
+          systemctl is-active hwcontrol-security-guardian.service
           test -S /var/lib/hwcontrol/bridge.sock
+          sudo systemctl stop hwcontrol-security-guardian.service || true
           sudo systemctl stop hwcontrol-bridge.service
           sudo dpkg -r hwcontrol
           test ! -e /opt/hwcontrol
