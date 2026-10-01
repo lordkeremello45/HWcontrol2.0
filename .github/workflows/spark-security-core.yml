@@ -85,4 +85,4 @@ jobs:
         run: ./bin/security_core_test
 
       - name: GNATprove formal verification
-        run: gnatprove -P security_core.gpr --level=2
+        run: gnatprove -P security_core.gpr --mode=all --proof-warnings=on --level=2
