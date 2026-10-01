@@ -50,6 +50,7 @@ jobs:
           go test -count=1 ./...
           go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../bridge-service ./src
           go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../security-guardian ./security_guardian
+          go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../security-guardian ./security_guardian
       - name: Prepare and validate dashboard
         working-directory: gui_dashboard
         run: |
