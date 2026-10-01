@@ -89,6 +89,9 @@ jobs:
         run: go test -count=1 ./...
       - name: Build bridge
         run: go build -trimpath -o bridge-service ./src
+      - name: Build security guardian
+        working-directory: bridge_service
+        run: go build -trimpath -o security-guardian ./security_guardian
 
   dashboard:
     runs-on: ubuntu-24.04
