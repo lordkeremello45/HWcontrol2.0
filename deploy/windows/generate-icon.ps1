@@ -1,6 +1,17 @@
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 
+function New-RoundedRectanglePath([float]$x, [float]$y, [float]$width, [float]$height, [float]$radius) {
+  $path = New-Object System.Drawing.Drawing2D.GraphicsPath
+  $diameter = $radius * 2
+  $path.AddArc($x, $y, $diameter, $diameter, 180, 90)
+  $path.AddArc($x + $width - $diameter, $y, $diameter, $diameter, 270, 90)
+  $path.AddArc($x + $width - $diameter, $y + $height - $diameter, $diameter, $diameter, 0, 90)
+  $path.AddArc($x, $y + $height - $diameter, $diameter, $diameter, 90, 90)
+  $path.CloseFigure()
+  return $path
+}
+
 $iconPath = Join-Path $PSScriptRoot 'HWControl.ico'
 $bitmap = New-Object System.Drawing.Bitmap 256, 256
 $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
@@ -13,12 +24,12 @@ $background = New-Object System.Drawing.Drawing2D.LinearGradientBrush(
   ([System.Drawing.Color]::FromArgb(255, 30, 64, 85)),
   45
 )
-$graphics.FillRoundedRectangle($background, 12, 12, 232, 232, 46)
+$backgroundPath = New-RoundedRectanglePath 12 12 232 232 46`n$graphics.FillPath($background, $backgroundPath)
 
 $accent = New-Object System.Drawing.Pen ([System.Drawing.Color]::FromArgb(255, 64, 220, 190)), 12
 $accent.StartCap = [System.Drawing.Drawing2D.LineCap]::Round
 $accent.EndCap = [System.Drawing.Drawing2D.LineCap]::Round
-$graphics.DrawRoundedRectangle($accent, 58, 58, 140, 140, 24)
+$chipPath = New-RoundedRectanglePath 58 58 140 140 24`n$graphics.DrawPath($accent, $chipPath)
 
 $graphics.DrawLine($accent, 88, 42, 88, 58)
 $graphics.DrawLine($accent, 128, 42, 128, 58)
@@ -51,6 +62,8 @@ try {
   Add-Type -Namespace Native -Name IconMethods -MemberDefinition '[System.Runtime.InteropServices.DllImport("user32.dll")] public static extern bool DestroyIcon(System.IntPtr hIcon);'
   [Native.IconMethods]::DestroyIcon($handle) | Out-Null
   $graphics.Dispose()
+  $backgroundPath.Dispose()
+  $chipPath.Dispose()
   $background.Dispose()
   $accent.Dispose()
   $center.Dispose()
