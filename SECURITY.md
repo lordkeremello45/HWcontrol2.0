@@ -70,6 +70,48 @@ When `HWCONTROL_KEY` is explicitly supplied through the environment, file-backed
 
 This layer is defense-in-depth. It does not prevent a local administrator/root compromise, a compromised kernel/driver, or modification of the running process's memory, and it does not replace OS-enforced IPC authorization.
 
+## Security decision boundary
+
+The security path is deliberately split by responsibility:
+
+```
+Flutter / Dart
+      |
+      v
+Go Bridge
+  |   |-- HMAC-SHA-256 authentication
+  |   |-- timestamp / nonce / replay protection
+  |   |-- runtime integrity monitor
+  v
+SPARK Security Core
+  |   |-- authorization
+  |   |-- input and telemetry validation
+  |   |-- safety invariants
+  |   |-- fail-closed ALLOW / DENY decision
+  v
+Rust Security Support
+  |   |-- bounded FFI/ABI representation
+  |   |-- safe decision transport
+  |   |-- unknown decision => DENY
+  v
+C++ Hardware Engine
+  |
+  v
+OS / vendor API / hardware
+```
+
+SPARK is the policy authority. Rust is an integration boundary and must never upgrade a SPARK denial to an allow or perform hardware I/O. The Rust support crate is intentionally dependency-free. Its native link to the SPARK C ABI is kept behind an explicit feature until the supported GNAT/SPARK toolchain is validated on each target platform.
+
+### Bridge key lifecycle
+
+The bridge key is generated locally with the operating system cryptographic random source when no valid key exists. Installers do not ship a shared project-wide bridge key and do not download one from the internet. The key is unique to the local installation, stored in the service's protected data directory, created with exclusive file creation, and validated as a 32-byte hexadecimal secret. On POSIX systems it is restricted to owner read/write permissions; Windows installation checks additionally verify that ordinary Users do not receive unsafe write/modify access to the protected application-data directory.
+
+The file-backed key remains the canonical daemon credential because HWControl's bridge runs as a service account on Windows/Linux/macOS, while the dashboard may run as the interactive user. Moving the same credential into a per-user desktop keychain would create an incompatible trust boundary for the service. OS-native keychains remain appropriate for future user-scoped credentials, but are not used as a forced replacement for the service bridge key.
+
+### Release integrity and provenance
+
+Release checksum manifests are now included as subjects of the GitHub Actions artifact-attestation step alongside the packages they describe. GitHub documents artifact attestations as signed provenance claims and explicitly supports signing manifests containing hashes. Consumers can verify the attestation and the SHA-256 manifest independently. This does not replace platform code signing.
+
 ## Hardware-control safety gate
 
 Hardware control requests are fail-closed at the bridge boundary.
