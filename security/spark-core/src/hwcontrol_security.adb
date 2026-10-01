@@ -62,4 +62,27 @@ is
       return Allow;
    end Validate_Raw_Fan_Command;
 
+   function Validate_Raw_Fan_Command_C
+     (Fan_Percent_Value : Interfaces.C.int;
+      Telemetry_Valid   : Interfaces.C.unsigned_char;
+      Temperature_C     : Interfaces.C.int;
+      Integrity_Healthy : Interfaces.C.unsigned_char;
+      Authorized        : Interfaces.C.unsigned_char)
+      return Interfaces.C.unsigned_char
+   is
+      Decision : constant Security_Decision :=
+        Validate_Raw_Fan_Command
+          (Integer (Fan_Percent_Value),
+           Telemetry_Valid /= 0,
+           Integer (Temperature_C),
+           Integrity_Healthy /= 0,
+           Authorized /= 0);
+   begin
+      if Decision = Allow then
+         return 1;
+      else
+         return 0;
+      end if;
+   end Validate_Raw_Fan_Command_C;
+
 end HWControl_Security;
