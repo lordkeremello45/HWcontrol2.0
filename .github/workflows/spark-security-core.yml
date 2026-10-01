@@ -44,7 +44,8 @@ jobs:
           /tmp/alr/bin/alr --version
 
       - name: Resolve pinned toolchain
-        run: alr index --update-all
+        run: |
+          alr index --update-all
           alr -n toolchain --select gnat_native=15.3.0
 
       - name: Build
