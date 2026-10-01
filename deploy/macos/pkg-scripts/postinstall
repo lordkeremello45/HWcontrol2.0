@@ -18,6 +18,17 @@ log "postinstall start"
 
 /bin/mkdir -p "$KEY_DIR"
 /bin/chmod 0700 "$KEY_DIR"
+CANARY_DIR="$KEY_DIR/security/canary"
+STATE_DIR="$KEY_DIR/security/state"
+CANARY_FILE="$CANARY_DIR/bridger.key"
+/bin/mkdir -p "$CANARY_DIR" "$STATE_DIR"
+/bin/chmod 0750 "$CANARY_DIR" "$STATE_DIR"
+if [ ! -s "$CANARY_FILE" ]; then
+  /usr/bin/printf '%s\n' '0526be8dc7adb18bc4e82119046c9a9fc8625571311060208a8d0744d71ff671' > "$CANARY_FILE"
+fi
+/usr/sbin/chown root:wheel "$CANARY_FILE"
+/bin/chmod 0440 "$CANARY_FILE"
+/bin/chmod 0700 "$STATE_DIR"
 
 if [ ! -s "$KEY_FILE" ]; then
   umask 077
