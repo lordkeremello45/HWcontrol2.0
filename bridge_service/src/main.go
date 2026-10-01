@@ -303,7 +303,7 @@ func validateCommand(cmd Command) error {
 	switch action {
 	case "Fan Hızı", "AI İşlem Gücü", "Set Game Mode":
 		return nil
-	case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode":
+	case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Fetch Status":
 		if cmd.Value != 0 {
 			return fmt.Errorf("read-only command value must be zero")
 		}
@@ -510,6 +510,10 @@ func diagnosticsSnapshot() map[string]any {
 		"recoveryAction":           health.RecoveryAction,
 		"hardwareCapabilities":     health.Capabilities,
 		"hardwareAnomalies":        health.Anomalies,
+		"services":                 serviceCatalogSnapshot(),
+		"fetchStatus":              fetchStatusSnapshot(),
+		"diagnosticService":        diagnosticServiceSnapshot(),
+		"panicMode":                panicModeActive(),
 		"gameMode": map[string]any{
 			"enabled":       metrics.GameModeEnabled,
 			"gameDetected":  metrics.GameDetected,
@@ -665,6 +669,23 @@ func handleConnection(conn net.Conn, secret string) {
 			continue
 		}
 		lastCommandAt = now
+		if cmd.Action == "Get Update" {
+			status := checkForUpdates(context.Background())
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Update Service durumu alındı", Data: status}); err != nil { return }
+			continue
+		}
+		if cmd.Action == "Get Sensor Health" {
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "SensorHealth durumu alındı", Data: sensorHealthSnapshot()}); err != nil { return }
+			continue
+		}
+		if cmd.Action == "Get Fetch Status" {
+			checkDecoyIntegrity()
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Fetch Status durumu alındı", Data: fetchStatusSnapshot()}); err != nil { return }
+			continue
+		}
 		if cmd.Action == "Get Status" {
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
 			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Metrikler alındı", Data: collectMetrics()}); err != nil {
@@ -693,6 +714,8 @@ func handleConnection(conn net.Conn, secret string) {
 				"bridgeIntegrity":   bridgeIntegrityHealthy(),
 				"modelSha256":       modelDigest(),
 				"keyFileConfigured": strings.TrimSpace(os.Getenv("HWCONTROL_KEY_FILE")) != "",
+				"panicMode":          panicModeActive(),
+				"services":           serviceCatalogSnapshot(),
 			}}); err != nil {
 				return
 			}
