@@ -76,6 +76,7 @@
       </CreateFolder>
       <RemoveFile Id="ResetVerifyStateOnInstall" Name="verify.state" On="install" />
       <RemoveFile Id="RemoveVerifyStateOnUninstall" Name="verify.state" On="uninstall" />
+      <RemoveFile Id="RemoveVerifyKeyOnUninstall" Name="verify.key" On="uninstall" />
     </Component>
 
     <ComponentGroup Id="ApplicationFiles" Directory="INSTALLFOLDER">
