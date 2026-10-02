@@ -72,7 +72,7 @@ jobs:
           flutter pub get
           flutter analyze
           flutter test --no-pub
-          flutter build windows --release -t lib/installer_main.dart
+          flutter build windows --release -t lib/installer_main.dart --dart-define=HWCONTROL_RELEASE_TRUST=official
           Pop-Location
       - name: Assemble Windows payload
         shell: pwsh
@@ -220,7 +220,7 @@ jobs:
           cmake --build build --parallel 2
           ctest --test-dir build --output-on-failure
           (cd bridge_service && go vet ./... && go test -count=1 ./... && go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../bridge-service ./src && go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../security-guardian ./security_guardian)
-          (cd gui_dashboard && flutter create --platforms=linux --no-pub . && git restore pubspec.yaml test/widget_test.dart && flutter pub get && flutter analyze && flutter test --no-pub && flutter build linux --release -t lib/installer_main.dart)
+          (cd gui_dashboard && flutter create --platforms=linux --no-pub . && git restore pubspec.yaml test/widget_test.dart && flutter pub get && flutter analyze && flutter test --no-pub && flutter build linux --release -t lib/installer_main.dart --dart-define=HWCONTROL_RELEASE_TRUST=official)
       - name: Build DEB and archives
         run: |
           set -euo pipefail
@@ -324,7 +324,7 @@ jobs:
           cmake --build build --parallel 2
           ctest --test-dir build --output-on-failure
           (cd bridge_service && go vet ./... && go test -count=1 ./... && go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../bridge-service ./src && go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../security-guardian ./security_guardian)
-          (cd gui_dashboard && flutter create --platforms=macos --no-pub . && git restore pubspec.yaml test/widget_test.dart && flutter pub get && flutter analyze && flutter test --no-pub && flutter build macos --release -t lib/installer_main.dart)
+          (cd gui_dashboard && flutter create --platforms=macos --no-pub . && git restore pubspec.yaml test/widget_test.dart && flutter pub get && flutter analyze && flutter test --no-pub && flutter build macos --release -t lib/installer_main.dart --dart-define=HWCONTROL_RELEASE_TRUST=official)
       - name: Build PKG and DMG
         run: |
           set -euo pipefail
