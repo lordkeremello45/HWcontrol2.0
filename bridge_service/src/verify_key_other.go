@@ -11,7 +11,3 @@ func verifyKeyPath() string {
 func loadOrCreateVerifyKey() ([]byte, error) {
 	return nil, fmt.Errorf("Windows verify.key is not available on this platform")
 }
-
-func verifyInstallationState(root string) error {
-	return nil
-}
