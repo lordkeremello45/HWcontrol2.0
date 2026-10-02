@@ -84,7 +84,7 @@ jobs:
           Push-Location gui_dashboard
           flutter analyze
           flutter test --no-pub
-          flutter build windows --release -t lib/installer_main.dart
+          flutter build windows --release -t lib/installer_main.dart --dart-define=HWCONTROL_RELEASE_TRUST=official
           Pop-Location
 
       - name: Assemble Windows package
@@ -282,7 +282,7 @@ jobs:
           Push-Location gui_dashboard
           flutter analyze
           flutter test --no-pub
-          flutter build windows --release -t lib/installer_main.dart
+          flutter build windows --release -t lib/installer_main.dart --dart-define=HWCONTROL_RELEASE_TRUST=official
           Pop-Location
 
       - name: Assemble Windows package
@@ -529,7 +529,7 @@ jobs:
           Push-Location gui_dashboard
           flutter analyze
           flutter test --no-pub
-          flutter build windows --release -t lib/installer_main.dart
+          flutter build windows --release -t lib/installer_main.dart --dart-define=HWCONTROL_RELEASE_TRUST=official
           Pop-Location
 
       - name: Assemble Windows package
