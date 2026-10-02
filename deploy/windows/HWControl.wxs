@@ -74,6 +74,8 @@
       <CreateFolder>
         <util:PermissionEx User="NT AUTHORITY\LocalService" Read="yes" Write="yes" CreateFile="yes" DeleteChild="yes" Traverse="yes" Inheritable="yes" />
       </CreateFolder>
+      <RemoveFile Id="ResetVerifyStateOnInstall" Name="verify.state" On="install" />
+      <RemoveFile Id="RemoveVerifyStateOnUninstall" Name="verify.state" On="uninstall" />
     </Component>
 
     <ComponentGroup Id="ApplicationFiles" Directory="INSTALLFOLDER">
