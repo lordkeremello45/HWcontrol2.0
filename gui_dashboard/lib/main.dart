@@ -20,6 +20,7 @@ import 'model_manager.dart';
 import 'user_data_store.dart';
 import 'welcome_screen.dart';
 import 'services/language_service.dart';
+import 'security/authenticity_guard.dart';
 
 void main() {
   final diagnostics = HWControlDiagnostics.instance;
@@ -121,20 +122,23 @@ class _HWControlAppState extends State<HWControlApp> {
 
   @override
   Widget build(BuildContext context) {
+    final blockedRelease = HWControlAuthenticityGuard.requiresBlock;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: _buildTheme(_darkMode),
-      home: _showWelcome
-          ? HWControlWelcomeScreen(
-              onContinue: _completeWelcome,
-              onSettings: _openDashboardFromWelcome,
-            )
-          : DashboardScreen(
-              darkMode: _darkMode,
-              animationsEnabled: _animationsEnabled,
-              onThemeChanged: _setDarkMode,
-              onAnimationsChanged: _setAnimationsEnabled,
-            ),
+      home: blockedRelease
+          ? const UnofficialBuildScreen()
+          : _showWelcome
+              ? HWControlWelcomeScreen(
+                  onContinue: _completeWelcome,
+                  onSettings: _openDashboardFromWelcome,
+                )
+              : DashboardScreen(
+                  darkMode: _darkMode,
+                  animationsEnabled: _animationsEnabled,
+                  onThemeChanged: _setDarkMode,
+                  onAnimationsChanged: _setAnimationsEnabled,
+                ),
     );
   }
 
