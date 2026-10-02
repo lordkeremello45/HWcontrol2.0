@@ -180,11 +180,7 @@ func writeVerifyState(state verifyState) error {
 // verifyInstallationState is the Windows-only local anti-tamper baseline.
 // Non-Windows builds intentionally return nil so this feature remains
 // platform-scoped without weakening the existing cross-platform monitor.
-func verifyInstallationState(root string) error {
-	key, err := loadOrCreateVerifyKey()
-	if err != nil {
-		return fmt.Errorf("load verify.key: %w", err)
-	}
+func verifyInstallationStateWithKey(root string, key []byte) error {
 	stateData, err := os.ReadFile(verifyStatePath())
 	if errors.Is(err, os.ErrNotExist) {
 		records, inventoryErr := collectVerifyInventory(root)
