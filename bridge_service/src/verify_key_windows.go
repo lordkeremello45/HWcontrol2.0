@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"unsafe"
 
 	"golang.org/x/sys/windows"
@@ -94,7 +93,6 @@ func loadOrCreateVerifyKey() ([]byte, error) {
 	if err := file.Close(); err != nil {
 		return nil, err
 	}
-	_ = runtime.GOOS
 	return key, nil
 }
 
