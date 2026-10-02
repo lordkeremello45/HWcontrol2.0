@@ -75,3 +75,13 @@ SHA-256 is an integrity mechanism, not proof of publisher identity. A production
 - Prefer a protected GitHub production environment for signing jobs.
 - Require approval before a production signing job can access signing secrets.
 - Verify checksums before installation and fail closed on mismatch.
+
+## Official-build startup gate
+
+Release builds of the Flutter dashboard are compiled with:
+
+    flutter build <platform> --release --dart-define=HWCONTROL_RELEASE_TRUST=official
+
+The dashboard refuses normal startup when a release build does not contain the expected marker and presents a clear security warning instead. This prevents an unmarked packaged build from silently presenting itself as an official HWControl release.
+
+The marker is **not** a signing key and must not be treated as proof of publisher identity. The production trust root remains platform code signing and verification. The marker is an additional fail-closed UX/startup layer.
