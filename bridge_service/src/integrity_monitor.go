@@ -22,7 +22,8 @@ type integrityTarget struct {
 }
 
 type bridgeIntegrityMonitor struct {
-	targets  []integrityTarget
+	targets   []integrityTarget
+	verifyRoot string
 	stopCh   chan struct{}
 	stopOnce sync.Once
 	healthy  atomic.Bool
@@ -43,6 +44,14 @@ func newBridgeIntegrityMonitor() (*bridgeIntegrityMonitor, error) {
 	keyDigest, err := bridgeKeyDigest(keyPath)
 	if err != nil {
 		return nil, fmt.Errorf("establish bridge key integrity baseline: %w", err)
+	}
+
+	verifyRoot, err := verifyInstallationRoot()
+	if err != nil {
+		return nil, fmt.Errorf("resolve verify installation root: %w", err)
+	}
+	if err := verifyInstallationState(verifyRoot); err != nil {
+		return nil, fmt.Errorf("verify installation integrity: %w", err)
 	}
 
 	paths := []string{keyPath}
@@ -77,6 +86,7 @@ func newBridgeIntegrityMonitor() (*bridgeIntegrityMonitor, error) {
 	bridgeIntegrityTargetCount.Store(int64(len(targets)))
 	m := &bridgeIntegrityMonitor{
 		targets: targets,
+		verifyRoot: verifyRoot,
 		stopCh: make(chan struct{}),
 	}
 	m.healthy.Store(true)
@@ -182,6 +192,13 @@ func (m *bridgeIntegrityMonitor) start(done <-chan struct{}, onViolation func(er
 			case <-m.stopCh:
 				return
 			case <-ticker.C:
+				if time.Since(lastVerifyCheck) >= 10*time.Second {
+					lastVerifyCheck = time.Now()
+					if err := verifyInstallationState(m.verifyRoot); err != nil {
+						m.violate(fmt.Errorf("installation verification failed: %w", err), onViolation)
+						return
+					}
+				}
 				for _, target := range m.targets {
 					digest, err := integrityFileDigest(target.path)
 					if err != nil {
