@@ -62,6 +62,17 @@ A detected missing, replacement, symlink substitution, or content modification c
 
 The monitor does **not** automatically restore or regenerate a changed critical file or credential. A self-healing mechanism based on an untrusted local file could preserve an attacker-controlled replacement.
 
+
+### Windows machine-bound `verify.key`
+
+Windows releases also use a machine-bound `verify.key` as a defense-in-depth integrity secret. The bridge generates the 256-bit secret locally and protects it at rest with Windows DPAPI; the secret is therefore not shipped in the repository, installer payload, or GitHub Actions secrets. Windows DPAPI normally binds protected data to the account and machine context used for protection, and the protected blob also has an integrity check. citeturn2search4turn1search5
+
+The protected key authenticates a local installation inventory stored under `ProgramData\\HWControl\\security\\state`. The inventory records relative paths, sizes, and SHA-256 digests. Added, removed, modified, non-regular, or symlinked files in the protected installation tree cause verification failure. The bridge treats that result as an integrity failure and enters the existing fail-closed path; SPARK remains the security-policy authority rather than becoming a filesystem scanner.
+
+`verify.key` is intentionally not the publisher root of trust. Windows publisher authenticity remains an OS code-signing/trust decision, while `verify.key` protects the machine-local integrity state and complements the existing SHA-256 monitor and Security Guardian.
+
+The Windows MSI resets the local inventory state during an installation/upgrade so legitimate package contents can establish a fresh baseline, while the machine-specific `verify.key` remains bound to the installation machine. Manual modification of an installed tree is therefore treated differently from a controlled installer upgrade.
+
 The runtime hash baseline is a detection control, not a cryptographic root of trust: an attacker who can replace both the executable and its trusted baseline can defeat a local hash-only scheme. For release builds, the stronger trust chain is platform code signing plus release provenance/checksums. Windows uses Authenticode when signing is available; macOS distribution is intended to use Developer ID signing and notarization; Linux packages use release checksums/provenance, with filesystem-level integrity mechanisms such as fs-verity applicable where the deployment supports them.
 
 On Windows, Authenticode verification is provided by the Windows trust provider; on macOS, the operating system can validate signed code and its sealed components. These platform trust mechanisms are preferred over treating a mutable local hash file as the root of trust.
