@@ -97,3 +97,11 @@ func loadOrCreateVerifyKey() ([]byte, error) {
 	_ = runtime.GOOS
 	return key, nil
 }
+
+func verifyInstallationState(root string) error {
+	key, err := loadOrCreateVerifyKey()
+	if err != nil {
+		return fmt.Errorf("load verify.key: %w", err)
+	}
+	return verifyInstallationStateWithKey(root, key)
+}
