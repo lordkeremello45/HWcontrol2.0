@@ -2,16 +2,16 @@
 
 ## Status
 
-**IMPLEMENTED:** six bounded service modules are present in the Go bridge.
+**IMPLEMENTED (logical architecture):** six bounded services/capability areas are defined. They are not six independent daemons.
 
 1. **Update Service** — release metadata and update verification state.
 2. **SensorHealth Service** — normalized hardware telemetry, thermal safety and anomaly state.
 3. **Diagnostics Service** — local crash/error/security diagnostics with redaction.
 4. **Game Service** — Game Mode state and process detection.
-5. **Security Service** — independent secondary security guardian process that enforces the panic state.
-6. **Fetch Status Service** — canary/deception service using the non-secret `bridger.key` decoy.
+5. **Security Guardian** — independent secondary process that observes the canary and publishes panic state.
+6. **Fetch Status** — the bridge-facing canary status/integrity layer using the non-secret `bridger.key` decoy.
 
-The six services are deliberately not six network microservices. The first four are bounded bridge modules because they do not require independent privilege or process lifecycles. Services 5 and 6 have an independent process boundary because they form the defense-in-depth security path.
+The first four are bounded Go Bridge modules. Security Guardian is a separate process. Fetch Status is a logical bridge service/canary layer, not a separately deployed network service or daemon.
 
 ## Security boundary
 
@@ -24,39 +24,37 @@ The six services are deliberately not six network microservices. The first four 
           +--> SensorHealth
           +--> Diagnostics
           +--> Game
+          +--> Fetch Status / canary status
           |
           +--> SPARK / Rust primary security gate
           |
           +--> Security Guardian (separate process)
                         |
-                        +--> Fetch Status canary
-                        |       |
-                        |       +--> bridger.key integrity
-                        |
-                        +--> panic-mode state
-                                |
-                                v
-                           Bridge fail-closed
+                        +--> observes Fetch Status canary
+                        +--> writes persistent panic state
+                                      |
+                                      v
+                                 Bridge fail-closed
 
-The security guardian does not execute hardware commands and does not receive the real `bridge.key`.
+The guardian does not execute hardware commands and does not receive the real `bridge.key`.
 
 ## `bridger.key`
 
-`bridger.key` is intentionally **not** an authentication credential. It is a static, non-secret canary whose only security property is that it must match the trusted release baseline.
+`bridger.key` is intentionally **not** an authentication credential. It is a static, non-secret canary whose content is checked against a trusted release baseline.
 
 The real credential remains `bridge.key`; the decoy remains `bridger.key`.
 
-A modification, replacement, symlink substitution, disappearance, or unreadable canary causes a security event and enters panic mode.
+A modification, replacement, symlink substitution, disappearance, or unreadable canary is intended to cause a security event and panic mode. The deployed Guardian/Bridge behavior must be validated on each platform before this is treated as a verified runtime guarantee.
 
 ## Panic mode
 
-Panic mode is fail-closed. It does not retaliate against the suspected actor.
+Panic mode is designed to fail closed and does not retaliate against a suspected actor.
 
 - hardware-control commands are denied;
 - Game Mode control changes are denied;
-- the bridge listener is stopped;
+- the bridge listener is stopped when its integrity/panic handling requires it;
 - a local security diagnostic event is recorded;
-- the panic state remains until trusted recovery/reinstallation clears it.
+- panic state persists until trusted recovery clears it.
 
 The system does not automatically rewrite a tampered canary to hide the event.
 
@@ -64,21 +62,19 @@ The system does not automatically rewrite a tampered canary to hide the event.
 
 ### Windows
 
-The bridge and guardian use Windows Service Control Manager services. The guardian is a separate service process and uses `NT AUTHORITY\LocalService`, a predefined low-privilege service account. See Microsoft documentation for LocalService and service account selection.
+The bridge and guardian are separate Windows SCM service processes, but the current WiX configuration assigns both to `NT AUTHORITY\LocalService`. This provides process separation, **not distinct service-identity isolation**. Validate the installed ACLs and service permissions; stronger identity separation remains a hardening opportunity.
 
 ### Linux
 
-The guardian is a dedicated `hwcontrol-security` system user. Its systemd unit uses `NoNewPrivileges`, `ProtectSystem=strict`, `ProtectHome`, read-only access to the canary directory, and write access only to its panic-state directory. systemd supports these filesystem and privilege-reduction controls for long-running services.
+The guardian is configured as a dedicated `hwcontrol-security` system user. Its systemd unit uses `NoNewPrivileges`, `ProtectSystem=strict`, `ProtectHome`, read-only access to the canary directory, and write access to its panic-state directory. These controls are configuration intent until validated in a package install/runtime test.
 
 ### macOS
 
-The guardian is a separate launchd daemon and is installed independently from the bridge daemon.
+The guardian is installed as a separate launchd daemon. It shares the privileged installation context with the bridge in the current package design; a separate process does not by itself establish a distinct privilege boundary.
 
 ## Why this is not a normal honeytrap
 
-The decoy is a defensive canary. It is intentionally inert: it has no privileged behavior, no real secret, no network endpoint, and no mechanism to attack the actor.
-
-OWASP describes canary files/records as deceptive assets whose unexpected access can indicate malicious reconnaissance or tampering.
+The decoy is a defensive canary. It is intentionally inert: it has no privileged behavior, no real secret, no network endpoint, and no mechanism to attack an actor.
 
 ## Recovery
 
