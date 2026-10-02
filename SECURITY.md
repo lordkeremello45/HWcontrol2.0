@@ -217,3 +217,13 @@ The dashboard does not install or execute updates automatically. It accepts only
 ## Reporting a vulnerability
 
 Please report security issues privately through the repository's GitHub Security tab. Do not publish credentials, private keys, or exploit details in a public issue. We will acknowledge reports and provide a remediation status when the investigation is complete.
+
+## Official-build startup gate
+
+Release-mode desktop builds include a fail-closed startup gate. The release pipeline must compile the dashboard with HWCONTROL_RELEASE_TRUST=official; a release build without that marker is blocked before the normal dashboard starts and shows:
+
+> THIS CODE IS UNOFFICIAL AND UNSAFE
+
+The gate intentionally does not claim that an unmarked build is malware. It means the build cannot be established as an official release by the application's release metadata. Debug/development builds remain usable without the release marker.
+
+This is a defense-in-depth startup control, not the cryptographic root of publisher trust. Windows Authenticode, macOS Developer ID/notarization, and other platform trust mechanisms remain authoritative for publisher identity. A modified copy can remove or alter application-level checks, so platform-enforced signing is still required for a strong anti-tampering boundary.
