@@ -183,6 +183,7 @@ func integrityFileDigest(path string) (string, error) {
 func (m *bridgeIntegrityMonitor) start(done <-chan struct{}, onViolation func(error)) {
 	go func() {
 		ticker := time.NewTicker(bridgeIntegrityPollInterval)
+		lastVerifyCheck := time.Time{}
 		defer ticker.Stop()
 
 		for {
