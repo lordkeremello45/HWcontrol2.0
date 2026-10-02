@@ -157,7 +157,7 @@ jobs:
         run: flutter pub get
 
       - name: Install Microsoft Store CLI
-        uses: microsoft/microsoft-store-apppublisher@v1.1
+        uses: microsoft/microsoft-store-apppublisher@v1.4
 
       - name: Configure Microsoft Store CLI
         shell: pwsh
