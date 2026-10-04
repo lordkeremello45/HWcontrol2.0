@@ -139,7 +139,7 @@ mod tests {
     #[test]
     fn parses_quoted_csv_fields() {
         let fields = parse_csv_line(r#"a,"b,b","c""d""#).unwrap();
-        assert_eq!(fields, ["a", "b,b", "c"d"]);
+        assert_eq!(fields, ["a", "b,b", "c\"d"]);
     }
 
     #[test]
