@@ -9,7 +9,9 @@ Game Mode provides a safe game-session detection layer.
 - Reports the detected game process and PID.
 - Exposes Game Mode state through the authenticated bridge.
 - Includes the state in diagnostics.
-- Does not force fan, clock, voltage, power-limit, or process-priority changes.
+- When a validated writable fan-control backend exists, can apply the Game fan target and restore the previous target when the game exits.
+- Never changes clocks, voltage, power limits, or process priority.
+- On monitor-only hardware, Game Mode remains detection/monitoring only.
 
 ## Safety
 
