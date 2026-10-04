@@ -213,9 +213,14 @@ func collectMetrics() HardwareMetrics {
 		}
 	}
 	mergePlatformMetrics(&metrics)
-	metrics.FanControlSupported = false
-	metrics.FanControlBackend = "monitor-only"
-	metrics.HardwareControlMode = "monitor-only"
+	fanControl := detectFanControl()
+	metrics.FanControlSupported = fanControl.Supported
+	metrics.FanControlBackend = fanControl.Backend
+	if fanControl.Supported {
+		metrics.HardwareControlMode = "hardware-control"
+	} else {
+		metrics.HardwareControlMode = "monitor-only"
+	}
 	metrics.ThermalSafetyAvailable = metrics.CPUTemperature > 0 || metrics.GPUTemperature > 0
 	game := collectGameModeState()
 	metrics.GameModeEnabled = game.Enabled
@@ -351,7 +356,10 @@ func executeHardwareCommand(cmd Command) error {
 		if err := validateFanControlRequest(cmd, metrics); err != nil {
 			return err
 		}
-		return fmt.Errorf("hardware control backend is not available on this build")
+		if err := setFanControl(cmd.Value); err != nil {
+			return err
+		}
+		return nil
 	case "AI İşlem Gücü":
 		if panicModeActive() {
 			return fmt.Errorf("hardware control blocked: security panic mode active")
