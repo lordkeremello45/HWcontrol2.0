@@ -18,7 +18,7 @@ class HardwareAutomationRule {
     if (name == null || name.isEmpty || sensor == null || sensor.isEmpty || threshold == null || fan == null) return null;
     if (!threshold.isFinite || !fan.isFinite || fan < 0 || fan > 100) return null;
     if (sensor != 'cpuTemperature' && sensor != 'gpuTemperature') return null;
-    return HardwareAutomationRule(name: name, sensor: sensor, threshold: threshold.clamp(20, 110), fanPercent: fan, enabled: enabled);
+    return HardwareAutomationRule(name: name, sensor: sensor, threshold: threshold.clamp(20, 110).toDouble(), fanPercent: fan, enabled: enabled);
   }
 }
 
@@ -38,6 +38,6 @@ class HardwareAutomationEngine {
         target = rule.fanPercent;
       }
     }
-    return target?.clamp(0, 100);
+    return target?.clamp(0, 100).toDouble();
   }
 }
