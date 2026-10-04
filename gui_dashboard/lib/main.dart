@@ -1166,7 +1166,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       if (response.statusCode != 200) throw StateError('update download failed');
       final bytes = response.bodyBytes;
       final actual = sha256.convert(bytes).toString();
-      if (info.digest != null && !actual.equalsIgnoreCase(info.digest!)) {
+      if (info.digest != null && actual.toLowerCase() != info.digest!.toLowerCase()) {
         throw StateError('SHA-256 doğrulaması başarısız');
       }
       final directory = await getDownloadsDirectory() ?? await getApplicationSupportDirectory();
