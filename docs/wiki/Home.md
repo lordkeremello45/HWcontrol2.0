@@ -149,3 +149,7 @@ See:
 The repository validates native, bridge, dashboard and package paths in GitHub Actions. Windows MSI/Setup installation and cleanup are smoke-tested on Windows runners, Linux DEB installation is validated on Ubuntu, and the macOS release path is validated on a native macOS runner.
 
 Publisher trust is a separate layer: Windows Authenticode and macOS Developer ID/notarization are only claimed when the corresponding credentials and verification steps are actually present. Checksums and GitHub artifact attestation prove integrity/provenance but do not substitute for OS-trusted publisher signing.
+
+- [Advanced Control and Automation](Features-Advanced-Control.md)
+- [Hardware Benchmark](Features-Benchmark.md)
+- [Extension API](Features-Extension-API.md)
