@@ -19,7 +19,6 @@ import 'diagnostics.dart';
 import 'fan_curve.dart';
 import 'benchmark.dart';
 import 'automation_rules.dart';
-import 'extension_api.dart';
 import 'model_manager.dart';
 import 'user_data_store.dart';
 import 'welcome_screen.dart';
@@ -610,7 +609,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _temperatureLimit = limit.toDouble().clamp(60, 100);
         }
         if (smartFan is bool) _smartFanEnabled = smartFan;
-        _automationRules = rules;
+        _automationRules = rules.isEmpty
+            ? const <HardwareAutomationRule>[
+                HardwareAutomationRule(name: 'CPU thermal guard', sensor: 'cpuTemperature', threshold: 85, fanPercent: 80),
+                HardwareAutomationRule(name: 'GPU thermal guard', sensor: 'gpuTemperature', threshold: 82, fanPercent: 80),
+              ]
+            : rules;
       });
     } catch (_) {
       _addEvent('Ayar dosyası okunamadı');
