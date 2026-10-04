@@ -1,31 +1,25 @@
-# Advanced Control and Automation
+# Advanced Hardware Control
+
+Advanced control consists of Smart Fan Curve, hardware automation and capability-aware Game Mode.
 
 ## Smart Fan Curve
 
-HWcontrol2.0 now stores a point-based fan curve locally and interpolates the requested fan target from CPU temperature.
-
-Safety rules:
-
-- fan targets are clamped to 0–100%;
-- temperature points are clamped to a safe configuration domain;
-- automatic commands are blocked when telemetry is invalid or critical temperature is detected;
-- automatic control remains disabled unless the bridge reports a validated writable hardware-control backend;
-- monitor-only hardware is never treated as controllable.
-
-The editor is therefore usable on every platform, while actual fan actuation remains capability-driven.
+The dashboard evaluates a persisted temperature-to-fan curve. A safety controller smooths telemetry and rate-limits commands to reduce oscillation.
 
 ## Hardware Automation
 
-Automation rules can react to CPU/GPU temperature thresholds and select a fan target. Rules are local configuration and are evaluated only against fresh bridge telemetry.
+Users can create, edit, enable/disable and delete CPU/GPU temperature rules such as:
 
-The rule engine does not execute arbitrary scripts or load arbitrary plugins.
+CPU temperature >= 80 °C -> fan 70%
 
-## Benchmark
+Rules are evaluated locally. They only result in hardware commands when the bridge reports a validated fan-control backend.
 
-The dashboard includes a bounded one-second CPU microbenchmark. It is an observation tool, not a stress test, and does not modify clocks, voltage, power limits or fan settings.
+## Game Mode
 
-## Extension API
+Game Mode may apply a predefined fan target when game detection is active, but it is also capability-gated.
 
-The first extension boundary is a metadata/capability manifest contract. Arbitrary native code is intentionally not loaded from user-writable directories.
+## Backend support
 
-A future executable extension host must add signature verification and an explicit capability grant before any privileged operation is exposed.
+A GUI control is not proof of hardware support. The bridge is the source of truth for fanControlSupported, fanControlBackend and thermal safety state.
+
+Linux currently has a conservative single-target hwmon PWM backend. Windows and macOS vendor/EC control remain unavailable until validated against real hardware.
