@@ -53,9 +53,11 @@ func linuxFanTargets() []linuxFanTarget {
 		if err != nil || (enable != 1 && enable != 2) {
 			continue
 		}
-		if info, err := os.Stat(pwmPath); err != nil || info.Mode().Perm()&0200 == 0 {
+		probe, err := os.OpenFile(pwmPath, os.O_WRONLY, 0)
+		if err != nil {
 			continue
 		}
+		_ = probe.Close()
 		name := "hwmon"
 		if data, err := os.ReadFile(filepath.Join(dir, "name")); err == nil {
 			if value := strings.TrimSpace(string(data)); value != "" {
