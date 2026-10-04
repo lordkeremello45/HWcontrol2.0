@@ -23,7 +23,7 @@ func decoyDirectory()string{
 	if v:=strings.TrimSpace(os.Getenv("HWCONTROL_DECOY_DIR"));v!=""{return v}
 	switch runtime.GOOS{
 	case "windows":
-		root:=os.Getenv("ProgramData");if root==""{root="C:\ProgramData"};return filepath.Join(root,"HWControl","security")
+		root:=os.Getenv("ProgramData");if root==""{root="C:\\ProgramData"};return filepath.Join(root,"HWControl","security")
 	case "darwin":return filepath.Join("/Library","Application Support","HWControl","security")
 	default:return "/var/lib/hwcontrol/security"
 	}
