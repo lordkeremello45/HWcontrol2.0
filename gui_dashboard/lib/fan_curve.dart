@@ -63,6 +63,55 @@ class FanCurve {
   }
 }
 
+class FanCurveController {
+  FanCurveController({
+    this.minFanPercent = 20,
+    this.maxFanPercent = 100,
+    this.minimumChangePercent = 3,
+    this.minimumCommandInterval = const Duration(seconds: 2),
+    this.smoothingSamples = 3,
+  });
+
+  final double minFanPercent;
+  final double maxFanPercent;
+  final double minimumChangePercent;
+  final Duration minimumCommandInterval;
+  final int smoothingSamples;
+  final List<double> _temperatures = <double>[];
+  double? _lastTarget;
+  DateTime? _lastCommandAt;
+
+  void reset() {
+    _temperatures.clear();
+    _lastTarget = null;
+    _lastCommandAt = null;
+  }
+
+  double? nextTarget({
+    required FanCurve curve,
+    required double temperature,
+    required DateTime now,
+    required bool sensorValid,
+    required bool hardwareControlSupported,
+  }) {
+    if (!sensorValid || !temperature.isFinite || !hardwareControlSupported) {
+      reset();
+      return null;
+    }
+    _temperatures.add(temperature);
+    while (_temperatures.length > smoothingSamples) {
+      _temperatures.removeAt(0);
+    }
+    final smoothed = _temperatures.reduce((a, b) => a + b) / _temperatures.length;
+    final target = curve.evaluate(smoothed).clamp(minFanPercent, maxFanPercent).toDouble();
+    if (_lastTarget != null && (target - _lastTarget!).abs() < minimumChangePercent) return null;
+    if (_lastCommandAt != null && now.difference(_lastCommandAt!) < minimumCommandInterval) return null;
+    _lastTarget = target;
+    _lastCommandAt = now;
+    return target;
+  }
+}
+
 class FanCurveEditor extends StatefulWidget {
   const FanCurveEditor({super.key, required this.initialCurve, required this.onSave});
   final FanCurve initialCurve;
