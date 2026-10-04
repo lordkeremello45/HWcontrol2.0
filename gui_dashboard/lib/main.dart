@@ -252,6 +252,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _smartFanEnabled = false;
   List<HardwareAutomationRule> _automationRules = <HardwareAutomationRule>[];
   double? _lastAutomaticFanTarget;
+  bool _gameProfileApplied = false;
+  double _preGameFanValue = 50;
   bool _historyDirty = false;
   int _samplesSinceHistoryPersist = 0;
   static const _historySchema = 1;
@@ -714,6 +716,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Future<void> _applyGameModeProfile(Map<String, dynamic> telemetry) async {
+    if (!_gameModeEnabled || !_fanControlSupported || !_isConnected || _isSending) return;
+    final detected = telemetry['gameDetected'] == true;
+    if (detected && !_gameProfileApplied) {
+      _preGameFanValue = _fanValue;
+      final success = await _sendCommand('Fan Hızı', 75);
+      if (success) {
+        _gameProfileApplied = true;
+        if (mounted) setState(() => _fanValue = 75);
+        _addEvent('Game Mode profili otomatik uygulandı');
+      }
+    } else if (!detected && _gameProfileApplied) {
+      final success = await _sendCommand('Fan Hızı', _preGameFanValue.clamp(0, 100).toDouble());
+      if (success) {
+        _gameProfileApplied = false;
+        if (mounted) setState(() => _fanValue = _preGameFanValue);
+        _addEvent('Game Mode profili kapatıldı; önceki fan hedefi geri yüklendi');
+      }
+    }
+  }
+
   Future<void> _applyAutomaticFanControl(Map<String, dynamic> telemetry) async {
     if (!_smartFanEnabled || !_fanControlSupported || !_isConnected || _isSending) return;
     final cpu = (telemetry['cpuTemperature'] as num?)?.toDouble() ?? double.nan;
@@ -1062,6 +1085,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       }
     });
     if (thresholdExceeded) _addEvent('CPU sıcaklığı eşik üstünde');
+    await _applyGameModeProfile(data);
     await _applyAutomaticFanControl(data);
     if (_samplesSinceHistoryPersist >= 12) unawaited(_persistTelemetryHistory());
   }
