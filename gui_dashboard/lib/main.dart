@@ -889,6 +889,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
+  Future<void> _openHealthCenter() async {
+    final health = await _requestBridgeData('Get Health');
+    if (!mounted) return;
+    if (health == null) {
+      setState(() => _status = 'Health Center için bridge bağlantısı gerekli');
+      return;
+    }
+    final anomalies = (health['anomalies'] as List?)?.whereType<Map>().toList(growable: false) ?? const <Map>[];
+    final warnings = (health['warnings'] as List?)?.map((value) => value.toString()).toList(growable: false) ?? const <String>[];
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hardware Health Center'),
+        content: SizedBox(
+          width: 620,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Durum: ${health['status'] ?? 'unknown'}'),
+                Text('Safety: ${health['safetyState'] ?? 'unknown'}'),
+                Text('Recovery: ${health['recoveryAction'] ?? 'none'}'),
+                const Divider(),
+                if (warnings.isNotEmpty) ...[
+                  const Text('Uyarılar', style: TextStyle(fontWeight: FontWeight.w700)),
+                  for (final warning in warnings) Text('• $warning'),
+                  const SizedBox(height: 10),
+                ],
+                Text('Anomaliler: ${anomalies.length}', style: const TextStyle(fontWeight: FontWeight.w700)),
+                for (final anomaly in anomalies)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text('${anomaly['severity'] ?? 'unknown'} • ${anomaly['code'] ?? 'unknown'} • ${anomaly['message'] ?? ''}'),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Kapat'))],
+      ),
+    );
+  }
+
   Future<void> _exportDiagnosticReport() async {
     if (!_isConnected) {
       if (mounted) setState(() => _status = 'Tanılama raporu için bridge bağlantısı gerekli');
@@ -2211,6 +2254,7 @@ Attach this archive to a support issue only after reviewing it for personal info
               OutlinedButton.icon(onPressed: _isConnected ? null : _connectToBridge, icon: const Icon(Icons.refresh, size: 17), label: Text(_tr('reconnect'))),
               OutlinedButton.icon(onPressed: _updateInfo == null || _updateInfo!.digest.isEmpty || _isCheckingUpdate ? null : _downloadVerifiedUpdate, icon: const Icon(Icons.download_outlined, size: 17), label: const Text('Doğrulanmış güncellemeyi indir')),
               OutlinedButton.icon(onPressed: _isConnected ? _exportDiagnosticReport : null, icon: const Icon(Icons.archive_outlined, size: 17), label: Text(_tr('createErrorReport'))),
+              OutlinedButton.icon(onPressed: _isConnected ? _openHealthCenter : null, icon: const Icon(Icons.health_and_safety_outlined, size: 17), label: const Text('Health Center')),
             ],
           ),
           const SizedBox(height: 18),
