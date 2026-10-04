@@ -252,6 +252,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _smartFanEnabled = false;
   List<HardwareAutomationRule> _automationRules = <HardwareAutomationRule>[];
   double? _lastAutomaticFanTarget;
+  final FanCurveController _fanCurveController = FanCurveController();
   bool _gameProfileApplied = false;
   double _preGameFanValue = 50;
   bool _historyDirty = false;
@@ -741,15 +742,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (!_smartFanEnabled || !_fanControlSupported || !_isConnected || _isSending) return;
     final cpu = (telemetry['cpuTemperature'] as num?)?.toDouble() ?? double.nan;
     final gpu = (telemetry['gpuTemperature'] as num?)?.toDouble() ?? double.nan;
-    final curveTarget = cpu.isFinite && cpu > 0 ? _fanCurve.evaluate(cpu) : null;
+    if (cpu >= 95 || (gpu.isFinite && gpu >= 95)) {
+      _fanCurveController.reset();
+      _lastAutomaticFanTarget = null;
+      return;
+    }
+    final curveTarget = _fanCurveController.nextTarget(
+      curve: _fanCurve,
+      temperature: cpu,
+      now: DateTime.now(),
+      sensorValid: cpu.isFinite && cpu > 0,
+      hardwareControlSupported: _fanControlSupported,
+    );
     final ruleTarget = HardwareAutomationEngine(_automationRules).evaluate(<String, dynamic>{
       'cpuTemperature': cpu,
       'gpuTemperature': gpu,
     });
     final target = ruleTarget ?? curveTarget;
     if (target == null || !target.isFinite) return;
-    if (cpu >= 95 || (gpu.isFinite && gpu >= 95)) return;
-    if (_lastAutomaticFanTarget != null && (target - _lastAutomaticFanTarget!).abs() < 5) return;
     final success = await _sendCommand('Fan Hızı', target);
     if (success) {
       _lastAutomaticFanTarget = target;
