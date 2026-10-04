@@ -160,7 +160,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           dotnet tool install --global wix --version 6.0.2 --add-source https://api.nuget.org/v3/index.json
-          $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
+          $env:PATH = "$env:USERPROFILE\\.dotnet\\tools;$env:PATH"
           wix --version
           $version = "${{ env.RELEASE_TAG }}" -replace '^v', '' -replace '-windows
         shell: pwsh
@@ -206,7 +206,7 @@ jobs:
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64.sha256
 , ''
-          wix build deploy/windows/HWControl-Setup.wxs -ext WixToolset.BootstrapperApplications.wixext -arch x64 -d Version=$version -d MsiPath="$PWD\HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi" -o "HWControl-${{ env.RELEASE_TAG }}-Windows-x64-Setup.exe"
+          wix build deploy/windows/HWControl-Setup.wxs -ext WixToolset.BootstrapperApplications.wixext -arch x64 -d Version=$version -d MsiPath="$PWD\\HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi" -o "HWControl-${{ env.RELEASE_TAG }}-Windows-x64-Setup.exe"
           if (-not (Test-Path "HWControl-${{ env.RELEASE_TAG }}-Windows-x64-Setup.exe")) { throw 'Setup.exe was not produced.' }
 
       - name: Smoke test guided Setup.exe
@@ -218,15 +218,14 @@ jobs:
           if (Test-Path $root) { Remove-Item $root -Recurse -Force }
           $install = Start-Process -FilePath $setup -ArgumentList '/quiet', '/norestart', "InstallFolder=$root" -Wait -PassThru
           if ($install.ExitCode -ne 0) { throw "Setup.exe install failed with exit code $($install.ExitCode)." }
-          if (-not (Test-Path "$root\HWControl.exe")) { throw 'Setup.exe did not honor InstallFolder.' }
+          if (-not (Test-Path "$root\\HWControl.exe")) { throw 'Setup.exe did not honor InstallFolder.' }
           $service = Get-Service -Name HWControlBridge -ErrorAction Stop
           if ($service.Status -ne 'Running') { throw "HWControlBridge is not running: $($service.Status)" }
-          & "$PWD\deploy\windows\Invoke-MsiWithTimeout.ps1" -MsiPath "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi" -Action Uninstall -LogPath (Join-Path $env:RUNNER_TEMP 'setup-uninstall.log') -TimeoutSeconds 120
+          & "$PWD\\deploy\\windows\\Invoke-MsiWithTimeout.ps1" -MsiPath "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi" -Action Uninstall -LogPath (Join-Path $env:RUNNER_TEMP 'setup-uninstall.log') -TimeoutSeconds 120
           if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge still exists after Setup smoke-test uninstall.' }
-          if (Test-Path "$env:ProgramFiles\HWControl") { throw 'Program Files\HWControl remains after Setup smoke-test uninstall.' }
-          if (Test-Path "$env:ProgramData\HWControl\bridge.key") { throw 'bridge.key remains after Setup smoke-test uninstall.' }
+          if (Test-Path "$env:ProgramFiles\\HWControl") { throw 'Program Files\\HWControl remains after Setup smoke-test uninstall.' }
+          if (Test-Path "$env:ProgramData\\HWControl\\bridge.key") { throw 'bridge.key remains after Setup smoke-test uninstall.' }
           if (Test-Path $root) { throw 'Custom Setup install directory remains after uninstall.' }
-
       - name: Package ZIP
         shell: pwsh
         run: |
