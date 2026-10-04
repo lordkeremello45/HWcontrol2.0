@@ -672,6 +672,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Future<HardwareAutomationRule?> _editAutomationRuleDialog({HardwareAutomationRule? initial}) async {
+    final name = TextEditingController(text: initial?.name ?? '');
+    final threshold = TextEditingController(text: (initial?.threshold ?? 80).toString());
+    final fan = TextEditingController(text: (initial?.fanPercent ?? 70).round().toString());
+    var sensor = initial?.sensor ?? 'cpuTemperature';
+    final result = await showDialog<HardwareAutomationRule>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text(initial == null ? 'Yeni otomasyon kuralı' : 'Otomasyon kuralını düzenle'),
+          content: SizedBox(
+            width: 520,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(controller: name, decoration: const InputDecoration(labelText: 'Kural adı')),
+                DropdownButtonFormField<String>(
+                  value: sensor,
+                  decoration: const InputDecoration(labelText: 'Sensör'),
+                  items: const [
+                    DropdownMenuItem(value: 'cpuTemperature', child: Text('CPU sıcaklığı')),
+                    DropdownMenuItem(value: 'gpuTemperature', child: Text('GPU sıcaklığı')),
+                  ],
+                  onChanged: (value) => setDialogState(() => sensor = value ?? sensor),
+                ),
+                TextField(controller: threshold, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Eşik °C')),
+                TextField(controller: fan, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Fan hedefi %')),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('İptal')),
+            FilledButton(
+              onPressed: () {
+                final cleanName = name.text.trim();
+                final t = double.tryParse(threshold.text);
+                final f = double.tryParse(fan.text);
+                if (cleanName.isEmpty || t == null || f == null || !t.isFinite || !f.isFinite || f < 0 || f > 100) return;
+                Navigator.pop(context, HardwareAutomationRule(
+                  name: cleanName,
+                  sensor: sensor,
+                  threshold: t.clamp(20, 110).toDouble(),
+                  fanPercent: f.clamp(0, 100).toDouble(),
+                  enabled: initial?.enabled ?? true,
+                ));
+              },
+              child: const Text('Kaydet'),
+            ),
+          ],
+        ),
+      ),
+    );
+    name.dispose();
+    threshold.dispose();
+    fan.dispose();
+    return result;
+  }
+
   Future<void> _openAutomationRules() async {
     var rules = [..._automationRules];
     await showDialog<void>(
@@ -680,24 +738,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
         builder: (context, setDialogState) => AlertDialog(
           title: const Text('Hardware Automation'),
           content: SizedBox(
-            width: 560,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('Kurallar yalnızca doğrulanmış hardware-control backend mevcutsa fan komutu uygular.'),
-                const SizedBox(height: 12),
-                for (var i = 0; i < rules.length; i++)
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(rules[i].name),
-                    subtitle: Text('${rules[i].sensor} ≥ ${rules[i].threshold.round()} °C → fan ${rules[i].fanPercent.round()}%'),
-                    value: rules[i].enabled,
-                    onChanged: (value) => setDialogState(() {
-                      rules[i] = HardwareAutomationRule(name: rules[i].name, sensor: rules[i].sensor, threshold: rules[i].threshold, fanPercent: rules[i].fanPercent, enabled: value);
-                    }),
+            width: 620,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Kurallar yalnızca doğrulanmış hardware-control backend mevcutsa fan komutu uygular.'),
+                  const SizedBox(height: 12),
+                  for (var i = 0; i < rules.length; i++)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(rules[i].name),
+                      subtitle: Text(rules[i].sensor + ' ≥ ' + rules[i].threshold.round().toString() + ' °C → fan ' + rules[i].fanPercent.round().toString() + '%'),
+                      leading: Switch(
+                        value: rules[i].enabled,
+                        onChanged: (value) => setDialogState(() {
+                          rules[i] = HardwareAutomationRule(
+                            name: rules[i].name,
+                            sensor: rules[i].sensor,
+                            threshold: rules[i].threshold,
+                            fanPercent: rules[i].fanPercent,
+                            enabled: value,
+                          );
+                        }),
+                      ),
+                      trailing: Wrap(
+                        spacing: 0,
+                        children: [
+                          IconButton(
+                            tooltip: 'Düzenle',
+                            onPressed: () async {
+                              final edited = await _editAutomationRuleDialog(initial: rules[i]);
+                              if (edited != null) setDialogState(() => rules[i] = edited);
+                            },
+                            icon: const Icon(Icons.edit_outlined),
+                          ),
+                          IconButton(
+                            tooltip: 'Sil',
+                            onPressed: () => setDialogState(() => rules.removeAt(i)),
+                            icon: const Icon(Icons.delete_outline),
+                          ),
+                        ],
+                      ),
+                    ),
+                  if (rules.isEmpty) const Text('Henüz otomasyon kuralı yok.'),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: () async {
+                        final created = await _editAutomationRuleDialog();
+                        if (created != null) setDialogState(() => rules.add(created));
+                      },
+                      icon: const Icon(Icons.add),
+                      label: const Text('Kural ekle'),
+                    ),
                   ),
-                if (rules.isEmpty) const Text('Henüz otomasyon kuralı yok.'),
-              ],
+                ],
+              ),
             ),
           ),
           actions: [
@@ -705,6 +803,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             FilledButton(
               onPressed: () {
                 _automationRules = List<HardwareAutomationRule>.unmodifiable(rules);
+                _fanCurveController.reset();
                 unawaited(_saveSettings());
                 if (mounted) setState(() {});
                 Navigator.pop(context);
