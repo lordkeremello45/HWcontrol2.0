@@ -45,8 +45,8 @@ if(BUILD_TESTING)
     target_include_directories(ai_telemetry_tests PRIVATE include)
     hwcontrol_harden_native_target(ai_telemetry_tests)
 
-    add_test(NAME ai_core_tests COMMAND ai_core_tests)
-    add_test(NAME ai_telemetry_tests COMMAND ai_telemetry_tests)
+    add_test(NAME ai_core_tests COMMAND $<TARGET_FILE:ai_core_tests>)
+    add_test(NAME ai_telemetry_tests COMMAND $<TARGET_FILE:ai_telemetry_tests>)
 
     # Windows CTest must be able to resolve the llama runtime DLLs produced by
     # the multi-config Visual Studio build. Keep the fix test-local and cross-platform.
