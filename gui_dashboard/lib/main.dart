@@ -16,6 +16,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'diagnostics.dart';
+import 'fan_curve.dart';
+import 'benchmark.dart';
+import 'automation_rules.dart';
+import 'extension_api.dart';
 import 'model_manager.dart';
 import 'user_data_store.dart';
 import 'welcome_screen.dart';
@@ -245,6 +249,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _thermalStatus = 'Veri bekleniyor';
   bool _thermalAlertActive = false;
   Map<String, Map<String, double>> _profiles = {};
+  FanCurve _fanCurve = FanCurve.balanced;
+  bool _smartFanEnabled = false;
+  List<HardwareAutomationRule> _automationRules = <HardwareAutomationRule>[];
+  double? _lastAutomaticFanTarget;
   bool _historyDirty = false;
   int _samplesSinceHistoryPersist = 0;
   static const _historySchema = 1;
@@ -512,6 +520,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       await _loadLanguage();
       await _loadProfiles();
       await _loadSettings();
+      await _loadFanCurve();
       await _loadTelemetryHistory();
       await _loadBridgeKey();
       if (!mounted) return;
@@ -592,11 +601,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (!mounted) return;
       final notifications = settings['notificationsEnabled'];
       final limit = settings['temperatureLimit'];
+      final smartFan = settings['smartFanEnabled'];
+      final rawRules = settings['automationRules'];
+      final rules = rawRules is List ? rawRules.map(HardwareAutomationRule.fromJson).whereType<HardwareAutomationRule>().toList(growable: false) : const <HardwareAutomationRule>[];
       setState(() {
         if (notifications is bool) _notificationsEnabled = notifications;
         if (limit is num) {
           _temperatureLimit = limit.toDouble().clamp(60, 100);
         }
+        if (smartFan is bool) _smartFanEnabled = smartFan;
+        _automationRules = rules;
       });
     } catch (_) {
       _addEvent('Ayar dosyası okunamadı');
@@ -609,9 +623,111 @@ class _DashboardScreenState extends State<DashboardScreen> {
         'notificationsEnabled': _notificationsEnabled,
         'temperatureLimit': _temperatureLimit,
         'language': _languagePreference,
+        'smartFanEnabled': _smartFanEnabled,
+        'automationRules': _automationRules.map((rule) => rule.toJson()).toList(growable: false),
       });
     } catch (_) {
       _addEvent('Ayarlar kaydedilemedi');
+    }
+  }
+
+  Future<void> _loadFanCurve() async {
+    try {
+      final curves = await _userData.readFanCurves();
+      final saved = curves['default'];
+      if (mounted) setState(() => _fanCurve = FanCurve.fromJson(saved));
+    } catch (_) {
+      _addEvent('Fan eğrisi okunamadı; güvenli varsayılan kullanılıyor');
+    }
+  }
+
+  Future<void> _openFanCurveEditor() async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => FanCurveEditor(
+        initialCurve: _fanCurve,
+        onSave: (curve) {
+          _fanCurve = curve;
+          unawaited(_userData.writeFanCurves(<String, dynamic>{'default': curve.toJson()}));
+          if (mounted) {
+            setState(() {});
+            _addEvent('Smart Fan eğrisi kaydedildi');
+          }
+        },
+      ),
+    );
+  }
+
+  Future<void> _openBenchmark() async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => const HardwareBenchmarkDialog(),
+    );
+  }
+
+  Future<void> _openAutomationRules() async {
+    var rules = [..._automationRules];
+    await showDialog<void>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Hardware Automation'),
+          content: SizedBox(
+            width: 560,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Kurallar yalnızca doğrulanmış hardware-control backend mevcutsa fan komutu uygular.'),
+                const SizedBox(height: 12),
+                for (var i = 0; i < rules.length; i++)
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(rules[i].name),
+                    subtitle: Text('${rules[i].sensor} ≥ ${rules[i].threshold.round()} °C → fan ${rules[i].fanPercent.round()}%'),
+                    value: rules[i].enabled,
+                    onChanged: (value) => setDialogState(() {
+                      rules[i] = HardwareAutomationRule(name: rules[i].name, sensor: rules[i].sensor, threshold: rules[i].threshold, fanPercent: rules[i].fanPercent, enabled: value);
+                    }),
+                  ),
+                if (rules.isEmpty) const Text('Henüz otomasyon kuralı yok.'),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('İptal')),
+            FilledButton(
+              onPressed: () {
+                _automationRules = List<HardwareAutomationRule>.unmodifiable(rules);
+                unawaited(_saveSettings());
+                if (mounted) setState(() {});
+                Navigator.pop(context);
+              },
+              child: const Text('Kaydet'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _applyAutomaticFanControl(Map<String, dynamic> telemetry) async {
+    if (!_smartFanEnabled || !_fanControlSupported || !_isConnected || _isSending) return;
+    final cpu = (telemetry['cpuTemperature'] as num?)?.toDouble() ?? double.nan;
+    final gpu = (telemetry['gpuTemperature'] as num?)?.toDouble() ?? double.nan;
+    final curveTarget = cpu.isFinite && cpu > 0 ? _fanCurve.evaluate(cpu) : null;
+    final ruleTarget = HardwareAutomationEngine(_automationRules).evaluate(<String, dynamic>{
+      'cpuTemperature': cpu,
+      'gpuTemperature': gpu,
+    });
+    final target = ruleTarget ?? curveTarget;
+    if (target == null || !target.isFinite) return;
+    if (cpu >= 95 || (gpu.isFinite && gpu >= 95)) return;
+    if (_lastAutomaticFanTarget != null && (target - _lastAutomaticFanTarget!).abs() < 5) return;
+    final success = await _sendCommand('Fan Hızı', target);
+    if (success) {
+      _lastAutomaticFanTarget = target;
+      if (mounted) setState(() => _fanValue = target);
+      _addEvent('Smart Fan otomatik hedef: ${target.round()}%');
     }
   }
 
@@ -942,6 +1058,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       }
     });
     if (thresholdExceeded) _addEvent('CPU sıcaklığı eşik üstünde');
+    await _applyAutomaticFanControl(data);
     if (_samplesSinceHistoryPersist >= 12) unawaited(_persistTelemetryHistory());
   }
 
@@ -1882,10 +1999,43 @@ Attach this archive to a support issue only after reviewing it for personal info
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionTitle('Kontroller', 'Güvenli kullanıcı alanı ayarları'),
+          const SizedBox(height: 6),
+          Text('Extension API: metadata/capability provider contract hazır • native plugin yükleme kapalı', style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurface.withAlpha(110))),
           const SizedBox(height: 20),
           _buildPresetRow(),
           const SizedBox(height: 14),
           _buildSliderControl('Fan Hızı', Icons.air, _fanValue, (value) => setState(() => _fanValue = value), const Color(0xFF64D8CB)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                onPressed: _openFanCurveEditor,
+                icon: const Icon(Icons.show_chart, size: 16),
+                label: const Text('Smart Fan Curve'),
+              ),
+              OutlinedButton.icon(
+                onPressed: !_fanControlSupported ? null : () {
+                  setState(() => _smartFanEnabled = !_smartFanEnabled);
+                  unawaited(_saveSettings());
+                  _addEvent(_smartFanEnabled ? 'Smart Fan etkinleştirildi' : 'Smart Fan devre dışı bırakıldı');
+                },
+                icon: Icon(_smartFanEnabled ? Icons.auto_awesome : Icons.auto_awesome_outlined, size: 16),
+                label: Text(_smartFanEnabled ? 'Smart Fan: Açık' : 'Smart Fan: Kapalı'),
+              ),
+              OutlinedButton.icon(
+                onPressed: _openAutomationRules,
+                icon: const Icon(Icons.rule, size: 16),
+                label: const Text('Otomasyon'),
+              ),
+              OutlinedButton.icon(
+                onPressed: _openBenchmark,
+                icon: const Icon(Icons.speed, size: 16),
+                label: const Text('Benchmark'),
+              ),
+            ],
+          ),
           Divider(color: Theme.of(context).colorScheme.onSurface.withAlpha(20), height: 30),
           _buildSliderControl('AI İşlem Gücü', Icons.auto_awesome, _aiValue, (value) => setState(() => _aiValue = value), const Color(0xFF8FA7FF)),
         ],
