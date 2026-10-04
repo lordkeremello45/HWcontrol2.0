@@ -1000,11 +1000,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _openHealthCenter() async {
     final health = await _requestBridgeData('Get Health');
+    final status = await _requestBridgeData('Get Status');
     if (!mounted) return;
     if (health == null) {
       setState(() => _status = 'Health Center için bridge bağlantısı gerekli');
       return;
     }
+    final metrics = status ?? const <String, dynamic>{};
     final anomalies = (health['anomalies'] as List?)?.whereType<Map>().toList(growable: false) ?? const <Map>[];
     final warnings = (health['warnings'] as List?)?.map((value) => value.toString()).toList(growable: false) ?? const <String>[];
     await showDialog<void>(
@@ -1021,6 +1023,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text('Safety: ${health['safetyState'] ?? 'unknown'}'),
                 Text('Recovery: ${health['recoveryAction'] ?? 'none'}'),
                 const Divider(),
+                Text('CPU: ${_formatHealthMetric(metrics['cpuTemperature'], '°C')} • ${_formatHealthMetric(metrics['cpuUsage'], '%')}'),
+                Text('GPU: ${_formatHealthMetric(metrics['gpuTemperature'], '°C')} • ${_formatHealthMetric(metrics['gpuUsage'], '%')}'),
+                Text('Fan: ${_formatHealthMetric(metrics['fanRpm'], 'RPM')} • ${_formatHealthMetric(metrics['fanPercent'], '%')}'),
+                Text('Power: ${_formatHealthMetric(metrics['powerWatts'], 'W')} • Voltage: ${_formatHealthMetric(metrics['voltage'], 'V')}'),
+                const SizedBox(height: 8),
                 if (warnings.isNotEmpty) ...[
                   const Text('Uyarılar', style: TextStyle(fontWeight: FontWeight.w700)),
                   for (final warning in warnings) Text('• $warning'),
@@ -1039,6 +1046,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Kapat'))],
       ),
     );
+  }
+
+  String _formatHealthMetric(dynamic value, String unit) {
+    final number = (value as num?)?.toDouble();
+    if (number == null || !number.isFinite || number <= 0) return 'N/A';
+    return '${number.toStringAsFixed(unit == '%' || unit == '°C' ? 1 : 0)} $unit';
   }
 
   Future<void> _exportDiagnosticReport() async {
