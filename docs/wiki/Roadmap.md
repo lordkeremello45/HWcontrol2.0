@@ -13,9 +13,11 @@ The following items are documentation/planning targets rather than promises of a
 
 ## Feature expansion
 
-- true point-based fan-curve editor;
+- **Implemented:** point-based fan-curve editor with local persistence and capability-gated automatic evaluation;
+- **Implemented:** bounded CPU microbenchmark;
+- **Implemented:** local temperature automation rules;
+- **Implemented:** extension metadata/capability contract;
 - richer multi-series hardware graphs;
-- process-aware Game Mode;
 - broader hardware-control backends;
 - additional package-native formats where maintenance is justified.
 
