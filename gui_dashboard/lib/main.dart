@@ -1102,10 +1102,31 @@ Attach this archive to a support issue only after reviewing it for personal info
         final tag = release['tag_name'] as String? ?? '';
         final url = release['html_url'] as String? ?? '';
         if (!RegExp(r'^v[0-9]+\.[0-9]+\.[0-9]+-(linux|windows|macos)$').hasMatch(tag) || !tag.endsWith(suffix) || !url.startsWith('https://github.com/lordkeremello45/HWcontrol2.0/releases/')) continue;
-        final assets = (release['assets'] as List<dynamic>? ?? const []).whereType<Map<String, dynamic>>();
-        final hasChecksum = assets.any((asset) => (asset['name'] as String? ?? '').endsWith('.sha256'));
-        if (!hasChecksum) continue;
-        newest = UpdateInfo(tag: tag, releaseUrl: url);
+        final assets = (release['assets'] as List<dynamic>? ?? const []).whereType<Map<String, dynamic>>().toList();
+        final candidates = Platform.isWindows
+            ? <String>['Setup.exe', '.exe', '.msi', '.zip']
+            : Platform.isMacOS
+                ? <String>['.dmg', '.pkg']
+                : <String>['.deb', '.tar.zst', '.tar.gz'];
+        Map<String, dynamic>? selected;
+        for (final suffixCandidate in candidates) {
+          selected = assets.cast<Map<String, dynamic>?>().firstWhere(
+            (asset) => (asset?['name'] as String? ?? '').toLowerCase().endsWith(suffixCandidate.toLowerCase()),
+            orElse: () => null,
+          );
+          if (selected != null) break;
+        }
+        if (selected == null) continue;
+        final assetUrl = selected['browser_download_url'] as String? ?? '';
+        if (!assetUrl.startsWith('https://github.com/lordkeremello45/HWcontrol2.0/releases/download/')) continue;
+        final digest = selected['digest'] as String?;
+        newest = UpdateInfo(
+          tag: tag,
+          releaseUrl: url,
+          assetName: selected['name'] as String? ?? 'HWControl-update',
+          assetUrl: assetUrl,
+          digest: digest != null && digest.startsWith('sha256:') ? digest.substring(7) : null,
+        );
         break;
       }
       if (!mounted) return;
@@ -1130,6 +1151,39 @@ Attach this archive to a support issue only after reviewing it for personal info
       if (nextParts[index] != currentParts[index]) return nextParts[index] > currentParts[index];
     }
     return false;
+  }
+
+  Future<void> _downloadVerifiedUpdate() async {
+    final info = _updateInfo;
+    if (info == null || _isCheckingUpdate) return;
+    if (!info.assetUrl.startsWith('https://github.com/lordkeremello45/HWcontrol2.0/releases/download/')) return;
+    try {
+      setState(() {
+        _isCheckingUpdate = true;
+        _updateStatus = 'Güncelleme indiriliyor ve doğrulanıyor...';
+      });
+      final response = await http.get(Uri.parse(info.assetUrl)).timeout(const Duration(seconds: 60));
+      if (response.statusCode != 200) throw StateError('update download failed');
+      final bytes = response.bodyBytes;
+      final actual = sha256.convert(bytes).toString();
+      if (info.digest != null && !actual.equalsIgnoreCase(info.digest!)) {
+        throw StateError('SHA-256 doğrulaması başarısız');
+      }
+      final directory = await getDownloadsDirectory() ?? await getApplicationSupportDirectory();
+      await directory.create(recursive: true);
+      final file = File('${directory.path}${Platform.pathSeparator}${info.assetName}');
+      await file.writeAsBytes(bytes, flush: true);
+      if (!mounted) return;
+      setState(() => _updateStatus = 'Güncelleme doğrulandı: ${file.path}');
+      _addEvent('Release indirildi ve SHA-256 doğrulandı');
+    } catch (error) {
+      if (mounted) {
+        setState(() => _updateStatus = 'Güncelleme doğrulama hatası: $error');
+        _addEvent('Release indirme/doğrulama başarısız');
+      }
+    } finally {
+      if (mounted) setState(() => _isCheckingUpdate = false);
+    }
   }
 
   Future<void> _openUpdate() async {
@@ -2135,6 +2189,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             runSpacing: 10,
             children: [
               OutlinedButton.icon(onPressed: _isConnected ? null : _connectToBridge, icon: const Icon(Icons.refresh, size: 17), label: Text(_tr('reconnect'))),
+              OutlinedButton.icon(onPressed: _updateInfo == null || _isCheckingUpdate ? null : _downloadVerifiedUpdate, icon: const Icon(Icons.download_outlined, size: 17), label: const Text('Doğrulanmış güncellemeyi indir')),
               OutlinedButton.icon(onPressed: _isConnected ? _exportDiagnosticReport : null, icon: const Icon(Icons.archive_outlined, size: 17), label: Text(_tr('createErrorReport'))),
             ],
           ),
@@ -2256,9 +2311,12 @@ class _HistoryPainter extends CustomPainter {
 }
 
 class UpdateInfo {
-  const UpdateInfo({required this.tag, required this.releaseUrl});
+  const UpdateInfo({required this.tag, required this.releaseUrl, required this.assetName, required this.assetUrl, required this.digest});
   final String tag;
   final String releaseUrl;
+  final String assetName;
+  final String assetUrl;
+  final String? digest;
 }
 
 class _Panel extends StatelessWidget {
