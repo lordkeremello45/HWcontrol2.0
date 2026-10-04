@@ -155,6 +155,78 @@ jobs:
           $leftover = Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' -Name HWCONTROL_KEY -ErrorAction SilentlyContinue
           if ($null -ne $leftover) { throw 'HWCONTROL_KEY still exists after MSI uninstall' }
 
+      - name: Build guided Setup.exe
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          dotnet tool install --global wix --version 6.0.2 --add-source https://api.nuget.org/v3/index.json
+          $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
+          wix --version
+          $version = "${{ env.RELEASE_TAG }}" -replace '^v', '' -replace '-windows
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $packageDir = "package/HWControl-${{ env.RELEASE_TAG }}-Windows-x64"
+          $zip = "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.zip"
+          Compress-Archive -Path "$packageDir/*" -DestinationPath $zip
+          Expand-Archive -Path $zip -DestinationPath verify-zip -Force
+          if (-not (Test-Path "verify-zip/HWControl.exe")) { throw 'HWControl.exe missing from ZIP' }
+          if (-not (Test-Path "verify-zip/bridge-service.exe")) { throw 'bridge-service.exe missing from ZIP' }
+          if (-not (Test-Path "verify-zip/ai_engine.exe")) { throw 'ai_engine.exe missing from ZIP' }
+          if (-not (Test-Path "verify-zip/security-guardian.exe")) { throw 'security-guardian.exe missing from ZIP' }
+          if (-not (Test-Path "verify-zip/security/fetch-status/bridger.key")) { throw 'bridger.key missing from ZIP' }
+
+      - name: Generate checksums
+        shell: pwsh
+        run: |
+          $zip = "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.zip"
+          $msi = "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi"
+          $zipHash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          $msiHash = (Get-FileHash $msi -Algorithm SHA256).Hash.ToLowerInvariant()
+          Set-Content "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.sha256" @(
+            "$zipHash  $zip",
+            "$msiHash  $msi"
+          )
+          if ((Get-Content "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.sha256").Count -ne 2) { throw 'Invalid checksum manifest' }
+
+      - name: Generate package provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.zip
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.sha256
+
+      - name: Upload Windows release artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: HWControl-${{ env.RELEASE_TAG }}-Windows-x64
+          path: |
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.zip
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.sha256
+, ''
+          wix build deploy/windows/HWControl-Setup.wxs -ext WixToolset.BootstrapperApplications.wixext -arch x64 -d Version=$version -d MsiPath="$PWD\HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi" -o "HWControl-${{ env.RELEASE_TAG }}-Windows-x64-Setup.exe"
+          if (-not (Test-Path "HWControl-${{ env.RELEASE_TAG }}-Windows-x64-Setup.exe")) { throw 'Setup.exe was not produced.' }
+
+      - name: Smoke test guided Setup.exe
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $setup = (Resolve-Path "HWControl-${{ env.RELEASE_TAG }}-Windows-x64-Setup.exe").Path
+          $root = Join-Path $env:RUNNER_TEMP 'HWControl-Setup-Validation'
+          if (Test-Path $root) { Remove-Item $root -Recurse -Force }
+          $install = Start-Process -FilePath $setup -ArgumentList '/quiet', '/norestart', "InstallFolder=$root" -Wait -PassThru
+          if ($install.ExitCode -ne 0) { throw "Setup.exe install failed with exit code $($install.ExitCode)." }
+          if (-not (Test-Path "$root\HWControl.exe")) { throw 'Setup.exe did not honor InstallFolder.' }
+          $service = Get-Service -Name HWControlBridge -ErrorAction Stop
+          if ($service.Status -ne 'Running') { throw "HWControlBridge is not running: $($service.Status)" }
+          & "$PWD\deploy\windows\Invoke-MsiWithTimeout.ps1" -MsiPath "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi" -Action Uninstall -LogPath (Join-Path $env:RUNNER_TEMP 'setup-uninstall.log') -TimeoutSeconds 120
+          if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge still exists after Setup smoke-test uninstall.' }
+          if (Test-Path "$env:ProgramFiles\HWControl") { throw 'Program Files\HWControl remains after Setup smoke-test uninstall.' }
+          if (Test-Path "$env:ProgramData\HWControl\bridge.key") { throw 'bridge.key remains after Setup smoke-test uninstall.' }
+          if (Test-Path $root) { throw 'Custom Setup install directory remains after uninstall.' }
+
       - name: Package ZIP
         shell: pwsh
         run: |
