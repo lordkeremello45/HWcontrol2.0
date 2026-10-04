@@ -2,26 +2,23 @@
 
 ## Current status
 
-A full point-based fan-curve editor is **not yet implemented** in the current repository.
+**IMPLEMENTED:** HWcontrol2.0 provides a point-based fan-curve editor with local persistence and linear interpolation.
 
-What exists today is profile-based fan control:
+The curve is defined by temperature/fan pairs and can be saved as the default curve.
 
-- a Fan Hızı slider from 0–100%;
-- named presets;
-- a saved Manual profile;
-- a bridge command path for `Fan Hızı`.
+## Safety boundary
 
-The UI therefore supports controlled fan target values where the backend implements the operation, but it does not yet expose a graph with temperature → fan-speed curve points.
+The GUI can configure and evaluate a curve even when a platform is monitor-only. Automatic fan actuation is only attempted when the bridge reports a validated writable hardware-control backend and valid thermal telemetry.
 
-## Planned direction
+Unsupported hardware remains monitor-only.
 
-A future curve editor can build on the existing profile mechanism with:
+## Example
 
-- temperature/fan control points;
-- interpolation;
-- minimum/maximum fan bounds;
-- hysteresis;
-- apply/revert;
-- per-device profiles.
-
-Until that is implemented, documentation should refer to the feature as profile-based fan control rather than a completed fan-curve editor.
+| Temperature | Fan |
+|---:|---:|
+| 40 °C | 25% |
+| 55 °C | 35% |
+| 65 °C | 50% |
+| 75 °C | 65% |
+| 85 °C | 80% |
+| 92 °C | 100% |
