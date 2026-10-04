@@ -689,7 +689,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 TextField(controller: name, decoration: const InputDecoration(labelText: 'Kural adı')),
                 DropdownButtonFormField<String>(
-                  value: sensor,
+                  initialValue: sensor,
                   decoration: const InputDecoration(labelText: 'Sensör'),
                   items: const [
                     DropdownMenuItem(value: 'cpuTemperature', child: Text('CPU sıcaklığı')),
