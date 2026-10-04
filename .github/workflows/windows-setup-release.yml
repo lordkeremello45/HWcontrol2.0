@@ -92,7 +92,17 @@ jobs:
           $serviceConfig = Get-CimInstance Win32_Service -Filter "Name='HWControlBridge'" -ErrorAction Stop
           if ($serviceConfig.StartName -ne 'NT AUTHORITY\LocalService') { throw "HWControlBridge must run as NT AUTHORITY\LocalService, found: $($serviceConfig.StartName)" }
           $acl = Get-Acl "$programDataDir"
-          $usersRules = $acl.Access | Where-Object { $_.IdentityReference -match '\\Users          if (-not $probe.TcpTestSucceeded) { throw 'HWControlBridge is not listening on 127.0.0.1:8080 after Setup.exe install.' }
+          $usersRules = $acl.Access | Where-Object { $_.IdentityReference -match '\\Users' }
+          foreach ($rule in $usersRules) {
+            if (($rule.FileSystemRights -band [Security.AccessControl.FileSystemRights]::Write) -or
+                ($rule.FileSystemRights -band [Security.AccessControl.FileSystemRights]::Modify) -or
+                ($rule.FileSystemRights -band [Security.AccessControl.FileSystemRights]::FullControl) -or
+                $rule.AccessControlType -eq 'Deny') {
+              throw "ProgramData\\HWControl grants Users unsafe write/modify access: $($rule.FileSystemRights) $($rule.AccessControlType)"
+            }
+          }
+          $probe = Test-NetConnection 127.0.0.1 -Port 8080 -WarningAction SilentlyContinue
+          if (-not $probe.TcpTestSucceeded) { throw 'HWControlBridge is not listening on 127.0.0.1:8080 after Setup.exe install.' }
 
           if (-not (Test-Path "$programDataDir\bridge.key")) { throw 'Bridge secret file was not created in ProgramData during install.' }
           $bridgeKey = (Get-Content -LiteralPath "$programDataDir\bridge.key" -Raw).Trim()
