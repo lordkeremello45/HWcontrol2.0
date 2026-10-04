@@ -16,7 +16,7 @@ class FanCurvePoint {
     final fan = (value['fan'] as num?)?.toDouble();
     if (temperature == null || fan == null) return null;
     if (!temperature.isFinite || !fan.isFinite) return null;
-    return FanCurvePoint(temperature.clamp(20, 110), fan.clamp(0, 100));
+    return FanCurvePoint(temperature.clamp(20, 110).toDouble(), fan.clamp(0, 100).toDouble());
   }
 }
 
@@ -45,7 +45,7 @@ class FanCurve {
         final span = right.temperature - left.temperature;
         if (span <= 0) return right.fanPercent;
         final ratio = (temperature - left.temperature) / span;
-        return (left.fanPercent + (right.fanPercent - left.fanPercent) * ratio).clamp(0, 100);
+        return (left.fanPercent + (right.fanPercent - left.fanPercent) * ratio).clamp(0, 100).toDouble();
       }
     }
     return sorted.last.fanPercent;
@@ -114,7 +114,7 @@ class _FanCurveEditorState extends State<FanCurveEditor> {
     fan.dispose();
     if (result == null || !mounted) return;
     setState(() {
-      _points.add(FanCurvePoint(result[0].clamp(20, 110), result[1].clamp(0, 100)));
+      _points.add(FanCurvePoint(result[0].clamp(20, 110).toDouble(), result[1].clamp(0, 100).toDouble()));
       _sort();
     });
   }
