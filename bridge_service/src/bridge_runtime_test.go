@@ -19,6 +19,9 @@ func TestRunBridgeGracefulShutdown(t *testing.T) {
 	oldKey, hadKey := os.LookupEnv("HWCONTROL_KEY_FILE")
 	oldLog, hadLog := os.LookupEnv("HWCONTROL_LOG")
 	oldCompat, hadCompat := os.LookupEnv("HWCONTROL_TCP_COMPAT")
+	oldDecoyDir, hadDecoyDir := os.LookupEnv("HWCONTROL_DECOY_DIR")
+	oldDecoyBootstrap, hadDecoyBootstrap := os.LookupEnv("HWCONTROL_DECOY_BOOTSTRAP")
+	oldPanicFile, hadPanicFile := os.LookupEnv("HWCONTROL_PANIC_FILE")
 	t.Cleanup(func() {
 		if hadPort {
 			_ = os.Setenv("HWCONTROL_PORT", oldPort)
@@ -40,6 +43,21 @@ func TestRunBridgeGracefulShutdown(t *testing.T) {
 		} else {
 			_ = os.Unsetenv("HWCONTROL_TCP_COMPAT")
 		}
+		if hadDecoyDir {
+			_ = os.Setenv("HWCONTROL_DECOY_DIR", oldDecoyDir)
+		} else {
+			_ = os.Unsetenv("HWCONTROL_DECOY_DIR")
+		}
+		if hadDecoyBootstrap {
+			_ = os.Setenv("HWCONTROL_DECOY_BOOTSTRAP", oldDecoyBootstrap)
+		} else {
+			_ = os.Unsetenv("HWCONTROL_DECOY_BOOTSTRAP")
+		}
+		if hadPanicFile {
+			_ = os.Setenv("HWCONTROL_PANIC_FILE", oldPanicFile)
+		} else {
+			_ = os.Unsetenv("HWCONTROL_PANIC_FILE")
+		}
 	})
 
 	probe, err := net.Listen("tcp", "127.0.0.1:0")
@@ -54,6 +72,9 @@ func TestRunBridgeGracefulShutdown(t *testing.T) {
 	_ = os.Setenv("HWCONTROL_LOG", logPath)
 	_ = os.Unsetenv("HWCONTROL_KEY")
 	_ = os.Setenv("HWCONTROL_TCP_COMPAT", "1")
+	_ = os.Setenv("HWCONTROL_DECOY_DIR", filepath.Join(tmp, "security"))
+	_ = os.Setenv("HWCONTROL_DECOY_BOOTSTRAP", "1")
+	_ = os.Setenv("HWCONTROL_PANIC_FILE", filepath.Join(tmp, "security", "panic-state.json"))
 
 	bridge := newBridgeService()
 	done := make(chan error, 1)
