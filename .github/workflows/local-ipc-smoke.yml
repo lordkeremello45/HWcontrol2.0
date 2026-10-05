@@ -45,7 +45,7 @@ jobs:
           Path(sys.argv[1]).write_text(secrets.token_hex(32) + "\n")
           PY
           chmod 600 "$key_file"
-          HWCONTROL_KEY_FILE="$key_file" HWCONTROL_SOCKET="$socket" ./bridge-service >"$tmp/bridge.log" 2>&1 &
+          HWCONTROL_KEY_FILE="$key_file" HWCONTROL_SOCKET="$socket" HWCONTROL_DECOY_DIR="$tmp/security" HWCONTROL_DECOY_BOOTSTRAP=1 HWCONTROL_PANIC_FILE="$tmp/security/panic-state.json" ./bridge-service >"$tmp/bridge.log" 2>&1 &
           pid=$!
           trap 'kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true; rm -rf "$tmp"' EXIT
           for _ in $(seq 1 50); do test -S "$socket" && break; sleep .1; done
