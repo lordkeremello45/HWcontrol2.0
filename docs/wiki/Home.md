@@ -64,7 +64,7 @@ The Apps Script integration:
 - uses a stable feedback ID for recovery;
 - never stores the GitHub token in repository source.
 
-Setup documentation: integrations/google-feedback/README.md.
+Setup documentation: [Google feedback automation](https://github.com/lordkeremello45/HWcontrol2.0/tree/main/integrations/google-feedback).
 
 ## Public engineering / community
 
@@ -72,10 +72,10 @@ The project uses GitHub as the source of truth and GitLab as an automated mirror
 
 See:
 
-- [Stack Overflow Topics](../community/Stack-Overflow-Topics)
-- [Public Profile Checklist](../community/Public-Profile-Checklist)
+- [Stack Overflow Topics](https://github.com/lordkeremello45/HWcontrol2.0/blob/main/docs/community/Stack-Overflow-Topics.md)
+- [Public Profile Checklist](https://github.com/lordkeremello45/HWcontrol2.0/blob/main/docs/community/Public-Profile-Checklist.md)
 - [Contributing](Development-Contributing)
-- [Support](Troubleshooting)
+- [Support](https://github.com/lordkeremello45/HWcontrol2.0/blob/main/SUPPORT.md)
 
 ## Documentation map
 
