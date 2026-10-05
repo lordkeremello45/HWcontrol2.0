@@ -129,7 +129,7 @@ HWcontrol2.0 is developed in the open. The public engineering plan focuses on us
 - Local security tooling under `security/local-audit/`: **Apache License 2.0 (Apache-2.0)**
 - Third-party dependencies: their respective licenses
 
-See [License documentation](docs/wiki/License.md), [LICENSE-APACHE](LICENSE-APACHE), and [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES).
+See [License documentation](docs/wiki/License.md), [LICENSE-APACHE](LICENSE-APACHE), [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), and [Technical References](docs/REFERENCES.md).
 
 ## Project status
 
