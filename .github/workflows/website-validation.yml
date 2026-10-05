@@ -32,6 +32,14 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Reject legacy source HTML
+        run: |
+          set -euo pipefail
+          if find website -type f -name '*.html' -not -path 'website/dist/*' -not -path 'website/node_modules/*' -print -quit | grep -q .; then
+            echo 'Legacy source HTML found under website/. All website pages must be Astro source.'
+            exit 1
+          fi
+
       - name: Validate JavaScript
         run: node --check website/public/app.js
 
