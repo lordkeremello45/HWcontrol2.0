@@ -33,7 +33,7 @@ jobs:
           persist-credentials: false
 
       - name: Validate JavaScript
-        run: node --check website/app.js
+        run: node --check website/public/app.js
 
       - name: Validate Python manifest generator
         run: python3 -m py_compile scripts/generate-release-manifest.py
@@ -41,8 +41,8 @@ jobs:
       - name: Validate release manifest when present
         run: |
           set -euo pipefail
-          if [ -f website/release.json ]; then
-            node scripts/website-release-test.mjs website/release.json
+          if [ -f website/public/release.json ]; then
+            node scripts/website-release-test.mjs website/public/release.json
           else
             echo 'release.json is not present in this revision; generator will create it after release publication.'
           fi
@@ -50,8 +50,8 @@ jobs:
       - name: Validate required website integration
         run: |
           set -euo pipefail
-          grep -Fq "const MANIFEST='./release.json';" website/app.js
-          grep -Fq 'checksum_sha256_url' website/app.js
-          grep -Fq 'state.manifest' website/app.js
+          grep -Fq 'const manifestUrl="./release.json";' website/public/app.js
+          grep -Fq 'checksum_sha256_url' website/public/app.js
+          grep -Fq 'state.manifest' website/public/app.js
           grep -Fq 'release-web-sync' .github/workflows/release-web-sync.yml
           echo 'Website release integration: OK'
