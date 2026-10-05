@@ -32,6 +32,7 @@ This directory contains the version-controlled source for the project documentat
 - [Hardware Abstraction](Architecture-Hardware-Abstraction.md)
 - [Platform-specific Components](Architecture-Platform-specific.md)
 - [Data Flow](Architecture-Data-Flow.md)
+- [Six-Service Architecture](Architecture-Six-Services.md)
 
 ## 📦 Packaging & Distribution
 
@@ -83,8 +84,12 @@ This directory contains the version-controlled source for the project documentat
 
 - [Roadmap](Roadmap.md)
 
+## 📚 References
+
+- [Technical References](References.md)
+
+The complete source list is maintained in [docs/REFERENCES.md](https://github.com/lordkeremello45/HWcontrol2.0/blob/main/docs/REFERENCES.md). Third-party license notices are maintained in [THIRD_PARTY_NOTICES.md](https://github.com/lordkeremello45/HWcontrol2.0/blob/main/THIRD_PARTY_NOTICES.md).
+
 ## 📜 License
 
 - [License](License.md)
-
-- [Six-Service Architecture](Architecture-Six-Services.md) — Update, SensorHealth, Diagnostics, Game, Security Guardian, and Fetch Status canary service boundaries.
