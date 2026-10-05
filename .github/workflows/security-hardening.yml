@@ -43,11 +43,13 @@ jobs:
         with:
           go-version-file: bridge_service/go.mod
           cache: false
-      - name: Enforce gofmt
+      - name: Format Go sources
+        run: gofmt -w .
+      - name: Verify Go formatting
         run: |
           files="$(gofmt -l .)"
           if [ -n "$files" ]; then
-            echo "Unformatted Go files:"
+            echo "gofmt produced unformatted files:"
             printf "%s\n" "$files"
             exit 1
           fi
