@@ -1,0 +1,66 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import "../styles/global.css";
+---
+<BaseLayout>
+  <section class="hero shell">
+    <div class="eyebrow">Open source · Cross-platform · Beta</div>
+    <h1>Hardware control,<br /><span>without the clutter.</span></h1>
+    <p class="lead">HWControl 2.0 brings hardware monitoring, performance controls, diagnostics and release integrity into one focused desktop platform.</p>
+    <div class="actions">
+      <a class="btn primary" href="#download">Download HWControl ↓</a>
+      <a class="btn" href="https://github.com/lordkeremello45/HWcontrol2.0" target="_blank" rel="noopener noreferrer">View source ↗</a>
+    </div>
+    <div class="meta"><span id="latestBadge">Latest stable · checking…</span><span>Windows · macOS · Linux</span><span>SHA-256 · provenance</span></div>
+  </section>
+
+  <section id="features" class="section shell">
+    <div class="section-head"><div><div class="eyebrow">THE PLATFORM</div><h2>One stack. Three targets.</h2></div><p>Flutter/Dart UI, authenticated localhost Go bridge and native C++/CMake engine with platform-specific hardware APIs.</p></div>
+    <div class="grid">
+      <article class="card"><span class="num">01</span><h3>Hardware monitoring</h3><p>CPU, memory, storage, GPU and fan telemetry where the operating system and drivers expose supported data.</p></article>
+      <article class="card"><span class="num">02</span><h3>Control & profiles</h3><p>Performance, Balanced and Quiet profiles, Game Mode and capability-gated fan control.</p></article>
+      <article class="card"><span class="num">03</span><h3>Diagnostics</h3><p>Bridge diagnostics, anomaly detection, health states and local telemetry history without requiring cloud services.</p></article>
+      <article class="card"><span class="num">04</span><h3>Release integrity</h3><p>GitHub Release metadata, checksum validation and artifact provenance are part of the distribution pipeline.</p></article>
+    </div>
+  </section>
+
+  <section id="security" class="security shell">
+    <div class="section-head"><div><div class="eyebrow">SECURITY</div><h2>Verify, don't just trust.</h2></div><p>Security claims are deliberately separated from publisher trust: checksums and attestations do not replace OS-trusted code signing.</p></div>
+    <div class="security-grid">
+      <article class="security-card"><span class="num">01</span><h3>Authenticated loopback</h3><p>The dashboard communicates with the local Go bridge through authenticated loopback requests.</p></article>
+      <article class="security-card"><span class="num">02</span><h3>Local-first design</h3><p>Core monitoring and control remain local. Optional integrations are separated from the core runtime.</p></article>
+      <article class="security-card"><span class="num">03</span><h3>Open implementation</h3><p>Source, workflows and documentation are public so technical claims can be inspected.</p></article>
+      <article class="security-card"><span class="num">04</span><h3>Signing transparency</h3><p>Windows/macOS publisher signing is only claimed when credentials and verification are actually present.</p></article>
+    </div>
+  </section>
+
+  <section id="download" class="download shell">
+    <div class="download-copy"><div class="eyebrow">DOWNLOAD</div><h2>Choose your platform.</h2><p>Package metadata is generated from GitHub Releases during deployment. The page does not invent download URLs or package availability.</p></div>
+    <div class="platforms" role="tablist" aria-label="Operating system">
+      <button class="platform active" data-platform="windows" role="tab" aria-selected="true"><span class="os">▣</span><span><b>Windows 10 / 11</b><small>x64 · EXE · MSI · MSIX · ZIP</small></span></button>
+      <button class="platform" data-platform="macos" role="tab" aria-selected="false"><span class="os">●</span><span><b>macOS 14+</b><small>Apple Silicon · PKG · DMG</small></span></button>
+      <button class="platform" data-platform="linux" role="tab" aria-selected="false"><span class="os">◈</span><span><b>Linux</b><small>x64 · DEB · TAR.GZ · TAR.ZST</small></span></button>
+    </div>
+    <div class="package-panel" aria-live="polite">
+      <div class="package-head"><div><div class="eyebrow" id="packageEyebrow">WINDOWS PACKAGE</div><h3 id="packageTitle">Pick your installer</h3></div><span class="detected" id="detected">Windows 10 / 11 · x64</span></div>
+      <div id="packages" class="packages"><div class="loading">Loading release assets…</div></div>
+      <div class="actions"><a id="releaseLink" class="btn" href="https://github.com/lordkeremello45/HWcontrol2.0/releases" target="_blank" rel="noopener noreferrer">Open release ↗</a></div>
+    </div>
+    <div class="note"><strong>Integrity:</strong> use the published SHA-256 manifest when one is available. Checksums establish file integrity; they do not establish publisher identity.</div>
+  </section>
+</BaseLayout>
+<script>
+const repo="lordkeremello45/HWcontrol2.0";
+const manifestUrl="./release.json";
+const apiUrl=`https://api.github.com/repos/${repo}/releases?per_page=100`;
+const state={platform:"windows",manifest:null,releases:[]};
+const labels={windows:["WINDOWS PACKAGE","Pick your installer","Windows 10 / 11 · x64"],macos:["MACOS PACKAGE","Pick your package","macOS 14+ · Apple Silicon"],linux:["LINUX PACKAGE","Pick your package","Linux · x64"]};
+const $=(s)=>document.querySelector(s);
+const esc=(v)=>String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function nameOf(n){const x=n.toLowerCase();if(x.endsWith("-setup.exe"))return"HWControl Setup · recommended";if(x.endsWith(".msi"))return"HWControl MSI installer";if(x.endsWith(".msix"))return"HWControl MSIX installer";if(x.endsWith(".zip"))return"Portable ZIP";if(x.endsWith(".dmg"))return"DMG disk image";if(x.endsWith(".pkg"))return"PKG installer";if(x.endsWith(".deb"))return"DEB package";if(x.endsWith(".pkg.tar.zst"))return"Arch package";if(x.endsWith(".tar.zst"))return"TAR.ZST archive";if(x.endsWith(".tar.gz"))return"TAR.GZ archive";return"Release asset"}
+function size(n){if(!n)return"";const u=["B","KB","MB","GB"];let i=0,x=n;while(x>=1024&&i<3){x/=1024;i++}return `${x.toFixed(i?1:0)} ${u[i]}`}
+function render(){const [eyebrow,title,detected]=labels[state.platform];$("#packageEyebrow").textContent=eyebrow;$("#packageTitle").textContent=title;$("#detected").textContent=detected;let r=state.manifest?.platforms?.[state.platform];if(!r){r=state.releases.find(x=>!x.draft&&!x.prerelease&&new RegExp(`-${state.platform}$`,"i").test(x.tag_name))}if(!r){$("#packages").innerHTML='<div class="loading">No stable package release is currently available.</div>';return}$("#releaseLink").href=r.release_url||r.html_url;const assets=(r.assets||[]).filter(a=>a.name&&!/sha(256|512)|checksum/i.test(a.name));if(!assets.length){$("#packages").innerHTML='<div class="loading">No package assets found. Open the release page for details.</div>';return}$("#packages").innerHTML=assets.map(a=>{const verify=a.checksum_sha256_url?'<a class="verify" href="'+esc(a.checksum_sha256_url)+'" target="_blank" rel="noopener noreferrer">Verify SHA-256 ↗</a>':"";return'<div class="package"><span class="name">'+esc(nameOf(a.name))+'<small>'+esc(a.name)+(a.size?' · '+size(a.size):"")+'</small></span><div class="package-actions"><a href="'+esc(a.url||a.browser_download_url)+'" target="_blank" rel="noopener noreferrer">Download ↗</a>'+verify+'</div></div>'}).join("")}
+async function load(){try{const m=await fetch(manifestUrl,{cache:"no-store"});if(m.ok){const data=await m.json();if(data.schema===1&&data.repository===repo){state.manifest=data;const latest=Object.values(data.platforms).sort((a,b)=>new Date(b.published_at)-new Date(a.published_at))[0];$("#latestBadge").textContent=latest?.tag?`Latest stable · ${latest.tag}`:"Stable release · unavailable";render();return}}}catch{}try{const r=await fetch(apiUrl,{headers:{Accept:"application/vnd.github+json"}});if(r.ok){state.releases=await r.json();const latest=state.releases.filter(x=>!x.draft&&!x.prerelease).sort((a,b)=>new Date(b.published_at||b.created_at)-new Date(a.published_at||a.created_at))[0];$("#latestBadge").textContent=latest?`Latest stable · ${latest.tag_name}`:"Stable release · unavailable"}}catch{$("#latestBadge").textContent="Latest release · unavailable"}render()}
+document.querySelectorAll(".platform").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".platform").forEach(x=>x.classList.remove("active"));b.classList.add("active");state.platform=b.dataset.platform;render()}));
+load();
+</script>
