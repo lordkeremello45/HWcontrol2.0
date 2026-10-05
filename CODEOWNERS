@@ -1,0 +1,7 @@
+# Default ownership for repository changes.
+* @lordkeremello45
+
+# Security-sensitive areas.
+.github/ @lordkeremello45
+security/ @lordkeremello45
+bridge_service/ @lordkeremello45
