@@ -48,6 +48,18 @@ jobs:
         working-directory: website
         run: npm run build
 
+      - name: Validate generated site
+        working-directory: website
+        run: |
+          set -euo pipefail
+          test -s dist/index.html
+          test -s dist/app.js
+          test -s dist/release.json
+          test -s dist/robots.txt
+          test -s dist/sitemap.xml
+          grep -q 'HWControl 2.0' dist/index.html
+          grep -q 'app.js' dist/index.html
+
       - name: Ensure release metadata is available
         env:
           GH_TOKEN: ${{ github.token }}
