@@ -53,7 +53,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          if [ ! -f website/release.json ]; then
+          if [ ! -f website/public/release.json ]; then
             echo 'website/release.json is absent; generating an ephemeral Pages manifest from stable releases.'
             gh api --paginate --slurp \
               "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
