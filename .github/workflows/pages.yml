@@ -33,8 +33,6 @@ jobs:
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: 24.15.0
-          cache: npm
-          cache-dependency-path: website/package.json
 
       - name: Install dependencies
         working-directory: website
@@ -43,6 +41,24 @@ jobs:
       - name: Audit dependency tree
         working-directory: website
         run: npm audit --audit-level=high
+
+      - name: Ensure release metadata is available
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ ! -f website/public/release.json ]; then
+            echo 'Generating an ephemeral Pages manifest from stable releases.'
+            gh api --paginate --slurp \
+              "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+              | jq 'add' > "$RUNNER_TEMP/releases.json"
+            python3 scripts/generate-release-manifest.py \
+              "$RUNNER_TEMP/releases.json" \
+              website/public/release.json
+          fi
+          test -s website/public/release.json
+          python3 -m json.tool website/public/release.json >/dev/null
+          node scripts/website-release-test.mjs website/public/release.json
 
       - name: Build Astro site
         working-directory: website
@@ -59,26 +75,6 @@ jobs:
           test -s dist/sitemap.xml
           grep -q 'HWControl 2.0' dist/index.html
           grep -q 'app.js' dist/index.html
-
-      - name: Ensure release metadata is available
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          if [ ! -f website/public/release.json ]; then
-            echo 'website/release.json is absent; generating an ephemeral Pages manifest from stable releases.'
-            gh api --paginate --slurp \
-              "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
-              | jq 'add' > "$RUNNER_TEMP/releases.json"
-            python3 scripts/generate-release-manifest.py \
-              "$RUNNER_TEMP/releases.json" \
-              website/public/release.json
-          fi
-          test -s website/release.json || test -s website/public/release.json
-          MANIFEST="website/release.json"
-          [ -f "$MANIFEST" ] || MANIFEST="website/public/release.json"
-          python3 -m json.tool "$MANIFEST" >/dev/null
-          node scripts/website-release-test.mjs "$MANIFEST"
 
       - name: Configure Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
