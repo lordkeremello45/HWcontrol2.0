@@ -1,14 +1,13 @@
-name: Deploy website
+name: Build and Deploy Astro Website
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
-      - 'website/**'
-      - 'scripts/generate-release-manifest.py'
-      - 'scripts/website-release-test.mjs'
-      - '.github/workflows/pages.yml'
+      - "website/**"
+      - "scripts/generate-release-manifest.py"
+      - "scripts/website-release-test.mjs"
+      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:
@@ -20,33 +19,34 @@ concurrency:
   group: github-pages-production
   cancel-in-progress: false
 
-env:
-  PAGES_ARTIFACT: github-pages
-
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-24.04
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
+    timeout-minutes: 15
     steps:
-      - name: Checkout exact main revision
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          ref: main
-          fetch-depth: 1
 
-      - name: Verify checkout revision
-        run: |
-          set -euo pipefail
-          echo "Deploying commit: $(git rev-parse HEAD)"
-          test "$(git branch --show-current)" = "main"
+      - name: Setup Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 24.15.0
+          cache: npm
+          cache-dependency-path: website/package.json
 
-      - name: Validate website JavaScript
-        run: node --check website/app.js
+      - name: Install dependencies
+        working-directory: website
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Audit dependency tree
+        working-directory: website
+        run: npm audit --audit-level=high
+
+      - name: Build Astro site
+        working-directory: website
+        run: npm run build
 
       - name: Ensure release metadata is available
         env:
@@ -60,57 +60,29 @@ jobs:
               | jq 'add' > "$RUNNER_TEMP/releases.json"
             python3 scripts/generate-release-manifest.py \
               "$RUNNER_TEMP/releases.json" \
-              website/release.json
+              website/public/release.json
           fi
-          test -s website/release.json
-          python3 -m json.tool website/release.json >/dev/null
-          node scripts/website-release-test.mjs website/release.json
-
-      - name: Verify website installer integration
-        run: |
-          set -euo pipefail
-          node - <<'NODE'
-          const fs = require('fs');
-          const source = fs.readFileSync('website/app.js', 'utf8');
-          const requiredTokens = [
-            "endsWith('-setup.exe')",
-            'Setup · recommended',
-            '.msi',
-            '.zip'
-          ];
-          const missing = requiredTokens.filter(token => !source.includes(token));
-          if (missing.length > 0) {
-            console.error('Missing website installer integration tokens:');
-            for (const token of missing) console.error(`  - ${token}`);
-            process.exit(1);
-          }
-          console.log('Website installer integration: OK');
-          NODE
+          test -s website/release.json || test -s website/public/release.json
+          MANIFEST="website/release.json"
+          [ -f "$MANIFEST" ] || MANIFEST="website/public/release.json"
+          python3 -m json.tool "$MANIFEST" >/dev/null
+          node scripts/website-release-test.mjs "$MANIFEST"
 
       - name: Configure Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
-          name: ${{ env.PAGES_ARTIFACT }}
-          path: ./website
+          path: ./website/dist
 
-      - name: Verify Pages artifact exists
-        env:
-          EXPECTED_ARTIFACT: ${{ env.PAGES_ARTIFACT }}
-        run: |
-          set -euo pipefail
-          echo "Pages artifact prepared: $EXPECTED_ARTIFACT"
-          test -f website/index.html
-          test -f website/app.js
-          test -f website/release.json
-
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
-        with:
-          artifact_name: ${{ env.PAGES_ARTIFACT }}
-          timeout: 1200000
-          error_count: 20
-          reporting_interval: 5000
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
