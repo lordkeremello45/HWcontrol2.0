@@ -60,6 +60,15 @@ jobs:
           python3 -m json.tool website/public/release.json >/dev/null
           node scripts/website-release-test.mjs website/public/release.json
 
+      - name: Reject legacy source HTML
+        working-directory: website
+        run: |
+          set -euo pipefail
+          if find . -type f -name '*.html' -not -path './dist/*' -not -path './node_modules/*' -print -quit | grep -q .; then
+            echo 'Legacy source HTML found under website/. All website pages must be Astro source.'
+            exit 1
+          fi
+
       - name: Build Astro site
         working-directory: website
         run: npm run build
@@ -73,6 +82,7 @@ jobs:
           test -s dist/release.json
           test -s dist/robots.txt
           test -s dist/sitemap.xml
+          test -s dist/privacy/index.html
           grep -q 'HWControl 2.0' dist/index.html
           grep -q 'app.js' dist/index.html
 
