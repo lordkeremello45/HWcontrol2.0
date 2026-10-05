@@ -2,6 +2,15 @@
 
 This page records authoritative external sources that have been used to research or design HWcontrol2.0. A reference is a design input, not proof that HWcontrol2.0 implements or has validated every technique described by that source.
 
+## How to read this page
+
+References answer **where a design decision came from**. They do not replace implementation evidence.
+
+- `docs/REFERENCES.md` — technical research sources and standards.
+- `THIRD_PARTY_NOTICES.md` — software actually declared, fetched, bundled or redistributed by the project and its license/notice sources.
+- `CITATION.cff` — citation metadata for the project itself.
+- Repository code, tests, CI results and release artifacts remain the authority for implementation status.
+
 ## Hardware and operating-system APIs
 
 ### Windows
@@ -91,6 +100,15 @@ This page records authoritative external sources that have been used to research
 
 **HWcontrol use:** Windows EXE/MSI/MSIX distribution, Microsoft Store planning, macOS Developer ID/notarization planning, SignPath evaluation and release hosting.
 
+## Packaging and distribution formats
+
+- Debian Policy: https://www.debian.org/doc/debian-policy/
+- Debian New Maintainers' Guide: https://www.debian.org/doc/manuals/maint-guide/
+- zstd: https://facebook.github.io/zstd/
+- Git: https://git-scm.com/doc
+
+**HWcontrol use:** DEB packaging, portable compressed distributions and source/version-control workflows.
+
 ## Licensing
 
 - GNU GPLv3: https://www.gnu.org/licenses/gpl-3.0.html
@@ -121,7 +139,7 @@ These services are infrastructure/community references only. External visibility
 
 ## Research notes
 
-The project has also evaluated:
+The project has evaluated:
 - authenticated localhost IPC and replay protection;
 - platform-specific hardware telemetry and capability detection;
 - SHA-256 checksums versus code signing and provenance;
@@ -136,4 +154,4 @@ These topics are documented here so future contributors can distinguish research
 
 ## Status rule
 
-Use repository code, tests, CI evidence, packaged artifacts and real hardware/platform validation to determine whether a referenced technique is **IMPLEMENTED**, **PARTIAL**, **PLANNED**, **UNAVAILABLE**, or **VERIFIED**. Never infer implementation solely from the presence of a reference.
+Use repository code, tests, CI evidence, packaged artifacts and real platform/hardware validation to determine whether a referenced technique is **IMPLEMENTED**, **PARTIAL**, **PLANNED**, **UNAVAILABLE**, or **VERIFIED**. Never infer implementation solely from the presence of a reference.
