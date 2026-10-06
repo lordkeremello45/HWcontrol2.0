@@ -41,7 +41,7 @@ if (-not $sensors) {
 [pscustomobject]@{ cpuTemperature=[double]$cpuTemp; gpuTemperature=[double]$gpuTemp; gpuUsage=[double]$gpuLoad; fanRpm=[double]$fan; powerWatts=[double]$power; voltage=[double]$voltage; gpuVendor=$vendor; sensorSource=$(if ($sensors) { 'LibreHardwareMonitor WMI' } else { 'Windows WMI fallback' }) } | ConvertTo-Json -Compress`
 
 func mergePlatformMetrics(metrics *HardwareMetrics) {
-	output, err := exec.Command("powershell.exe", "-NoProfile", "-NonInteractive", "-Command", windowsSensorScript).Output()
+	output, err := exec.Command(platformExecutable("powershell.exe"), "-NoProfile", "-NonInteractive", "-Command", windowsSensorScript).Output()
 	if err != nil || strings.TrimSpace(string(output)) == "" {
 		return
 	}
