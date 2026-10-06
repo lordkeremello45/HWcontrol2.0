@@ -54,6 +54,17 @@ jobs:
           DISTRO_IMAGE: ${{ matrix.container }}
         run: |
           set -euo pipefail
+          for attempt in 1 2 3; do
+            if docker pull "$DISTRO_IMAGE"; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "Failed to pull $DISTRO_IMAGE after 3 attempts." >&2
+              exit 1
+            fi
+            sleep $((attempt * 5))
+          done
+
           docker run --rm \
             -e CI=1 \
             -v "$GITHUB_WORKSPACE:/workspace" \
