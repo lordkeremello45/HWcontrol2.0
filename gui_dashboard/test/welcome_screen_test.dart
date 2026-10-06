@@ -29,12 +29,14 @@ void main() {
     expect(find.text('Get Started'), findsOneWidget);
     expect(find.text("Don't show this again"), findsOneWidget);
 
+    await tester.ensureVisible(find.text('Get Started'));
     await tester.tap(find.text('Get Started'));
     await tester.pump();
 
     expect(continued, isTrue);
     expect(dontShowAgain, isTrue);
 
+    await tester.ensureVisible(find.text('Settings'));
     await tester.tap(find.text('Settings'));
     await tester.pump();
 
