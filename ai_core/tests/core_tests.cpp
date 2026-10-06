@@ -5,9 +5,31 @@
 #include <chrono>
 #include <cstdlib>
 #include <iostream>
+#include <optional>
 #include <limits>
 #include <string>
 #include <thread>
+
+static std::optional<std::string> environmentValue(const char* name) {
+#ifdef _WIN32
+    char* value = nullptr;
+    size_t length = 0;
+    if (_dupenv_s(&value, &length, name) != 0 || value == nullptr) {
+        return std::nullopt;
+    }
+    std::string result(value, length > 0 ? length - 1 : 0);
+    std::free(value);
+    if (result.empty()) {
+        return std::nullopt;
+    }
+    return result;
+#else
+    if (const char* value = std::getenv(name); value && *value) {
+        return std::string(value);
+    }
+    return std::nullopt;
+#endif
+}
 
 int main() {
     {
@@ -26,9 +48,9 @@ int main() {
         assert(engine.processData(42.0f, std::numeric_limits<float>::infinity()) == "AI girdisi gecersiz");
 
         // Optional real-model regression. CI can enable this with HWCONTROL_TEST_MODEL.
-        if (const char* model = std::getenv("HWCONTROL_TEST_MODEL"); model && *model) {
-            if (!engine.init(model)) {
-                std::cerr << "HWCONTROL_TEST_MODEL could not be initialized: " << model << '\n';
+        if (const auto model = environmentValue("HWCONTROL_TEST_MODEL")) {
+            if (!engine.init(model->c_str())) {
+                std::cerr << "HWCONTROL_TEST_MODEL could not be initialized: " << *model << '\n';
                 return 1;
             }
             const std::string first = engine.processData(55.0f, 35.0f);
@@ -36,7 +58,7 @@ int main() {
             assert(first != "AI yanit uretemedi");
 
             // Successful repeated init must replace the previous runtime without corrupting it.
-            assert(engine.init(model));
+            assert(engine.init(model->c_str()));
             const std::string second = engine.processData(56.0f, 36.0f);
             assert(!second.empty());
             assert(second != "AI motoru hazir degil");
