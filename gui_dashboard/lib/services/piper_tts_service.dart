@@ -22,7 +22,7 @@ class PiperTtsService {
     required String modelPath,
   }) async {
     final executable = await _resolveExecutable(executablePath);
-    return executable != null && await File(modelPath).exists();
+    return executable != null && await _hasVoiceModel(modelPath);
   }
 
   Future<void> speak({
@@ -43,7 +43,7 @@ class PiperTtsService {
         'Piper executable was not found. Install Piper or set its executable path.',
       );
     }
-    if (!await File(modelPath).exists()) {
+    if (!await _hasVoiceModel(modelPath)) {
       throw StateError(
         'Piper voice model was not found. Set the path to a local .onnx model.',
       );
@@ -104,6 +104,20 @@ class PiperTtsService {
           // Temporary audio cleanup is best-effort.
         }
       }
+    }
+  }
+
+  Future<bool> _hasVoiceModel(String modelPath) async {
+    final model = File(modelPath);
+    if (!await model.exists() || await model.length() == 0) return false;
+    // Piper requires the matching .onnx.json configuration beside the model.
+    final config = File('$modelPath.json');
+    if (!await config.exists() || await config.length() == 0) return false;
+    try {
+      final decoded = await config.readAsString();
+      return decoded.trimLeft().startsWith('{');
+    } catch (_) {
+      return false;
     }
   }
 
