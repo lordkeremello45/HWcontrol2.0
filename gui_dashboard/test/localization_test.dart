@@ -81,9 +81,13 @@ void main() {
       expect(english[key], isNotEmpty, reason: 'Missing en-US key: $key');
     }
     expect(turkish['welcomeTitle'], contains("HWcontrol2.0'a"));
-    expect(turkish['telemetryHistory'], 'Telemetri geçmişi');
-    expect(turkish['advancedTelemetry'], 'Gelişmiş telemetri');
+    expect(turkish['telemetryHistory'], 'Ölçüm geçmişi');
+    expect(turkish['advancedTelemetry'], 'Gelişmiş ölçümler');
     expect(turkish['releaseOpen'], 'Sürüm sayfasını aç');
+    expect(turkish['dashboard'], 'Ana ekran');
+    expect(turkish['ramUsage'], 'Bellek kullanımı');
+    expect(turkish['gpuUsage'], 'Ekran kartı kullanımı');
+    expect(turkish['fanSpeed'], 'Soğutucu pervanesi hızı');
 
     for (final locale in <String>[
       'ca-ES', 'es-MX', 'pt-PT', 'zh-TW', 'fil-PH', 'bn-BD', 'en-CA', 'ur-PK',
