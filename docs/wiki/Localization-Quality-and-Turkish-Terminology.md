@@ -24,7 +24,7 @@ These are product terminology choices, not a claim that every word of foreign or
 
 ## Current source-catalog coverage
 
-The source catalog currently contains 85 keys. `en-US`, `en-GB`, `tr-TR`, `ja-JP`, `de-DE`, `fr-FR`, and `it-IT` now have matching key sets. The other listed locales remain partial: their missing entries may fall back to English. Do not advertise those locales as fully translated until their coverage and wording have been reviewed.
+The source catalog currently contains 85 keys. `en-US`, `en-GB`, `tr-TR`, `ja-JP`, `de-DE`, `fr-FR`, `it-IT`, `es-ES`, and `pt-BR` now have matching key sets. The other listed locales remain partial: their missing entries may fall back to English. Do not advertise those locales as fully translated until their coverage and wording have been reviewed.
 
 ## Required review workflow
 
