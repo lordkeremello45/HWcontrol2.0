@@ -384,5 +384,21 @@
   },
   "motherboardLabel": "Anakart",
   "gpuDriverLabel": "GPU sürücüsü",
-  "last20Events": "Son 20 kayıt"
+  "last20Events": "Son 20 kayıt",
+  "securityBlockedTitle": "BU KOD RESMÎ DEĞİL VE GÜVENLİ DEĞİL",
+  "@securityBlockedTitle": {
+    "description": "Security-critical message shown when release authenticity verification fails."
+  },
+  "securityBlockedDescription": "Bu sürümün resmî bir HWcontrol2.0 derlemesi olduğu doğrulanamadı. Güvenliğiniz için uygulama engellendi.",
+  "@securityBlockedDescription": {
+    "description": "Security-critical message shown when release authenticity verification fails."
+  },
+  "securityBlockedRecommendation": "Bu derlemeyi donanım denetimi için kullanmayın. HWcontrol2.0'ı resmî yayın kanalından edinin.",
+  "@securityBlockedRecommendation": {
+    "description": "Security-critical message shown when release authenticity verification fails."
+  },
+  "securityCloseApplication": "Uygulamayı kapat",
+  "@securityCloseApplication": {
+    "description": "Security-critical message shown when release authenticity verification fails."
+  }
 }

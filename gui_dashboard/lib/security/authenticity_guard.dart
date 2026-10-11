@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
+
 /// Startup trust gate for packaged release builds.
 ///
 /// The compile-time value is supplied only by the release build pipeline.
@@ -29,6 +31,7 @@ class UnofficialBuildScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: scheme.surface,
       body: Center(
@@ -50,7 +53,7 @@ class UnofficialBuildScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'THIS CODE IS UNOFFICIAL AND UNSAFE',
+                      l10n.securityBlockedTitle,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                             color: scheme.error,
@@ -59,16 +62,13 @@ class UnofficialBuildScreen extends StatelessWidget {
                           ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'This release could not be verified as an official '
-                      'HWcontrol2.0 build. The application has been blocked '
-                      'for your security.',
+                    Text(
+                      l10n.securityBlockedDescription,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Do not use this build for hardware control. '
-                      'Obtain HWcontrol2.0 from the official release channel.',
+                      l10n.securityBlockedRecommendation,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
@@ -76,7 +76,7 @@ class UnofficialBuildScreen extends StatelessWidget {
                     FilledButton.icon(
                       onPressed: _close,
                       icon: const Icon(Icons.close_rounded),
-                      label: const Text('Close application'),
+                      label: Text(l10n.securityCloseApplication),
                     ),
                   ],
                 ),

@@ -22,6 +22,7 @@ import 'benchmark.dart';
 import 'automation_rules.dart';
 import 'model_manager.dart';
 import 'user_data_store.dart';
+import 'l10n/app_localizations.dart';
 import 'welcome_screen.dart';
 import 'services/language_service.dart';
 import 'services/piper_tts_service.dart';
@@ -168,6 +169,12 @@ class _HWControlAppState extends State<HWControlApp> {
     final blockedRelease = HWControlAuthenticityGuard.requiresBlock;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      locale: Locale.fromSubtags(
+        languageCode: _welcomeLocale.split('-').first,
+        countryCode: _welcomeLocale.contains('-') ? _welcomeLocale.split('-').last : null,
+      ),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: _buildTheme(_darkMode),
       home: blockedRelease
           ? const UnofficialBuildScreen()

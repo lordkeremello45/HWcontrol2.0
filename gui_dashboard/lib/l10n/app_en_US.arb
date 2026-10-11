@@ -384,5 +384,21 @@
   },
   "motherboardLabel": "Motherboard",
   "gpuDriverLabel": "GPU driver",
-  "last20Events": "Last 20 events"
+  "last20Events": "Last 20 events",
+  "securityBlockedTitle": "THIS CODE IS UNOFFICIAL AND UNSAFE",
+  "@securityBlockedTitle": {
+    "description": "Security-critical message shown when release authenticity verification fails."
+  },
+  "securityBlockedDescription": "This release could not be verified as an official HWcontrol2.0 build. The application has been blocked for your security.",
+  "@securityBlockedDescription": {
+    "description": "Security-critical message shown when release authenticity verification fails."
+  },
+  "securityBlockedRecommendation": "Do not use this build for hardware control. Obtain HWcontrol2.0 from the official release channel.",
+  "@securityBlockedRecommendation": {
+    "description": "Security-critical message shown when release authenticity verification fails."
+  },
+  "securityCloseApplication": "Close application",
+  "@securityCloseApplication": {
+    "description": "Security-critical message shown when release authenticity verification fails."
+  }
 }

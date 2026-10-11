@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'main.dart' show HWControlApp;
+import 'l10n/app_localizations.dart';
 import 'model_manager.dart';
 
 void main() => runApp(const InstallerApp());
@@ -19,6 +20,8 @@ class InstallerApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData.dark(useMaterial3: true),
       home: InstallerWizard(initialize: initialize),
     );
