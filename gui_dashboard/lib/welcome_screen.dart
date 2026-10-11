@@ -131,18 +131,18 @@ class _HWControlWelcomeScreenState extends State<HWControlWelcomeScreen> {
           children: const [
             _FeaturePill(
               icon: Icons.monitor_heart_outlined,
-              title: 'Monitor',
-              description: 'CPU/GPU sensors and temperatures',
+              title: _text('welcomeMonitor', 'Monitor'),
+              description: _text('welcomeMonitorDescription', 'CPU/GPU sensors and temperatures'),
             ),
             _FeaturePill(
               icon: Icons.tune_rounded,
-              title: 'Control',
-              description: 'Fan curves and performance profiles',
+              title: _text('welcomeControl', 'Control'),
+              description: _text('welcomeControlDescription', 'Fan curves and performance profiles'),
             ),
             _FeaturePill(
               icon: Icons.shield_outlined,
-              title: 'Protect',
-              description: 'Diagnostics and system status',
+              title: _text('welcomeProtect', 'Protect'),
+              description: _text('welcomeProtectDescription', 'Diagnostics and system status'),
             ),
           ],
         ),
