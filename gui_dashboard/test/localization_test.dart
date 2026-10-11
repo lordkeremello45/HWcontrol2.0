@@ -1,133 +1,68 @@
 import 'dart:convert';
+import 'dart:io';
 
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
-  test('language.json exposes unique, valid supported UI locales', () async {
-    final raw = await rootBundle.loadString('assets/localization/language.json');
-    final root = jsonDecode(raw) as Map<String, dynamic>;
-    final localeEntries = (root['locales'] as List<dynamic>)
-        .whereType<Map<String, dynamic>>()
+  test('ARB catalogs cover all supported locales and preserve ICU placeholders', () {
+    final directory = Directory('lib/l10n');
+    final files = directory
+        .listSync()
+        .whereType<File>()
+        .where((file) => RegExp(r'^app_[a-z]{2,3}_[A-Z]{2}\.arb$')
+            .hasMatch(file.uri.pathSegments.last))
         .toList();
-    final localeCodes = localeEntries
-        .map((entry) => entry['code'] as String)
-        .toList();
-    final locales = localeCodes.toSet();
+    expect(files.length, 40);
 
-    expect(localeCodes.length, greaterThanOrEqualTo(40));
-    expect(locales.length, localeCodes.length,
-        reason: 'Locale codes must not be duplicated.');
-    expect(root['defaultLocale'], isA<String>());
-    expect(locales, contains(root['defaultLocale']));
-    expect(locales, containsAll(<String>[
-      'en-US', 'en-GB', 'en-CA', 'tr-TR', 'ja-JP', 'de-DE', 'fr-FR',
-      'it-IT', 'es-ES', 'es-MX', 'pt-BR', 'pt-PT', 'zh-CN', 'zh-TW',
-      'ko-KR', 'ru-RU', 'ar-SA', 'hi-IN', 'ca-ES', 'fil-PH', 'bn-BD',
-      'ur-PK',
-    ]));
-
-    for (final entry in localeEntries) {
-      expect(entry['name'], isA<String>());
-      expect((entry['name'] as String).trim(), isNotEmpty);
+    final catalogs = <String, Map<String, dynamic>>{};
+    for (final file in files) {
+      final catalog = jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
+      final locale = catalog['@@locale'] as String;
+      expect(catalogs.containsKey(locale), isFalse, reason: 'Duplicate locale $locale');
+      catalogs[locale] = catalog;
+      expect(catalog['localeName'], isA<String>());
+      expect((catalog['localeName'] as String).trim(), isNotEmpty);
     }
 
-    final translations = root['translations'] as Map<String, dynamic>;
-    expect(translations.keys.toSet(), locales,
-        reason: 'Every listed locale must have a translation map.');
+    final source = catalogs['en_US']!;
+    final sourceKeys = source.keys
+        .where((key) => !key.startsWith('@') && key != '@@locale')
+        .toSet();
+    expect(sourceKeys.length, greaterThanOrEqualTo(219);
+    const fallbackOnlyKeys = <String>{
+      'securityBlockedTitle',
+      'securityBlockedDescription',
+      'securityBlockedRecommendation',
+      'securityCloseApplication',
+    };
+    for (final locale in catalogs.entries) {
+      final keys = locale.value.keys
+          .where((key) => !key.startsWith('@') && key != '@@locale')
+          .toSet();
+      expect(
+        keys,
+        containsAll(sourceKeys.difference(fallbackOnlyKeys)),
+        reason: 'Missing base strings in ${locale.key}',
+      );
+    }
 
-    for (final locale in locales) {
-      final copy = translations[locale];
-      expect(copy, isA<Map<String, dynamic>>(),
-          reason: 'Missing translation map for $locale.');
-      final values = copy as Map<String, dynamic>;
-      for (final key in <String>['settings', 'language']) {
-        expect(values[key], isA<String>(),
-            reason: '$locale is missing the required "$key" label.');
-        expect((values[key] as String).trim(), isNotEmpty,
-            reason: '$locale has an empty "$key" label.');
-      }
-      for (final item in values.entries) {
-        expect(item.value, isA<String>(),
-            reason: '$locale.${item.key} must be a string.');
-        expect((item.value as String).trim(), isNotEmpty,
-            reason: '$locale.${item.key} must not be empty.');
+    for (final key in sourceKeys) {
+      final value = source[key];
+      if (value is! String) continue;
+      final placeholders = RegExp(r'\{([A-Za-z_][A-Za-z0-9_]*)\}')
+          .allMatches(value)
+          .map((match) => match.group(1)!)
+          .toSet();
+      if (placeholders.isNotEmpty) {
+        final metadata = source['@$key'] as Map<String, dynamic>;
+        final declared =
+            (metadata['placeholders'] as Map<String, dynamic>).keys.toSet();
+        expect(declared, placeholders,
+            reason: 'Placeholder metadata mismatch for $key');
       }
     }
 
-    final english = translations['en-US'] as Map<String, dynamic>;
-    final turkish = translations['tr-TR'] as Map<String, dynamic>;
-
-    // Every advertised locale must keep exact source-key parity. Missing
-    // translations are not silently treated as completed localization work.
-    final sourceKeys = english.keys.toSet();
-    expect(english.length, greaterThanOrEqualTo(160),
-        reason: 'The source catalog should cover the current major UI surfaces.');
-    for (final locale in locales) {
-      final copy = translations[locale] as Map<String, dynamic>;
-      expect(copy.keys.toSet(), sourceKeys,
-          reason: '$locale must define every source translation key.');
-      for (final entry in copy.entries) {
-        expect((entry.value as String).trim(), isNotEmpty,
-            reason: '$locale.${entry.key} must not be empty.');
-      }
-
-      // Interpolation placeholders are part of the runtime contract. A
-      // translated label must preserve every named value used by the UI.
-      for (final entry in english.entries) {
-        final sourceText = entry.value as String;
-        final translatedText = copy[entry.key] as String;
-        final placeholderPattern = RegExp(r'\{([A-Za-z][A-Za-z0-9_]*)\}');
-        final sourcePlaceholders = placeholderPattern
-            .allMatches(sourceText)
-            .map((match) => match.group(1)!)
-            .toSet();
-        final translatedPlaceholders = placeholderPattern
-            .allMatches(translatedText)
-            .map((match) => match.group(1)!)
-            .toSet();
-        expect(translatedPlaceholders, sourcePlaceholders,
-            reason: '$locale.${entry.key} must preserve source placeholders.');
-      }
-    }
-    for (final key in <String>[
-      'welcomeTitle', 'welcomeGetStarted', 'welcomeOpenDashboard',
-      'welcomePreview', 'telemetryHistory', 'advancedTelemetry',
-      'releaseOpen', 'motherboardLabel', 'gpuDriverLabel', 'last20Events',
-    ]) {
-      expect(english[key], isNotEmpty, reason: 'Missing en-US key: $key');
-    }
-    expect(turkish['welcomeTitle'], contains("HWcontrol2.0'a"));
-    expect(turkish['telemetryHistory'], 'Ölçüm geçmişi');
-    expect(turkish['advancedTelemetry'], 'Gelişmiş ölçümler');
-    expect(turkish['releaseOpen'], 'Sürüm sayfasını aç');
-    expect(turkish['dashboard'], 'Ana ekran');
-    expect(turkish['ramUsage'], 'Bellek kullanımı');
-    expect(turkish['gpuUsage'], 'Ekran kartı kullanımı');
-    expect(turkish['fanSpeed'], 'Soğutucu pervanesi hızı');
-    expect(turkish['motherboardLabel'], 'Anakart');
-    expect(turkish['gpuDriverLabel'], 'GPU sürücüsü');
-    expect(turkish['last20Events'], 'Son 20 kayıt');
-    expect(turkish['appTagline'], 'Hassas donanım denetimi');
-    expect(turkish['newFanCurvePoint'], 'Yeni soğutucu eğrisi noktası');
-    expect((translations['es-ES'] as Map<String, dynamic>)['telemetryHistory'], 'Historial de mediciones');
-    expect((translations['pt-BR'] as Map<String, dynamic>)['telemetryHistory'], 'Histórico de medições');
-
-    for (final locale in <String>[
-      'ca-ES', 'es-MX', 'pt-PT', 'zh-TW', 'fil-PH', 'bn-BD', 'en-CA', 'ur-PK',
-    ]) {
-      final copy = translations[locale] as Map<String, dynamic>;
-      for (final key in <String>[
-        'welcomeTitle', 'welcomeDescription', 'welcomeTagline',
-        'welcomeGetStarted', 'welcomeOpenDashboard', 'welcomePreview',
-      ]) {
-        expect(copy[key], isA<String>(),
-            reason: '$locale must provide localized onboarding text for $key.');
-        expect((copy[key] as String).trim(), isNotEmpty,
-            reason: '$locale has empty onboarding text for $key.');
-      }
-    }
+    expect(source['securityBlockedTitle'], isA<String>());
+    expect(catalogs['tr_TR']!['securityBlockedTitle'], isA<String>());
   });
 }

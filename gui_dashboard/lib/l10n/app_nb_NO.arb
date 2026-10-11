@@ -1,5 +1,9 @@
 {
   "@@locale": "nb_NO",
+  "localeName": "Norsk bokmål",
+  "@localeName": {
+    "description": "Native display name of this locale, used in the language picker."
+  },
   "menu": "Meny",
   "settings": "Innstillinger",
   "language": "Språk",

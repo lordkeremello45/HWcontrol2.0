@@ -1,5 +1,9 @@
 {
   "@@locale": "tr_TR",
+  "localeName": "Türkçe",
+  "@localeName": {
+    "description": "Native display name of this locale, used in the language picker."
+  },
   "menu": "Menü",
   "settings": "Ayarlar",
   "language": "Dil",

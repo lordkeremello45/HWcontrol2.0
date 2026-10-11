@@ -1,5 +1,9 @@
 {
   "@@locale": "it_IT",
+  "localeName": "Italiano",
+  "@localeName": {
+    "description": "Native display name of this locale, used in the language picker."
+  },
   "menu": "Menu",
   "settings": "Impostazioni",
   "language": "Lingua",

@@ -1,5 +1,9 @@
 {
   "@@locale": "ro_RO",
+  "localeName": "Română",
+  "@localeName": {
+    "description": "Native display name of this locale, used in the language picker."
+  },
   "menu": "Meniu",
   "settings": "Setări",
   "language": "Limbă",

@@ -1,5 +1,9 @@
 {
   "@@locale": "th_TH",
+  "localeName": "ไทย",
+  "@localeName": {
+    "description": "Native display name of this locale, used in the language picker."
+  },
   "menu": "เมนู",
   "settings": "การตั้งค่า",
   "language": "ภาษา",

@@ -1,5 +1,9 @@
 {
   "@@locale": "ar_SA",
+  "localeName": "العربية",
+  "@localeName": {
+    "description": "Native display name of this locale, used in the language picker."
+  },
   "menu": "القائمة",
   "settings": "الإعدادات",
   "language": "اللغة",

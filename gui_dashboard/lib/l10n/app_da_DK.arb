@@ -1,5 +1,9 @@
 {
   "@@locale": "da_DK",
+  "localeName": "Dansk",
+  "@localeName": {
+    "description": "Native display name of this locale, used in the language picker."
+  },
   "menu": "Menu",
   "settings": "Indstillinger",
   "language": "Sprog",

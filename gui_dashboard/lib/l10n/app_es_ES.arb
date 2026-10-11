@@ -1,5 +1,9 @@
 {
   "@@locale": "es_ES",
+  "localeName": "Español",
+  "@localeName": {
+    "description": "Native display name of this locale, used in the language picker."
+  },
   "menu": "Menú",
   "settings": "Configuración",
   "language": "Idioma",

@@ -1,5 +1,9 @@
 {
   "@@locale": "fil_PH",
+  "localeName": "Filipino",
+  "@localeName": {
+    "description": "Native display name of this locale, used in the language picker."
+  },
   "menu": "Menu",
   "settings": "Mga Setting",
   "language": "Wika",

@@ -1,5 +1,9 @@
 {
   "@@locale": "ur_PK",
+  "localeName": "اردو",
+  "@localeName": {
+    "description": "Native display name of this locale, used in the language picker."
+  },
   "menu": "مینو",
   "settings": "ترتیبات",
   "language": "زبان",

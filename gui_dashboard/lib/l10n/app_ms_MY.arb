@@ -1,5 +1,9 @@
 {
   "@@locale": "ms_MY",
+  "localeName": "Bahasa Melayu",
+  "@localeName": {
+    "description": "Native display name of this locale, used in the language picker."
+  },
   "menu": "Menu",
   "settings": "Tetapan",
   "language": "Bahasa",

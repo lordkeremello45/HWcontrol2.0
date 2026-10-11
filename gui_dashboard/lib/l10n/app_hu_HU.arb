@@ -1,5 +1,9 @@
 {
   "@@locale": "hu_HU",
+  "localeName": "Magyar",
+  "@localeName": {
+    "description": "Native display name of this locale, used in the language picker."
+  },
   "menu": "Menü",
   "settings": "Beállítások",
   "language": "Nyelv",

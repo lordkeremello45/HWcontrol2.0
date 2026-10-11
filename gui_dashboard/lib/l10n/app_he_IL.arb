@@ -1,5 +1,9 @@
 {
   "@@locale": "he_IL",
+  "localeName": "עברית",
+  "@localeName": {
+    "description": "Native display name of this locale, used in the language picker."
+  },
   "menu": "תפריט",
   "settings": "הגדרות",
   "language": "שפה",

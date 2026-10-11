@@ -1,5 +1,9 @@
 {
   "@@locale": "pl_PL",
+  "localeName": "Polski",
+  "@localeName": {
+    "description": "Native display name of this locale, used in the language picker."
+  },
   "menu": "Menu",
   "settings": "Ustawienia",
   "language": "Język",

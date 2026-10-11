@@ -1,5 +1,9 @@
 {
   "@@locale": "ca_ES",
+  "localeName": "Català",
+  "@localeName": {
+    "description": "Native display name of this locale, used in the language picker."
+  },
   "menu": "Menú",
   "settings": "Configuració",
   "language": "Idioma",

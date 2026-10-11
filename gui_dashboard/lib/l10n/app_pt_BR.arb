@@ -1,5 +1,9 @@
 {
   "@@locale": "pt_BR",
+  "localeName": "Português (Brasil)",
+  "@localeName": {
+    "description": "Native display name of this locale, used in the language picker."
+  },
   "menu": "Menu",
   "settings": "Configurações",
   "language": "Idioma",

@@ -1,5 +1,9 @@
 {
   "@@locale": "en_US",
+  "localeName": "English (US)",
+  "@localeName": {
+    "description": "Native display name of this locale, used in the language picker."
+  },
   "systemDefault": "System Default",
   "menu": "Menu",
   "settings": "Settings",

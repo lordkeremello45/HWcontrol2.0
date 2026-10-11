@@ -23,6 +23,7 @@ import 'automation_rules.dart';
 import 'model_manager.dart';
 import 'user_data_store.dart';
 import 'l10n/app_localizations.dart';
+import 'l10n/app_localizations_map.dart';
 import 'welcome_screen.dart';
 import 'services/language_service.dart';
 import 'services/piper_tts_service.dart';
@@ -81,36 +82,21 @@ class _HWControlAppState extends State<HWControlApp> {
 
   Future<void> _loadWelcomeLocalization() async {
     try {
-      final raw = await rootBundle.loadString('assets/localization/language.json');
-      final root = jsonDecode(raw) as Map<String, dynamic>;
-      final rawTranslations = root['translations'];
-      if (rawTranslations is! Map) return;
-
       final settings = await _userData.readSettings();
       final savedLocale = settings['language'] as String?;
-      final translations = <String, Map<String, String>>{};
-      for (final entry in rawTranslations.entries) {
-        final values = entry.value;
-        if (values is Map) {
-          translations[entry.key.toString()] = values.map<String, String>(
-            (key, value) => MapEntry(key.toString(), value.toString()),
-          );
-        }
-      }
       final locale = HWControlLanguageService.resolveLocale(
         savedLocale: savedLocale,
-        supportedCodes: translations.keys,
+        supportedCodes: AppLocalizations.supportedLocales.map(localeTag),
       );
+      final translations =
+          lookupAppLocalizations(localeFromTag(locale)).toStringMap();
       if (!mounted) return;
       setState(() {
         _welcomeLocale = locale;
-        _welcomeTranslations = translations[locale] ??
-            translations['en-US'] ??
-            const <String, String>{};
+        _welcomeTranslations = translations;
       });
     } catch (_) {
-      // The welcome screen has English fallbacks and must remain available
-      // even if localization data or saved preferences cannot be read.
+      // The welcome screen keeps English fallbacks if localization setup fails.
     }
   }
 
@@ -194,6 +180,7 @@ class _HWControlAppState extends State<HWControlApp> {
                   animationsEnabled: _animationsEnabled,
                   onThemeChanged: _setDarkMode,
                   onAnimationsChanged: _setAnimationsEnabled,
+                  onLocaleChanged: (locale) => setState(() => _welcomeLocale = locale),
                 ),
     );
   }
@@ -212,12 +199,13 @@ class _HWControlAppState extends State<HWControlApp> {
 }
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key, required this.darkMode, required this.animationsEnabled, required this.onThemeChanged, required this.onAnimationsChanged});
+  const DashboardScreen({super.key, required this.darkMode, required this.animationsEnabled, required this.onThemeChanged, required this.onAnimationsChanged, required this.onLocaleChanged});
 
   final bool darkMode;
   final bool animationsEnabled;
   final ValueChanged<bool> onThemeChanged;
   final ValueChanged<bool> onAnimationsChanged;
+  final ValueChanged<String> onLocaleChanged;
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -628,30 +616,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _loadLanguage() async {
     try {
-      final raw = await rootBundle.loadString('assets/localization/language.json');
-      final root = jsonDecode(raw) as Map<String, dynamic>;
-      final rawLocales = root['locales'];
-      if (rawLocales is List) {
-        _supportedLocales = rawLocales.whereType<Map>().map((entry) => <String, String>{
-          'code': entry['code'].toString(),
-          'name': entry['name'].toString(),
-        }).where((entry) => entry['code'] != 'null' && entry['name'] != 'null').toList(growable: false);
-      }
-      final rawTranslations = root['translations'];
-      if (rawTranslations is Map) {
-        _translations = rawTranslations.map((locale, values) => MapEntry(
-          locale.toString(),
-          values is Map ? values.map((key, value) => MapEntry(key.toString(), value.toString())) : <String, String>{},
-        ));
-      }
+      final locales = AppLocalizations.supportedLocales;
+      _translations = <String, Map<String, String>>{
+        for (final locale in locales)
+          localeTag(locale): lookupAppLocalizations(locale).toStringMap(),
+      };
+      _supportedLocales = <Map<String, String>>[
+        for (final locale in locales)
+          <String, String>{
+            'code': localeTag(locale),
+            'name': lookupAppLocalizations(locale).localeName,
+          },
+      ];
       final settings = await _userData.readSettings();
       final savedLocale = settings['language'] as String?;
       _languagePreference = savedLocale ?? HWControlLanguageService.systemDefault;
       _locale = HWControlLanguageService.resolveLocale(
         savedLocale: savedLocale,
-        supportedCodes: _translations.keys,
+        supportedCodes: locales.map(localeTag),
       );
-    } catch (_) {}
+    } catch (_) {
+      final fallback = const Locale('en', 'US');
+      _translations = <String, Map<String, String>>{
+        'en-US': lookupAppLocalizations(fallback).toStringMap(),
+      };
+      _supportedLocales = <Map<String, String>>[
+        <String, String>{'code': 'en-US', 'name': 'English (US)'},
+      ];
+      _locale = 'en-US';
+    }
   }
 
   Future<void> _loadSettings() async {
@@ -1677,6 +1670,7 @@ Attach this archive to a support issue only after reviewing it for personal info
                     supportedCodes: _translations.keys,
                   );
                 });
+                widget.onLocaleChanged(_locale);
                 unawaited(_saveSettings());
                 Navigator.pop(context);
               },
@@ -2096,13 +2090,13 @@ Attach this archive to a support issue only after reviewing it for personal info
           Row(
             children: [
               Expanded(child: _sectionTitle(_tr('telemetryHistory'), _tr('samplingInterval'))),
-              Text(_tr('maxCpuTemperature').replaceAll('{temperature}', maximum.toStringAsFixed(1)), style: const TextStyle(color: Color(0xFFFFB454), fontSize: 12, fontWeight: FontWeight.w700)),
+              Text(AppLocalizations.of(context)!.maxCpuTemperature(maximum), style: const TextStyle(color: Color(0xFFFFB454), fontSize: 12, fontWeight: FontWeight.w700)),
               const SizedBox(width: 8),
               IconButton(tooltip: _tr('exportCsv'), onPressed: _history.isEmpty ? null : _exportTelemetryHistory, icon: const Icon(Icons.download_outlined, size: 18)),
             ],
           ),
           const SizedBox(height: 8),
-          Text(_tr('thermalStatus').replaceAll('{status}', _thermalStatus), style: TextStyle(fontSize: 11, color: _thermalAlertActive ? const Color(0xFFFFB454) : Theme.of(context).colorScheme.onSurface.withAlpha(140))),
+          Text(AppLocalizations.of(context)!.thermalStatus(_thermalStatus), style: TextStyle(fontSize: 11, color: _thermalAlertActive ? const Color(0xFFFFB454) : Theme.of(context).colorScheme.onSurface.withAlpha(140))),
           const SizedBox(height: 14),
           if (_history.isEmpty)
             SizedBox(height: 130, child: Center(child: Text(_tr('bridgeMetricsWaiting'), style: TextStyle(color: Colors.white54, fontSize: 12))))
@@ -2247,7 +2241,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           if (_aiModelDownloading) ...[
             LinearProgressIndicator(value: _aiModelProgress),
             const SizedBox(height: 8),
-            Text(_tr('modelDownloading').replaceAll('{percent}', (_aiModelProgress * 100).round().toString()), style: const TextStyle(fontSize: 11)),
+            Text(AppLocalizations.of(context)!.modelDownloading((_aiModelProgress * 100).round()), style: const TextStyle(fontSize: 11)),
             const SizedBox(height: 12),
           ],
           if (_aiModelError != null) ...[
@@ -2360,11 +2354,11 @@ Attach this archive to a support issue only after reviewing it for personal info
             spacing: 18,
             runSpacing: 8,
             children: [
-              Text(_tr('freeSpace').replaceAll('{value}', bytes(free)), style: const TextStyle(fontSize: 11)),
-              Text(_tr('readSpeed').replaceAll('{value}', rate(read)), style: const TextStyle(fontSize: 11)),
-              Text(_tr('writeSpeed').replaceAll('{value}', rate(write)), style: const TextStyle(fontSize: 11)),
-              Text(_tr('health').replaceAll('{value}', healthText), style: const TextStyle(fontSize: 11)),
-              if (fs != null && fs.isNotEmpty) Text(_tr('fileSystem').replaceAll('{value}', fs), style: const TextStyle(fontSize: 11)),
+              Text(AppLocalizations.of(context)!.freeSpace(bytes(free)),  style: const TextStyle(fontSize: 11)),
+              Text(AppLocalizations.of(context)!.readSpeed(rate(read)),  style: const TextStyle(fontSize: 11)),
+              Text(AppLocalizations.of(context)!.writeSpeed(rate(write)),  style: const TextStyle(fontSize: 11)),
+              Text(AppLocalizations.of(context)!.health(healthText),  style: const TextStyle(fontSize: 11)),
+              if (fs != null && fs.isNotEmpty) Text(AppLocalizations.of(context)!.fileSystem(fs),  style: const TextStyle(fontSize: 11)),
             ],
           ),
           if (health == null && healthReason.isNotEmpty) ...[
@@ -2402,7 +2396,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             children: [
               Icon(Icons.verified_outlined, size: 16, color: detected ? const Color(0xFF64D8CB) : const Color(0xFFFFB454)),
               const SizedBox(width: 8),
-              Text(_tr('diagnosticPrivacy').replaceAll('{status}', _hardwareDetectionStatus), style: const TextStyle(fontSize: 11)),
+              Text(AppLocalizations.of(context)!.diagnosticPrivacy(_hardwareDetectionStatus), style: const TextStyle(fontSize: 11)),
             ],
           ),
         ],
@@ -2452,7 +2446,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             _sectionTitle(_tr('gameMode'), _tr('gameModeDescription')),
             const SizedBox(height: 8),
-            Text(_gameDetected ? _tr('detectedGame').replaceFirst('{game}', _gameProcessName.isEmpty ? _tr('unknown') : _gameProcessName) : (_gameModeEnabled ? _tr('gameModeWaiting') : _tr('gameModeOff')), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(170))),
+            Text(_gameDetected ? AppLocalizations.of(context)!.detectedGame(_gameProcessName.isEmpty ? _tr('unknown') : _gameProcessName) : (_gameModeEnabled ? _tr('gameModeWaiting') : _tr('gameModeOff')), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(170))),
             const SizedBox(height: 4),
             Text(active ? _tr('activeGameProcess') : _tr('hardwareControlMonitorOnly'), style: TextStyle(fontSize: 11, color: active ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withAlpha(130))),
           ])),
@@ -2582,7 +2576,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           _statusRow('Bridge', _isConnected ? _tr('online') : _tr('offline'), _isConnected),
           _statusRow(_tr('securityLabel'), _sharedKey.isEmpty ? _tr('securityKeyWaiting') : 'HMAC-SHA-256', _sharedKey.isNotEmpty),
           _statusRow(_tr('modelDigestLabel'), _modelDigest == 'unavailable' ? _tr('digestNotFound') : (_modelDigest.length > 12 ? '${_modelDigest.substring(0, 12)}...' : _modelDigest), _modelDigest != 'unavailable' && _modelDigest != 'Kontrol edilmedi'),
-          _statusRow('CPU', _cpuCoreCount > 0 ? _tr('cpuCoreSummary').replaceAll('{cores}', _cpuCoreCount.toString()).replaceAll('{frequency}', _cpuFrequencyMHz.toStringAsFixed(0)) : _tr('unknown'), _cpuCoreCount > 0),
+          _statusRow('CPU', _cpuCoreCount > 0 ? AppLocalizations.of(context)!.cpuCoreSummary(_cpuCoreCount, _cpuFrequencyMHz) : _tr('unknown'), _cpuCoreCount > 0),
           _statusRow(_tr('gpuAdapter'), _gpuVendor, _gpuVendor != 'Bilinmiyor'),
           _statusRow(_tr('sensor'), _sensorSource, _sensorSource != 'Kontrol edilmedi'),
           _statusRow(_tr('fanControlLabel'), _fanControlSupported ? _fanControlBackend : _tr('monitoringOnly'), _fanControlSupported),

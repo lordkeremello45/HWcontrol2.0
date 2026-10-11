@@ -1,12 +1,11 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'main.dart' show HWControlApp;
 import 'l10n/app_localizations.dart';
+import 'l10n/app_localizations_map.dart';
 import 'model_manager.dart';
 
 void main() => runApp(const InstallerApp());
@@ -51,43 +50,46 @@ class _InstallerWizardState extends State<InstallerWizard> {
   Directory? _stateDirectory;
 
   String _tr(String key, [Map<String, String> values = const {}]) {
-    var value =
-        _translations[_locale]?[key] ?? _translations['en-US']?[key] ?? key;
-    for (final entry in values.entries) {
-      value = value.replaceAll('{${entry.key}}', entry.value);
+    final l10n = lookupAppLocalizations(localeFromTag(_locale));
+    switch (key) {
+      case 'installerPackageStepDescription':
+        return l10n.installerPackageStepDescription(
+          values['platform'] ?? '',
+          values['formats'] ?? '',
+        );
+      case 'installerCheckFailed':
+        return l10n.installerCheckFailed(values['error'] ?? '');
+      case 'installerModelDownloading':
+        return l10n.installerModelDownloading(
+          num.tryParse(values['percent'] ?? '') ?? 0,
+        );
+      case 'installerModelDownloadFailed':
+        return l10n.installerModelDownloadFailed(values['error'] ?? '');
+      case 'installerPlatformSummary':
+        return l10n.installerPlatformSummary(
+          values['platform'] ?? '',
+          values['formats'] ?? '',
+          values['bridge'] ?? '',
+          values['ai'] ?? '',
+        );
+      default:
+        return l10n.toStringMap()[key] ?? key;
     }
-    return value;
   }
 
   Future<void> _loadTranslations() async {
-    try {
-      final root = jsonDecode(
-        await rootBundle.loadString('assets/localization/language.json'),
-      ) as Map<String, dynamic>;
-      final locales = (root['locales'] as List<dynamic>)
-          .whereType<Map<String, dynamic>>()
-          .map((entry) => entry['code'] as String)
-          .toSet();
-      final raw = root['translations'] as Map<String, dynamic>;
-      _translations = raw.map(
-        (locale, data) => MapEntry(
-          locale,
-          (data as Map<String, dynamic>).map(
-            (key, value) => MapEntry(key, value as String),
-          ),
-        ),
-      );
-      final systemTag = Platform.localeName.replaceAll('_', '-');
-      final exactMatches = locales.where((e) => e.toLowerCase() == systemTag.toLowerCase()).toList();
-      final language = systemTag.split('-').first.toLowerCase();
-      final languageMatches = locales.where((e) => e.split('-').first.toLowerCase() == language).toList();
-      _locale = exactMatches.isNotEmpty
-          ? exactMatches.first
-          : (languageMatches.isNotEmpty ? languageMatches.first : 'en-US');
-    } catch (_) {
-      _translations = <String, Map<String, String>>{};
-      _locale = 'en-US';
-    }
+    final locales = AppLocalizations.supportedLocales.map(localeTag).toSet();
+    final systemTag = Platform.localeName.replaceAll('_', '-');
+    final exactMatches = locales.where(
+      (e) => e.toLowerCase() == systemTag.toLowerCase(),
+    ).toList();
+    final language = systemTag.split('-').first.toLowerCase();
+    final languageMatches = locales.where(
+      (e) => e.split('-').first.toLowerCase() == language,
+    ).toList();
+    _locale = exactMatches.isNotEmpty
+        ? exactMatches.first
+        : (languageMatches.isNotEmpty ? languageMatches.first : 'en-US');
     _catalogLoaded = true;
   }
 

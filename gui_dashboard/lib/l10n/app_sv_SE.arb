@@ -1,5 +1,9 @@
 {
   "@@locale": "sv_SE",
+  "localeName": "Svenska",
+  "@localeName": {
+    "description": "Native display name of this locale, used in the language picker."
+  },
   "menu": "Meny",
   "settings": "Inställningar",
   "language": "Språk",

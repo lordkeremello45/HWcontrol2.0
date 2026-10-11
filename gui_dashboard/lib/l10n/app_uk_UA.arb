@@ -1,5 +1,9 @@
 {
   "@@locale": "uk_UA",
+  "localeName": "Українська",
+  "@localeName": {
+    "description": "Native display name of this locale, used in the language picker."
+  },
   "menu": "Меню",
   "settings": "Налаштування",
   "language": "Мова",

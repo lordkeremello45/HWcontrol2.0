@@ -1,5 +1,9 @@
 {
   "@@locale": "hr_HR",
+  "localeName": "Hrvatski",
+  "@localeName": {
+    "description": "Native display name of this locale, used in the language picker."
+  },
   "menu": "Izbornik",
   "settings": "Postavke",
   "language": "Jezik",

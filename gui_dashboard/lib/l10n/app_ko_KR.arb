@@ -1,5 +1,9 @@
 {
   "@@locale": "ko_KR",
+  "localeName": "한국어",
+  "@localeName": {
+    "description": "Native display name of this locale, used in the language picker."
+  },
   "menu": "메뉴",
   "settings": "설정",
   "language": "언어",

@@ -1,5 +1,9 @@
 {
   "@@locale": "el_GR",
+  "localeName": "Ελληνικά",
+  "@localeName": {
+    "description": "Native display name of this locale, used in the language picker."
+  },
   "menu": "Μενού",
   "settings": "Ρυθμίσεις",
   "language": "Γλώσσα",
