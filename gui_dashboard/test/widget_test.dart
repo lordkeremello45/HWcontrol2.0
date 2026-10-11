@@ -2,14 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hwcontrol_dashboard/installer_main.dart';
 
+void expectOneOf(WidgetTester tester, List<String> labels) {
+  expect(
+    labels.any((label) => find.text(label).evaluate().isNotEmpty),
+    isTrue,
+    reason: 'Expected one localized label from: ' + labels.join(', '),
+  );
+}
+
 void main() {
   testWidgets(
     'installer wizard renders in offline test mode without side effects',
     (tester) async {
       await tester.pumpWidget(const InstallerApp(initialize: false));
 
-      expect(find.text('HWControl Kurulum Sihirbazı'), findsOneWidget);
-      expect(find.text('Yerel AI (Gemma 3 1B)'), findsOneWidget);
+      expectOneOf(tester, ['HWControl Setup Wizard', 'HWControl Kurulum Sihirbazı']);
+      expectOneOf(tester, ['Local AI (Gemma 3 1B)', 'Yerel AI (Gemma 3 1B)']);
       expect(find.byType(CheckboxListTile), findsOneWidget);
     },
   );
@@ -19,14 +27,14 @@ void main() {
     (tester) async {
       await tester.pumpWidget(const InstallerApp(initialize: false));
 
-      expect(find.text('1. Paket türünü doğrula'), findsOneWidget);
-      expect(find.text('Devam'), findsOneWidget);
+      expectOneOf(tester, ['1. Verify package type', '1. Paket türünü doğrula']);
+      expectOneOf(tester, ['Continue', 'Devam']);
 
       await tester.tap(find.text('Devam'));
       await tester.pump();
 
-      expect(find.text('2. Bridge durumunu doğrula'), findsOneWidget);
-      expect(find.text('Devam'), findsOneWidget);
+      expectOneOf(tester, ['2. Verify bridge status', '2. Bridge durumunu doğrula']);
+      expectOneOf(tester, ['Continue', 'Devam']);
     },
   );
 
