@@ -2088,14 +2088,14 @@ Attach this archive to a support issue only after reviewing it for personal info
               Expanded(child: _sectionTitle(_tr('telemetryHistory'), 'Son 1 saat • 5 saniyelik örnekleme')),
               Text('Maks. CPU ${maximum.toStringAsFixed(1)} °C', style: const TextStyle(color: Color(0xFFFFB454), fontSize: 12, fontWeight: FontWeight.w700)),
               const SizedBox(width: 8),
-              IconButton(tooltip: 'CSV dışa aktar', onPressed: _history.isEmpty ? null : _exportTelemetryHistory, icon: const Icon(Icons.download_outlined, size: 18)),
+              IconButton(tooltip: _tr('exportCsv'), onPressed: _history.isEmpty ? null : _exportTelemetryHistory, icon: const Icon(Icons.download_outlined, size: 18)),
             ],
           ),
           const SizedBox(height: 8),
           Text('Termal durum: $_thermalStatus', style: TextStyle(fontSize: 11, color: _thermalAlertActive ? const Color(0xFFFFB454) : Theme.of(context).colorScheme.onSurface.withAlpha(140))),
           const SizedBox(height: 14),
           if (_history.isEmpty)
-            const SizedBox(height: 130, child: Center(child: Text('Bridge metrikleri bekleniyor', style: TextStyle(color: Colors.white54, fontSize: 12))))
+            const SizedBox(height: 130, child: Center(child: Text(_tr('bridgeMetricsWaiting'), style: TextStyle(color: Colors.white54, fontSize: 12))))
           else ...[
             SizedBox(height: 90, child: CustomPaint(painter: _HistoryPainter(_history, Theme.of(context).colorScheme.primary, (sample) => sample.cpuTemperature))),
             const SizedBox(height: 8),
@@ -2123,7 +2123,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             children: [
               _telemetryChip('GPU', '${_gpuUsage.toStringAsFixed(0)}%'),
               _telemetryChip('VRAM', '${_gpuMemoryUsage.toStringAsFixed(0)}%'),
-              _telemetryChip('GPU güç', '${_gpuPowerWatts.toStringAsFixed(1)} W'),
+              _telemetryChip(_tr('power'), '${_gpuPowerWatts.toStringAsFixed(1)} W'),
               _telemetryChip('Güç limiti', _gpuPowerLimitWatts > 0 ? '${_gpuPowerLimitWatts.toStringAsFixed(1)} W' : 'N/A'),
               _telemetryChip(_tr('coreClock'), _gpuCoreClockMHz > 0 ? '${_gpuCoreClockMHz.toStringAsFixed(0)} MHz' : 'N/A'),
               _telemetryChip(_tr('memoryClock'), _gpuMemoryClockMHz > 0 ? '${_gpuMemoryClockMHz.toStringAsFixed(0)} MHz' : 'N/A'),
@@ -2139,7 +2139,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             const Text('GPU gelişmiş telemetrisi sürücü/backend desteğine bağlıdır.', style: TextStyle(fontSize: 12)),
           if (_cpuPerCoreUsage.isNotEmpty) ...[
             const SizedBox(height: 16),
-            Text('CPU çekirdek yükü', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(160))),
+            Text(_tr('cpuCoreLoad'), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(160))),
             const SizedBox(height: 8),
             Wrap(
               spacing: 6,
@@ -2442,9 +2442,9 @@ Attach this archive to a support issue only after reviewing it for personal info
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             _sectionTitle(_tr('gameMode'), _tr('gameModeDescription')),
             const SizedBox(height: 8),
-            Text(_gameDetected ? 'Algılanan oyun: ${_gameProcessName.isEmpty ? 'bilinmeyen işlem' : _gameProcessName}' : (_gameModeEnabled ? 'Game Mode hazır — oyun bekleniyor' : 'Game Mode kapalı'), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(170))),
+            Text(_gameDetected ? _tr('detectedGame').replaceFirst('{game}', _gameProcessName.isEmpty ? _tr('unknown') : _gameProcessName) : (_gameModeEnabled ? _tr('gameModeWaiting') : _tr('gameModeOff')), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(170))),
             const SizedBox(height: 4),
-            Text(active ? 'Aktif • oyun süreci izleniyor' : 'Donanım kontrolü mevcut değilse fan/clock değişikliği yapılmaz', style: TextStyle(fontSize: 11, color: active ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withAlpha(130))),
+            Text(active ? _tr('activeGameProcess') : _tr('hardwareControlMonitorOnly'), style: TextStyle(fontSize: 11, color: active ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withAlpha(130))),
           ])),
           Switch(value: _gameModeEnabled, onChanged: _isSending ? null : (enabled) async {
             final success = await _sendCommand('Set Game Mode', enabled ? 100 : 0);
@@ -2465,7 +2465,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionTitle('Kontroller', 'Güvenli kullanıcı alanı ayarları'),
+          _sectionTitle(_tr('controls'), _tr('safeUserSettings')),
           const SizedBox(height: 6),
           Text('Extension API: metadata/capability provider contract hazır • native plugin yükleme kapalı', style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurface.withAlpha(110))),
           const SizedBox(height: 20),
@@ -2489,17 +2489,17 @@ Attach this archive to a support issue only after reviewing it for personal info
                   _addEvent(_smartFanEnabled ? 'Smart Fan etkinleştirildi' : 'Smart Fan devre dışı bırakıldı');
                 },
                 icon: Icon(_smartFanEnabled ? Icons.auto_awesome : Icons.auto_awesome_outlined, size: 16),
-                label: Text(_smartFanEnabled ? 'Smart Fan: Açık' : 'Smart Fan: Kapalı'),
+                label: Text(_smartFanEnabled ? _tr('smartFanEnabled') : _tr('smartFanDisabled')),
               ),
               OutlinedButton.icon(
                 onPressed: _openAutomationRules,
                 icon: const Icon(Icons.rule, size: 16),
-                label: const Text('Otomasyon'),
+                label: Text(_tr('automation')),
               ),
               OutlinedButton.icon(
                 onPressed: _openBenchmark,
                 icon: const Icon(Icons.speed, size: 16),
-                label: const Text('Benchmark'),
+                label: Text(_tr('benchmark')),
               ),
             ],
           ),
