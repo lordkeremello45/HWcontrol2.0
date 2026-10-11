@@ -70,3 +70,19 @@ The authority/source mapping is deliberately regional. For example, RAE/ASALE gu
 - [Bangla Academy](https://banglaacademy.gov.bd/)
 - [Unicode CLDR/LDML specification](https://www.unicode.org/reports/tr35/)
 - [Flutter internationalization guide](https://docs.flutter.dev/ui/internationalization/)
+
+
+## Localization format decision: JSON now, ARB when justified
+
+The current `language.json` catalog remains the runtime source of truth for the existing custom locale selector and persisted, runtime language switching. JSON is not inherently too limited for ordinary labels, named placeholders, and this app's current translation lookup pattern.
+
+Flutter ARB files with `gen-l10n` are the preferred migration target if the application begins to need ICU plural/select expressions, typed interpolation arguments, generated compile-time accessors, or closer integration with Flutter's localization delegates. ARB would improve type safety and standard Flutter tooling, but migrating now would require replacing the dynamic `_tr(key)` lookup model, validating all 40 locale tags and fallback behavior, and updating the locale-switching lifecycle. Maintaining JSON and ARB as two independent sources of truth is not acceptable.
+
+Before migration, create a proof-of-concept branch and compare:
+- typed placeholders and ICU plural/select behavior;
+- runtime language switching and persisted system-default behavior;
+- all 40 locale identifiers, including regional variants and RTL locales;
+- generated-code determinism, test coverage, and developer workflow;
+- exact key parity, fallback semantics, and build/CI cost.
+
+Until that proof of concept passes, keep JSON and strengthen automated catalog audits. Do not convert format merely because the catalog is large: choose based on localization features and maintainability, not file extension.
