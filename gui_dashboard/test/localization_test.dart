@@ -20,8 +20,8 @@ void main() {
       final locale = catalog['@@locale'] as String;
       expect(catalogs.containsKey(locale), isFalse, reason: 'Duplicate locale $locale');
       catalogs[locale] = catalog;
-      expect(catalog['localeName'], isA<String>());
-      expect((catalog['localeName'] as String).trim(), isNotEmpty);
+      expect(catalog['localeDisplayName'], isA<String>());
+      expect((catalog['localeDisplayName'] as String).trim(), isNotEmpty);
     }
 
     final source = catalogs['en_US']!;

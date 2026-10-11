@@ -1,7 +1,7 @@
 {
   "@@locale": "bg_BG",
-  "localeName": "Български",
-  "@localeName": {
+  "localeDisplayName": "Български",
+  "@localeDisplayName": {
     "description": "Native display name of this locale, used in the language picker."
   },
   "menu": "Меню",

@@ -1,7 +1,7 @@
 {
   "@@locale": "ru_RU",
-  "localeName": "Русский",
-  "@localeName": {
+  "localeDisplayName": "Русский",
+  "@localeDisplayName": {
     "description": "Native display name of this locale, used in the language picker."
   },
   "menu": "Меню",

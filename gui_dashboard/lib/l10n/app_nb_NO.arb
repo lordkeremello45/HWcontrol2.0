@@ -1,7 +1,7 @@
 {
   "@@locale": "nb_NO",
-  "localeName": "Norsk bokmål",
-  "@localeName": {
+  "localeDisplayName": "Norsk bokmål",
+  "@localeDisplayName": {
     "description": "Native display name of this locale, used in the language picker."
   },
   "menu": "Meny",

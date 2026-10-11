@@ -1,7 +1,7 @@
 {
   "@@locale": "ar_SA",
-  "localeName": "العربية",
-  "@localeName": {
+  "localeDisplayName": "العربية",
+  "@localeDisplayName": {
     "description": "Native display name of this locale, used in the language picker."
   },
   "menu": "القائمة",

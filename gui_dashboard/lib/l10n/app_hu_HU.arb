@@ -1,7 +1,7 @@
 {
   "@@locale": "hu_HU",
-  "localeName": "Magyar",
-  "@localeName": {
+  "localeDisplayName": "Magyar",
+  "@localeDisplayName": {
     "description": "Native display name of this locale, used in the language picker."
   },
   "menu": "Menü",

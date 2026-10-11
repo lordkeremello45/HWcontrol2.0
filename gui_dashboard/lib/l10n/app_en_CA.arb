@@ -1,7 +1,7 @@
 {
   "@@locale": "en_CA",
-  "localeName": "English (Canada)",
-  "@localeName": {
+  "localeDisplayName": "English (Canada)",
+  "@localeDisplayName": {
     "description": "Native display name of this locale, used in the language picker."
   },
   "menu": "Menu",

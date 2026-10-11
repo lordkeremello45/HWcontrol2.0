@@ -1,7 +1,7 @@
 {
   "@@locale": "tr_TR",
-  "localeName": "Türkçe",
-  "@localeName": {
+  "localeDisplayName": "Türkçe",
+  "@localeDisplayName": {
     "description": "Native display name of this locale, used in the language picker."
   },
   "menu": "Menü",

@@ -1,7 +1,7 @@
 {
   "@@locale": "zh_TW",
-  "localeName": "繁體中文",
-  "@localeName": {
+  "localeDisplayName": "繁體中文",
+  "@localeDisplayName": {
     "description": "Native display name of this locale, used in the language picker."
   },
   "menu": "選單",

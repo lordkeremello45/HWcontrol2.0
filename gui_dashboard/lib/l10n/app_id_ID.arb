@@ -1,7 +1,7 @@
 {
   "@@locale": "id_ID",
-  "localeName": "Bahasa Indonesia",
-  "@localeName": {
+  "localeDisplayName": "Bahasa Indonesia",
+  "@localeDisplayName": {
     "description": "Native display name of this locale, used in the language picker."
   },
   "menu": "Menu",

@@ -1,7 +1,7 @@
 {
   "@@locale": "de_DE",
-  "localeName": "Deutsch",
-  "@localeName": {
+  "localeDisplayName": "Deutsch",
+  "@localeDisplayName": {
     "description": "Native display name of this locale, used in the language picker."
   },
   "menu": "Menü",

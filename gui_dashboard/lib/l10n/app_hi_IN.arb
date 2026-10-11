@@ -1,7 +1,7 @@
 {
   "@@locale": "hi_IN",
-  "localeName": "हिन्दी",
-  "@localeName": {
+  "localeDisplayName": "हिन्दी",
+  "@localeDisplayName": {
     "description": "Native display name of this locale, used in the language picker."
   },
   "menu": "मेनू",

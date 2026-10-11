@@ -1,7 +1,7 @@
 {
   "@@locale": "en_GB",
-  "localeName": "English (UK)",
-  "@localeName": {
+  "localeDisplayName": "English (UK)",
+  "@localeDisplayName": {
     "description": "Native display name of this locale, used in the language picker."
   },
   "menu": "Menu",

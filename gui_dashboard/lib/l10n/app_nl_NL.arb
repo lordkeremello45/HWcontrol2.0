@@ -1,7 +1,7 @@
 {
   "@@locale": "nl_NL",
-  "localeName": "Nederlands",
-  "@localeName": {
+  "localeDisplayName": "Nederlands",
+  "@localeDisplayName": {
     "description": "Native display name of this locale, used in the language picker."
   },
   "menu": "Menu",

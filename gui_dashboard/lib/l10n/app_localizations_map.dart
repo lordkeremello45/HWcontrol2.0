@@ -21,7 +21,7 @@ Locale localeFromTag(String tag) {
 
 extension AppLocalizationsStringMap on AppLocalizations {
   Map<String, String> toStringMap() => <String, String>{
-      'localeName': localeName,
+      'localeDisplayName': localeDisplayName,
       'systemDefault': systemDefault,
       'menu': menu,
       'settings': settings,

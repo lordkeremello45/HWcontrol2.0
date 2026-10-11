@@ -1,7 +1,7 @@
 {
   "@@locale": "cs_CZ",
-  "localeName": "Čeština",
-  "@localeName": {
+  "localeDisplayName": "Čeština",
+  "@localeDisplayName": {
     "description": "Native display name of this locale, used in the language picker."
   },
   "menu": "Menu",

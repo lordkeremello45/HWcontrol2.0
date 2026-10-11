@@ -625,7 +625,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         for (final locale in locales)
           <String, String>{
             'code': localeTag(locale),
-            'name': lookupAppLocalizations(locale).localeName,
+            'name': lookupAppLocalizations(locale).localeDisplayName,
           },
       ];
       final settings = await _userData.readSettings();

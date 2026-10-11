@@ -1,7 +1,7 @@
 {
   "@@locale": "ja_JP",
-  "localeName": "日本語",
-  "@localeName": {
+  "localeDisplayName": "日本語",
+  "@localeDisplayName": {
     "description": "Native display name of this locale, used in the language picker."
   },
   "menu": "メニュー",

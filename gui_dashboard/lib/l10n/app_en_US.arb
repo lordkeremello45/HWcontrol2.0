@@ -1,7 +1,7 @@
 {
   "@@locale": "en_US",
-  "localeName": "English (US)",
-  "@localeName": {
+  "localeDisplayName": "English (US)",
+  "@localeDisplayName": {
     "description": "Native display name of this locale, used in the language picker."
   },
   "systemDefault": "System Default",

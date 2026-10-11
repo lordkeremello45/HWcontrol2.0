@@ -1,7 +1,7 @@
 {
   "@@locale": "pt_PT",
-  "localeName": "Português (Portugal)",
-  "@localeName": {
+  "localeDisplayName": "Português (Portugal)",
+  "@localeDisplayName": {
     "description": "Native display name of this locale, used in the language picker."
   },
   "menu": "Menu",

@@ -1,7 +1,7 @@
 {
   "@@locale": "ms_MY",
-  "localeName": "Bahasa Melayu",
-  "@localeName": {
+  "localeDisplayName": "Bahasa Melayu",
+  "@localeDisplayName": {
     "description": "Native display name of this locale, used in the language picker."
   },
   "menu": "Menu",

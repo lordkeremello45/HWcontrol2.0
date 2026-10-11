@@ -1,7 +1,7 @@
 {
   "@@locale": "vi_VN",
-  "localeName": "Tiếng Việt",
-  "@localeName": {
+  "localeDisplayName": "Tiếng Việt",
+  "@localeDisplayName": {
     "description": "Native display name of this locale, used in the language picker."
   },
   "menu": "Menu",
