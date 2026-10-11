@@ -41,6 +41,24 @@ test("filters Windows assets to real installer/archive formats", () => {
   assert.deepEqual(getPackageAssets(release, "windows").map((asset) => asset.name), ["HWControl-Setup.exe", "HWControl.msi"]);
 });
 
+test("filters macOS and Linux to their installable package formats", () => {
+  const releases = {
+    macos: { assets: [
+      { name: "HWControl.dmg", browser_download_url: assetUrl("v0.3.0-beta-macos", "HWControl.dmg") },
+      { name: "HWControl.pkg", browser_download_url: assetUrl("v0.3.0-beta-macos", "HWControl.pkg") },
+      { name: "HWControl.deb", browser_download_url: assetUrl("v0.3.0-beta-macos", "HWControl.deb") }
+    ] },
+    linux: { assets: [
+      { name: "HWControl.deb", browser_download_url: assetUrl("v0.3.0-beta-linux", "HWControl.deb") },
+      { name: "HWControl.tar.gz", browser_download_url: assetUrl("v0.3.0-beta-linux", "HWControl.tar.gz") },
+      { name: "HWControl.tar.zst", browser_download_url: assetUrl("v0.3.0-beta-linux", "HWControl.tar.zst") },
+      { name: "HWControl.dmg", browser_download_url: assetUrl("v0.3.0-beta-linux", "HWControl.dmg") }
+    ] }
+  };
+  assert.deepEqual(getPackageAssets(releases.macos, "macos").map((asset) => asset.name), ["HWControl.dmg", "HWControl.pkg"]);
+  assert.deepEqual(getPackageAssets(releases.linux, "linux").map((asset) => asset.name), ["HWControl.deb", "HWControl.tar.gz", "HWControl.tar.zst"]);
+});
+
 test("only trusts HTTPS GitHub URLs", () => {
   assert.equal(safeReleaseUrl("https://github.com/owner/repo/releases"), "https://github.com/owner/repo/releases");
   assert.equal(safeReleaseUrl("http://github.com/owner/repo"), null);
