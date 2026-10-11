@@ -15,6 +15,7 @@ class PiperTtsService {
   bool _speaking = false;
   bool _cancelRequested = false;
   Process? _activeProcess;
+  Completer<void>? _stopCompleter;
 
   Future<bool> isConfigured({
     required String executablePath,
@@ -50,6 +51,7 @@ class PiperTtsService {
 
     _speaking = true;
     _cancelRequested = false;
+    _stopCompleter = Completer<void>();
     String? outputPath;
     Process? process;
     try {
@@ -86,10 +88,14 @@ class PiperTtsService {
       await _player.stop();
       final completed = _player.onPlayerComplete.first;
       await _player.play(DeviceFileSource(outputPath));
-      await completed.timeout(const Duration(seconds: 90));
+      await Future.any<void>([
+        completed.timeout(const Duration(seconds: 90)),
+        _stopCompleter!.future,
+      ]);
     } finally {
       _speaking = false;
       _activeProcess = null;
+      _stopCompleter = null;
       if (outputPath != null) {
         try {
           final output = File(outputPath);
@@ -137,6 +143,10 @@ class PiperTtsService {
 
   Future<void> stop() async {
     _cancelRequested = true;
+    final stopCompleter = _stopCompleter;
+    if (stopCompleter != null && !stopCompleter.isCompleted) {
+      stopCompleter.complete();
+    }
     _activeProcess?.kill();
     await _player.stop();
   }
