@@ -114,7 +114,7 @@ class _HWControlWelcomeScreenState extends State<HWControlWelcomeScreen> {
         ),
         const SizedBox(height: 16),
         SizedBox(
-          width: 520,
+          width: double.infinity,
           child: Text(
             _text('welcomeDescription', 'A simple, reliable way to monitor your hardware, control cooling, and keep your system healthy.'),
             style: const TextStyle(
@@ -423,11 +423,13 @@ class _StatusRow extends StatelessWidget {
         children: [
           Icon(icon, color: const Color(0xFF64D8CB), size: 18),
           const SizedBox(width: 10),
-          Text(
-            text,
-            style: const TextStyle(
-              color: Color(0xFFEEF7F5),
-              fontSize: 13,
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: Color(0xFFEEF7F5),
+                fontSize: 13,
+              ),
             ),
           ),
         ],
