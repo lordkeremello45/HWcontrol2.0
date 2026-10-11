@@ -24,7 +24,7 @@ These are product terminology choices, not a claim that every word of foreign or
 
 ## Current source-catalog coverage
 
-The source catalog currently contains 218 keys across 40 listed locales. As of the latest catalog audit, all 40 locales have exact source-key parity, non-empty string values, and matching named interpolation placeholders. This is structural completeness, not proof of native-quality translation: every locale still needs contextual linguistic review, regional terminology review, and UI layout/accessibility checks. Avoid describing all 40 as professionally reviewed or fully quality-assured until those steps are completed.
+The English (US) ARB template currently contains 233 message keys across 40 locale catalogs. Automated checks verify locale identifiers, required-key coverage, ICU placeholder parity, metadata consistency, the generated compatibility adapter, and the absence of runtime references to the removed JSON localization asset. Thirteen newer security/update status messages are currently supplied in English and Turkish; other locales use the English template fallback for those messages. The ICU plural messages for anomaly counts and benchmark iterations are present in all 40 catalogs. This is structural validation, not proof of native-quality translation: every locale still needs contextual linguistic review, regional terminology review, and UI layout/accessibility checks. Do not describe all 40 as professionally reviewed or fully quality-assured until those steps are completed.
 
 ## Required review workflow
 
@@ -72,17 +72,19 @@ The authority/source mapping is deliberately regional. For example, RAE/ASALE gu
 - [Flutter internationalization guide](https://docs.flutter.dev/ui/internationalization/)
 
 
-## Localization format decision: JSON now, ARB when justified
+## Localization format decision: ARB + Flutter gen-l10n
 
-The current `language.json` catalog remains the runtime source of truth for the existing custom locale selector and persisted, runtime language switching. JSON is not inherently too limited for ordinary labels, named placeholders, and this app's current translation lookup pattern.
+ARB is now the canonical source for user-visible UI messages. The former `assets/localization/language.json` runtime catalog has been removed; application and installer localization must not load, search for, or silently recreate it. Flutter's `gen-l10n` generates typed `AppLocalizations` accessors from `lib/l10n/app_*.arb`, and `l10n.yaml` defines the source template and generated class.
 
-Flutter ARB files with `gen-l10n` are the preferred migration target if the application begins to need ICU plural/select expressions, typed interpolation arguments, generated compile-time accessors, or closer integration with Flutter's localization delegates. ARB would improve type safety and standard Flutter tooling, but migrating now would require replacing the dynamic `_tr(key)` lookup model, validating all 40 locale tags and fallback behavior, and updating the locale-switching lifecycle. Maintaining JSON and ARB as two independent sources of truth is not acceptable.
+Use ICU message syntax when grammar depends on a value, especially plural counts and selection. Use declared typed placeholders for paths, errors, versions, platform names, percentages, and other interpolated values. Avoid manually replacing `{placeholder}` strings in application code when a generated accessor is available. The key-based `app_localizations_map.dart` adapter remains only to avoid a risky one-shot rewrite of older widgets; its key set is tested against the ARB template so it cannot silently drift. New or changed parameterized messages should use generated typed accessors.
 
-Before migration, create a proof-of-concept branch and compare:
-- typed placeholders and ICU plural/select behavior;
-- runtime language switching and persisted system-default behavior;
-- all 40 locale identifiers, including regional variants and RTL locales;
-- generated-code determinism, test coverage, and developer workflow;
-- exact key parity, fallback semantics, and build/CI cost.
+The ARB migration does **not** mean every JSON or INI file should become ARB. Settings, fan curves, profiles, telemetry, model metadata, update manifests, and security manifests are structured data, not translated messages. Keep their existing schemas and compatibility/migration code unless a separate data-format migration is designed and validated. In particular, do not remove legacy configuration migration merely because it mentions INI.
 
-Until that proof of concept passes, keep JSON and strengthen automated catalog audits. Do not convert format merely because the catalog is large: choose based on localization features and maintainability, not file extension.
+## Migration and validation rules
+
+- Keep all 40 regional locale catalogs and preserve BCP 47 identifiers.
+- Validate ICU syntax by running `flutter gen-l10n` in CI, then run `flutter analyze` and `flutter test`.
+- Test key coverage, placeholder metadata and parity, ICU plural coverage, locale naming, adapter parity, RTL behavior, and the absence of references to the removed localization JSON asset.
+- Treat English template fallback as a temporary translation gap, not as a completed translation. New security/update messages must be reviewed and translated for each locale before claiming full coverage.
+- Do not maintain JSON and ARB as parallel localization sources of truth.
+- Review locale changes visually for truncation, accessibility, and RTL layout before release.

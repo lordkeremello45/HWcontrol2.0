@@ -56,6 +56,7 @@ jobs:
           flutter create --platforms=linux --no-pub .
           git restore pubspec.yaml test/widget_test.dart
           flutter pub get
+          flutter gen-l10n
           flutter analyze
           flutter test --no-pub
           flutter build linux --release -t lib/installer_main.dart
@@ -98,6 +99,7 @@ jobs:
           flutter create --platforms=windows --no-pub .
           git restore pubspec.yaml test/widget_test.dart
           flutter pub get
+          flutter gen-l10n
           flutter analyze
           flutter test --no-pub
           flutter build windows --release -t lib/installer_main.dart
@@ -136,6 +138,7 @@ jobs:
           flutter create --platforms=macos --no-pub .
           git restore pubspec.yaml test/widget_test.dart
           flutter pub get
+          flutter gen-l10n
           flutter analyze
           flutter test --no-pub
           flutter build macos --release -t lib/installer_main.dart
