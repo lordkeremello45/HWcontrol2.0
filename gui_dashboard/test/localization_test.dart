@@ -17,6 +17,15 @@ void main() {
     expect(locales.length, greaterThanOrEqualTo(30));
     expect(locales, containsAll(<String>['en-US', 'en-GB', 'tr-TR', 'ja-JP', 'de-DE', 'fr-FR', 'it-IT', 'es-ES', 'pt-BR', 'zh-CN', 'ko-KR', 'ru-RU', 'ar-SA', 'hi-IN']));
 
+    final translations = root['translations'] as Map<String, dynamic>;
+    for (final locale in <String>['en-US', 'tr-TR']) {
+      final copy = translations[locale] as Map<String, dynamic>;
+      expect(copy['welcomeTitle'], isNotEmpty);
+      expect(copy['welcomeGetStarted'], isNotEmpty);
+      expect(copy['welcomeOpenDashboard'], isNotEmpty);
+      expect(copy['welcomePreview'], isNotEmpty);
+    }
+
     final localeEntries = (root['locales'] as List<dynamic>).whereType<Map<String, dynamic>>();
     expect(localeEntries.length, locales.length);
     expect(localeEntries.map((entry) => entry['code']).toSet(), locales);
