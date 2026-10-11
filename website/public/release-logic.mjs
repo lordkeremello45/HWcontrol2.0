@@ -13,7 +13,7 @@ export function safeReleaseUrl(value) {
 }
 
 export function isValidManifest(manifest) {
-  if (!manifest || manifest.schema !== 1 || manifest.repository !== REPOSITORY || !manifest.platforms) return false;
+  if (!manifest || manifest.schema !== 1 || manifest.project !== "HWControl" || manifest.repository !== REPOSITORY || !manifest.platforms) return false;
   for (const platform of PLATFORMS) {
     const release = manifest.platforms[platform];
     if (!release || typeof release.tag !== "string" || !new RegExp(`-${platform}$`, "i").test(release.tag)) return false;
