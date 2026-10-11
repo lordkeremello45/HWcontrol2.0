@@ -42,6 +42,7 @@ class _InstallerWizardState extends State<InstallerWizard> {
   double _aiProgress = 0;
   String _details = 'Kurulum bileşenleri kontrol ediliyor...';
   String _locale = 'en-US';
+  bool _catalogLoaded = false;
   Map<String, Map<String, String>> _translations = <String, Map<String, String>>{};
   Directory? _stateDirectory;
 
@@ -68,6 +69,7 @@ class _InstallerWizardState extends State<InstallerWizard> {
       _translations = <String, Map<String, String>>{};
       _locale = 'en-US';
     }
+    _catalogLoaded = true;
   }
 
   String get _platformName {
@@ -195,6 +197,9 @@ class _InstallerWizardState extends State<InstallerWizard> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_catalogLoaded) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return Scaffold(
       body: Center(
         child: ConstrainedBox(
