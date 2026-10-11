@@ -1,0 +1,388 @@
+{
+  "@@locale": "id_ID",
+  "menu": "Menu",
+  "settings": "Pengaturan",
+  "language": "Bahasa",
+  "appearance": "Tampilan",
+  "notifications": "Notifikasi",
+  "enableNotifications": "Aktifkan notifikasi",
+  "temperatureWarning": "Ambang peringatan suhu",
+  "cancel": "Batal",
+  "save": "Simpan",
+  "dashboard": "Dasbor",
+  "systemStatus": "Status sistem",
+  "controls": "Kontrol",
+  "createErrorReport": "Buat laporan kesalahan",
+  "reconnect": "Hubungkan kembali",
+  "noEvents": "Belum ada peristiwa",
+  "darkMode": "Dark mode",
+  "lightMode": "Light mode",
+  "animationsOn": "Disable animations",
+  "animationsOff": "Enable animations",
+  "accessibility": "Aksesibilitas",
+  "offlineSpeech": "Suara luring",
+  "piperOfflineDescription": "Dengarkan informasi dasbor menggunakan suara Piper yang dipasang secara lokal. Pemrosesan suara tetap di perangkat ini.",
+  "piperExecutablePath": "Lokasi berkas executable Piper",
+  "piperModelPath": "Lokasi model suara ONNX",
+  "testSpeech": "Uji suara",
+  "readDashboard": "Bacakan dasbor",
+  "piperTesting": "Menguji suara...",
+  "piperTestSuccess": "Uji suara selesai.",
+  "piperTestFailed": "Uji suara gagal.",
+  "piperTestPhrase": "Uji suara aksesibilitas HWcontrol2.0. Data perangkat keras tetap berada di perangkat ini.",
+  "stopSpeech": "Hentikan suara",
+  "piperSpeechStopped": "Suara dihentikan.",
+  "browsePiperExecutable": "Pilih executable Piper",
+  "browsePiperModel": "Pilih model suara ONNX",
+  "piperModelConfigHint": "Berkas konfigurasi .onnx.json yang cocok harus berada di folder yang sama. Periksa lisensi suara sebelum digunakan.",
+  "piperVoiceCatalog": "Lihat suara resmi Piper",
+  "getPiperExecutable": "Dapatkan executable Piper",
+  "systemDefault": "Bawaan sistem",
+  "telemetryHistory": "Riwayat telemetri",
+  "lastHour": "1 jam terakhir • pengambilan sampel tiap 5 detik",
+  "hardwareDetection": "Deteksi perangkat keras",
+  "pcMotherboardCpuGpu": "Informasi PC, motherboard, CPU, dan GPU",
+  "controlFlow": "Alur kontrol",
+  "safeUserSettings": "Pengaturan pengguna yang aman",
+  "gameMode": "Mode Game",
+  "advancedTelemetry": "Telemetri lanjutan",
+  "aiAnalysis": "Analisis AI",
+  "diagnostics": "Diagnostik",
+  "online": "BRIDGE ONLINE",
+  "offline": "OFFLINE",
+  "updateCheck": "Periksa pembaruan",
+  "releaseOpen": "Buka rilis",
+  "systemEvents": "Peristiwa sistem",
+  "quiet": "Senyap",
+  "balanced": "Seimbang",
+  "performance": "Performa",
+  "game": "Game",
+  "manual": "Manual",
+  "reset": "Atur ulang",
+  "saveProfile": "Simpan profil",
+  "fanSpeed": "Kecepatan kipas",
+  "apply": "Terapkan",
+  "languageChanged": "Bahasa diubah",
+  "temperature": "Suhu",
+  "usage": "Penggunaan",
+  "ramUsage": "Penggunaan memori",
+  "diskUsage": "Penggunaan disk",
+  "gpuUsage": "Penggunaan GPU",
+  "fan": "Kipas",
+  "welcomeTitle": "Selamat datang di HWcontrol2.0",
+  "welcomeTagline": "Pantau. Kendalikan. Lindungi.",
+  "welcomeDescription": "Cara sederhana dan andal untuk memantau perangkat keras, mengendalikan pendinginan, dan menjaga kesehatan sistem.",
+  "welcomeMonitor": "Pantau",
+  "welcomeMonitorDescription": "Sensor dan suhu CPU/GPU",
+  "welcomeControl": "Kendalikan",
+  "welcomeControlDescription": "Kurva kipas dan profil performa",
+  "welcomeProtect": "Lindungi",
+  "welcomeProtectDescription": "Diagnostik dan status sistem",
+  "welcomeGetStarted": "Mulai",
+  "welcomeOpenDashboard": "Buka Dasbor",
+  "welcomeDontShowAgain": "Jangan tampilkan lagi",
+  "welcomePreview": "Pratinjau dasbor",
+  "welcomeExampleStatus": "Contoh status",
+  "welcomeSampleValues": "Contoh nilai",
+  "welcomeConnectHardware": "Hubungkan perangkat keras",
+  "newAutomationRule": "Aturan otomatisasi baru",
+  "editAutomationRule": "Edit aturan otomatisasi",
+  "ruleName": "Nama aturan",
+  "sensor": "Sensor",
+  "cpuTemperatureLabel": "Suhu CPU",
+  "gpuTemperatureLabel": "Suhu GPU",
+  "threshold": "Ambang batas (°C)",
+  "fanTarget": "Target kipas (%)",
+  "hardwareAutomation": "Otomatisasi perangkat keras",
+  "automationSafetyNote": "Aturan hanya mengirim perintah kipas jika backend kontrol perangkat keras yang terverifikasi tersedia.",
+  "edit": "Edit",
+  "delete": "Hapus",
+  "noAutomationRules": "Belum ada aturan otomatisasi.",
+  "addRule": "Tambah aturan",
+  "hardwareHealthCenter": "Pusat Kesehatan Perangkat Keras",
+  "status": "Status",
+  "safety": "Keamanan",
+  "recovery": "Pemulihan",
+  "warnings": "Peringatan",
+  "anomalies": "Anomali",
+  "close": "Tutup",
+  "checkForUpdates": "Periksa pembaruan",
+  "maxCpuTemperature": "Suhu CPU maksimum: {temperature} °C",
+  "@maxCpuTemperature": {
+    "description": "Localized UI message: maxCpuTemperature. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "temperature": {
+        "type": "num"
+      }
+    }
+  },
+  "exportCsv": "Ekspor CSV",
+  "thermalStatus": "Status termal: {status}",
+  "@thermalStatus": {
+    "description": "Localized UI message: thermalStatus. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeMetricsWaiting": "Menunggu metrik bridge",
+  "gpuTelemetryNote": "Telemetri GPU lanjutan bergantung pada dukungan driver/backend.",
+  "cpuCoreLoad": "Beban inti CPU",
+  "runAiAnalysis": "Jalankan analisis AI",
+  "clearAiModelCache": "Hapus cache model AI",
+  "modelDownloading": "Mengunduh model Gemma 3 1B: {percent}% • sekitar 851 MB",
+  "@modelDownloading": {
+    "description": "Localized UI message: modelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "llmControlUnavailable": "Izin kontrol LLM tidak tersedia",
+  "storageUnavailable": "Perangkat penyimpanan tidak terdeteksi atau telemetri belum siap.",
+  "freeSpace": "Kosong: {value}",
+  "@freeSpace": {
+    "description": "Localized UI message: freeSpace. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "readSpeed": "Baca: {value}",
+  "@readSpeed": {
+    "description": "Localized UI message: readSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "writeSpeed": "Tulis: {value}",
+  "@writeSpeed": {
+    "description": "Localized UI message: writeSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "health": "Kesehatan: {value}",
+  "@health": {
+    "description": "Localized UI message: health. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSystem": "Sistem berkas: {value}",
+  "@fileSystem": {
+    "description": "Localized UI message: fileSystem. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diagnosticPrivacy": "Diagnostik: {status} • nomor seri tidak disertakan dalam laporan",
+  "@diagnosticPrivacy": {
+    "description": "Localized UI message: diagnosticPrivacy. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "detectedGame": "Game terdeteksi: {game}",
+  "@detectedGame": {
+    "description": "Localized UI message: detectedGame. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "gameModeWaiting": "Mode Game siap — menunggu game",
+  "gameModeOff": "Mode Game nonaktif",
+  "activeGameProcess": "Proses game sedang dipantau",
+  "hardwareControlMonitorOnly": "Kontrol perangkat keras: pemantauan saja",
+  "extensionApiStatus": "Extension API: kontrak penyedia metadata/kapabilitas siap • pemuatan plugin native dinonaktifkan",
+  "smartFanCurve": "Kurva Kipas Cerdas",
+  "smartFanEnabled": "Smart Fan: Aktif",
+  "smartFanDisabled": "Smart Fan: Nonaktif",
+  "automation": "Otomatisasi",
+  "benchmark": "Tolok ukur",
+  "downloadVerifiedUpdate": "Unduh pembaruan terverifikasi",
+  "newFanCurvePoint": "Titik kurva kipas baru",
+  "smartFanCurveDescription": "Atur target kipas berdasarkan suhu. Kurva hanya diterapkan otomatis jika backend kontrol perangkat keras yang terverifikasi tersedia.",
+  "deletePoint": "Hapus titik",
+  "addPoint": "Tambah titik",
+  "resetBalanced": "Atur ulang ke seimbang",
+  "hardwareBenchmark": "Tolok ukur perangkat keras",
+  "benchmarkDisclaimer": "Mikrobenchmark CPU selama satu detik. Ini bukan uji stres dan tidak mengubah pengaturan perangkat keras.",
+  "score": "Skor: {value} iterasi/detik",
+  "@score": {
+    "description": "Localized UI message: score. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "iterations": "Iterasi: {value}",
+  "@iterations": {
+    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "duration": "Durasi: {value} ms",
+  "@duration": {
+    "description": "Localized UI message: duration. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "run": "Jalankan",
+  "unknown": "Tidak diketahui",
+  "none": "Tidak ada",
+  "power": "Daya",
+  "voltage": "Tegangan",
+  "appTagline": "Kontrol perangkat keras yang presisi",
+  "cpuUsageLabel": "Penggunaan CPU",
+  "coreClock": "Clock inti",
+  "memoryClock": "Clock memori",
+  "advancedTelemetryDescription": "Beban GPU, VRAM, daya, kecepatan clock, dan inti CPU",
+  "localAiAnalysisDescription": "Analisis lokal Gemma atas telemetri langsung",
+  "hardwareDetectionDescription": "Identitas PC, motherboard, CPU, dan GPU",
+  "gameModeDescription": "Deteksi otomatis dan pemantauan berfokus pada gim saat gim berjalan",
+  "gameModeSet": "Atur Mode Game",
+  "bridgeWaiting": "Menunggu bridge",
+  "monitoringOnly": "Hanya pemantauan",
+  "powerLimit": "Batas daya",
+  "gpuState": "Status GPU",
+  "encoderUsage": "Penggunaan encoder",
+  "decoderUsage": "Penggunaan decoder",
+  "samplingInterval": "1 jam terakhir • sampel setiap 5 detik",
+  "modelDigestLabel": "SHA-256 model",
+  "gpuAdapterLabel": "Adaptor GPU",
+  "lastActionLabel": "Tindakan terakhir",
+  "vramUsageLabel": "Penggunaan VRAM",
+  "gpuPowerLimit": "Batas daya GPU",
+  "gpuEncoder": "Encoder",
+  "gpuDecoder": "Decoder",
+  "storageTitle": "Penyimpanan",
+  "storageDescription": "Penggunaan dan status I/O SSD / HDD / NVMe",
+  "aiProcessingPower": "Daya pemrosesan AI",
+  "securityLabel": "Keamanan",
+  "securityKeyWaiting": "Menunggu kunci",
+  "digestNotFound": "Tidak ditemukan",
+  "digestNotChecked": "Belum diperiksa",
+  "gpuAdapter": "Adaptor GPU",
+  "cpuCoreSummary": "{cores} inti • {frequency} MHz",
+  "@cpuCoreSummary": {
+    "description": "Localized UI message: cpuCoreSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "cores": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "num"
+      }
+    }
+  },
+  "warningThresholdLabel": "Ambang peringatan",
+  "hardwareControlUnavailableNote": "Jika dukungan kontrol perangkat keras tidak tersedia, pengaturan kipas atau clock tidak diubah.",
+  "thermalStatusLabel": "Status termal",
+  "fanControlLabel": "Kontrol kipas",
+  "installerTitle": "Wizard Pengaturan HWControl",
+  "installerLocalAiModel": "AI Lokal (Gemma 3 1B)",
+  "installerAiDescription": "Opsional. Jika dipilih, Gemma 3 1B diunduh selama penyiapan dan diverifikasi dengan SHA-256.",
+  "installerChecking": "Memeriksa penyiapan...",
+  "installerContinue": "Lanjutkan",
+  "installerFinish": "Selesaikan penyiapan",
+  "installerPackageStepTitle": "1. Verifikasi jenis paket",
+  "installerBridgeStepTitle": "2. Verifikasi status bridge",
+  "installerCompleteStepTitle": "3. Selesaikan penyiapan",
+  "installerPackageStepDescription": "Format paket ini sesuai untuk {platform}: {formats}.",
+  "@installerPackageStepDescription": {
+    "description": "Localized UI message: installerPackageStepDescription. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "installerAiStepDescription": "Komponen AI lokal dapat dipasang secara opsional. Jika dipilih, Gemma 3 1B Instruct Q5_K_M (sekitar 851 MB) diunduh selama penyiapan dan diverifikasi dengan SHA-256.",
+  "installerCompleteWithAi": "Model disiapkan pada langkah terakhir. Model yang hilang atau rusak diperbaiki melalui unduhan terverifikasi.",
+  "installerCompleteWithoutAi": "Aplikasi inti dipasang; model AI tidak diunduh selama penyiapan ini.",
+  "installerAiSelectedFooter": "AI dipilih: Gemma disiapkan selama penyiapan. Berkas yang hilang atau rusak akan diunduh ulang dan diverifikasi.",
+  "installerAiSkippedFooter": "AI tidak dipilih: Gemma tidak dipasang. Model dapat diunduh dengan aman saat analisis AI pertama kali diminta.",
+  "installerPreviouslyCompleted": "Penyiapan sudah pernah diselesaikan. Model AI bersifat opsional.",
+  "installerBridgeFound": "ditemukan",
+  "installerBridgePending": "diharapkan dari instalasi paket",
+  "installerModelReady": "siap dan terverifikasi",
+  "installerModelOptional": "opsional; diunduh saat analisis AI pertama dijalankan",
+  "installerCheckFailed": "Pemeriksaan penyiapan gagal: {error}",
+  "@installerCheckFailed": {
+    "description": "Localized UI message: installerCheckFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelPreparing": "Menyiapkan model Gemma 3 1B...",
+  "installerModelDownloading": "Mengunduh Gemma 3 1B: {percent}%",
+  "@installerModelDownloading": {
+    "description": "Localized UI message: installerModelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "installerModelDownloadFailed": "Pemasangan Gemma gagal: {error}\nPemasangan inti dapat dilanjutkan; coba lagi pemasangan AI nanti.",
+  "@installerModelDownloadFailed": {
+    "description": "Localized UI message: installerModelDownloadFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelDownloaded": "Gemma 3 1B berhasil diunduh dan diverifikasi dengan SHA-256.",
+  "installerTestMode": "Mode uji: penyiapan dan unduhan model dilewati.",
+  "installerCheckingComponents": "Memeriksa komponen penyiapan...",
+  "installerPlatformSummary": "Platform: {platform}\nPaket: {formats}\nBridge: {bridge}\nModel AI: {ai}",
+  "@installerPlatformSummary": {
+    "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      },
+      "ai": {
+        "type": "String"
+      }
+    }
+  },
+  "motherboardLabel": "Papan induk",
+  "gpuDriverLabel": "Driver GPU",
+  "last20Events": "20 peristiwa terakhir"
+}

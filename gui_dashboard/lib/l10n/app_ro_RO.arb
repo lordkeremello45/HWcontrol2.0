@@ -1,0 +1,388 @@
+{
+  "@@locale": "ro_RO",
+  "menu": "Meniu",
+  "settings": "Setări",
+  "language": "Limbă",
+  "appearance": "Aspect",
+  "notifications": "Notificări",
+  "enableNotifications": "Activează notificările",
+  "temperatureWarning": "Prag de avertizare a temperaturii",
+  "cancel": "Anulează",
+  "save": "Salvează",
+  "dashboard": "Tablou de bord",
+  "systemStatus": "Starea sistemului",
+  "controls": "Comenzi",
+  "createErrorReport": "Creează raport de eroare",
+  "reconnect": "Reconectare",
+  "noEvents": "Nu există evenimente încă",
+  "darkMode": "Dark mode",
+  "lightMode": "Light mode",
+  "animationsOn": "Disable animations",
+  "animationsOff": "Enable animations",
+  "accessibility": "Accesibilitate",
+  "offlineSpeech": "Vorbire offline",
+  "piperOfflineDescription": "Ascultă informațiile tabloului de bord folosind voci Piper instalate local. Vorbirea rămâne pe acest dispozitiv.",
+  "piperExecutablePath": "Calea executabilului Piper",
+  "piperModelPath": "Calea modelului vocal ONNX",
+  "testSpeech": "Testează vorbirea",
+  "readDashboard": "Citește tabloul de bord",
+  "piperTesting": "Se testează vorbirea...",
+  "piperTestSuccess": "Testul vocal s-a încheiat.",
+  "piperTestFailed": "Testul vocal a eșuat.",
+  "piperTestPhrase": "Test vocal de accesibilitate HWcontrol2.0. Datele hardware rămân pe acest dispozitiv.",
+  "stopSpeech": "Oprește vorbirea",
+  "piperSpeechStopped": "Vorbirea a fost oprită.",
+  "browsePiperExecutable": "Alege executabilul Piper",
+  "browsePiperModel": "Alege modelul vocal ONNX",
+  "piperModelConfigHint": "Fișierul de configurare .onnx.json corespunzător trebuie să fie în același folder. Verifică licența vocii înainte de utilizare.",
+  "piperVoiceCatalog": "Răsfoiește vocile oficiale Piper",
+  "getPiperExecutable": "Obține executabilul Piper",
+  "systemDefault": "Implicit sistem",
+  "telemetryHistory": "Istoricul măsurătorilor",
+  "lastHour": "Ultima oră • eșantionare la fiecare 5 secunde",
+  "hardwareDetection": "Detectare hardware",
+  "pcMotherboardCpuGpu": "Informații despre PC, placa de bază, CPU și GPU",
+  "controlFlow": "Flux de control",
+  "safeUserSettings": "Setări de utilizator sigure",
+  "gameMode": "Mod joc",
+  "advancedTelemetry": "Măsurători avansate",
+  "aiAnalysis": "Analiză AI",
+  "diagnostics": "Diagnosticare",
+  "online": "PUNTE ONLINE",
+  "offline": "OFFLINE",
+  "updateCheck": "Verifică actualizările",
+  "releaseOpen": "Deschide versiunea",
+  "systemEvents": "Evenimente de sistem",
+  "quiet": "Silențios",
+  "balanced": "Echilibrat",
+  "performance": "Performanță",
+  "game": "Joc",
+  "manual": "Manual",
+  "reset": "Resetează",
+  "saveProfile": "Salvează profilul",
+  "fanSpeed": "Viteza ventilatorului",
+  "apply": "Aplică",
+  "languageChanged": "Limba a fost schimbată",
+  "temperature": "Temperatură",
+  "usage": "Utilizare",
+  "ramUsage": "Utilizare memorie",
+  "diskUsage": "Utilizare disc",
+  "gpuUsage": "Utilizare GPU",
+  "fan": "Ventilator",
+  "welcomeTitle": "Bun venit la HWcontrol2.0",
+  "welcomeTagline": "Monitorizează. Controlează. Protejează.",
+  "welcomeDescription": "O metodă simplă și fiabilă de monitorizare a hardware-ului, control al răcirii și menținere a sănătății sistemului.",
+  "welcomeMonitor": "Monitorizare",
+  "welcomeMonitorDescription": "Senzori și temperaturi CPU/GPU",
+  "welcomeControl": "Control",
+  "welcomeControlDescription": "Curbe ale ventilatoarelor și profiluri de performanță",
+  "welcomeProtect": "Protecție",
+  "welcomeProtectDescription": "Diagnosticare și stare sistem",
+  "welcomeGetStarted": "Începe",
+  "welcomeOpenDashboard": "Deschide tabloul de bord",
+  "welcomeDontShowAgain": "Nu mai afișa",
+  "welcomePreview": "Previzualizare tablou de bord",
+  "welcomeExampleStatus": "Stare exemplu",
+  "welcomeSampleValues": "Valori exemplu",
+  "welcomeConnectHardware": "Conectează hardware-ul",
+  "newAutomationRule": "Regulă nouă de automatizare",
+  "editAutomationRule": "Editează regula de automatizare",
+  "ruleName": "Numele regulii",
+  "sensor": "Senzor",
+  "cpuTemperatureLabel": "Temperatura CPU",
+  "gpuTemperatureLabel": "Temperatura GPU",
+  "threshold": "Prag (°C)",
+  "fanTarget": "Țintă ventilator (%)",
+  "hardwareAutomation": "Automatizare hardware",
+  "automationSafetyNote": "Regulile trimit comenzi ventilatorului numai când este disponibil un backend de control hardware verificat.",
+  "edit": "Editează",
+  "delete": "Șterge",
+  "noAutomationRules": "Nu există încă reguli de automatizare.",
+  "addRule": "Adaugă regulă",
+  "hardwareHealthCenter": "Centrul de stare hardware",
+  "status": "Stare",
+  "safety": "Siguranță",
+  "recovery": "Recuperare",
+  "warnings": "Avertismente",
+  "anomalies": "Anomalii",
+  "close": "Închide",
+  "checkForUpdates": "Verifică actualizările",
+  "maxCpuTemperature": "Temperatura maximă CPU: {temperature} °C",
+  "@maxCpuTemperature": {
+    "description": "Localized UI message: maxCpuTemperature. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "temperature": {
+        "type": "num"
+      }
+    }
+  },
+  "exportCsv": "Exportă CSV",
+  "thermalStatus": "Stare termică: {status}",
+  "@thermalStatus": {
+    "description": "Localized UI message: thermalStatus. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeMetricsWaiting": "Se așteaptă valorile punții",
+  "gpuTelemetryNote": "Telemetria GPU avansată depinde de suportul driverului și al backendului.",
+  "cpuCoreLoad": "Încărcarea nucleelor CPU",
+  "runAiAnalysis": "Rulează analiza AI",
+  "clearAiModelCache": "Șterge memoria cache a modelului AI",
+  "modelDownloading": "Se descarcă modelul Gemma 3 1B: {percent}% • aproximativ 851 MB",
+  "@modelDownloading": {
+    "description": "Localized UI message: modelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "llmControlUnavailable": "Permisiunea de control LLM nu este disponibilă",
+  "storageUnavailable": "Dispozitivul de stocare nu a fost detectat sau telemetria nu este încă pregătită.",
+  "freeSpace": "Liber: {value}",
+  "@freeSpace": {
+    "description": "Localized UI message: freeSpace. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "readSpeed": "Citire: {value}",
+  "@readSpeed": {
+    "description": "Localized UI message: readSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "writeSpeed": "Scriere: {value}",
+  "@writeSpeed": {
+    "description": "Localized UI message: writeSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "health": "Stare: {value}",
+  "@health": {
+    "description": "Localized UI message: health. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSystem": "Sistem de fișiere: {value}",
+  "@fileSystem": {
+    "description": "Localized UI message: fileSystem. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diagnosticPrivacy": "Diagnosticare: {status} • numerele de serie sunt excluse din rapoarte",
+  "@diagnosticPrivacy": {
+    "description": "Localized UI message: diagnosticPrivacy. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "detectedGame": "Joc detectat: {game}",
+  "@detectedGame": {
+    "description": "Localized UI message: detectedGame. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "gameModeWaiting": "Modul joc este pregătit — se așteaptă un joc",
+  "gameModeOff": "Modul joc este dezactivat",
+  "activeGameProcess": "Procesul jocului este monitorizat",
+  "hardwareControlMonitorOnly": "Control hardware: doar monitorizare",
+  "extensionApiStatus": "API de extensii: contractul furnizorului de metadate/capabilități este gata • încărcarea pluginurilor native este dezactivată",
+  "smartFanCurve": "Curbă inteligentă a ventilatorului",
+  "smartFanEnabled": "Smart Fan: activat",
+  "smartFanDisabled": "Smart Fan: dezactivat",
+  "automation": "Automatizare",
+  "benchmark": "Benchmark",
+  "downloadVerifiedUpdate": "Descarcă actualizarea verificată",
+  "newFanCurvePoint": "Punct nou al curbei ventilatorului",
+  "smartFanCurveDescription": "Definește ținta ventilatorului în funcție de temperatură. Curba se aplică automat numai când este disponibil un backend de control hardware verificat.",
+  "deletePoint": "Șterge punctul",
+  "addPoint": "Adaugă punct",
+  "resetBalanced": "Resetează la echilibrat",
+  "hardwareBenchmark": "Benchmark hardware",
+  "benchmarkDisclaimer": "Microbenchmark CPU de o secundă. Nu este un test de stres și nu modifică setările hardware.",
+  "score": "Scor: {value} iterații/s",
+  "@score": {
+    "description": "Localized UI message: score. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "iterations": "Iterații: {value}",
+  "@iterations": {
+    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "duration": "Durată: {value} ms",
+  "@duration": {
+    "description": "Localized UI message: duration. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "run": "Rulează",
+  "unknown": "Necunoscut",
+  "none": "Niciunul",
+  "power": "Putere",
+  "voltage": "Tensiune",
+  "appTagline": "Control precis al hardware-ului",
+  "cpuUsageLabel": "Utilizare CPU",
+  "coreClock": "Frecvența nucleului",
+  "memoryClock": "Frecvența memoriei",
+  "advancedTelemetryDescription": "Încărcare GPU, VRAM, putere, frecvențe și nuclee CPU",
+  "localAiAnalysisDescription": "Analiză locală Gemma a telemetriei în timp real",
+  "hardwareDetectionDescription": "Identitatea PC-ului, plăcii de bază, CPU-ului și GPU-ului",
+  "gameModeDescription": "Detectare automată și monitorizare orientată spre jocuri cât timp un joc rulează",
+  "gameModeSet": "Setează modul Joc",
+  "bridgeWaiting": "Se așteaptă puntea",
+  "monitoringOnly": "Doar monitorizare",
+  "powerLimit": "Limită de putere",
+  "gpuState": "Stare GPU",
+  "encoderUsage": "Utilizare encoder",
+  "decoderUsage": "Utilizare decoder",
+  "samplingInterval": "Ultima oră • eșantionare la fiecare 5 secunde",
+  "modelDigestLabel": "SHA-256 al modelului",
+  "gpuAdapterLabel": "Adaptor GPU",
+  "lastActionLabel": "Ultima acțiune",
+  "vramUsageLabel": "Utilizare VRAM",
+  "gpuPowerLimit": "Limită de putere GPU",
+  "gpuEncoder": "Encoder",
+  "gpuDecoder": "Decoder",
+  "storageTitle": "Stocare",
+  "storageDescription": "Utilizarea și starea I/O pentru SSD, HDD și NVMe",
+  "aiProcessingPower": "Putere de procesare AI",
+  "securityLabel": "Securitate",
+  "securityKeyWaiting": "Se așteaptă cheia",
+  "digestNotFound": "Nu a fost găsit",
+  "digestNotChecked": "Neverificat",
+  "gpuAdapter": "Adaptor GPU",
+  "cpuCoreSummary": "{cores} nuclee • {frequency} MHz",
+  "@cpuCoreSummary": {
+    "description": "Localized UI message: cpuCoreSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "cores": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "num"
+      }
+    }
+  },
+  "warningThresholdLabel": "Prag de avertizare",
+  "hardwareControlUnavailableNote": "Setările ventilatorului sau ale frecvenței nu se modifică atunci când controlul hardware nu este acceptat.",
+  "thermalStatusLabel": "Stare termică",
+  "fanControlLabel": "Controlul ventilatorului",
+  "installerTitle": "Expert instalare HWControl",
+  "installerLocalAiModel": "AI local (Gemma 3 1B)",
+  "installerAiDescription": "Opțional. Dacă este selectat, Gemma 3 1B se descarcă în timpul instalării și se verifică prin SHA-256.",
+  "installerChecking": "Se verifică instalarea...",
+  "installerContinue": "Continuă",
+  "installerFinish": "Finalizează instalarea",
+  "installerPackageStepTitle": "1. Verifică tipul pachetului",
+  "installerBridgeStepTitle": "2. Verifică starea punții",
+  "installerCompleteStepTitle": "3. Finalizează instalarea",
+  "installerPackageStepDescription": "Acest format de pachet este potrivit pentru {platform}: {formats}.",
+  "@installerPackageStepDescription": {
+    "description": "Localized UI message: installerPackageStepDescription. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "installerAiStepDescription": "Componenta AI locală poate fi instalată opțional. Dacă este selectată, Gemma 3 1B Instruct Q5_K_M (aproximativ 851 MB) se descarcă în timpul instalării și se verifică prin SHA-256.",
+  "installerCompleteWithAi": "Modelul va fi pregătit la ultimul pas. Un model lipsă sau deteriorat este reparat printr-o descărcare verificată.",
+  "installerCompleteWithoutAi": "Se instalează aplicația de bază; modelul AI nu este descărcat în această instalare.",
+  "installerAiSelectedFooter": "AI selectat: Gemma este pregătit în timpul instalării. Fișierele lipsă sau deteriorate sunt descărcate din nou și verificate.",
+  "installerAiSkippedFooter": "AI neselectat: Gemma nu este instalat. Poate fi descărcat în siguranță la prima solicitare de analiză AI.",
+  "installerPreviouslyCompleted": "Instalarea a fost deja finalizată. Modelul AI este opțional.",
+  "installerBridgeFound": "găsit",
+  "installerBridgePending": "așteptat de la instalarea pachetului",
+  "installerModelReady": "pregătit și verificat",
+  "installerModelOptional": "opțional; descărcat la prima analiză AI",
+  "installerCheckFailed": "Verificarea instalării a eșuat: {error}",
+  "@installerCheckFailed": {
+    "description": "Localized UI message: installerCheckFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelPreparing": "Se pregătește modelul Gemma 3 1B...",
+  "installerModelDownloading": "Se descarcă Gemma 3 1B: {percent}%",
+  "@installerModelDownloading": {
+    "description": "Localized UI message: installerModelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "installerModelDownloadFailed": "Instalarea Gemma a eșuat: {error}\nInstalarea de bază poate continua; încercați din nou instalarea AI mai târziu.",
+  "@installerModelDownloadFailed": {
+    "description": "Localized UI message: installerModelDownloadFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelDownloaded": "Gemma 3 1B a fost descărcat și verificat prin SHA-256.",
+  "installerTestMode": "Mod test: instalarea și descărcarea modelului au fost omise.",
+  "installerCheckingComponents": "Se verifică componentele instalării...",
+  "installerPlatformSummary": "Platformă: {platform}\nPachet: {formats}\nPunte: {bridge}\nModel AI: {ai}",
+  "@installerPlatformSummary": {
+    "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      },
+      "ai": {
+        "type": "String"
+      }
+    }
+  },
+  "motherboardLabel": "Placă de bază",
+  "gpuDriverLabel": "Driver GPU",
+  "last20Events": "Ultimele 20 de evenimente"
+}

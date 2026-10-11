@@ -1,0 +1,388 @@
+{
+  "@@locale": "fi_FI",
+  "menu": "Valikko",
+  "settings": "Asetukset",
+  "language": "Kieli",
+  "appearance": "Ulkoasu",
+  "notifications": "Ilmoitukset",
+  "enableNotifications": "Ota ilmoitukset käyttöön",
+  "temperatureWarning": "Lämpötilavaroituksen raja",
+  "cancel": "Peruuta",
+  "save": "Tallenna",
+  "dashboard": "Koontinäyttö",
+  "systemStatus": "Järjestelmän tila",
+  "controls": "Ohjaimet",
+  "createErrorReport": "Luo virheraportti",
+  "reconnect": "Yhdistä uudelleen",
+  "noEvents": "Ei tapahtumia vielä",
+  "darkMode": "Dark mode",
+  "lightMode": "Light mode",
+  "animationsOn": "Disable animations",
+  "animationsOff": "Enable animations",
+  "accessibility": "Esteettömyys",
+  "offlineSpeech": "Offline-puhe",
+  "piperOfflineDescription": "Kuuntele hallintapaneelin tiedot paikallisesti asennetuilla Piper-äänillä. Puhe pysyy tällä laitteella.",
+  "piperExecutablePath": "Piper-suoritustiedoston polku",
+  "piperModelPath": "ONNX-äänimallin polku",
+  "testSpeech": "Testaa puhetta",
+  "readDashboard": "Lue hallintapaneeli",
+  "piperTesting": "Puhetta testataan...",
+  "piperTestSuccess": "Puhetesti valmis.",
+  "piperTestFailed": "Puhetesti epäonnistui.",
+  "piperTestPhrase": "HWcontrol2.0:n esteettömyyden puhetesti. Laitteistotietosi pysyvät tällä laitteella.",
+  "stopSpeech": "Lopeta puhe",
+  "piperSpeechStopped": "Puhe lopetettu.",
+  "browsePiperExecutable": "Valitse Piper-suoritustiedosto",
+  "browsePiperModel": "Valitse ONNX-äänimalli",
+  "piperModelConfigHint": "Vastaavan .onnx.json-määritystiedoston on oltava samassa kansiossa. Tarkista äänen lisenssi ennen käyttöä.",
+  "piperVoiceCatalog": "Selaa Piperin virallisia ääniä",
+  "getPiperExecutable": "Hanki Piper-suoritustiedosto",
+  "systemDefault": "Järjestelmän oletus",
+  "telemetryHistory": "Mittaus historia",
+  "lastHour": "Viime tunti • näyte 5 sekunnin välein",
+  "hardwareDetection": "Laitteiston tunnistus",
+  "pcMotherboardCpuGpu": "Tietokoneen, emolevyn, suorittimen ja näytönohjaimen tiedot",
+  "controlFlow": "Ohjausvirta",
+  "safeUserSettings": "Turvalliset käyttäjäasetukset",
+  "gameMode": "Pelitila",
+  "advancedTelemetry": "Edistyneet mittaukset",
+  "aiAnalysis": "Tekoälyanalyysi",
+  "diagnostics": "Vianmääritys",
+  "online": "SILTA VERKOSSA",
+  "offline": "EI YHTEYTTÄ",
+  "updateCheck": "Tarkista päivitykset",
+  "releaseOpen": "Avaa julkaisu",
+  "systemEvents": "Järjestelmätapahtumat",
+  "quiet": "Hiljainen",
+  "balanced": "Tasapainoinen",
+  "performance": "Suorituskyky",
+  "game": "Peli",
+  "manual": "Manuaalinen",
+  "reset": "Palauta",
+  "saveProfile": "Tallenna profiili",
+  "fanSpeed": "Tuulettimen nopeus",
+  "apply": "Käytä",
+  "languageChanged": "Kieli vaihdettu",
+  "temperature": "Lämpötila",
+  "usage": "Käyttö",
+  "ramUsage": "Muistin käyttö",
+  "diskUsage": "Levyn käyttö",
+  "gpuUsage": "Näytönohjaimen käyttö",
+  "fan": "Tuuletin",
+  "welcomeTitle": "Tervetuloa HWcontrol2.0-sovellukseen",
+  "welcomeTagline": "Valvo. Ohjaa. Suojaa.",
+  "welcomeDescription": "Helppo ja luotettava tapa valvoa laitteistoa, ohjata jäähdytystä ja pitää järjestelmä kunnossa.",
+  "welcomeMonitor": "Valvo",
+  "welcomeMonitorDescription": "CPU/GPU-anturit ja lämpötilat",
+  "welcomeControl": "Ohjaa",
+  "welcomeControlDescription": "Tuuletinkäyrät ja suorituskykyprofiilit",
+  "welcomeProtect": "Suojaa",
+  "welcomeProtectDescription": "Vianmääritys ja järjestelmän tila",
+  "welcomeGetStarted": "Aloita",
+  "welcomeOpenDashboard": "Avaa koontinäyttö",
+  "welcomeDontShowAgain": "Älä näytä uudelleen",
+  "welcomePreview": "Koontinäytön esikatselu",
+  "welcomeExampleStatus": "Esimerkkitila",
+  "welcomeSampleValues": "Esimerkkiarvot",
+  "welcomeConnectHardware": "Yhdistä laitteisto",
+  "newAutomationRule": "Uusi automaatiosääntö",
+  "editAutomationRule": "Muokkaa automaatiosääntöä",
+  "ruleName": "Säännön nimi",
+  "sensor": "Anturi",
+  "cpuTemperatureLabel": "Suorittimen lämpötila",
+  "gpuTemperatureLabel": "Näytönohjaimen lämpötila",
+  "threshold": "Raja-arvo (°C)",
+  "fanTarget": "Tuulettimen tavoite (%)",
+  "hardwareAutomation": "Laitteiston automaatio",
+  "automationSafetyNote": "Säännöt lähettävät tuuletinkomentoja vain, jos vahvistettu laitteiston ohjaustaustaosa on käytettävissä.",
+  "edit": "Muokkaa",
+  "delete": "Poista",
+  "noAutomationRules": "Automaatiosääntöjä ei vielä ole.",
+  "addRule": "Lisää sääntö",
+  "hardwareHealthCenter": "Laitteiston kuntokeskus",
+  "status": "Tila",
+  "safety": "Turvallisuus",
+  "recovery": "Palautuminen",
+  "warnings": "Varoitukset",
+  "anomalies": "Poikkeamat",
+  "close": "Sulje",
+  "checkForUpdates": "Tarkista päivitykset",
+  "maxCpuTemperature": "Suorittimen enimmäislämpötila: {temperature} °C",
+  "@maxCpuTemperature": {
+    "description": "Localized UI message: maxCpuTemperature. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "temperature": {
+        "type": "num"
+      }
+    }
+  },
+  "exportCsv": "Vie CSV-tiedostoksi",
+  "thermalStatus": "Lämpötila: {status}",
+  "@thermalStatus": {
+    "description": "Localized UI message: thermalStatus. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeMetricsWaiting": "Odotetaan sillan mittaustietoja",
+  "gpuTelemetryNote": "Näytönohjaimen edistynyt telemetria riippuu ajurin ja taustaosan tuesta.",
+  "cpuCoreLoad": "Suoritinytimien kuormitus",
+  "runAiAnalysis": "Suorita tekoälyanalyysi",
+  "clearAiModelCache": "Tyhjennä tekoälymallin välimuisti",
+  "modelDownloading": "Ladataan Gemma 3 1B -mallia: {percent}% • noin 851 Mt",
+  "@modelDownloading": {
+    "description": "Localized UI message: modelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "llmControlUnavailable": "LLM-ohjausoikeus ei ole käytettävissä",
+  "storageUnavailable": "Tallennuslaitetta ei havaittu tai mittaustiedot eivät ole vielä valmiina.",
+  "freeSpace": "Vapaana: {value}",
+  "@freeSpace": {
+    "description": "Localized UI message: freeSpace. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "readSpeed": "Luku: {value}",
+  "@readSpeed": {
+    "description": "Localized UI message: readSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "writeSpeed": "Kirjoitus: {value}",
+  "@writeSpeed": {
+    "description": "Localized UI message: writeSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "health": "Kunto: {value}",
+  "@health": {
+    "description": "Localized UI message: health. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSystem": "Tiedostojärjestelmä: {value}",
+  "@fileSystem": {
+    "description": "Localized UI message: fileSystem. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diagnosticPrivacy": "Vianmääritys: {status} • sarjanumeroita ei sisällytetä raportteihin",
+  "@diagnosticPrivacy": {
+    "description": "Localized UI message: diagnosticPrivacy. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "detectedGame": "Tunnistettu peli: {game}",
+  "@detectedGame": {
+    "description": "Localized UI message: detectedGame. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "gameModeWaiting": "Pelitila valmis — odotetaan peliä",
+  "gameModeOff": "Pelitila pois käytöstä",
+  "activeGameProcess": "Pelin prosessia seurataan",
+  "hardwareControlMonitorOnly": "Laitteiston ohjaus: vain seuranta",
+  "extensionApiStatus": "Laajennus-API: metatietojen/ominaisuuksien tarjoajan sopimus valmis • natiivien lisäosien lataus poistettu käytöstä",
+  "smartFanCurve": "Älykäs tuuletinkäyrä",
+  "smartFanEnabled": "Smart Fan: käytössä",
+  "smartFanDisabled": "Smart Fan: pois käytöstä",
+  "automation": "Automaatio",
+  "benchmark": "Vertailutesti",
+  "downloadVerifiedUpdate": "Lataa vahvistettu päivitys",
+  "newFanCurvePoint": "Uusi tuuletinkäyrän piste",
+  "smartFanCurveDescription": "Määritä tuulettimen tavoite lämpötilan mukaan. Käyrä otetaan automaattisesti käyttöön vain, kun vahvistettu laitteiston ohjaustaustaosa on käytettävissä.",
+  "deletePoint": "Poista piste",
+  "addPoint": "Lisää piste",
+  "resetBalanced": "Palauta tasapainotettuun",
+  "hardwareBenchmark": "Laitteiston vertailutesti",
+  "benchmarkDisclaimer": "Yhden sekunnin suorittimen mikrovertailutesti. Se ei ole rasitustesti eikä muuta laitteiston asetuksia.",
+  "score": "Tulos: {value} kierrosta/s",
+  "@score": {
+    "description": "Localized UI message: score. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "iterations": "Kierrokset: {value}",
+  "@iterations": {
+    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "duration": "Kesto: {value} ms",
+  "@duration": {
+    "description": "Localized UI message: duration. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "run": "Suorita",
+  "unknown": "Tuntematon",
+  "none": "Ei mitään",
+  "power": "Teho",
+  "voltage": "Jännite",
+  "appTagline": "Tarkka laitteiston ohjaus",
+  "cpuUsageLabel": "Suorittimen käyttö",
+  "coreClock": "Ytimen kellotaajuus",
+  "memoryClock": "Muistin kellotaajuus",
+  "advancedTelemetryDescription": "GPU-kuormitus, VRAM, teho, kellotaajuudet ja suorittimen ytimet",
+  "localAiAnalysisDescription": "Gemman paikallinen analyysi reaaliaikaisista mittaustiedoista",
+  "hardwareDetectionDescription": "Tietokoneen, emolevyn, suorittimen ja näytönohjaimen tunnistetiedot",
+  "gameModeDescription": "Automaattinen tunnistus ja pelaamiseen keskittyvä valvonta pelin ollessa käynnissä",
+  "gameModeSet": "Aseta pelitila",
+  "bridgeWaiting": "Odotetaan siltaa",
+  "monitoringOnly": "Vain valvonta",
+  "powerLimit": "Tehoraja",
+  "gpuState": "GPU:n tila",
+  "encoderUsage": "Kooderin käyttö",
+  "decoderUsage": "Dekooderin käyttö",
+  "samplingInterval": "Viimeisin tunti • mittaus 5 sekunnin välein",
+  "modelDigestLabel": "Mallin SHA-256",
+  "gpuAdapterLabel": "GPU-sovitin",
+  "lastActionLabel": "Viimeisin toiminto",
+  "vramUsageLabel": "VRAM-käyttö",
+  "gpuPowerLimit": "GPU:n tehoraja",
+  "gpuEncoder": "Kooderi",
+  "gpuDecoder": "Dekooderi",
+  "storageTitle": "Tallennus",
+  "storageDescription": "SSD-, HDD- ja NVMe-laitteiden käyttö ja I/O-tila",
+  "aiProcessingPower": "Tekoälyn laskentateho",
+  "securityLabel": "Tietoturva",
+  "securityKeyWaiting": "Odotetaan avainta",
+  "digestNotFound": "Ei löytynyt",
+  "digestNotChecked": "Ei tarkistettu",
+  "gpuAdapter": "GPU-sovitin",
+  "cpuCoreSummary": "{cores} ydintä • {frequency} MHz",
+  "@cpuCoreSummary": {
+    "description": "Localized UI message: cpuCoreSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "cores": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "num"
+      }
+    }
+  },
+  "warningThresholdLabel": "Varoitusraja",
+  "hardwareControlUnavailableNote": "Tuulettimen tai kellotaajuuden asetuksia ei muuteta, jos laitteiston ohjausta ei tueta.",
+  "thermalStatusLabel": "Lämpötila-tila",
+  "fanControlLabel": "Tuulettimen ohjaus",
+  "installerTitle": "HWControl-asennusvelho",
+  "installerLocalAiModel": "Paikallinen tekoäly (Gemma 3 1B)",
+  "installerAiDescription": "Valinnainen. Jos valitaan, Gemma 3 1B ladataan asennuksen aikana ja tarkistetaan SHA-256-tiivisteellä.",
+  "installerChecking": "Tarkistetaan asennusta...",
+  "installerContinue": "Jatka",
+  "installerFinish": "Viimeistele asennus",
+  "installerPackageStepTitle": "1. Tarkista paketin tyyppi",
+  "installerBridgeStepTitle": "2. Tarkista siltayhteys",
+  "installerCompleteStepTitle": "3. Viimeistele asennus",
+  "installerPackageStepDescription": "Tämä pakettimuoto sopii alustalle {platform}: {formats}.",
+  "@installerPackageStepDescription": {
+    "description": "Localized UI message: installerPackageStepDescription. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "installerAiStepDescription": "Paikallinen tekoälykomponentti voidaan asentaa valinnaisesti. Jos se valitaan, Gemma 3 1B Instruct Q5_K_M (noin 851 Mt) ladataan asennuksen aikana ja tarkistetaan SHA-256-tiivisteellä.",
+  "installerCompleteWithAi": "Malli valmistellaan viimeisessä vaiheessa. Puuttuva tai vioittunut malli korjataan tarkistetulla latauksella.",
+  "installerCompleteWithoutAi": "Perussovellus asennetaan; tekoälymallia ei ladata tämän asennuksen aikana.",
+  "installerAiSelectedFooter": "Tekoäly valittu: Gemma valmistellaan asennuksen aikana. Puuttuvat tai vioittuneet tiedostot ladataan uudelleen ja tarkistetaan.",
+  "installerAiSkippedFooter": "Tekoälyä ei valittu: Gemmaa ei asenneta. Sen voi ladata turvallisesti, kun tekoälyanalyysiä pyydetään ensimmäisen kerran.",
+  "installerPreviouslyCompleted": "Asennus on jo suoritettu. Tekoälymalli on valinnainen.",
+  "installerBridgeFound": "löytyi",
+  "installerBridgePending": "odotetaan pakettiasennukselta",
+  "installerModelReady": "valmis ja tarkistettu",
+  "installerModelOptional": "valinnainen; ladataan ensimmäisellä tekoälyanalyysillä",
+  "installerCheckFailed": "Asennuksen tarkistus epäonnistui: {error}",
+  "@installerCheckFailed": {
+    "description": "Localized UI message: installerCheckFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelPreparing": "Valmistellaan Gemma 3 1B -mallia...",
+  "installerModelDownloading": "Ladataan Gemma 3 1B:tä: {percent}%",
+  "@installerModelDownloading": {
+    "description": "Localized UI message: installerModelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "installerModelDownloadFailed": "Gemman asennus epäonnistui: {error}\nPerusasennusta voidaan jatkaa; yritä tekoälyn asennusta myöhemmin uudelleen.",
+  "@installerModelDownloadFailed": {
+    "description": "Localized UI message: installerModelDownloadFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelDownloaded": "Gemma 3 1B ladattiin ja tarkistettiin SHA-256-tiivisteellä.",
+  "installerTestMode": "Testitila: asennus ja mallin lataus ohitettiin.",
+  "installerCheckingComponents": "Tarkistetaan asennusosia...",
+  "installerPlatformSummary": "Alusta: {platform}\nPaketti: {formats}\nSilta: {bridge}\nTekoälymalli: {ai}",
+  "@installerPlatformSummary": {
+    "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      },
+      "ai": {
+        "type": "String"
+      }
+    }
+  },
+  "motherboardLabel": "Emolevy",
+  "gpuDriverLabel": "GPU-ohjain",
+  "last20Events": "20 viimeisintä tapahtumaa"
+}

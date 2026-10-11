@@ -1,0 +1,388 @@
+{
+  "@@locale": "ru_RU",
+  "menu": "Меню",
+  "settings": "Настройки",
+  "language": "Язык",
+  "appearance": "Внешний вид",
+  "notifications": "Уведомления",
+  "enableNotifications": "Включить уведомления",
+  "temperatureWarning": "Порог предупреждения температуры",
+  "cancel": "Отмена",
+  "save": "Сохранить",
+  "dashboard": "Панель управления",
+  "systemStatus": "Состояние системы",
+  "controls": "Управление",
+  "createErrorReport": "Создать отчёт об ошибке",
+  "reconnect": "Подключиться снова",
+  "noEvents": "Событий пока нет",
+  "darkMode": "Dark mode",
+  "lightMode": "Light mode",
+  "animationsOn": "Disable animations",
+  "animationsOff": "Enable animations",
+  "accessibility": "Специальные возможности",
+  "offlineSpeech": "Офлайн-озвучивание",
+  "piperOfflineDescription": "Озвучивайте сведения панели с помощью локально установленных голосов Piper. Озвучивание выполняется на этом устройстве.",
+  "piperExecutablePath": "Путь к исполняемому файлу Piper",
+  "piperModelPath": "Путь к голосовой модели ONNX",
+  "testSpeech": "Проверить озвучивание",
+  "readDashboard": "Прочитать панель",
+  "piperTesting": "Проверка озвучивания...",
+  "piperTestSuccess": "Проверка озвучивания завершена.",
+  "piperTestFailed": "Не удалось проверить озвучивание.",
+  "piperTestPhrase": "Проверка озвучивания специальных возможностей HWcontrol2.0. Данные оборудования остаются на этом устройстве.",
+  "stopSpeech": "Остановить озвучивание",
+  "piperSpeechStopped": "Озвучивание остановлено.",
+  "browsePiperExecutable": "Выбрать исполняемый файл Piper",
+  "browsePiperModel": "Выбрать голосовую модель ONNX",
+  "piperModelConfigHint": "Соответствующий файл конфигурации .onnx.json должен находиться в той же папке. Перед использованием проверьте лицензию голоса.",
+  "piperVoiceCatalog": "Открыть официальный каталог голосов Piper",
+  "getPiperExecutable": "Получить исполняемый файл Piper",
+  "systemDefault": "Системные настройки",
+  "telemetryHistory": "История телеметрии",
+  "lastHour": "Последний час • опрос каждые 5 секунд",
+  "hardwareDetection": "Обнаружение оборудования",
+  "pcMotherboardCpuGpu": "Сведения о ПК, материнской плате, процессоре и видеокарте",
+  "controlFlow": "Поток управления",
+  "safeUserSettings": "Безопасные настройки пользователя",
+  "gameMode": "Игровой режим",
+  "advancedTelemetry": "Расширенная телеметрия",
+  "aiAnalysis": "Анализ ИИ",
+  "diagnostics": "Диагностика",
+  "online": "МОСТ ПОДКЛЮЧЁН",
+  "offline": "НЕ В СЕТИ",
+  "updateCheck": "Проверить обновления",
+  "releaseOpen": "Открыть выпуск",
+  "systemEvents": "Системные события",
+  "quiet": "Тихий",
+  "balanced": "Сбалансированный",
+  "performance": "Производительность",
+  "game": "Игра",
+  "manual": "Вручную",
+  "reset": "Сбросить",
+  "saveProfile": "Сохранить профиль",
+  "fanSpeed": "Скорость вентилятора",
+  "apply": "Применить",
+  "languageChanged": "Язык изменён",
+  "temperature": "Температура",
+  "usage": "Использование",
+  "ramUsage": "Использование памяти",
+  "diskUsage": "Использование диска",
+  "gpuUsage": "Использование GPU",
+  "fan": "Вентилятор",
+  "welcomeTitle": "Добро пожаловать в HWcontrol2.0",
+  "welcomeTagline": "Мониторинг. Управление. Защита.",
+  "welcomeDescription": "Простой и надёжный способ следить за оборудованием, управлять охлаждением и поддерживать исправность системы.",
+  "welcomeMonitor": "Мониторинг",
+  "welcomeMonitorDescription": "Датчики и температуры CPU/GPU",
+  "welcomeControl": "Управление",
+  "welcomeControlDescription": "Кривые вентиляторов и профили производительности",
+  "welcomeProtect": "Защита",
+  "welcomeProtectDescription": "Диагностика и состояние системы",
+  "welcomeGetStarted": "Начать",
+  "welcomeOpenDashboard": "Открыть панель",
+  "welcomeDontShowAgain": "Больше не показывать",
+  "welcomePreview": "Предпросмотр панели",
+  "welcomeExampleStatus": "Пример состояния",
+  "welcomeSampleValues": "Примеры значений",
+  "welcomeConnectHardware": "Подключить оборудование",
+  "newAutomationRule": "Новое правило автоматизации",
+  "editAutomationRule": "Изменить правило автоматизации",
+  "ruleName": "Название правила",
+  "sensor": "Датчик",
+  "cpuTemperatureLabel": "Температура CPU",
+  "gpuTemperatureLabel": "Температура GPU",
+  "threshold": "Порог (°C)",
+  "fanTarget": "Цель вентилятора (%)",
+  "hardwareAutomation": "Автоматизация оборудования",
+  "automationSafetyNote": "Правила отправляют команды вентилятора только при наличии проверенного бэкенда управления оборудованием.",
+  "edit": "Изменить",
+  "delete": "Удалить",
+  "noAutomationRules": "Правил автоматизации пока нет.",
+  "addRule": "Добавить правило",
+  "hardwareHealthCenter": "Центр состояния оборудования",
+  "status": "Состояние",
+  "safety": "Безопасность",
+  "recovery": "Восстановление",
+  "warnings": "Предупреждения",
+  "anomalies": "Аномалии",
+  "close": "Закрыть",
+  "checkForUpdates": "Проверить обновления",
+  "maxCpuTemperature": "Макс. температура CPU: {temperature} °C",
+  "@maxCpuTemperature": {
+    "description": "Localized UI message: maxCpuTemperature. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "temperature": {
+        "type": "num"
+      }
+    }
+  },
+  "exportCsv": "Экспорт CSV",
+  "thermalStatus": "Тепловое состояние: {status}",
+  "@thermalStatus": {
+    "description": "Localized UI message: thermalStatus. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeMetricsWaiting": "Ожидание показателей моста",
+  "gpuTelemetryNote": "Расширенная телеметрия GPU зависит от поддержки драйвера и бэкенда.",
+  "cpuCoreLoad": "Загрузка ядер CPU",
+  "runAiAnalysis": "Запустить анализ ИИ",
+  "clearAiModelCache": "Очистить кэш модели ИИ",
+  "modelDownloading": "Загрузка модели Gemma 3 1B: {percent}% • около 851 МБ",
+  "@modelDownloading": {
+    "description": "Localized UI message: modelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "llmControlUnavailable": "Нет разрешения на управление LLM",
+  "storageUnavailable": "Накопитель не обнаружен или телеметрия ещё не готова.",
+  "freeSpace": "Свободно: {value}",
+  "@freeSpace": {
+    "description": "Localized UI message: freeSpace. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "readSpeed": "Чтение: {value}",
+  "@readSpeed": {
+    "description": "Localized UI message: readSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "writeSpeed": "Запись: {value}",
+  "@writeSpeed": {
+    "description": "Localized UI message: writeSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "health": "Состояние: {value}",
+  "@health": {
+    "description": "Localized UI message: health. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSystem": "Файловая система: {value}",
+  "@fileSystem": {
+    "description": "Localized UI message: fileSystem. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diagnosticPrivacy": "Диагностика: {status} • серийные номера не включаются в отчёты",
+  "@diagnosticPrivacy": {
+    "description": "Localized UI message: diagnosticPrivacy. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "detectedGame": "Обнаруженная игра: {game}",
+  "@detectedGame": {
+    "description": "Localized UI message: detectedGame. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "gameModeWaiting": "Игровой режим готов — ожидание игры",
+  "gameModeOff": "Игровой режим выключен",
+  "activeGameProcess": "Выполняется мониторинг процесса игры",
+  "hardwareControlMonitorOnly": "Управление оборудованием: только мониторинг",
+  "extensionApiStatus": "API расширений: контракт поставщика метаданных/возможностей готов • загрузка нативных плагинов отключена",
+  "smartFanCurve": "Интеллектуальная кривая вентилятора",
+  "smartFanEnabled": "Smart Fan: включён",
+  "smartFanDisabled": "Smart Fan: выключен",
+  "automation": "Автоматизация",
+  "benchmark": "Бенчмарк",
+  "downloadVerifiedUpdate": "Загрузить проверенное обновление",
+  "newFanCurvePoint": "Новая точка кривой вентилятора",
+  "smartFanCurveDescription": "Задайте целевую скорость вентилятора в зависимости от температуры. Кривая применяется автоматически только при наличии проверенного бэкенда управления оборудованием.",
+  "deletePoint": "Удалить точку",
+  "addPoint": "Добавить точку",
+  "resetBalanced": "Сбросить на сбалансированный режим",
+  "hardwareBenchmark": "Бенчмарк оборудования",
+  "benchmarkDisclaimer": "Односекундный микро-бенчмарк CPU. Это не стресс-тест, настройки оборудования не изменяются.",
+  "score": "Результат: {value} итераций/с",
+  "@score": {
+    "description": "Localized UI message: score. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "iterations": "Итерации: {value}",
+  "@iterations": {
+    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "duration": "Длительность: {value} мс",
+  "@duration": {
+    "description": "Localized UI message: duration. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "run": "Запустить",
+  "unknown": "Неизвестно",
+  "none": "Нет",
+  "power": "Мощность",
+  "voltage": "Напряжение",
+  "appTagline": "Точное управление оборудованием",
+  "cpuUsageLabel": "Загрузка CPU",
+  "coreClock": "Частота ядра",
+  "memoryClock": "Частота памяти",
+  "advancedTelemetryDescription": "Загрузка GPU, VRAM, мощность, частоты и ядра CPU",
+  "localAiAnalysisDescription": "Локальный анализ телеметрии в реальном времени с помощью Gemma",
+  "hardwareDetectionDescription": "Данные о ПК, материнской плате, CPU и GPU",
+  "gameModeDescription": "Автоматическое обнаружение и мониторинг для игр во время их запуска",
+  "gameModeSet": "Настроить игровой режим",
+  "bridgeWaiting": "Ожидание моста",
+  "monitoringOnly": "Только мониторинг",
+  "powerLimit": "Ограничение мощности",
+  "gpuState": "Состояние GPU",
+  "encoderUsage": "Загрузка кодировщика",
+  "decoderUsage": "Загрузка декодировщика",
+  "samplingInterval": "Последний час • измерение каждые 5 секунд",
+  "modelDigestLabel": "SHA-256 модели",
+  "gpuAdapterLabel": "Адаптер GPU",
+  "lastActionLabel": "Последнее действие",
+  "vramUsageLabel": "Использование VRAM",
+  "gpuPowerLimit": "Лимит мощности GPU",
+  "gpuEncoder": "Кодировщик",
+  "gpuDecoder": "Декодировщик",
+  "storageTitle": "Хранилище",
+  "storageDescription": "Использование SSD / HDD / NVMe и состояние ввода-вывода",
+  "aiProcessingPower": "Вычислительная мощность ИИ",
+  "securityLabel": "Безопасность",
+  "securityKeyWaiting": "Ожидание ключа",
+  "digestNotFound": "Не найдено",
+  "digestNotChecked": "Не проверено",
+  "gpuAdapter": "Адаптер GPU",
+  "cpuCoreSummary": "Ядер: {cores} • {frequency} МГц",
+  "@cpuCoreSummary": {
+    "description": "Localized UI message: cpuCoreSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "cores": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "num"
+      }
+    }
+  },
+  "warningThresholdLabel": "Порог предупреждения",
+  "hardwareControlUnavailableNote": "При отсутствии поддержки управления оборудованием настройки вентиляторов и частот не изменяются.",
+  "thermalStatusLabel": "Тепловое состояние",
+  "fanControlLabel": "Управление вентилятором",
+  "installerTitle": "Мастер установки HWControl",
+  "installerLocalAiModel": "Локальный ИИ (Gemma 3 1B)",
+  "installerAiDescription": "Необязательно. Если выбрано, Gemma 3 1B загружается во время установки и проверяется по SHA-256.",
+  "installerChecking": "Проверка установки...",
+  "installerContinue": "Продолжить",
+  "installerFinish": "Завершить установку",
+  "installerPackageStepTitle": "1. Проверить тип пакета",
+  "installerBridgeStepTitle": "2. Проверить состояние моста",
+  "installerCompleteStepTitle": "3. Завершить установку",
+  "installerPackageStepDescription": "Этот формат пакета подходит для {platform}: {formats}.",
+  "@installerPackageStepDescription": {
+    "description": "Localized UI message: installerPackageStepDescription. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "installerAiStepDescription": "Локальный компонент ИИ можно установить по желанию. При выборе Gemma 3 1B Instruct Q5_K_M (около 851 МБ) загружается во время установки и проверяется по SHA-256.",
+  "installerCompleteWithAi": "Модель будет подготовлена на последнем этапе. Отсутствующая или повреждённая модель будет восстановлена из проверенной загрузки.",
+  "installerCompleteWithoutAi": "Будет установлено основное приложение; модель ИИ во время этой установки не загружается.",
+  "installerAiSelectedFooter": "ИИ выбран: Gemma будет подготовлена во время установки. Отсутствующие или повреждённые файлы загружаются заново и проверяются.",
+  "installerAiSkippedFooter": "ИИ не выбран: Gemma не устанавливается. Её можно безопасно загрузить при первом запуске анализа ИИ.",
+  "installerPreviouslyCompleted": "Установка уже была завершена. Модель ИИ необязательна.",
+  "installerBridgeFound": "найден",
+  "installerBridgePending": "ожидается в составе пакетной установки",
+  "installerModelReady": "готова и проверена",
+  "installerModelOptional": "необязательно; загрузка при первом запуске анализа ИИ",
+  "installerCheckFailed": "Проверка установки не удалась: {error}",
+  "@installerCheckFailed": {
+    "description": "Localized UI message: installerCheckFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelPreparing": "Подготовка модели Gemma 3 1B...",
+  "installerModelDownloading": "Загрузка Gemma 3 1B: {percent}%",
+  "@installerModelDownloading": {
+    "description": "Localized UI message: installerModelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "installerModelDownloadFailed": "Не удалось установить Gemma: {error}\nОсновную установку можно продолжить; установку ИИ можно повторить позже.",
+  "@installerModelDownloadFailed": {
+    "description": "Localized UI message: installerModelDownloadFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelDownloaded": "Gemma 3 1B загружена и проверена по SHA-256.",
+  "installerTestMode": "Тестовый режим: установка и загрузка модели пропущены.",
+  "installerCheckingComponents": "Проверка компонентов установки...",
+  "installerPlatformSummary": "Платформа: {platform}\nПакет: {formats}\nМост: {bridge}\nМодель ИИ: {ai}",
+  "@installerPlatformSummary": {
+    "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      },
+      "ai": {
+        "type": "String"
+      }
+    }
+  },
+  "motherboardLabel": "Материнская плата",
+  "gpuDriverLabel": "Драйвер GPU",
+  "last20Events": "Последние 20 событий"
+}

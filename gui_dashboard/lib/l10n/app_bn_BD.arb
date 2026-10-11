@@ -1,0 +1,388 @@
+{
+  "@@locale": "bn_BD",
+  "menu": "মেনু",
+  "settings": "সেটিংস",
+  "language": "ভাষা",
+  "appearance": "চেহারা",
+  "notifications": "বিজ্ঞপ্তি",
+  "enableNotifications": "বিজ্ঞপ্তি চালু করুন",
+  "temperatureWarning": "তাপমাত্রা সতর্কতার সীমা",
+  "cancel": "বাতিল",
+  "save": "সংরক্ষণ",
+  "darkMode": "ডার্ক মোড",
+  "lightMode": "লাইট মোড",
+  "dashboard": "ড্যাশবোর্ড",
+  "systemStatus": "সিস্টেমের অবস্থা",
+  "controls": "নিয়ন্ত্রণ",
+  "createErrorReport": "ত্রুটি প্রতিবেদন তৈরি করুন",
+  "reconnect": "পুনরায় সংযোগ করুন",
+  "noEvents": "এখনও কোনো ইভেন্ট নেই",
+  "quiet": "নীরব",
+  "balanced": "ভারসাম্যপূর্ণ",
+  "performance": "কর্মক্ষমতা",
+  "temperature": "তাপমাত্রা",
+  "usage": "ব্যবহার",
+  "fan": "ফ্যান",
+  "systemDefault": "সিস্টেমের ডিফল্ট",
+  "welcomeTitle": "HWcontrol2.0-এ স্বাগতম",
+  "welcomeDescription": "হার্ডওয়্যার পর্যবেক্ষণ, কুলিং নিয়ন্ত্রণ এবং সিস্টেম সুস্থ রাখার সহজ ও নির্ভরযোগ্য উপায়।",
+  "welcomeTagline": "পর্যবেক্ষণ। নিয়ন্ত্রণ। সুরক্ষা।",
+  "welcomeGetStarted": "শুরু করুন",
+  "welcomeOpenDashboard": "ড্যাশবোর্ড খুলুন",
+  "welcomePreview": "ড্যাশবোর্ডের পূর্বরূপ",
+  "accessibility": "অ্যাক্সেসিবিলিটি",
+  "offlineSpeech": "অফলাইন কথন",
+  "piperOfflineDescription": "স্থানীয়ভাবে ইনস্টল করা Piper কণ্ঠ দিয়ে ড্যাশবোর্ডের তথ্য শুনুন। কথন এই ডিভাইসেই থাকে।",
+  "piperExecutablePath": "Piper নির্বাহযোগ্য ফাইলের পথ",
+  "piperModelPath": "ONNX কণ্ঠ মডেলের পথ",
+  "testSpeech": "কথন পরীক্ষা",
+  "readDashboard": "ড্যাশবোর্ড পড়ুন",
+  "piperTesting": "কথন পরীক্ষা করা হচ্ছে...",
+  "piperTestSuccess": "কথন পরীক্ষা সম্পন্ন হয়েছে।",
+  "piperTestFailed": "কথন পরীক্ষা ব্যর্থ হয়েছে।",
+  "piperTestPhrase": "HWcontrol2.0 অ্যাক্সেসিবিলিটি কথন পরীক্ষা। আপনার হার্ডওয়্যার তথ্য এই ডিভাইসেই থাকে।",
+  "stopSpeech": "কথন থামান",
+  "piperSpeechStopped": "কথন থামানো হয়েছে।",
+  "browsePiperExecutable": "Piper নির্বাহযোগ্য ফাইল নির্বাচন",
+  "browsePiperModel": "ONNX কণ্ঠ মডেল নির্বাচন",
+  "piperModelConfigHint": "সংশ্লিষ্ট .onnx.json কনফিগারেশন ফাইলটি একই ফোল্ডারে থাকতে হবে। ব্যবহারের আগে কণ্ঠের লাইসেন্স পরীক্ষা করুন।",
+  "piperVoiceCatalog": "Piper-এর সরকারি কণ্ঠ দেখুন",
+  "getPiperExecutable": "Piper নির্বাহযোগ্য ফাইল সংগ্রহ করুন",
+  "telemetryHistory": "পরিমাপের ইতিহাস",
+  "lastHour": "গত ১ ঘণ্টা • প্রতি ৫ সেকেন্ডে নমুনা",
+  "hardwareDetection": "হার্ডওয়্যার শনাক্তকরণ",
+  "pcMotherboardCpuGpu": "PC, মাদারবোর্ড, CPU ও GPU-এর তথ্য",
+  "controlFlow": "নিয়ন্ত্রণ প্রবাহ",
+  "safeUserSettings": "নিরাপদ ব্যবহারকারী সেটিংস",
+  "gameMode": "গেম মোড",
+  "advancedTelemetry": "উন্নত পরিমাপ",
+  "aiAnalysis": "AI বিশ্লেষণ",
+  "diagnostics": "ত্রুটি নির্ণয়",
+  "online": "ব্রিজ সংযুক্ত",
+  "offline": "অফলাইন",
+  "updateCheck": "হালনাগাদ পরীক্ষা করুন",
+  "releaseOpen": "রিলিজ খুলুন",
+  "systemEvents": "সিস্টেম ইভেন্ট",
+  "game": "গেম",
+  "manual": "ম্যানুয়াল",
+  "reset": "পুনরায় সেট করুন",
+  "saveProfile": "প্রোফাইল সংরক্ষণ করুন",
+  "fanSpeed": "ফ্যানের গতি",
+  "apply": "প্রয়োগ করুন",
+  "languageChanged": "ভাষা পরিবর্তন করা হয়েছে",
+  "ramUsage": "মেমরি ব্যবহার",
+  "diskUsage": "ডিস্ক ব্যবহার",
+  "gpuUsage": "GPU ব্যবহার",
+  "welcomeMonitor": "পর্যবেক্ষণ",
+  "welcomeMonitorDescription": "CPU/GPU সেন্সর ও তাপমাত্রা",
+  "welcomeControl": "নিয়ন্ত্রণ",
+  "welcomeControlDescription": "ফ্যান কার্ভ ও কর্মক্ষমতা প্রোফাইল",
+  "welcomeProtect": "সুরক্ষা",
+  "welcomeProtectDescription": "ত্রুটি নির্ণয় ও সিস্টেমের অবস্থা",
+  "welcomeDontShowAgain": "আর দেখাবেন না",
+  "welcomeExampleStatus": "নমুনা অবস্থা",
+  "welcomeSampleValues": "নমুনা মান",
+  "welcomeConnectHardware": "হার্ডওয়্যার সংযুক্ত করুন",
+  "newAutomationRule": "নতুন স্বয়ংক্রিয় নিয়ম",
+  "editAutomationRule": "স্বয়ংক্রিয় নিয়ম সম্পাদনা করুন",
+  "ruleName": "নিয়মের নাম",
+  "sensor": "সেন্সর",
+  "cpuTemperatureLabel": "CPU তাপমাত্রা",
+  "gpuTemperatureLabel": "GPU তাপমাত্রা",
+  "threshold": "সীমা (°C)",
+  "fanTarget": "ফ্যানের লক্ষ্য (%)",
+  "hardwareAutomation": "হার্ডওয়্যার স্বয়ংক্রিয়করণ",
+  "automationSafetyNote": "যাচাইকৃত হার্ডওয়্যার-নিয়ন্ত্রণ ব্যাকএন্ড থাকলেই নিয়ম ফ্যানের নির্দেশ পাঠায়।",
+  "edit": "সম্পাদনা",
+  "delete": "মুছুন",
+  "noAutomationRules": "এখনও কোনো স্বয়ংক্রিয় নিয়ম নেই।",
+  "addRule": "নিয়ম যোগ করুন",
+  "hardwareHealthCenter": "হার্ডওয়্যার স্বাস্থ্য কেন্দ্র",
+  "status": "অবস্থা",
+  "safety": "নিরাপত্তা",
+  "recovery": "পুনরুদ্ধার",
+  "warnings": "সতর্কতা",
+  "anomalies": "অস্বাভাবিকতা",
+  "close": "বন্ধ করুন",
+  "checkForUpdates": "হালনাগাদ পরীক্ষা করুন",
+  "maxCpuTemperature": "সর্বোচ্চ CPU তাপমাত্রা: {temperature} °C",
+  "@maxCpuTemperature": {
+    "description": "Localized UI message: maxCpuTemperature. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "temperature": {
+        "type": "num"
+      }
+    }
+  },
+  "exportCsv": "CSV রপ্তানি করুন",
+  "thermalStatus": "তাপীয় অবস্থা: {status}",
+  "@thermalStatus": {
+    "description": "Localized UI message: thermalStatus. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeMetricsWaiting": "ব্রিজের পরিমাপের অপেক্ষায়",
+  "gpuTelemetryNote": "উন্নত GPU টেলিমেট্রি ড্রাইভার ও ব্যাকএন্ড সমর্থনের ওপর নির্ভর করে।",
+  "cpuCoreLoad": "CPU কোরের লোড",
+  "runAiAnalysis": "AI বিশ্লেষণ চালান",
+  "clearAiModelCache": "AI মডেলের ক্যাশ পরিষ্কার করুন",
+  "modelDownloading": "Gemma 3 1B মডেল ডাউনলোড হচ্ছে: {percent}% • প্রায় 851 MB",
+  "@modelDownloading": {
+    "description": "Localized UI message: modelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "llmControlUnavailable": "LLM নিয়ন্ত্রণের অনুমতি নেই",
+  "storageUnavailable": "স্টোরেজ ডিভাইস শনাক্ত হয়নি অথবা টেলিমেট্রি এখনও প্রস্তুত নয়।",
+  "freeSpace": "ফাঁকা: {value}",
+  "@freeSpace": {
+    "description": "Localized UI message: freeSpace. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "readSpeed": "পড়া: {value}",
+  "@readSpeed": {
+    "description": "Localized UI message: readSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "writeSpeed": "লেখা: {value}",
+  "@writeSpeed": {
+    "description": "Localized UI message: writeSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "health": "স্বাস্থ্য: {value}",
+  "@health": {
+    "description": "Localized UI message: health. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSystem": "ফাইল সিস্টেম: {value}",
+  "@fileSystem": {
+    "description": "Localized UI message: fileSystem. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diagnosticPrivacy": "নির্ণয়: {status} • প্রতিবেদনে সিরিয়াল নম্বর অন্তর্ভুক্ত করা হয় না",
+  "@diagnosticPrivacy": {
+    "description": "Localized UI message: diagnosticPrivacy. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "detectedGame": "শনাক্ত করা গেম: {game}",
+  "@detectedGame": {
+    "description": "Localized UI message: detectedGame. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "gameModeWaiting": "গেম মোড প্রস্তুত — গেমের অপেক্ষায়",
+  "gameModeOff": "গেম মোড বন্ধ",
+  "activeGameProcess": "গেম প্রক্রিয়া পর্যবেক্ষণ করা হচ্ছে",
+  "hardwareControlMonitorOnly": "হার্ডওয়্যার নিয়ন্ত্রণ: শুধু পর্যবেক্ষণ",
+  "extensionApiStatus": "এক্সটেনশন API: মেটাডেটা/সক্ষমতা প্রদানকারীর চুক্তি প্রস্তুত • নেটিভ প্লাগইন লোড বন্ধ",
+  "smartFanCurve": "স্মার্ট ফ্যান কার্ভ",
+  "smartFanEnabled": "স্মার্ট ফ্যান: চালু",
+  "smartFanDisabled": "স্মার্ট ফ্যান: বন্ধ",
+  "automation": "স্বয়ংক্রিয়করণ",
+  "benchmark": "বেঞ্চমার্ক",
+  "downloadVerifiedUpdate": "যাচাইকৃত আপডেট ডাউনলোড করুন",
+  "newFanCurvePoint": "ফ্যান কার্ভের নতুন বিন্দু",
+  "smartFanCurveDescription": "তাপমাত্রা অনুযায়ী ফ্যানের লক্ষ্য নির্ধারণ করুন। যাচাইকৃত হার্ডওয়্যার-নিয়ন্ত্রণ ব্যাকএন্ড থাকলেই কার্ভ স্বয়ংক্রিয়ভাবে প্রয়োগ হবে।",
+  "deletePoint": "বিন্দু মুছুন",
+  "addPoint": "বিন্দু যোগ করুন",
+  "resetBalanced": "ভারসাম্যপূর্ণ অবস্থায় ফিরিয়ে নিন",
+  "hardwareBenchmark": "হার্ডওয়্যার বেঞ্চমার্ক",
+  "benchmarkDisclaimer": "এক সেকেন্ডের CPU মাইক্রোবেঞ্চমার্ক। এটি স্ট্রেস টেস্ট নয় এবং হার্ডওয়্যার সেটিংস বদলায় না।",
+  "score": "স্কোর: প্রতি সেকেন্ডে {value} পুনরাবৃত্তি",
+  "@score": {
+    "description": "Localized UI message: score. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "iterations": "পুনরাবৃত্তি: {value}",
+  "@iterations": {
+    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "duration": "সময়কাল: {value} ms",
+  "@duration": {
+    "description": "Localized UI message: duration. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "run": "চালান",
+  "unknown": "অজানা",
+  "none": "কিছুই নয়",
+  "power": "শক্তি",
+  "voltage": "ভোল্টেজ",
+  "animationsOn": "অ্যানিমেশন বন্ধ করুন",
+  "animationsOff": "অ্যানিমেশন চালু করুন",
+  "appTagline": "নির্ভুল হার্ডওয়্যার নিয়ন্ত্রণ",
+  "cpuUsageLabel": "CPU ব্যবহার",
+  "coreClock": "কোরের ক্লক",
+  "memoryClock": "মেমরির ক্লক",
+  "advancedTelemetryDescription": "GPU লোড, VRAM, বিদ্যুৎ, ক্লক গতি এবং CPU কোর",
+  "localAiAnalysisDescription": "লাইভ টেলিমেট্রির Gemma-ভিত্তিক স্থানীয় বিশ্লেষণ",
+  "hardwareDetectionDescription": "PC, মাদারবোর্ড, CPU ও GPU-এর পরিচিতি",
+  "gameModeDescription": "গেম চলার সময় স্বয়ংক্রিয় শনাক্তকরণ ও গেম-কেন্দ্রিক পর্যবেক্ষণ",
+  "gameModeSet": "গেম মোড সেট করুন",
+  "bridgeWaiting": "ব্রিজের জন্য অপেক্ষা করা হচ্ছে",
+  "monitoringOnly": "শুধু পর্যবেক্ষণ",
+  "powerLimit": "পাওয়ার সীমা",
+  "gpuState": "GPU অবস্থা",
+  "encoderUsage": "এনকোডার ব্যবহার",
+  "decoderUsage": "ডিকোডার ব্যবহার",
+  "samplingInterval": "গত ১ ঘণ্টা • প্রতি ৫ সেকেন্ডে নমুনা",
+  "modelDigestLabel": "মডেল SHA-256",
+  "gpuAdapterLabel": "GPU অ্যাডাপ্টার",
+  "lastActionLabel": "সর্বশেষ কাজ",
+  "vramUsageLabel": "VRAM ব্যবহার",
+  "gpuPowerLimit": "GPU পাওয়ার সীমা",
+  "gpuEncoder": "এনকোডার",
+  "gpuDecoder": "ডিকোডার",
+  "storageTitle": "স্টোরেজ",
+  "storageDescription": "SSD, HDD ও NVMe-এর ব্যবহার এবং I/O অবস্থা",
+  "aiProcessingPower": "AI প্রক্রিয়াকরণ ক্ষমতা",
+  "securityLabel": "নিরাপত্তা",
+  "securityKeyWaiting": "কির জন্য অপেক্ষা করা হচ্ছে",
+  "digestNotFound": "পাওয়া যায়নি",
+  "digestNotChecked": "পরীক্ষা করা হয়নি",
+  "gpuAdapter": "GPU অ্যাডাপ্টার",
+  "cpuCoreSummary": "{cores} কোর • {frequency} MHz",
+  "@cpuCoreSummary": {
+    "description": "Localized UI message: cpuCoreSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "cores": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "num"
+      }
+    }
+  },
+  "warningThresholdLabel": "সতর্কতার সীমা",
+  "hardwareControlUnavailableNote": "হার্ডওয়্যার নিয়ন্ত্রণ সমর্থিত না হলে ফ্যান বা ক্লক সেটিংস পরিবর্তন করা হয় না।",
+  "thermalStatusLabel": "তাপীয় অবস্থা",
+  "fanControlLabel": "ফ্যান নিয়ন্ত্রণ",
+  "installerTitle": "HWControl সেটআপ উইজার্ড",
+  "installerLocalAiModel": "স্থানীয় AI (Gemma 3 1B)",
+  "installerAiDescription": "ঐচ্ছিক। নির্বাচন করলে সেটআপের সময় Gemma 3 1B ডাউনলোড হবে এবং SHA-256 দিয়ে যাচাই করা হবে।",
+  "installerChecking": "সেটআপ পরীক্ষা করা হচ্ছে...",
+  "installerContinue": "চালিয়ে যান",
+  "installerFinish": "সেটআপ সম্পন্ন করুন",
+  "installerPackageStepTitle": "১. প্যাকেজের ধরন যাচাই করুন",
+  "installerBridgeStepTitle": "২. ব্রিজের অবস্থা যাচাই করুন",
+  "installerCompleteStepTitle": "৩. সেটআপ সম্পন্ন করুন",
+  "installerPackageStepDescription": "এই প্যাকেজ ফরম্যাটটি {platform}-এর জন্য উপযুক্ত: {formats}।",
+  "@installerPackageStepDescription": {
+    "description": "Localized UI message: installerPackageStepDescription. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "installerAiStepDescription": "ইচ্ছা করলে স্থানীয় AI উপাদান ইনস্টল করতে পারেন। নির্বাচন করলে সেটআপের সময় Gemma 3 1B Instruct Q5_K_M (~851 MB) ডাউনলোড হবে এবং SHA-256 দিয়ে যাচাই করা হবে।",
+  "installerCompleteWithAi": "সেটআপের শেষ ধাপে মডেল প্রস্তুত করা হবে। মডেল অনুপস্থিত বা ক্ষতিগ্রস্ত হলে যাচাইকৃত ডাউনলোডের মাধ্যমে তা পুনরুদ্ধার করা হবে।",
+  "installerCompleteWithoutAi": "মূল অ্যাপ্লিকেশন ইনস্টল হয়েছে; এই সেটআপে AI মডেল ডাউনলোড করা হবে না।",
+  "installerAiSelectedFooter": "AI নির্বাচন করা হয়েছে: সেটআপের সময় Gemma প্রস্তুত করা হবে। অনুপস্থিত বা ক্ষতিগ্রস্ত ফাইল স্বয়ংক্রিয়ভাবে আবার ডাউনলোড ও যাচাই করা হবে।",
+  "installerAiSkippedFooter": "AI নির্বাচন করা হয়নি: Gemma ইনস্টল হবে না। প্রথমবার AI বিশ্লেষণ চাইলে নিরাপদে এটি ডাউনলোড করা যাবে।",
+  "installerPreviouslyCompleted": "সেটআপ আগেই সম্পন্ন হয়েছে। AI মডেল ঐচ্ছিক।",
+  "installerBridgeFound": "পাওয়া গেছে",
+  "installerBridgePending": "প্যাকেজ ইনস্টলেশনে থাকার কথা",
+  "installerModelReady": "প্রস্তুত ও যাচাইকৃত",
+  "installerModelOptional": "ঐচ্ছিক; প্রথম AI বিশ্লেষণ চালানোর সময় ডাউনলোড হবে",
+  "installerCheckFailed": "সেটআপ পরীক্ষা ব্যর্থ হয়েছে: {error}",
+  "@installerCheckFailed": {
+    "description": "Localized UI message: installerCheckFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelPreparing": "Gemma 3 1B মডেল প্রস্তুত করা হচ্ছে...",
+  "installerModelDownloading": "Gemma 3 1B ডাউনলোড হচ্ছে: {percent}%",
+  "@installerModelDownloading": {
+    "description": "Localized UI message: installerModelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "installerModelDownloadFailed": "Gemma ইনস্টলেশন ব্যর্থ হয়েছে: {error}\\nমূল সেটআপ চালিয়ে যাওয়া যাবে; পরে আবার AI সেটআপ করার চেষ্টা করুন।",
+  "@installerModelDownloadFailed": {
+    "description": "Localized UI message: installerModelDownloadFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelDownloaded": "Gemma 3 1B ডাউনলোড করা হয়েছে এবং SHA-256 দিয়ে যাচাই করা হয়েছে।",
+  "installerTestMode": "পরীক্ষা মোড: সেটআপ ও মডেল ডাউনলোড বাদ দেওয়া হয়েছে।",
+  "installerCheckingComponents": "সেটআপের উপাদান পরীক্ষা করা হচ্ছে...",
+  "installerPlatformSummary": "প্ল্যাটফর্ম: {platform}\\nপ্যাকেজ: {formats}\\nব্রিজ: {bridge}\\nAI মডেল: {ai}",
+  "@installerPlatformSummary": {
+    "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      },
+      "ai": {
+        "type": "String"
+      }
+    }
+  },
+  "motherboardLabel": "মাদারবোর্ড",
+  "gpuDriverLabel": "GPU ড্রাইভার",
+  "last20Events": "সর্বশেষ ২০টি ঘটনা"
+}

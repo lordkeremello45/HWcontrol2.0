@@ -1,0 +1,388 @@
+{
+  "@@locale": "hi_IN",
+  "menu": "मेनू",
+  "settings": "सेटिंग्स",
+  "language": "भाषा",
+  "appearance": "रूप-रंग",
+  "notifications": "सूचनाएँ",
+  "enableNotifications": "सूचनाएँ सक्षम करें",
+  "temperatureWarning": "तापमान चेतावनी सीमा",
+  "cancel": "रद्द करें",
+  "save": "सहेजें",
+  "dashboard": "डैशबोर्ड",
+  "systemStatus": "सिस्टम स्थिति",
+  "controls": "नियंत्रण",
+  "createErrorReport": "त्रुटि रिपोर्ट बनाएँ",
+  "reconnect": "पुनः कनेक्ट करें",
+  "noEvents": "अभी कोई घटना नहीं",
+  "darkMode": "Dark mode",
+  "lightMode": "Light mode",
+  "animationsOn": "Disable animations",
+  "animationsOff": "Enable animations",
+  "accessibility": "सुलभता",
+  "offlineSpeech": "ऑफ़लाइन वाणी",
+  "piperOfflineDescription": "स्थानीय रूप से इंस्टॉल की गई Piper आवाज़ों से डैशबोर्ड की जानकारी सुनें। वाणी इसी डिवाइस पर रहती है।",
+  "piperExecutablePath": "Piper निष्पादन फ़ाइल का पथ",
+  "piperModelPath": "ONNX वॉइस मॉडल का पथ",
+  "testSpeech": "वाणी जाँचें",
+  "readDashboard": "डैशबोर्ड पढ़ें",
+  "piperTesting": "वाणी की जाँच हो रही है...",
+  "piperTestSuccess": "वाणी जाँच पूरी हुई।",
+  "piperTestFailed": "वाणी जाँच विफल हुई।",
+  "piperTestPhrase": "HWcontrol2.0 सुलभता वाणी जाँच। आपका हार्डवेयर डेटा इसी डिवाइस पर रहता है।",
+  "stopSpeech": "वाणी रोकें",
+  "piperSpeechStopped": "वाणी रोक दी गई।",
+  "browsePiperExecutable": "Piper निष्पादन फ़ाइल चुनें",
+  "browsePiperModel": "ONNX वॉइस मॉडल चुनें",
+  "piperModelConfigHint": "संबंधित .onnx.json कॉन्फ़िगरेशन फ़ाइल उसी फ़ोल्डर में होनी चाहिए। उपयोग से पहले आवाज़ का लाइसेंस जाँचें।",
+  "piperVoiceCatalog": "आधिकारिक Piper आवाज़ें देखें",
+  "getPiperExecutable": "Piper निष्पादन फ़ाइल प्राप्त करें",
+  "systemDefault": "सिस्टम डिफ़ॉल्ट",
+  "telemetryHistory": "मापन इतिहास",
+  "lastHour": "पिछला 1 घंटा • हर 5 सेकंड नमूना",
+  "hardwareDetection": "हार्डवेयर पहचान",
+  "pcMotherboardCpuGpu": "PC, मदरबोर्ड, CPU और GPU की जानकारी",
+  "controlFlow": "नियंत्रण प्रवाह",
+  "safeUserSettings": "सुरक्षित उपयोगकर्ता सेटिंग",
+  "gameMode": "गेम मोड",
+  "advancedTelemetry": "उन्नत मापन",
+  "aiAnalysis": "AI विश्लेषण",
+  "diagnostics": "निदान",
+  "online": "ब्रिज ऑनलाइन",
+  "offline": "ऑफ़लाइन",
+  "updateCheck": "अपडेट जाँचें",
+  "releaseOpen": "रिलीज़ खोलें",
+  "systemEvents": "सिस्टम घटनाएँ",
+  "quiet": "शांत",
+  "balanced": "संतुलित",
+  "performance": "प्रदर्शन",
+  "game": "गेम",
+  "manual": "मैन्युअल",
+  "reset": "रीसेट",
+  "saveProfile": "प्रोफ़ाइल सहेजें",
+  "fanSpeed": "पंखे की गति",
+  "apply": "लागू करें",
+  "languageChanged": "भाषा बदल दी गई",
+  "temperature": "तापमान",
+  "usage": "उपयोग",
+  "ramUsage": "मेमोरी उपयोग",
+  "diskUsage": "डिस्क उपयोग",
+  "gpuUsage": "GPU उपयोग",
+  "fan": "पंखा",
+  "welcomeTitle": "HWcontrol2.0 में आपका स्वागत है",
+  "welcomeTagline": "निगरानी। नियंत्रण। सुरक्षा।",
+  "welcomeDescription": "हार्डवेयर की निगरानी, कूलिंग नियंत्रण और सिस्टम को स्वस्थ रखने का सरल व भरोसेमंद तरीका।",
+  "welcomeMonitor": "निगरानी",
+  "welcomeMonitorDescription": "CPU/GPU सेंसर और तापमान",
+  "welcomeControl": "नियंत्रण",
+  "welcomeControlDescription": "फैन कर्व और प्रदर्शन प्रोफ़ाइल",
+  "welcomeProtect": "सुरक्षा",
+  "welcomeProtectDescription": "निदान और सिस्टम स्थिति",
+  "welcomeGetStarted": "शुरू करें",
+  "welcomeOpenDashboard": "डैशबोर्ड खोलें",
+  "welcomeDontShowAgain": "दोबारा न दिखाएँ",
+  "welcomePreview": "डैशबोर्ड पूर्वावलोकन",
+  "welcomeExampleStatus": "उदाहरण स्थिति",
+  "welcomeSampleValues": "उदाहरण मान",
+  "welcomeConnectHardware": "हार्डवेयर कनेक्ट करें",
+  "newAutomationRule": "नया स्वचालन नियम",
+  "editAutomationRule": "स्वचालन नियम संपादित करें",
+  "ruleName": "नियम का नाम",
+  "sensor": "सेंसर",
+  "cpuTemperatureLabel": "CPU तापमान",
+  "gpuTemperatureLabel": "GPU तापमान",
+  "threshold": "सीमा (°C)",
+  "fanTarget": "फैन लक्ष्य (%)",
+  "hardwareAutomation": "हार्डवेयर स्वचालन",
+  "automationSafetyNote": "नियम केवल सत्यापित हार्डवेयर-नियंत्रण बैकएंड उपलब्ध होने पर ही फैन आदेश भेजते हैं।",
+  "edit": "संपादित करें",
+  "delete": "हटाएँ",
+  "noAutomationRules": "अभी कोई स्वचालन नियम नहीं है।",
+  "addRule": "नियम जोड़ें",
+  "hardwareHealthCenter": "हार्डवेयर स्वास्थ्य केंद्र",
+  "status": "स्थिति",
+  "safety": "सुरक्षा",
+  "recovery": "पुनर्प्राप्ति",
+  "warnings": "चेतावनियाँ",
+  "anomalies": "असामान्यताएँ",
+  "close": "बंद करें",
+  "checkForUpdates": "अपडेट जाँचें",
+  "maxCpuTemperature": "अधिकतम CPU तापमान: {temperature} °C",
+  "@maxCpuTemperature": {
+    "description": "Localized UI message: maxCpuTemperature. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "temperature": {
+        "type": "num"
+      }
+    }
+  },
+  "exportCsv": "CSV निर्यात करें",
+  "thermalStatus": "तापीय स्थिति: {status}",
+  "@thermalStatus": {
+    "description": "Localized UI message: thermalStatus. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeMetricsWaiting": "ब्रिज मेट्रिक्स की प्रतीक्षा है",
+  "gpuTelemetryNote": "उन्नत GPU टेलीमेट्री ड्राइवर और बैकएंड समर्थन पर निर्भर करती है।",
+  "cpuCoreLoad": "CPU कोर लोड",
+  "runAiAnalysis": "AI विश्लेषण चलाएँ",
+  "clearAiModelCache": "AI मॉडल कैश साफ़ करें",
+  "modelDownloading": "Gemma 3 1B मॉडल डाउनलोड हो रहा है: {percent}% • लगभग 851 MB",
+  "@modelDownloading": {
+    "description": "Localized UI message: modelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "llmControlUnavailable": "LLM नियंत्रण अनुमति उपलब्ध नहीं",
+  "storageUnavailable": "स्टोरेज डिवाइस नहीं मिला या टेलीमेट्री अभी तैयार नहीं है।",
+  "freeSpace": "खाली स्थान: {value}",
+  "@freeSpace": {
+    "description": "Localized UI message: freeSpace. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "readSpeed": "पढ़ना: {value}",
+  "@readSpeed": {
+    "description": "Localized UI message: readSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "writeSpeed": "लिखना: {value}",
+  "@writeSpeed": {
+    "description": "Localized UI message: writeSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "health": "स्वास्थ्य: {value}",
+  "@health": {
+    "description": "Localized UI message: health. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSystem": "फ़ाइल सिस्टम: {value}",
+  "@fileSystem": {
+    "description": "Localized UI message: fileSystem. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diagnosticPrivacy": "निदान: {status} • रिपोर्ट में सीरियल नंबर शामिल नहीं होते",
+  "@diagnosticPrivacy": {
+    "description": "Localized UI message: diagnosticPrivacy. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "detectedGame": "पहचाना गया गेम: {game}",
+  "@detectedGame": {
+    "description": "Localized UI message: detectedGame. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "gameModeWaiting": "गेम मोड तैयार — गेम की प्रतीक्षा",
+  "gameModeOff": "गेम मोड बंद",
+  "activeGameProcess": "गेम प्रक्रिया की निगरानी हो रही है",
+  "hardwareControlMonitorOnly": "हार्डवेयर नियंत्रण: केवल निगरानी",
+  "extensionApiStatus": "एक्सटेंशन API: मेटाडेटा/क्षमता प्रदाता अनुबंध तैयार • नेटिव प्लगइन लोड करना बंद",
+  "smartFanCurve": "स्मार्ट फैन कर्व",
+  "smartFanEnabled": "स्मार्ट फैन: चालू",
+  "smartFanDisabled": "स्मार्ट फैन: बंद",
+  "automation": "स्वचालन",
+  "benchmark": "बेंचमार्क",
+  "downloadVerifiedUpdate": "सत्यापित अपडेट डाउनलोड करें",
+  "newFanCurvePoint": "नया फैन-कर्व बिंदु",
+  "smartFanCurveDescription": "तापमान के अनुसार फैन लक्ष्य तय करें। कर्व केवल सत्यापित हार्डवेयर-नियंत्रण बैकएंड उपलब्ध होने पर अपने आप लागू होता है।",
+  "deletePoint": "बिंदु हटाएँ",
+  "addPoint": "बिंदु जोड़ें",
+  "resetBalanced": "संतुलित पर रीसेट करें",
+  "hardwareBenchmark": "हार्डवेयर बेंचमार्क",
+  "benchmarkDisclaimer": "एक सेकंड का CPU माइक्रोबेंचमार्क। यह स्ट्रेस टेस्ट नहीं है और हार्डवेयर सेटिंग नहीं बदलता।",
+  "score": "स्कोर: {value} पुनरावृत्ति/सेकंड",
+  "@score": {
+    "description": "Localized UI message: score. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "iterations": "पुनरावृत्तियाँ: {value}",
+  "@iterations": {
+    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "duration": "अवधि: {value} ms",
+  "@duration": {
+    "description": "Localized UI message: duration. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "run": "चलाएँ",
+  "unknown": "अज्ञात",
+  "none": "कोई नहीं",
+  "power": "पावर",
+  "voltage": "वोल्टेज",
+  "appTagline": "सटीक हार्डवेयर नियंत्रण",
+  "cpuUsageLabel": "CPU उपयोग",
+  "coreClock": "कोर क्लॉक",
+  "memoryClock": "मेमोरी क्लॉक",
+  "advancedTelemetryDescription": "GPU लोड, VRAM, पावर, क्लॉक गति और CPU कोर",
+  "localAiAnalysisDescription": "लाइव टेलीमेट्री का Gemma द्वारा स्थानीय विश्लेषण",
+  "hardwareDetectionDescription": "PC, मदरबोर्ड, CPU और GPU की पहचान",
+  "gameModeDescription": "गेम चलते समय स्वतः पहचान और गेम-केंद्रित निगरानी",
+  "gameModeSet": "गेम मोड सेट करें",
+  "bridgeWaiting": "ब्रिज की प्रतीक्षा",
+  "monitoringOnly": "केवल निगरानी",
+  "powerLimit": "पावर सीमा",
+  "gpuState": "GPU स्थिति",
+  "encoderUsage": "एन्कोडर उपयोग",
+  "decoderUsage": "डिकोडर उपयोग",
+  "samplingInterval": "पिछला 1 घंटा • हर 5 सेकंड में नमूना",
+  "modelDigestLabel": "मॉडल SHA-256",
+  "gpuAdapterLabel": "GPU अडैप्टर",
+  "lastActionLabel": "अंतिम कार्रवाई",
+  "vramUsageLabel": "VRAM उपयोग",
+  "gpuPowerLimit": "GPU पावर सीमा",
+  "gpuEncoder": "एन्कोडर",
+  "gpuDecoder": "डिकोडर",
+  "storageTitle": "स्टोरेज",
+  "storageDescription": "SSD / HDD / NVMe उपयोग और I/O स्थिति",
+  "aiProcessingPower": "AI प्रोसेसिंग क्षमता",
+  "securityLabel": "सुरक्षा",
+  "securityKeyWaiting": "कुंजी की प्रतीक्षा",
+  "digestNotFound": "नहीं मिला",
+  "digestNotChecked": "जाँचा नहीं गया",
+  "gpuAdapter": "GPU अडैप्टर",
+  "cpuCoreSummary": "{cores} कोर • {frequency} MHz",
+  "@cpuCoreSummary": {
+    "description": "Localized UI message: cpuCoreSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "cores": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "num"
+      }
+    }
+  },
+  "warningThresholdLabel": "चेतावनी सीमा",
+  "hardwareControlUnavailableNote": "हार्डवेयर नियंत्रण का समर्थन उपलब्ध न होने पर फैन या क्लॉक सेटिंग नहीं बदली जाती।",
+  "thermalStatusLabel": "तापीय स्थिति",
+  "fanControlLabel": "पंखे का नियंत्रण",
+  "installerTitle": "HWControl सेटअप विज़ार्ड",
+  "installerLocalAiModel": "स्थानीय AI (Gemma 3 1B)",
+  "installerAiDescription": "वैकल्पिक। चुनने पर Gemma 3 1B सेटअप के दौरान डाउनलोड होगा और SHA-256 से सत्यापित किया जाएगा।",
+  "installerChecking": "सेटअप की जाँच हो रही है...",
+  "installerContinue": "जारी रखें",
+  "installerFinish": "सेटअप पूरा करें",
+  "installerPackageStepTitle": "1. पैकेज प्रकार सत्यापित करें",
+  "installerBridgeStepTitle": "2. ब्रिज की स्थिति सत्यापित करें",
+  "installerCompleteStepTitle": "3. सेटअप पूरा करें",
+  "installerPackageStepDescription": "यह पैकेज प्रारूप {platform} के लिए उपयुक्त है: {formats}.",
+  "@installerPackageStepDescription": {
+    "description": "Localized UI message: installerPackageStepDescription. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "installerAiStepDescription": "स्थानीय AI घटक वैकल्पिक रूप से इंस्टॉल किया जा सकता है। चुनने पर Gemma 3 1B Instruct Q5_K_M (लगभग 851 MB) सेटअप के दौरान डाउनलोड होगा और SHA-256 से सत्यापित किया जाएगा।",
+  "installerCompleteWithAi": "अंतिम चरण में मॉडल तैयार किया जाएगा। मॉडल न मिलने या क्षतिग्रस्त होने पर सत्यापित डाउनलोड से उसे ठीक किया जाएगा।",
+  "installerCompleteWithoutAi": "मूल एप्लिकेशन इंस्टॉल होगा; इस सेटअप में AI मॉडल डाउनलोड नहीं होगा।",
+  "installerAiSelectedFooter": "AI चुना गया: सेटअप के दौरान Gemma तैयार होगा। अनुपलब्ध या क्षतिग्रस्त फ़ाइलें फिर डाउनलोड करके सत्यापित की जाएँगी।",
+  "installerAiSkippedFooter": "AI नहीं चुना गया: Gemma इंस्टॉल नहीं होगा। पहले AI विश्लेषण के अनुरोध पर इसे सुरक्षित रूप से डाउनलोड किया जा सकता है।",
+  "installerPreviouslyCompleted": "सेटअप पहले ही पूरा हो चुका है। AI मॉडल वैकल्पिक है।",
+  "installerBridgeFound": "मिल गया",
+  "installerBridgePending": "पैकेज इंस्टॉलेशन से अपेक्षित",
+  "installerModelReady": "तैयार और सत्यापित",
+  "installerModelOptional": "वैकल्पिक; पहले AI विश्लेषण पर डाउनलोड होगा",
+  "installerCheckFailed": "सेटअप जाँच विफल: {error}",
+  "@installerCheckFailed": {
+    "description": "Localized UI message: installerCheckFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelPreparing": "Gemma 3 1B मॉडल तैयार हो रहा है...",
+  "installerModelDownloading": "Gemma 3 1B डाउनलोड हो रहा है: {percent}%",
+  "@installerModelDownloading": {
+    "description": "Localized UI message: installerModelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "installerModelDownloadFailed": "Gemma इंस्टॉल नहीं हो सका: {error}\nमूल सेटअप जारी रह सकता है; बाद में AI सेटअप फिर आज़माएँ।",
+  "@installerModelDownloadFailed": {
+    "description": "Localized UI message: installerModelDownloadFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelDownloaded": "Gemma 3 1B डाउनलोड हुआ और SHA-256 से सत्यापित किया गया।",
+  "installerTestMode": "परीक्षण मोड: सेटअप और मॉडल डाउनलोड छोड़ दिए गए।",
+  "installerCheckingComponents": "सेटअप घटकों की जाँच हो रही है...",
+  "installerPlatformSummary": "प्लेटफ़ॉर्म: {platform}\nपैकेज: {formats}\nब्रिज: {bridge}\nAI मॉडल: {ai}",
+  "@installerPlatformSummary": {
+    "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      },
+      "ai": {
+        "type": "String"
+      }
+    }
+  },
+  "motherboardLabel": "मदरबोर्ड",
+  "gpuDriverLabel": "GPU ड्राइवर",
+  "last20Events": "पिछली 20 घटनाएँ"
+}

@@ -1,0 +1,388 @@
+{
+  "@@locale": "zh_CN",
+  "menu": "菜单",
+  "settings": "设置",
+  "language": "语言",
+  "appearance": "外观",
+  "notifications": "通知",
+  "enableNotifications": "启用通知",
+  "temperatureWarning": "温度警告阈值",
+  "cancel": "取消",
+  "save": "保存",
+  "dashboard": "仪表板",
+  "systemStatus": "系统状态",
+  "controls": "控制",
+  "createErrorReport": "创建错误报告",
+  "reconnect": "重新连接",
+  "noEvents": "暂无事件",
+  "darkMode": "Dark mode",
+  "lightMode": "Light mode",
+  "animationsOn": "Disable animations",
+  "animationsOff": "Enable animations",
+  "accessibility": "无障碍功能",
+  "offlineSpeech": "离线语音",
+  "piperOfflineDescription": "使用本机安装的 Piper 语音朗读仪表板信息。语音处理仅在此设备上进行。",
+  "piperExecutablePath": "Piper 可执行文件路径",
+  "piperModelPath": "ONNX 语音模型路径",
+  "testSpeech": "测试语音",
+  "readDashboard": "朗读仪表板",
+  "piperTesting": "正在测试语音...",
+  "piperTestSuccess": "语音测试已完成。",
+  "piperTestFailed": "语音测试失败。",
+  "piperTestPhrase": "HWcontrol2.0 无障碍语音测试。硬件数据会保留在此设备上。",
+  "stopSpeech": "停止朗读",
+  "piperSpeechStopped": "已停止朗读。",
+  "browsePiperExecutable": "选择 Piper 可执行文件",
+  "browsePiperModel": "选择 ONNX 语音模型",
+  "piperModelConfigHint": "匹配的 .onnx.json 配置文件必须位于同一文件夹。使用前请检查语音的许可证。",
+  "piperVoiceCatalog": "浏览 Piper 官方语音",
+  "getPiperExecutable": "获取 Piper 可执行文件",
+  "systemDefault": "系统默认",
+  "telemetryHistory": "测量历史",
+  "lastHour": "最近 1 小时 • 每 5 秒采样",
+  "hardwareDetection": "硬件检测",
+  "pcMotherboardCpuGpu": "电脑、主板、处理器和显卡信息",
+  "controlFlow": "控制流程",
+  "safeUserSettings": "安全的用户设置",
+  "gameMode": "游戏模式",
+  "advancedTelemetry": "高级测量",
+  "aiAnalysis": "AI 分析",
+  "diagnostics": "诊断",
+  "online": "桥接服务在线",
+  "offline": "离线",
+  "updateCheck": "检查更新",
+  "releaseOpen": "打开版本页面",
+  "systemEvents": "系统事件",
+  "quiet": "静音",
+  "balanced": "均衡",
+  "performance": "性能",
+  "game": "游戏",
+  "manual": "手动",
+  "reset": "重置",
+  "saveProfile": "保存配置",
+  "fanSpeed": "风扇转速",
+  "apply": "应用",
+  "languageChanged": "语言已更改",
+  "temperature": "温度",
+  "usage": "使用率",
+  "ramUsage": "内存使用率",
+  "diskUsage": "磁盘使用率",
+  "gpuUsage": "显卡使用率",
+  "fan": "风扇",
+  "welcomeTitle": "欢迎使用 HWcontrol2.0",
+  "welcomeTagline": "监测。控制。保护。",
+  "welcomeDescription": "轻松可靠地监测硬件、控制散热并保持系统健康。",
+  "welcomeMonitor": "监测",
+  "welcomeMonitorDescription": "CPU/GPU 传感器与温度",
+  "welcomeControl": "控制",
+  "welcomeControlDescription": "风扇曲线与性能配置",
+  "welcomeProtect": "保护",
+  "welcomeProtectDescription": "诊断与系统状态",
+  "welcomeGetStarted": "开始使用",
+  "welcomeOpenDashboard": "打开仪表板",
+  "welcomeDontShowAgain": "不再显示此页面",
+  "welcomePreview": "仪表板预览",
+  "welcomeExampleStatus": "示例状态",
+  "welcomeSampleValues": "示例数值",
+  "welcomeConnectHardware": "连接硬件",
+  "newAutomationRule": "新建自动化规则",
+  "editAutomationRule": "编辑自动化规则",
+  "ruleName": "规则名称",
+  "sensor": "传感器",
+  "cpuTemperatureLabel": "CPU 温度",
+  "gpuTemperatureLabel": "GPU 温度",
+  "threshold": "阈值 (°C)",
+  "fanTarget": "风扇目标 (%)",
+  "hardwareAutomation": "硬件自动化",
+  "automationSafetyNote": "仅在存在经过验证的硬件控制后端时，规则才会发送风扇控制命令。",
+  "edit": "编辑",
+  "delete": "删除",
+  "noAutomationRules": "尚无自动化规则。",
+  "addRule": "添加规则",
+  "hardwareHealthCenter": "硬件健康中心",
+  "status": "状态",
+  "safety": "安全",
+  "recovery": "恢复",
+  "warnings": "警告",
+  "anomalies": "异常",
+  "close": "关闭",
+  "checkForUpdates": "检查更新",
+  "maxCpuTemperature": "CPU 最高温度：{temperature} °C",
+  "@maxCpuTemperature": {
+    "description": "Localized UI message: maxCpuTemperature. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "temperature": {
+        "type": "num"
+      }
+    }
+  },
+  "exportCsv": "导出 CSV",
+  "thermalStatus": "热状态：{status}",
+  "@thermalStatus": {
+    "description": "Localized UI message: thermalStatus. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeMetricsWaiting": "正在等待桥接服务测量数据",
+  "gpuTelemetryNote": "GPU 高级遥测取决于驱动程序和后端支持。",
+  "cpuCoreLoad": "CPU 核心负载",
+  "runAiAnalysis": "运行 AI 分析",
+  "clearAiModelCache": "清除 AI 模型缓存",
+  "modelDownloading": "正在下载 Gemma 3 1B 模型：{percent}% • 约 851 MB",
+  "@modelDownloading": {
+    "description": "Localized UI message: modelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "llmControlUnavailable": "没有 LLM 控制权限",
+  "storageUnavailable": "未检测到存储设备，或遥测数据尚未就绪。",
+  "freeSpace": "可用空间：{value}",
+  "@freeSpace": {
+    "description": "Localized UI message: freeSpace. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "readSpeed": "读取：{value}",
+  "@readSpeed": {
+    "description": "Localized UI message: readSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "writeSpeed": "写入：{value}",
+  "@writeSpeed": {
+    "description": "Localized UI message: writeSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "health": "健康状态：{value}",
+  "@health": {
+    "description": "Localized UI message: health. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSystem": "文件系统：{value}",
+  "@fileSystem": {
+    "description": "Localized UI message: fileSystem. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diagnosticPrivacy": "诊断：{status} • 报告中不包含序列号",
+  "@diagnosticPrivacy": {
+    "description": "Localized UI message: diagnosticPrivacy. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "detectedGame": "检测到的游戏：{game}",
+  "@detectedGame": {
+    "description": "Localized UI message: detectedGame. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "gameModeWaiting": "游戏模式已就绪 — 等待游戏启动",
+  "gameModeOff": "游戏模式已关闭",
+  "activeGameProcess": "正在监视游戏进程",
+  "hardwareControlMonitorOnly": "硬件控制：仅监测",
+  "extensionApiStatus": "扩展 API：元数据/能力提供程序接口已就绪 • 已禁用原生插件加载",
+  "smartFanCurve": "智能风扇曲线",
+  "smartFanEnabled": "智能风扇：开启",
+  "smartFanDisabled": "智能风扇：关闭",
+  "automation": "自动化",
+  "benchmark": "基准测试",
+  "downloadVerifiedUpdate": "下载已验证的更新",
+  "newFanCurvePoint": "新增风扇曲线点",
+  "smartFanCurveDescription": "按温度设置风扇目标。仅在存在经过验证的硬件控制后端时，曲线才会自动应用。",
+  "deletePoint": "删除点",
+  "addPoint": "添加点",
+  "resetBalanced": "恢复平衡设置",
+  "hardwareBenchmark": "硬件基准测试",
+  "benchmarkDisclaimer": "为期一秒的 CPU 微基准测试。它不是压力测试，也不会更改硬件设置。",
+  "score": "得分：每秒 {value} 次迭代",
+  "@score": {
+    "description": "Localized UI message: score. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "iterations": "迭代次数：{value}",
+  "@iterations": {
+    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "duration": "时长：{value} 毫秒",
+  "@duration": {
+    "description": "Localized UI message: duration. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "run": "运行",
+  "unknown": "未知",
+  "none": "无",
+  "power": "功耗",
+  "voltage": "电压",
+  "appTagline": "精准硬件控制",
+  "cpuUsageLabel": "CPU 使用率",
+  "coreClock": "核心时钟",
+  "memoryClock": "显存时钟",
+  "advancedTelemetryDescription": "GPU 负载、VRAM、功耗、时钟频率和 CPU 核心",
+  "localAiAnalysisDescription": "使用 Gemma 对实时遥测数据进行本地分析",
+  "hardwareDetectionDescription": "电脑、主板、CPU 和 GPU 标识信息",
+  "gameModeDescription": "游戏运行时自动检测并进行游戏场景监控",
+  "gameModeSet": "设置游戏模式",
+  "bridgeWaiting": "正在等待桥接服务",
+  "monitoringOnly": "仅监测",
+  "powerLimit": "功耗限制",
+  "gpuState": "GPU 状态",
+  "encoderUsage": "编码器使用率",
+  "decoderUsage": "解码器使用率",
+  "samplingInterval": "最近 1 小时 • 每 5 秒采样",
+  "modelDigestLabel": "模型 SHA-256",
+  "gpuAdapterLabel": "GPU 适配器",
+  "lastActionLabel": "上次操作",
+  "vramUsageLabel": "显存使用率",
+  "gpuPowerLimit": "GPU 功耗上限",
+  "gpuEncoder": "编码器",
+  "gpuDecoder": "解码器",
+  "storageTitle": "存储",
+  "storageDescription": "SSD / HDD / NVMe 使用情况与 I/O 状态",
+  "aiProcessingPower": "AI 处理能力",
+  "securityLabel": "安全",
+  "securityKeyWaiting": "正在等待密钥",
+  "digestNotFound": "未找到",
+  "digestNotChecked": "未检查",
+  "gpuAdapter": "GPU 适配器",
+  "cpuCoreSummary": "{cores} 个核心 • {frequency} MHz",
+  "@cpuCoreSummary": {
+    "description": "Localized UI message: cpuCoreSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "cores": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "num"
+      }
+    }
+  },
+  "warningThresholdLabel": "警告阈值",
+  "hardwareControlUnavailableNote": "不支持硬件控制时，不会更改风扇或时钟频率设置。",
+  "thermalStatusLabel": "热状态",
+  "fanControlLabel": "风扇控制",
+  "installerTitle": "HWControl 安装向导",
+  "installerLocalAiModel": "本地 AI（Gemma 3 1B）",
+  "installerAiDescription": "可选。选择后，Gemma 3 1B 会在安装过程中下载，并通过 SHA-256 校验。",
+  "installerChecking": "正在检查安装...",
+  "installerContinue": "继续",
+  "installerFinish": "完成安装",
+  "installerPackageStepTitle": "1. 验证软件包类型",
+  "installerBridgeStepTitle": "2. 验证桥接服务状态",
+  "installerCompleteStepTitle": "3. 完成安装",
+  "installerPackageStepDescription": "适用于 {platform} 的软件包格式：{formats}。",
+  "@installerPackageStepDescription": {
+    "description": "Localized UI message: installerPackageStepDescription. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "installerAiStepDescription": "可选择安装本地 AI 组件。选择后，会在安装期间下载 Gemma 3 1B Instruct Q5_K_M（约 851 MB），并通过 SHA-256 校验。",
+  "installerCompleteWithAi": "模型会在最后一步准备。如果模型缺失或损坏，将通过已验证的下载进行修复。",
+  "installerCompleteWithoutAi": "将安装基础应用；本次安装不会下载 AI 模型。",
+  "installerAiSelectedFooter": "已选择 AI：安装期间会准备 Gemma。缺失或损坏的文件会重新下载并校验。",
+  "installerAiSkippedFooter": "未选择 AI：不会安装 Gemma。首次请求 AI 分析时，可以安全下载。",
+  "installerPreviouslyCompleted": "安装此前已完成。AI 模型为可选项。",
+  "installerBridgeFound": "已找到",
+  "installerBridgePending": "预期由打包安装提供",
+  "installerModelReady": "已就绪并通过验证",
+  "installerModelOptional": "可选；首次运行 AI 分析时下载",
+  "installerCheckFailed": "安装检查失败：{error}",
+  "@installerCheckFailed": {
+    "description": "Localized UI message: installerCheckFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelPreparing": "正在准备 Gemma 3 1B 模型...",
+  "installerModelDownloading": "正在下载 Gemma 3 1B：{percent}%",
+  "@installerModelDownloading": {
+    "description": "Localized UI message: installerModelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "installerModelDownloadFailed": "Gemma 安装失败：{error}\n基础安装可以继续；稍后可以重试安装 AI。",
+  "@installerModelDownloadFailed": {
+    "description": "Localized UI message: installerModelDownloadFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelDownloaded": "Gemma 3 1B 已下载并通过 SHA-256 校验。",
+  "installerTestMode": "测试模式：已跳过安装和模型下载。",
+  "installerCheckingComponents": "正在检查安装组件...",
+  "installerPlatformSummary": "平台：{platform}\n软件包：{formats}\n桥接服务：{bridge}\nAI 模型：{ai}",
+  "@installerPlatformSummary": {
+    "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      },
+      "ai": {
+        "type": "String"
+      }
+    }
+  },
+  "motherboardLabel": "主板",
+  "gpuDriverLabel": "GPU 驱动程序",
+  "last20Events": "最近 20 条事件"
+}

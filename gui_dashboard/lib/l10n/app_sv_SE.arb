@@ -1,0 +1,388 @@
+{
+  "@@locale": "sv_SE",
+  "menu": "Meny",
+  "settings": "Inställningar",
+  "language": "Språk",
+  "appearance": "Utseende",
+  "notifications": "Aviseringar",
+  "enableNotifications": "Aktivera aviseringar",
+  "temperatureWarning": "Temperaturvarningsgräns",
+  "cancel": "Avbryt",
+  "save": "Spara",
+  "dashboard": "Instrumentpanel",
+  "systemStatus": "Systemstatus",
+  "controls": "Kontroller",
+  "createErrorReport": "Skapa felrapport",
+  "reconnect": "Återanslut",
+  "noEvents": "Inga händelser ännu",
+  "darkMode": "Dark mode",
+  "lightMode": "Light mode",
+  "animationsOn": "Disable animations",
+  "animationsOff": "Enable animations",
+  "accessibility": "Tillgänglighet",
+  "offlineSpeech": "Tal offline",
+  "piperOfflineDescription": "Läs upp instrumentpanelens information med lokalt installerade Piper-röster. Talet stannar på den här enheten.",
+  "piperExecutablePath": "Sökväg till Piper-programfil",
+  "piperModelPath": "Sökväg till ONNX-röstmodell",
+  "testSpeech": "Testa tal",
+  "readDashboard": "Läs upp instrumentpanelen",
+  "piperTesting": "Testar tal...",
+  "piperTestSuccess": "Taltestet är klart.",
+  "piperTestFailed": "Taltestet misslyckades.",
+  "piperTestPhrase": "HWcontrol2.0-taltest för tillgänglighet. Dina maskinvarudata stannar på den här enheten.",
+  "stopSpeech": "Stoppa tal",
+  "piperSpeechStopped": "Tal stoppat.",
+  "browsePiperExecutable": "Välj Piper-programfil",
+  "browsePiperModel": "Välj ONNX-röstmodell",
+  "piperModelConfigHint": "Den matchande .onnx.json-konfigurationsfilen måste finnas i samma mapp. Kontrollera röstens licens före användning.",
+  "piperVoiceCatalog": "Bläddra bland officiella Piper-röster",
+  "getPiperExecutable": "Hämta Piper-programfil",
+  "systemDefault": "Systemstandard",
+  "telemetryHistory": "Mäthistorik",
+  "lastHour": "Senaste timmen • mätning var 5:e sekund",
+  "hardwareDetection": "Maskinvaruidentifiering",
+  "pcMotherboardCpuGpu": "Information om dator, moderkort, processor och grafikkort",
+  "controlFlow": "Kontrollflöde",
+  "safeUserSettings": "Säkra användarinställningar",
+  "gameMode": "Spelläge",
+  "advancedTelemetry": "Avancerade mätvärden",
+  "aiAnalysis": "AI-analys",
+  "diagnostics": "Diagnostik",
+  "online": "BRYGGA ONLINE",
+  "offline": "OFFLINE",
+  "updateCheck": "Sök efter uppdateringar",
+  "releaseOpen": "Öppna version",
+  "systemEvents": "Systemhändelser",
+  "quiet": "Tyst",
+  "balanced": "Balanserad",
+  "performance": "Prestanda",
+  "game": "Spel",
+  "manual": "Manuell",
+  "reset": "Återställ",
+  "saveProfile": "Spara profil",
+  "fanSpeed": "Fläkthastighet",
+  "apply": "Verkställ",
+  "languageChanged": "Språket har ändrats",
+  "temperature": "Temperatur",
+  "usage": "Användning",
+  "ramUsage": "Minnesanvändning",
+  "diskUsage": "Diskanvändning",
+  "gpuUsage": "GPU-användning",
+  "fan": "Fläkt",
+  "welcomeTitle": "Välkommen till HWcontrol2.0",
+  "welcomeTagline": "Övervaka. Styr. Skydda.",
+  "welcomeDescription": "Ett enkelt och tillförlitligt sätt att övervaka maskinvara, styra kylning och hålla systemet friskt.",
+  "welcomeMonitor": "Övervaka",
+  "welcomeMonitorDescription": "CPU/GPU-sensorer och temperaturer",
+  "welcomeControl": "Styr",
+  "welcomeControlDescription": "Fläktkurvor och prestandaprofiler",
+  "welcomeProtect": "Skydda",
+  "welcomeProtectDescription": "Diagnostik och systemstatus",
+  "welcomeGetStarted": "Kom igång",
+  "welcomeOpenDashboard": "Öppna instrumentpanelen",
+  "welcomeDontShowAgain": "Visa inte igen",
+  "welcomePreview": "Förhandsvisning av instrumentpanelen",
+  "welcomeExampleStatus": "Exempelstatus",
+  "welcomeSampleValues": "Exempelvärden",
+  "welcomeConnectHardware": "Anslut maskinvara",
+  "newAutomationRule": "Ny automatiseringsregel",
+  "editAutomationRule": "Redigera automatiseringsregel",
+  "ruleName": "Regelnamn",
+  "sensor": "Sensor",
+  "cpuTemperatureLabel": "CPU-temperatur",
+  "gpuTemperatureLabel": "GPU-temperatur",
+  "threshold": "Gränsvärde (°C)",
+  "fanTarget": "Fläktmål (%)",
+  "hardwareAutomation": "Maskinvaruautomatisering",
+  "automationSafetyNote": "Regler skickar endast fläktkommandon när en verifierad maskinvarustyrningsmotor finns tillgänglig.",
+  "edit": "Redigera",
+  "delete": "Ta bort",
+  "noAutomationRules": "Inga automatiseringsregler ännu.",
+  "addRule": "Lägg till regel",
+  "hardwareHealthCenter": "Maskinvaruhälsocenter",
+  "status": "Status",
+  "safety": "Säkerhet",
+  "recovery": "Återställning",
+  "warnings": "Varningar",
+  "anomalies": "Avvikelser",
+  "close": "Stäng",
+  "checkForUpdates": "Sök efter uppdateringar",
+  "maxCpuTemperature": "Max. CPU-temperatur: {temperature} °C",
+  "@maxCpuTemperature": {
+    "description": "Localized UI message: maxCpuTemperature. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "temperature": {
+        "type": "num"
+      }
+    }
+  },
+  "exportCsv": "Exportera CSV",
+  "thermalStatus": "Termiskt läge: {status}",
+  "@thermalStatus": {
+    "description": "Localized UI message: thermalStatus. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeMetricsWaiting": "Väntar på bryggmätvärden",
+  "gpuTelemetryNote": "Avancerad GPU-telemetri beror på stöd från drivrutin och bakände.",
+  "cpuCoreLoad": "CPU-kärnbelastning",
+  "runAiAnalysis": "Kör AI-analys",
+  "clearAiModelCache": "Rensa AI-modellens cache",
+  "modelDownloading": "Hämtar Gemma 3 1B-modellen: {percent}% • cirka 851 MB",
+  "@modelDownloading": {
+    "description": "Localized UI message: modelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "llmControlUnavailable": "Behörighet för LLM-styrning saknas",
+  "storageUnavailable": "Ingen lagringsenhet hittades eller så är telemetrin inte klar.",
+  "freeSpace": "Ledigt: {value}",
+  "@freeSpace": {
+    "description": "Localized UI message: freeSpace. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "readSpeed": "Läsning: {value}",
+  "@readSpeed": {
+    "description": "Localized UI message: readSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "writeSpeed": "Skrivning: {value}",
+  "@writeSpeed": {
+    "description": "Localized UI message: writeSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "health": "Hälsa: {value}",
+  "@health": {
+    "description": "Localized UI message: health. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSystem": "Filsystem: {value}",
+  "@fileSystem": {
+    "description": "Localized UI message: fileSystem. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diagnosticPrivacy": "Diagnostik: {status} • serienummer inkluderas inte i rapporter",
+  "@diagnosticPrivacy": {
+    "description": "Localized UI message: diagnosticPrivacy. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "detectedGame": "Identifierat spel: {game}",
+  "@detectedGame": {
+    "description": "Localized UI message: detectedGame. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "gameModeWaiting": "Spelläget är klart — väntar på ett spel",
+  "gameModeOff": "Spelläge av",
+  "activeGameProcess": "Spelprocessen övervakas",
+  "hardwareControlMonitorOnly": "Maskinvarustyrning: endast övervakning",
+  "extensionApiStatus": "Tilläggs-API: avtal för metadata-/funktionsleverantör klart • inläsning av inbyggda insticksprogram inaktiverad",
+  "smartFanCurve": "Smart fläktkurva",
+  "smartFanEnabled": "Smart Fan: på",
+  "smartFanDisabled": "Smart Fan: av",
+  "automation": "Automatisering",
+  "benchmark": "Riktmärke",
+  "downloadVerifiedUpdate": "Hämta verifierad uppdatering",
+  "newFanCurvePoint": "Ny fläktkurvepunkt",
+  "smartFanCurveDescription": "Ange fläktmålet efter temperatur. Kurvan tillämpas automatiskt endast om en verifierad maskinvarustyrningsmotor finns tillgänglig.",
+  "deletePoint": "Ta bort punkt",
+  "addPoint": "Lägg till punkt",
+  "resetBalanced": "Återställ till balanserat",
+  "hardwareBenchmark": "Maskinvaruriktmärke",
+  "benchmarkDisclaimer": "Ett CPU-mikroriktmärke på en sekund. Det är inget stresstest och ändrar inte maskinvaruinställningarna.",
+  "score": "Poäng: {value} iterationer/s",
+  "@score": {
+    "description": "Localized UI message: score. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "iterations": "Iterationer: {value}",
+  "@iterations": {
+    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "duration": "Varaktighet: {value} ms",
+  "@duration": {
+    "description": "Localized UI message: duration. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "run": "Kör",
+  "unknown": "Okänd",
+  "none": "Ingen",
+  "power": "Effekt",
+  "voltage": "Spänning",
+  "appTagline": "Precisionsstyrning av maskinvara",
+  "cpuUsageLabel": "CPU-användning",
+  "coreClock": "Kärnklocka",
+  "memoryClock": "Minnesklocka",
+  "advancedTelemetryDescription": "GPU-belastning, VRAM, effekt, klockfrekvenser och CPU-kärnor",
+  "localAiAnalysisDescription": "Lokal Gemma-analys av telemetri i realtid",
+  "hardwareDetectionDescription": "Identifiering av dator, moderkort, CPU och GPU",
+  "gameModeDescription": "Automatisk identifiering och spelinriktad övervakning medan ett spel körs",
+  "gameModeSet": "Ställ in spelläge",
+  "bridgeWaiting": "Väntar på bryggan",
+  "monitoringOnly": "Endast övervakning",
+  "powerLimit": "Effektgräns",
+  "gpuState": "GPU-status",
+  "encoderUsage": "Kodaranvändning",
+  "decoderUsage": "Avkodaranvändning",
+  "samplingInterval": "Senaste timmen • mätning var 5:e sekund",
+  "modelDigestLabel": "Modellens SHA-256",
+  "gpuAdapterLabel": "GPU-adapter",
+  "lastActionLabel": "Senaste åtgärd",
+  "vramUsageLabel": "VRAM-användning",
+  "gpuPowerLimit": "GPU-effektgräns",
+  "gpuEncoder": "Kodare",
+  "gpuDecoder": "Avkodare",
+  "storageTitle": "Lagring",
+  "storageDescription": "Användning och I/O-status för SSD, HDD och NVMe",
+  "aiProcessingPower": "AI-bearbetningskraft",
+  "securityLabel": "Säkerhet",
+  "securityKeyWaiting": "Väntar på nyckel",
+  "digestNotFound": "Hittades inte",
+  "digestNotChecked": "Inte kontrollerad",
+  "gpuAdapter": "GPU-adapter",
+  "cpuCoreSummary": "{cores} kärnor • {frequency} MHz",
+  "@cpuCoreSummary": {
+    "description": "Localized UI message: cpuCoreSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "cores": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "num"
+      }
+    }
+  },
+  "warningThresholdLabel": "Varningströskel",
+  "hardwareControlUnavailableNote": "Fläkt- eller klockinställningar ändras inte när hårdvarustyrning saknas.",
+  "thermalStatusLabel": "Termiskt tillstånd",
+  "fanControlLabel": "Fläktstyrning",
+  "installerTitle": "Installationsguide för HWControl",
+  "installerLocalAiModel": "Lokal AI (Gemma 3 1B)",
+  "installerAiDescription": "Valfritt. Om det väljs hämtas Gemma 3 1B under installationen och verifieras med SHA-256.",
+  "installerChecking": "Kontrollerar installationen...",
+  "installerContinue": "Fortsätt",
+  "installerFinish": "Slutför installationen",
+  "installerPackageStepTitle": "1. Kontrollera pakettyp",
+  "installerBridgeStepTitle": "2. Kontrollera bryggans status",
+  "installerCompleteStepTitle": "3. Slutför installationen",
+  "installerPackageStepDescription": "Det här paketformatet passar för {platform}: {formats}.",
+  "@installerPackageStepDescription": {
+    "description": "Localized UI message: installerPackageStepDescription. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "installerAiStepDescription": "Den lokala AI-komponenten kan installeras som tillval. Om den väljs hämtas Gemma 3 1B Instruct Q5_K_M (cirka 851 MB) under installationen och verifieras med SHA-256.",
+  "installerCompleteWithAi": "Modellen förbereds i det sista steget. En saknad eller skadad modell repareras med en verifierad nedladdning.",
+  "installerCompleteWithoutAi": "Grundprogrammet installeras; AI-modellen hämtas inte under den här installationen.",
+  "installerAiSelectedFooter": "AI valt: Gemma förbereds under installationen. Saknade eller skadade filer hämtas igen och verifieras.",
+  "installerAiSkippedFooter": "AI inte valt: Gemma installeras inte. Den kan hämtas säkert när AI-analys begärs första gången.",
+  "installerPreviouslyCompleted": "Installationen har redan slutförts. AI-modellen är valfri.",
+  "installerBridgeFound": "hittad",
+  "installerBridgePending": "förväntas från paketerad installation",
+  "installerModelReady": "klar och verifierad",
+  "installerModelOptional": "valfritt; hämtas vid första AI-analysen",
+  "installerCheckFailed": "Installationskontrollen misslyckades: {error}",
+  "@installerCheckFailed": {
+    "description": "Localized UI message: installerCheckFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelPreparing": "Förbereder Gemma 3 1B-modellen...",
+  "installerModelDownloading": "Hämtar Gemma 3 1B: {percent}%",
+  "@installerModelDownloading": {
+    "description": "Localized UI message: installerModelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "installerModelDownloadFailed": "Det gick inte att installera Gemma: {error}\nGrundinstallationen kan fortsätta; försök installera AI igen senare.",
+  "@installerModelDownloadFailed": {
+    "description": "Localized UI message: installerModelDownloadFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelDownloaded": "Gemma 3 1B har hämtats och verifierats med SHA-256.",
+  "installerTestMode": "Testläge: installationen och modellhämtningen hoppades över.",
+  "installerCheckingComponents": "Kontrollerar installationskomponenter...",
+  "installerPlatformSummary": "Plattform: {platform}\nPaket: {formats}\nBrygga: {bridge}\nAI-modell: {ai}",
+  "@installerPlatformSummary": {
+    "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      },
+      "ai": {
+        "type": "String"
+      }
+    }
+  },
+  "motherboardLabel": "Moderkort",
+  "gpuDriverLabel": "GPU-drivrutin",
+  "last20Events": "De 20 senaste händelserna"
+}

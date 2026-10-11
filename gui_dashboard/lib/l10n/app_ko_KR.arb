@@ -1,0 +1,388 @@
+{
+  "@@locale": "ko_KR",
+  "menu": "메뉴",
+  "settings": "설정",
+  "language": "언어",
+  "appearance": "화면",
+  "notifications": "알림",
+  "enableNotifications": "알림 사용",
+  "temperatureWarning": "온도 경고 임계값",
+  "cancel": "취소",
+  "save": "저장",
+  "dashboard": "대시보드",
+  "systemStatus": "시스템 상태",
+  "controls": "제어",
+  "createErrorReport": "오류 보고서 만들기",
+  "reconnect": "다시 연결",
+  "noEvents": "아직 이벤트가 없습니다",
+  "darkMode": "Dark mode",
+  "lightMode": "Light mode",
+  "animationsOn": "Disable animations",
+  "animationsOff": "Enable animations",
+  "accessibility": "접근성",
+  "offlineSpeech": "오프라인 음성",
+  "piperOfflineDescription": "로컬에 설치된 Piper 음성으로 대시보드 정보를 읽어 줍니다. 음성 처리는 이 기기에서만 이루어집니다.",
+  "piperExecutablePath": "Piper 실행 파일 경로",
+  "piperModelPath": "ONNX 음성 모델 경로",
+  "testSpeech": "음성 테스트",
+  "readDashboard": "대시보드 읽기",
+  "piperTesting": "음성 테스트 중...",
+  "piperTestSuccess": "음성 테스트가 완료되었습니다.",
+  "piperTestFailed": "음성 테스트에 실패했습니다.",
+  "piperTestPhrase": "HWcontrol2.0 접근성 음성 테스트입니다. 하드웨어 데이터는 이 기기에 유지됩니다.",
+  "stopSpeech": "음성 중지",
+  "piperSpeechStopped": "음성이 중지되었습니다.",
+  "browsePiperExecutable": "Piper 실행 파일 선택",
+  "browsePiperModel": "ONNX 음성 모델 선택",
+  "piperModelConfigHint": "일치하는 .onnx.json 구성 파일이 같은 폴더에 있어야 합니다. 사용 전에 음성 라이선스를 확인하세요.",
+  "piperVoiceCatalog": "Piper 공식 음성 찾아보기",
+  "getPiperExecutable": "Piper 실행 파일 받기",
+  "systemDefault": "시스템 기본값",
+  "telemetryHistory": "측정 기록",
+  "lastHour": "최근 1시간 • 5초 간격 샘플링",
+  "hardwareDetection": "하드웨어 감지",
+  "pcMotherboardCpuGpu": "PC, 메인보드, CPU 및 GPU 정보",
+  "controlFlow": "제어 흐름",
+  "safeUserSettings": "안전한 사용자 설정",
+  "gameMode": "게임 모드",
+  "advancedTelemetry": "고급 측정",
+  "aiAnalysis": "AI 분석",
+  "diagnostics": "진단",
+  "online": "브리지 연결됨",
+  "offline": "오프라인",
+  "updateCheck": "업데이트 확인",
+  "releaseOpen": "릴리스 열기",
+  "systemEvents": "시스템 이벤트",
+  "quiet": "저소음",
+  "balanced": "균형",
+  "performance": "성능",
+  "game": "게임",
+  "manual": "수동",
+  "reset": "초기화",
+  "saveProfile": "프로필 저장",
+  "fanSpeed": "팬 속도",
+  "apply": "적용",
+  "languageChanged": "언어가 변경되었습니다",
+  "temperature": "온도",
+  "usage": "사용률",
+  "ramUsage": "메모리 사용률",
+  "diskUsage": "디스크 사용률",
+  "gpuUsage": "GPU 사용률",
+  "fan": "팬",
+  "welcomeTitle": "HWcontrol2.0에 오신 것을 환영합니다",
+  "welcomeTagline": "모니터링. 제어. 보호.",
+  "welcomeDescription": "하드웨어를 모니터링하고 냉각을 제어하며 시스템 상태를 유지하는 간단하고 안정적인 방법입니다.",
+  "welcomeMonitor": "모니터링",
+  "welcomeMonitorDescription": "CPU/GPU 센서 및 온도",
+  "welcomeControl": "제어",
+  "welcomeControlDescription": "팬 곡선 및 성능 프로필",
+  "welcomeProtect": "보호",
+  "welcomeProtectDescription": "진단 및 시스템 상태",
+  "welcomeGetStarted": "시작하기",
+  "welcomeOpenDashboard": "대시보드 열기",
+  "welcomeDontShowAgain": "다시 표시하지 않기",
+  "welcomePreview": "대시보드 미리보기",
+  "welcomeExampleStatus": "예시 상태",
+  "welcomeSampleValues": "예시 값",
+  "welcomeConnectHardware": "하드웨어 연결",
+  "newAutomationRule": "새 자동화 규칙",
+  "editAutomationRule": "자동화 규칙 편집",
+  "ruleName": "규칙 이름",
+  "sensor": "센서",
+  "cpuTemperatureLabel": "CPU 온도",
+  "gpuTemperatureLabel": "GPU 온도",
+  "threshold": "임계값 (°C)",
+  "fanTarget": "팬 목표 (%)",
+  "hardwareAutomation": "하드웨어 자동화",
+  "automationSafetyNote": "검증된 하드웨어 제어 백엔드가 있을 때만 규칙이 팬 명령을 보냅니다.",
+  "edit": "편집",
+  "delete": "삭제",
+  "noAutomationRules": "자동화 규칙이 없습니다.",
+  "addRule": "규칙 추가",
+  "hardwareHealthCenter": "하드웨어 상태 센터",
+  "status": "상태",
+  "safety": "안전",
+  "recovery": "복구",
+  "warnings": "경고",
+  "anomalies": "이상 징후",
+  "close": "닫기",
+  "checkForUpdates": "업데이트 확인",
+  "maxCpuTemperature": "최대 CPU 온도: {temperature} °C",
+  "@maxCpuTemperature": {
+    "description": "Localized UI message: maxCpuTemperature. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "temperature": {
+        "type": "num"
+      }
+    }
+  },
+  "exportCsv": "CSV 내보내기",
+  "thermalStatus": "열 상태: {status}",
+  "@thermalStatus": {
+    "description": "Localized UI message: thermalStatus. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeMetricsWaiting": "브리지 측정값을 기다리는 중",
+  "gpuTelemetryNote": "고급 GPU 텔레메트리는 드라이버 및 백엔드 지원에 따라 달라집니다.",
+  "cpuCoreLoad": "CPU 코어 부하",
+  "runAiAnalysis": "AI 분석 실행",
+  "clearAiModelCache": "AI 모델 캐시 지우기",
+  "modelDownloading": "Gemma 3 1B 모델 다운로드 중: {percent}% • 약 851 MB",
+  "@modelDownloading": {
+    "description": "Localized UI message: modelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "llmControlUnavailable": "LLM 제어 권한을 사용할 수 없습니다",
+  "storageUnavailable": "저장 장치를 찾을 수 없거나 측정 데이터가 아직 준비되지 않았습니다.",
+  "freeSpace": "여유 공간: {value}",
+  "@freeSpace": {
+    "description": "Localized UI message: freeSpace. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "readSpeed": "읽기: {value}",
+  "@readSpeed": {
+    "description": "Localized UI message: readSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "writeSpeed": "쓰기: {value}",
+  "@writeSpeed": {
+    "description": "Localized UI message: writeSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "health": "상태: {value}",
+  "@health": {
+    "description": "Localized UI message: health. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSystem": "파일 시스템: {value}",
+  "@fileSystem": {
+    "description": "Localized UI message: fileSystem. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diagnosticPrivacy": "진단: {status} • 일련번호는 보고서에 포함되지 않습니다",
+  "@diagnosticPrivacy": {
+    "description": "Localized UI message: diagnosticPrivacy. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "detectedGame": "감지된 게임: {game}",
+  "@detectedGame": {
+    "description": "Localized UI message: detectedGame. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "gameModeWaiting": "게임 모드 준비 완료 — 게임 대기 중",
+  "gameModeOff": "게임 모드 꺼짐",
+  "activeGameProcess": "게임 프로세스를 모니터링하는 중",
+  "hardwareControlMonitorOnly": "하드웨어 제어: 모니터링만",
+  "extensionApiStatus": "확장 API: 메타데이터/기능 제공자 계약 준비됨 • 네이티브 플러그인 로드 비활성화",
+  "smartFanCurve": "스마트 팬 곡선",
+  "smartFanEnabled": "스마트 팬: 켜짐",
+  "smartFanDisabled": "스마트 팬: 꺼짐",
+  "automation": "자동화",
+  "benchmark": "벤치마크",
+  "downloadVerifiedUpdate": "검증된 업데이트 다운로드",
+  "newFanCurvePoint": "새 팬 곡선 지점",
+  "smartFanCurveDescription": "온도에 따라 팬 목표를 설정합니다. 검증된 하드웨어 제어 백엔드가 있을 때만 곡선이 자동 적용됩니다.",
+  "deletePoint": "지점 삭제",
+  "addPoint": "지점 추가",
+  "resetBalanced": "균형 설정으로 재설정",
+  "hardwareBenchmark": "하드웨어 벤치마크",
+  "benchmarkDisclaimer": "1초 CPU 마이크로 벤치마크입니다. 스트레스 테스트가 아니며 하드웨어 설정을 변경하지 않습니다.",
+  "score": "점수: 초당 {value}회 반복",
+  "@score": {
+    "description": "Localized UI message: score. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "iterations": "반복 횟수: {value}",
+  "@iterations": {
+    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "duration": "시간: {value} ms",
+  "@duration": {
+    "description": "Localized UI message: duration. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "run": "실행",
+  "unknown": "알 수 없음",
+  "none": "없음",
+  "power": "전력",
+  "voltage": "전압",
+  "appTagline": "정밀 하드웨어 제어",
+  "cpuUsageLabel": "CPU 사용률",
+  "coreClock": "코어 클럭",
+  "memoryClock": "메모리 클럭",
+  "advancedTelemetryDescription": "GPU 부하, VRAM, 전력, 클럭 속도 및 CPU 코어",
+  "localAiAnalysisDescription": "실시간 텔레메트리를 Gemma로 로컬 분석",
+  "hardwareDetectionDescription": "PC, 메인보드, CPU 및 GPU 식별 정보",
+  "gameModeDescription": "게임 실행 중 자동 감지 및 게임 중심 모니터링",
+  "gameModeSet": "게임 모드 설정",
+  "bridgeWaiting": "브리지 대기 중",
+  "monitoringOnly": "모니터링만",
+  "powerLimit": "전력 제한",
+  "gpuState": "GPU 상태",
+  "encoderUsage": "인코더 사용률",
+  "decoderUsage": "디코더 사용률",
+  "samplingInterval": "최근 1시간 • 5초마다 측정",
+  "modelDigestLabel": "모델 SHA-256",
+  "gpuAdapterLabel": "GPU 어댑터",
+  "lastActionLabel": "마지막 작업",
+  "vramUsageLabel": "VRAM 사용량",
+  "gpuPowerLimit": "GPU 전력 제한",
+  "gpuEncoder": "인코더",
+  "gpuDecoder": "디코더",
+  "storageTitle": "저장소",
+  "storageDescription": "SSD / HDD / NVMe 사용량 및 I/O 상태",
+  "aiProcessingPower": "AI 처리 성능",
+  "securityLabel": "보안",
+  "securityKeyWaiting": "키 대기 중",
+  "digestNotFound": "찾을 수 없음",
+  "digestNotChecked": "확인되지 않음",
+  "gpuAdapter": "GPU 어댑터",
+  "cpuCoreSummary": "코어 {cores}개 • {frequency} MHz",
+  "@cpuCoreSummary": {
+    "description": "Localized UI message: cpuCoreSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "cores": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "num"
+      }
+    }
+  },
+  "warningThresholdLabel": "경고 임계값",
+  "hardwareControlUnavailableNote": "하드웨어 제어를 지원하지 않으면 팬이나 클록 설정을 변경하지 않습니다.",
+  "thermalStatusLabel": "열 상태",
+  "fanControlLabel": "팬 제어",
+  "installerTitle": "HWControl 설치 마법사",
+  "installerLocalAiModel": "로컬 AI (Gemma 3 1B)",
+  "installerAiDescription": "선택 사항입니다. 선택하면 설치 중 Gemma 3 1B를 다운로드하고 SHA-256으로 검증합니다.",
+  "installerChecking": "설치 확인 중...",
+  "installerContinue": "계속",
+  "installerFinish": "설치 완료",
+  "installerPackageStepTitle": "1. 패키지 유형 확인",
+  "installerBridgeStepTitle": "2. 브리지 상태 확인",
+  "installerCompleteStepTitle": "3. 설치 완료",
+  "installerPackageStepDescription": "{platform}에 적합한 패키지 형식: {formats}.",
+  "@installerPackageStepDescription": {
+    "description": "Localized UI message: installerPackageStepDescription. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "installerAiStepDescription": "로컬 AI 구성 요소는 선택적으로 설치할 수 있습니다. 선택하면 설치 중 Gemma 3 1B Instruct Q5_K_M(약 851 MB)을 다운로드하고 SHA-256으로 검증합니다.",
+  "installerCompleteWithAi": "마지막 설치 단계에서 모델을 준비합니다. 모델이 없거나 손상된 경우 검증된 다운로드로 복구합니다.",
+  "installerCompleteWithoutAi": "기본 애플리케이션을 설치하며 이번 설치에서는 AI 모델을 다운로드하지 않습니다.",
+  "installerAiSelectedFooter": "AI 선택됨: 설치 중 Gemma를 준비합니다. 누락되거나 손상된 파일은 다시 다운로드하고 검증합니다.",
+  "installerAiSkippedFooter": "AI 선택 안 함: Gemma를 설치하지 않습니다. 첫 AI 분석 요청 시 안전하게 다운로드할 수 있습니다.",
+  "installerPreviouslyCompleted": "설치가 이미 완료되었습니다. AI 모델은 선택 사항입니다.",
+  "installerBridgeFound": "찾음",
+  "installerBridgePending": "패키지 설치에서 제공될 예정",
+  "installerModelReady": "준비 및 검증 완료",
+  "installerModelOptional": "선택 사항이며 첫 AI 분석 시 다운로드",
+  "installerCheckFailed": "설치 확인 실패: {error}",
+  "@installerCheckFailed": {
+    "description": "Localized UI message: installerCheckFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelPreparing": "Gemma 3 1B 모델 준비 중...",
+  "installerModelDownloading": "Gemma 3 1B 다운로드 중: {percent}%",
+  "@installerModelDownloading": {
+    "description": "Localized UI message: installerModelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "installerModelDownloadFailed": "Gemma 설치 실패: {error}\n기본 설치는 계속할 수 있습니다. 나중에 AI 설치를 다시 시도하세요.",
+  "@installerModelDownloadFailed": {
+    "description": "Localized UI message: installerModelDownloadFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelDownloaded": "Gemma 3 1B를 다운로드하고 SHA-256으로 검증했습니다.",
+  "installerTestMode": "테스트 모드: 설치 및 모델 다운로드를 건너뛰었습니다.",
+  "installerCheckingComponents": "설치 구성 요소 확인 중...",
+  "installerPlatformSummary": "플랫폼: {platform}\n패키지: {formats}\n브리지: {bridge}\nAI 모델: {ai}",
+  "@installerPlatformSummary": {
+    "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      },
+      "ai": {
+        "type": "String"
+      }
+    }
+  },
+  "motherboardLabel": "메인보드",
+  "gpuDriverLabel": "GPU 드라이버",
+  "last20Events": "최근 이벤트 20개"
+}

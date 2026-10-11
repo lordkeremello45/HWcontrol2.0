@@ -1,0 +1,388 @@
+{
+  "@@locale": "he_IL",
+  "menu": "תפריט",
+  "settings": "הגדרות",
+  "language": "שפה",
+  "appearance": "מראה",
+  "notifications": "התראות",
+  "enableNotifications": "הפעל התראות",
+  "temperatureWarning": "סף אזהרת טמפרטורה",
+  "cancel": "ביטול",
+  "save": "שמירה",
+  "dashboard": "לוח מחוונים",
+  "systemStatus": "מצב המערכת",
+  "controls": "פקדים",
+  "createErrorReport": "יצירת דוח שגיאה",
+  "reconnect": "התחבר מחדש",
+  "noEvents": "אין אירועים עדיין",
+  "darkMode": "Dark mode",
+  "lightMode": "Light mode",
+  "animationsOn": "Disable animations",
+  "animationsOff": "Enable animations",
+  "accessibility": "נגישות",
+  "offlineSpeech": "דיבור לא מקוון",
+  "piperOfflineDescription": "הקראת מידע מלוח הבקרה באמצעות קולות Piper המותקנים מקומית. הדיבור נשאר במכשיר זה.",
+  "piperExecutablePath": "נתיב לקובץ ההפעלה של Piper",
+  "piperModelPath": "נתיב למודל קול ONNX",
+  "testSpeech": "בדיקת דיבור",
+  "readDashboard": "הקראת לוח הבקרה",
+  "piperTesting": "בודק דיבור...",
+  "piperTestSuccess": "בדיקת הדיבור הושלמה.",
+  "piperTestFailed": "בדיקת הדיבור נכשלה.",
+  "piperTestPhrase": "בדיקת דיבור לנגישות של HWcontrol2.0. נתוני החומרה נשארים במכשיר זה.",
+  "stopSpeech": "עצירת הדיבור",
+  "piperSpeechStopped": "הדיבור נעצר.",
+  "browsePiperExecutable": "בחירת קובץ ההפעלה של Piper",
+  "browsePiperModel": "בחירת מודל קול ONNX",
+  "piperModelConfigHint": "קובץ התצורה המתאים .onnx.json חייב להימצא באותה תיקייה. יש לבדוק את רישיון הקול לפני השימוש.",
+  "piperVoiceCatalog": "עיון בקולות Piper הרשמיים",
+  "getPiperExecutable": "קבלת קובץ ההפעלה של Piper",
+  "systemDefault": "ברירת המחדל של המערכת",
+  "telemetryHistory": "היסטוריית מדידות",
+  "lastHour": "השעה האחרונה • דגימה כל 5 שניות",
+  "hardwareDetection": "זיהוי חומרה",
+  "pcMotherboardCpuGpu": "מידע על המחשב, לוח האם, המעבד והכרטיס הגרפי",
+  "controlFlow": "זרימת בקרה",
+  "safeUserSettings": "הגדרות משתמש בטוחות",
+  "gameMode": "מצב משחק",
+  "advancedTelemetry": "מדידות מתקדמות",
+  "aiAnalysis": "ניתוח בינה מלאכותית",
+  "diagnostics": "אבחון",
+  "online": "הגשר מחובר",
+  "offline": "לא מקוון",
+  "updateCheck": "בדיקת עדכונים",
+  "releaseOpen": "פתיחת מהדורה",
+  "systemEvents": "אירועי מערכת",
+  "quiet": "שקט",
+  "balanced": "מאוזן",
+  "performance": "ביצועים",
+  "game": "משחק",
+  "manual": "ידני",
+  "reset": "איפוס",
+  "saveProfile": "שמירת פרופיל",
+  "fanSpeed": "מהירות מאוורר",
+  "apply": "החלה",
+  "languageChanged": "השפה שונתה",
+  "temperature": "טמפרטורה",
+  "usage": "שימוש",
+  "ramUsage": "שימוש בזיכרון",
+  "diskUsage": "שימוש בדיסק",
+  "gpuUsage": "שימוש ב-GPU",
+  "fan": "מאוורר",
+  "welcomeTitle": "ברוכים הבאים ל-HWcontrol2.0",
+  "welcomeTagline": "ניטור. שליטה. הגנה.",
+  "welcomeDescription": "דרך פשוטה ואמינה לניטור חומרה, לשליטה בקירור ולשמירה על תקינות המערכת.",
+  "welcomeMonitor": "ניטור",
+  "welcomeMonitorDescription": "חיישני וטמפרטורות CPU/GPU",
+  "welcomeControl": "שליטה",
+  "welcomeControlDescription": "עקומות מאוורר ופרופילי ביצועים",
+  "welcomeProtect": "הגנה",
+  "welcomeProtectDescription": "אבחון ומצב המערכת",
+  "welcomeGetStarted": "התחלה",
+  "welcomeOpenDashboard": "פתיחת לוח הבקרה",
+  "welcomeDontShowAgain": "אל תציג שוב",
+  "welcomePreview": "תצוגה מקדימה של לוח הבקרה",
+  "welcomeExampleStatus": "מצב לדוגמה",
+  "welcomeSampleValues": "ערכים לדוגמה",
+  "welcomeConnectHardware": "חיבור חומרה",
+  "newAutomationRule": "כלל אוטומציה חדש",
+  "editAutomationRule": "עריכת כלל אוטומציה",
+  "ruleName": "שם הכלל",
+  "sensor": "חיישן",
+  "cpuTemperatureLabel": "טמפרטורת CPU",
+  "gpuTemperatureLabel": "טמפרטורת GPU",
+  "threshold": "סף (°C)",
+  "fanTarget": "יעד מאוורר (%)",
+  "hardwareAutomation": "אוטומציית חומרה",
+  "automationSafetyNote": "הכללים שולחים פקודות למאוורר רק כאשר זמין מנגנון מאומת לשליטה בחומרה.",
+  "edit": "עריכה",
+  "delete": "מחיקה",
+  "noAutomationRules": "עדיין אין כללי אוטומציה.",
+  "addRule": "הוספת כלל",
+  "hardwareHealthCenter": "מרכז מצב החומרה",
+  "status": "מצב",
+  "safety": "בטיחות",
+  "recovery": "שחזור",
+  "warnings": "אזהרות",
+  "anomalies": "חריגות",
+  "close": "סגירה",
+  "checkForUpdates": "בדיקת עדכונים",
+  "maxCpuTemperature": "טמפרטורת CPU מרבית: {temperature} °C",
+  "@maxCpuTemperature": {
+    "description": "Localized UI message: maxCpuTemperature. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "temperature": {
+        "type": "num"
+      }
+    }
+  },
+  "exportCsv": "ייצוא CSV",
+  "thermalStatus": "מצב תרמי: {status}",
+  "@thermalStatus": {
+    "description": "Localized UI message: thermalStatus. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeMetricsWaiting": "ממתין למדדים מהגשר",
+  "gpuTelemetryNote": "טלמטריית GPU מתקדמת תלויה בתמיכת מנהל ההתקן והמנגנון.",
+  "cpuCoreLoad": "עומס ליבות CPU",
+  "runAiAnalysis": "הפעלת ניתוח AI",
+  "clearAiModelCache": "ניקוי מטמון מודל AI",
+  "modelDownloading": "מוריד את מודל Gemma 3 1B: {percent}% • כ־851 MB",
+  "@modelDownloading": {
+    "description": "Localized UI message: modelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "llmControlUnavailable": "אין הרשאה לשליטת LLM",
+  "storageUnavailable": "התקן אחסון לא זוהה או שהטלמטריה עדיין אינה מוכנה.",
+  "freeSpace": "מקום פנוי: {value}",
+  "@freeSpace": {
+    "description": "Localized UI message: freeSpace. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "readSpeed": "קריאה: {value}",
+  "@readSpeed": {
+    "description": "Localized UI message: readSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "writeSpeed": "כתיבה: {value}",
+  "@writeSpeed": {
+    "description": "Localized UI message: writeSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "health": "תקינות: {value}",
+  "@health": {
+    "description": "Localized UI message: health. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSystem": "מערכת קבצים: {value}",
+  "@fileSystem": {
+    "description": "Localized UI message: fileSystem. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diagnosticPrivacy": "אבחון: {status} • מספרים סידוריים אינם נכללים בדוחות",
+  "@diagnosticPrivacy": {
+    "description": "Localized UI message: diagnosticPrivacy. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "detectedGame": "המשחק שזוהה: {game}",
+  "@detectedGame": {
+    "description": "Localized UI message: detectedGame. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "gameModeWaiting": "מצב משחק מוכן — ממתין למשחק",
+  "gameModeOff": "מצב משחק כבוי",
+  "activeGameProcess": "תהליך המשחק נמצא במעקב",
+  "hardwareControlMonitorOnly": "שליטה בחומרה: ניטור בלבד",
+  "extensionApiStatus": "API הרחבות: חוזה ספק המטא־נתונים/יכולות מוכן • טעינת תוספים מקוריים מושבתת",
+  "smartFanCurve": "עקומת מאוורר חכמה",
+  "smartFanEnabled": "Smart Fan: מופעל",
+  "smartFanDisabled": "Smart Fan: מושבת",
+  "automation": "אוטומציה",
+  "benchmark": "בדיקת ביצועים",
+  "downloadVerifiedUpdate": "הורדת עדכון מאומת",
+  "newFanCurvePoint": "נקודה חדשה בעקומת המאוורר",
+  "smartFanCurveDescription": "הגדר את יעד המאוורר לפי הטמפרטורה. העקומה מוחלת אוטומטית רק כאשר זמין מנגנון מאומת לשליטה בחומרה.",
+  "deletePoint": "מחיקת נקודה",
+  "addPoint": "הוספת נקודה",
+  "resetBalanced": "איפוס למאוזן",
+  "hardwareBenchmark": "בדיקת ביצועי חומרה",
+  "benchmarkDisclaimer": "בדיקת CPU קצרה של שנייה אחת. אין זו בדיקת עומס והיא אינה משנה הגדרות חומרה.",
+  "score": "ציון: {value} איטרציות/שנייה",
+  "@score": {
+    "description": "Localized UI message: score. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "iterations": "איטרציות: {value}",
+  "@iterations": {
+    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "duration": "משך: {value} אלפיות שנייה",
+  "@duration": {
+    "description": "Localized UI message: duration. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "run": "הרצה",
+  "unknown": "לא ידוע",
+  "none": "אין",
+  "power": "הספק",
+  "voltage": "מתח",
+  "appTagline": "שליטה מדויקת בחומרה",
+  "cpuUsageLabel": "שימוש במעבד",
+  "coreClock": "תדר ליבה",
+  "memoryClock": "תדר זיכרון",
+  "advancedTelemetryDescription": "עומס GPU, זיכרון VRAM, הספק, תדרי שעון וליבות CPU",
+  "localAiAnalysisDescription": "ניתוח מקומי של טלמטריה בזמן אמת באמצעות Gemma",
+  "hardwareDetectionDescription": "פרטי זיהוי של המחשב, לוח האם, המעבד וה-GPU",
+  "gameModeDescription": "זיהוי אוטומטי וניטור ממוקד משחק בזמן שהמשחק פועל",
+  "gameModeSet": "הגדרת מצב משחק",
+  "bridgeWaiting": "ממתין לגשר",
+  "monitoringOnly": "ניטור בלבד",
+  "powerLimit": "מגבלת הספק",
+  "gpuState": "מצב GPU",
+  "encoderUsage": "שימוש במקודד",
+  "decoderUsage": "שימוש במפענח",
+  "samplingInterval": "השעה האחרונה • מדידה כל 5 שניות",
+  "modelDigestLabel": "SHA-256 של המודל",
+  "gpuAdapterLabel": "מתאם GPU",
+  "lastActionLabel": "פעולה אחרונה",
+  "vramUsageLabel": "שימוש ב-VRAM",
+  "gpuPowerLimit": "מגבלת הספק GPU",
+  "gpuEncoder": "מקודד",
+  "gpuDecoder": "מפענח",
+  "storageTitle": "אחסון",
+  "storageDescription": "שימוש ומצב קלט/פלט של SSD, HDD ו-NVMe",
+  "aiProcessingPower": "עוצמת עיבוד AI",
+  "securityLabel": "אבטחה",
+  "securityKeyWaiting": "ממתין למפתח",
+  "digestNotFound": "לא נמצא",
+  "digestNotChecked": "לא נבדק",
+  "gpuAdapter": "מתאם GPU",
+  "cpuCoreSummary": "{cores} ליבות • {frequency} MHz",
+  "@cpuCoreSummary": {
+    "description": "Localized UI message: cpuCoreSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "cores": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "num"
+      }
+    }
+  },
+  "warningThresholdLabel": "סף אזהרה",
+  "hardwareControlUnavailableNote": "הגדרות המאוורר או תדר השעון לא ישתנו כאשר בקרת חומרה אינה נתמכת.",
+  "thermalStatusLabel": "מצב תרמי",
+  "fanControlLabel": "בקרת מאוורר",
+  "installerTitle": "אשף ההתקנה של HWControl",
+  "installerLocalAiModel": "בינה מלאכותית מקומית (Gemma 3 1B)",
+  "installerAiDescription": "אפשרות לבחירה. אם נבחרה, Gemma 3 1B יורד במהלך ההתקנה ומאומת באמצעות SHA-256.",
+  "installerChecking": "בודק את ההתקנה...",
+  "installerContinue": "המשך",
+  "installerFinish": "סיום ההתקנה",
+  "installerPackageStepTitle": "1. אימות סוג החבילה",
+  "installerBridgeStepTitle": "2. אימות מצב הגשר",
+  "installerCompleteStepTitle": "3. סיום ההתקנה",
+  "installerPackageStepDescription": "תבנית החבילה מתאימה ל־{platform}: {formats}.",
+  "@installerPackageStepDescription": {
+    "description": "Localized UI message: installerPackageStepDescription. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "installerAiStepDescription": "ניתן להתקין את רכיב הבינה המלאכותית המקומי כאפשרות. אם נבחר, Gemma 3 1B Instruct Q5_K_M (כ־851 MB) יורד בזמן ההתקנה ומאומת באמצעות SHA-256.",
+  "installerCompleteWithAi": "המודל יוכן בשלב האחרון. מודל חסר או פגום יתוקן באמצעות הורדה מאומתת.",
+  "installerCompleteWithoutAi": "האפליקציה הבסיסית תותקן; מודל הבינה המלאכותית לא יורד בהתקנה זו.",
+  "installerAiSelectedFooter": "נבחרה בינה מלאכותית: Gemma יוכן במהלך ההתקנה. קבצים חסרים או פגומים יורדו מחדש ויאומתו.",
+  "installerAiSkippedFooter": "לא נבחרה בינה מלאכותית: Gemma לא יותקן. ניתן להוריד אותו באופן מאובטח כאשר תתבקש לראשונה אנליזת AI.",
+  "installerPreviouslyCompleted": "ההתקנה כבר הושלמה. מודל הבינה המלאכותית הוא אפשרות לבחירה.",
+  "installerBridgeFound": "נמצא",
+  "installerBridgePending": "צפוי בהתקנה הארוזה",
+  "installerModelReady": "מוכן ומאומת",
+  "installerModelOptional": "אופציונלי; יורד בניתוח AI הראשון",
+  "installerCheckFailed": "בדיקת ההתקנה נכשלה: {error}",
+  "@installerCheckFailed": {
+    "description": "Localized UI message: installerCheckFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelPreparing": "מכין את מודל Gemma 3 1B...",
+  "installerModelDownloading": "מוריד את Gemma 3 1B: {percent}%",
+  "@installerModelDownloading": {
+    "description": "Localized UI message: installerModelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "installerModelDownloadFailed": "התקנת Gemma נכשלה: {error}\nניתן להמשיך בהתקנה הבסיסית; אפשר לנסות שוב להתקין AI מאוחר יותר.",
+  "@installerModelDownloadFailed": {
+    "description": "Localized UI message: installerModelDownloadFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelDownloaded": "Gemma 3 1B הורד ואומת באמצעות SHA-256.",
+  "installerTestMode": "מצב בדיקה: ההתקנה והורדת המודל דולגו.",
+  "installerCheckingComponents": "בודק רכיבי התקנה...",
+  "installerPlatformSummary": "פלטפורמה: {platform}\nחבילה: {formats}\nגשר: {bridge}\nמודל AI: {ai}",
+  "@installerPlatformSummary": {
+    "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      },
+      "ai": {
+        "type": "String"
+      }
+    }
+  },
+  "motherboardLabel": "לוח אם",
+  "gpuDriverLabel": "מנהל התקן GPU",
+  "last20Events": "20 האירועים האחרונים"
+}

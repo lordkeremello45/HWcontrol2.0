@@ -1,0 +1,388 @@
+{
+  "@@locale": "ca_ES",
+  "menu": "Menú",
+  "settings": "Configuració",
+  "language": "Idioma",
+  "appearance": "Aparença",
+  "notifications": "Notificacions",
+  "enableNotifications": "Activa les notificacions",
+  "temperatureWarning": "Llindar d’avís de temperatura",
+  "cancel": "Cancel·la",
+  "save": "Desa",
+  "darkMode": "Mode fosc",
+  "lightMode": "Mode clar",
+  "dashboard": "Tauler",
+  "systemStatus": "Estat del sistema",
+  "controls": "Controls",
+  "createErrorReport": "Crea un informe d’error",
+  "reconnect": "Torna a connectar",
+  "noEvents": "Encara no hi ha esdeveniments",
+  "quiet": "Silenciós",
+  "balanced": "Equilibrat",
+  "performance": "Rendiment",
+  "temperature": "Temperatura",
+  "usage": "Ús",
+  "fan": "Ventilador",
+  "systemDefault": "Valor per defecte del sistema",
+  "welcomeTitle": "Benvingut a HWcontrol2.0",
+  "welcomeDescription": "Una manera senzilla i fiable de supervisar el maquinari, controlar la refrigeració i mantenir el sistema en bon estat.",
+  "welcomeTagline": "Supervisa. Controla. Protegeix.",
+  "welcomeGetStarted": "Comença",
+  "welcomeOpenDashboard": "Obre el tauler",
+  "welcomePreview": "Vista prèvia del tauler",
+  "accessibility": "Accessibilitat",
+  "offlineSpeech": "Veu sense connexió",
+  "piperOfflineDescription": "Escolta la informació del tauler amb veus Piper instal·lades localment. La veu es manté en aquest dispositiu.",
+  "piperExecutablePath": "Camí de l'executable de Piper",
+  "piperModelPath": "Camí del model de veu ONNX",
+  "testSpeech": "Prova la veu",
+  "readDashboard": "Llegeix el tauler",
+  "piperTesting": "S'està provant la veu...",
+  "piperTestSuccess": "La prova de veu ha acabat.",
+  "piperTestFailed": "La prova de veu ha fallat.",
+  "piperTestPhrase": "Prova de veu d'accessibilitat de HWcontrol2.0. Les dades del maquinari es mantenen en aquest dispositiu.",
+  "stopSpeech": "Atura la veu",
+  "piperSpeechStopped": "S'ha aturat la veu.",
+  "browsePiperExecutable": "Selecciona l'executable de Piper",
+  "browsePiperModel": "Selecciona el model de veu ONNX",
+  "piperModelConfigHint": "El fitxer de configuració .onnx.json corresponent ha de ser a la mateixa carpeta. Comprova la llicència de la veu abans d'utilitzar-la.",
+  "piperVoiceCatalog": "Consulta les veus oficials de Piper",
+  "getPiperExecutable": "Obtén l'executable de Piper",
+  "telemetryHistory": "Historial de mesuraments",
+  "lastHour": "Darrera hora • mostreig cada 5 segons",
+  "hardwareDetection": "Detecció de maquinari",
+  "pcMotherboardCpuGpu": "Informació de l’ordinador, placa base, CPU i GPU",
+  "controlFlow": "Flux de control",
+  "safeUserSettings": "Configuració d’usuari segura",
+  "gameMode": "Mode de joc",
+  "advancedTelemetry": "Mesuraments avançats",
+  "aiAnalysis": "Anàlisi d’IA",
+  "diagnostics": "Diagnòstic",
+  "online": "PONT EN LÍNIA",
+  "offline": "SENSE CONNEXIÓ",
+  "updateCheck": "Comprova si hi ha actualitzacions",
+  "releaseOpen": "Obre la versió",
+  "systemEvents": "Esdeveniments del sistema",
+  "game": "Joc",
+  "manual": "Manual",
+  "reset": "Restableix",
+  "saveProfile": "Desa el perfil",
+  "fanSpeed": "Velocitat del ventilador",
+  "apply": "Aplica",
+  "languageChanged": "S’ha canviat l’idioma",
+  "ramUsage": "Ús de la memòria",
+  "diskUsage": "Ús del disc",
+  "gpuUsage": "Ús de la GPU",
+  "welcomeMonitor": "Supervisió",
+  "welcomeMonitorDescription": "Sensors i temperatures de CPU/GPU",
+  "welcomeControl": "Control",
+  "welcomeControlDescription": "Corbes del ventilador i perfils de rendiment",
+  "welcomeProtect": "Protecció",
+  "welcomeProtectDescription": "Diagnòstic i estat del sistema",
+  "welcomeDontShowAgain": "No ho tornis a mostrar",
+  "welcomeExampleStatus": "Estat d’exemple",
+  "welcomeSampleValues": "Valors d’exemple",
+  "welcomeConnectHardware": "Connecta el maquinari",
+  "newAutomationRule": "Regla d’automatització nova",
+  "editAutomationRule": "Edita la regla d’automatització",
+  "ruleName": "Nom de la regla",
+  "sensor": "Sensor",
+  "cpuTemperatureLabel": "Temperatura de la CPU",
+  "gpuTemperatureLabel": "Temperatura de la GPU",
+  "threshold": "Llindar (°C)",
+  "fanTarget": "Objectiu del ventilador (%)",
+  "hardwareAutomation": "Automatització del maquinari",
+  "automationSafetyNote": "Les regles només envien ordres al ventilador quan hi ha un motor de control del maquinari verificat.",
+  "edit": "Edita",
+  "delete": "Suprimeix",
+  "noAutomationRules": "Encara no hi ha regles d’automatització.",
+  "addRule": "Afegeix una regla",
+  "hardwareHealthCenter": "Centre de salut del maquinari",
+  "status": "Estat",
+  "safety": "Seguretat",
+  "recovery": "Recuperació",
+  "warnings": "Avisos",
+  "anomalies": "Anomalies",
+  "close": "Tanca",
+  "checkForUpdates": "Comprova si hi ha actualitzacions",
+  "maxCpuTemperature": "Temperatura màxima de CPU: {temperature} °C",
+  "@maxCpuTemperature": {
+    "description": "Localized UI message: maxCpuTemperature. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "temperature": {
+        "type": "num"
+      }
+    }
+  },
+  "exportCsv": "Exporta CSV",
+  "thermalStatus": "Estat tèrmic: {status}",
+  "@thermalStatus": {
+    "description": "Localized UI message: thermalStatus. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeMetricsWaiting": "S’esperen les mètriques del pont",
+  "gpuTelemetryNote": "La telemetria avançada de GPU depèn del suport del controlador i del motor.",
+  "cpuCoreLoad": "Càrrega dels nuclis de CPU",
+  "runAiAnalysis": "Executa l’anàlisi d’IA",
+  "clearAiModelCache": "Esborra la memòria cau del model d’IA",
+  "modelDownloading": "S’està baixant el model Gemma 3 1B: {percent}% • uns 851 MB",
+  "@modelDownloading": {
+    "description": "Localized UI message: modelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "llmControlUnavailable": "No hi ha permís per controlar l’LLM",
+  "storageUnavailable": "No s’ha detectat cap dispositiu d’emmagatzematge o la telemetria encara no està a punt.",
+  "freeSpace": "Lliure: {value}",
+  "@freeSpace": {
+    "description": "Localized UI message: freeSpace. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "readSpeed": "Lectura: {value}",
+  "@readSpeed": {
+    "description": "Localized UI message: readSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "writeSpeed": "Escriptura: {value}",
+  "@writeSpeed": {
+    "description": "Localized UI message: writeSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "health": "Estat: {value}",
+  "@health": {
+    "description": "Localized UI message: health. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSystem": "Sistema de fitxers: {value}",
+  "@fileSystem": {
+    "description": "Localized UI message: fileSystem. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diagnosticPrivacy": "Diagnòstic: {status} • els números de sèrie no s’inclouen als informes",
+  "@diagnosticPrivacy": {
+    "description": "Localized UI message: diagnosticPrivacy. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "detectedGame": "Joc detectat: {game}",
+  "@detectedGame": {
+    "description": "Localized UI message: detectedGame. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "gameModeWaiting": "El mode de joc està preparat — s’espera un joc",
+  "gameModeOff": "Mode de joc desactivat",
+  "activeGameProcess": "S’està supervisant el procés del joc",
+  "hardwareControlMonitorOnly": "Control del maquinari: només supervisió",
+  "extensionApiStatus": "API d’extensions: contracte del proveïdor de metadades/capacitats preparat • càrrega de connectors natius desactivada",
+  "smartFanCurve": "Corba intel·ligent del ventilador",
+  "smartFanEnabled": "Smart Fan: activat",
+  "smartFanDisabled": "Smart Fan: desactivat",
+  "automation": "Automatització",
+  "benchmark": "Prova de rendiment",
+  "downloadVerifiedUpdate": "Baixa l’actualització verificada",
+  "newFanCurvePoint": "Punt nou de la corba del ventilador",
+  "smartFanCurveDescription": "Defineix l’objectiu del ventilador segons la temperatura. La corba només s’aplica automàticament si hi ha un motor de control del maquinari verificat.",
+  "deletePoint": "Suprimeix el punt",
+  "addPoint": "Afegeix un punt",
+  "resetBalanced": "Restableix l’equilibri",
+  "hardwareBenchmark": "Prova de rendiment del maquinari",
+  "benchmarkDisclaimer": "Microprova de CPU d’un segon. No és una prova d’estrès i no modifica la configuració del maquinari.",
+  "score": "Puntuació: {value} iteracions/s",
+  "@score": {
+    "description": "Localized UI message: score. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "iterations": "Iteracions: {value}",
+  "@iterations": {
+    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "duration": "Durada: {value} ms",
+  "@duration": {
+    "description": "Localized UI message: duration. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "run": "Executa",
+  "unknown": "Desconegut",
+  "none": "Cap",
+  "power": "Potència",
+  "voltage": "Voltatge",
+  "animationsOn": "Desactiva les animacions",
+  "animationsOff": "Activa les animacions",
+  "appTagline": "Control precís del maquinari",
+  "cpuUsageLabel": "Ús de la CPU",
+  "coreClock": "Freqüència del nucli",
+  "memoryClock": "Freqüència de la memòria",
+  "advancedTelemetryDescription": "Càrrega de GPU, VRAM, potència, freqüències i nuclis de CPU",
+  "localAiAnalysisDescription": "Anàlisi local de Gemma de la telemetria en directe",
+  "hardwareDetectionDescription": "Identificació de l'ordinador, la placa base, la CPU i la GPU",
+  "gameModeDescription": "Detecció automàtica i supervisió centrada en el joc mentre s'està executant",
+  "gameModeSet": "Configura el mode de joc",
+  "bridgeWaiting": "S'està esperant el pont",
+  "monitoringOnly": "Només supervisió",
+  "powerLimit": "Límit de potència",
+  "gpuState": "Estat de la GPU",
+  "encoderUsage": "Ús del codificador",
+  "decoderUsage": "Ús del descodificador",
+  "samplingInterval": "Darrera hora • mesura cada 5 segons",
+  "modelDigestLabel": "SHA-256 del model",
+  "gpuAdapterLabel": "Adaptador de GPU",
+  "lastActionLabel": "Darrera acció",
+  "vramUsageLabel": "Ús de la VRAM",
+  "gpuPowerLimit": "Límit de potència de la GPU",
+  "gpuEncoder": "Codificador",
+  "gpuDecoder": "Descodificador",
+  "storageTitle": "Emmagatzematge",
+  "storageDescription": "Ús i estat d'E/S de SSD, HDD i NVMe",
+  "aiProcessingPower": "Potència de processament de la IA",
+  "securityLabel": "Seguretat",
+  "securityKeyWaiting": "S'està esperant la clau",
+  "digestNotFound": "No s'ha trobat",
+  "digestNotChecked": "No s'ha comprovat",
+  "gpuAdapter": "Adaptador de GPU",
+  "cpuCoreSummary": "{cores} nuclis • {frequency} MHz",
+  "@cpuCoreSummary": {
+    "description": "Localized UI message: cpuCoreSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "cores": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "num"
+      }
+    }
+  },
+  "warningThresholdLabel": "Llindar d'avís",
+  "hardwareControlUnavailableNote": "No es modifiquen els ajustos del ventilador ni de freqüència si no s'admet el control del maquinari.",
+  "thermalStatusLabel": "Estat tèrmic",
+  "fanControlLabel": "Control del ventilador",
+  "installerTitle": "Auxiliar de configuració de HWControl",
+  "installerLocalAiModel": "IA local (Gemma 3 1B)",
+  "installerAiDescription": "Opcional. Si ho seleccioneu, Gemma 3 1B es baixarà durant la configuració i es verificarà amb SHA-256.",
+  "installerChecking": "S'està comprovant la configuració...",
+  "installerContinue": "Continua",
+  "installerFinish": "Acaba la configuració",
+  "installerPackageStepTitle": "1. Verifiqueu el tipus de paquet",
+  "installerBridgeStepTitle": "2. Verifiqueu l'estat del pont",
+  "installerCompleteStepTitle": "3. Completeu la configuració",
+  "installerPackageStepDescription": "Aquest format de paquet és adequat per a {platform}: {formats}.",
+  "@installerPackageStepDescription": {
+    "description": "Localized UI message: installerPackageStepDescription. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "installerAiStepDescription": "Podeu instal·lar opcionalment el component d'IA local. Si el seleccioneu, Gemma 3 1B Instruct Q5_K_M (~851 MB) es baixarà durant la configuració i es verificarà amb SHA-256.",
+  "installerCompleteWithAi": "El model es prepararà en el pas final de la configuració. Si falta o està malmès, es repararà mitjançant una baixada verificada.",
+  "installerCompleteWithoutAi": "L'aplicació principal està instal·lada; el model d'IA no es baixarà durant aquesta configuració.",
+  "installerAiSelectedFooter": "IA seleccionada: Gemma es prepararà durant la configuració. Els fitxers que faltin o estiguin malmesos es tornaran a baixar i es verificaran automàticament.",
+  "installerAiSkippedFooter": "IA no seleccionada: Gemma no s'instal·larà. Es podrà baixar de manera segura quan se sol·liciti una anàlisi d'IA per primera vegada.",
+  "installerPreviouslyCompleted": "La configuració ja s'havia completat. El model d'IA és opcional.",
+  "installerBridgeFound": "trobat",
+  "installerBridgePending": "previst a la instal·lació empaquetada",
+  "installerModelReady": "preparat i verificat",
+  "installerModelOptional": "opcional; es baixarà quan s'executi l'anàlisi d'IA per primera vegada",
+  "installerCheckFailed": "Ha fallat la comprovació de configuració: {error}",
+  "@installerCheckFailed": {
+    "description": "Localized UI message: installerCheckFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelPreparing": "S'està preparant el model Gemma 3 1B...",
+  "installerModelDownloading": "S'està baixant Gemma 3 1B: {percent}%",
+  "@installerModelDownloading": {
+    "description": "Localized UI message: installerModelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "installerModelDownloadFailed": "La instal·lació de Gemma ha fallat: {error}\\nLa configuració principal pot continuar; torneu a provar la configuració d'IA més endavant.",
+  "@installerModelDownloadFailed": {
+    "description": "Localized UI message: installerModelDownloadFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelDownloaded": "Gemma 3 1B s'ha baixat i verificat amb SHA-256.",
+  "installerTestMode": "Mode de prova: s'han omès la configuració i la baixada del model.",
+  "installerCheckingComponents": "S'estan comprovant els components de configuració...",
+  "installerPlatformSummary": "Plataforma: {platform}\\nPaquet: {formats}\\nPont: {bridge}\\nModel d'IA: {ai}",
+  "@installerPlatformSummary": {
+    "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      },
+      "ai": {
+        "type": "String"
+      }
+    }
+  },
+  "motherboardLabel": "Placa base",
+  "gpuDriverLabel": "Controlador de GPU",
+  "last20Events": "Els 20 esdeveniments més recents"
+}

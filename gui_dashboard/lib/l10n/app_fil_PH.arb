@@ -1,0 +1,388 @@
+{
+  "@@locale": "fil_PH",
+  "menu": "Menu",
+  "settings": "Mga Setting",
+  "language": "Wika",
+  "appearance": "Hitsura",
+  "notifications": "Mga notification",
+  "enableNotifications": "Paganahin ang mga notification",
+  "temperatureWarning": "Hangganan ng babala sa temperatura",
+  "cancel": "Kanselahin",
+  "save": "I-save",
+  "darkMode": "Madilim na mode",
+  "lightMode": "Maliwanag na mode",
+  "dashboard": "Dashboard",
+  "systemStatus": "Status ng system",
+  "controls": "Mga kontrol",
+  "createErrorReport": "Gumawa ng ulat ng error",
+  "reconnect": "Muling kumonekta",
+  "noEvents": "Wala pang mga event",
+  "quiet": "Tahimik",
+  "balanced": "Balanse",
+  "performance": "Pagganap",
+  "temperature": "Temperatura",
+  "usage": "Paggamit",
+  "fan": "Bentilador",
+  "systemDefault": "Default ng system",
+  "welcomeTitle": "Maligayang pagdating sa HWcontrol2.0",
+  "welcomeDescription": "Isang simple at maaasahang paraan para subaybayan ang hardware, kontrolin ang paglamig, at panatilihing maayos ang system.",
+  "welcomeTagline": "Subaybayan. Kontrolin. Protektahan.",
+  "welcomeGetStarted": "Magsimula",
+  "welcomeOpenDashboard": "Buksan ang dashboard",
+  "welcomePreview": "Preview ng dashboard",
+  "accessibility": "Accessibility",
+  "offlineSpeech": "Offline na pagsasalita",
+  "piperOfflineDescription": "Pakinggan ang impormasyon ng dashboard gamit ang mga lokal na naka-install na boses ng Piper. Nananatili sa device na ito ang pagsasalita.",
+  "piperExecutablePath": "Path ng executable ng Piper",
+  "piperModelPath": "Path ng ONNX voice model",
+  "testSpeech": "Subukan ang pagsasalita",
+  "readDashboard": "Basahin ang dashboard",
+  "piperTesting": "Sinusubukan ang pagsasalita...",
+  "piperTestSuccess": "Tapos na ang speech test.",
+  "piperTestFailed": "Nabigo ang speech test.",
+  "piperTestPhrase": "HWcontrol2.0 accessibility speech test. Nananatili sa device na ito ang hardware data mo.",
+  "stopSpeech": "Itigil ang pagsasalita",
+  "piperSpeechStopped": "Itinigil ang pagsasalita.",
+  "browsePiperExecutable": "Piliin ang executable ng Piper",
+  "browsePiperModel": "Piliin ang ONNX voice model",
+  "piperModelConfigHint": "Dapat nasa parehong folder ang katugmang .onnx.json configuration file. Suriin ang lisensya ng boses bago gamitin.",
+  "piperVoiceCatalog": "Tingnan ang mga opisyal na boses ng Piper",
+  "getPiperExecutable": "Kunin ang executable ng Piper",
+  "telemetryHistory": "Kasaysayan ng telemetry",
+  "lastHour": "Nakaraang 1 oras • sample bawat 5 segundo",
+  "hardwareDetection": "Pagtukoy ng hardware",
+  "pcMotherboardCpuGpu": "Impormasyon ng PC, motherboard, CPU, at GPU",
+  "controlFlow": "Daloy ng kontrol",
+  "safeUserSettings": "Ligtas na mga setting ng user",
+  "gameMode": "Game Mode",
+  "advancedTelemetry": "Advanced na telemetry",
+  "aiAnalysis": "Pagsusuri ng AI",
+  "diagnostics": "Diagnostics",
+  "online": "NAKAKONEKTA ANG BRIDGE",
+  "offline": "OFFLINE",
+  "updateCheck": "Tingnan ang mga update",
+  "releaseOpen": "Buksan ang release",
+  "systemEvents": "Mga kaganapan ng system",
+  "game": "Laro",
+  "manual": "Manwal",
+  "reset": "I-reset",
+  "saveProfile": "I-save ang profile",
+  "fanSpeed": "Bilis ng fan",
+  "apply": "Ilapat",
+  "languageChanged": "Nabago ang wika",
+  "ramUsage": "Paggamit ng memorya",
+  "diskUsage": "Paggamit ng disk",
+  "gpuUsage": "Paggamit ng GPU",
+  "welcomeMonitor": "Subaybayan",
+  "welcomeMonitorDescription": "Mga sensor at temperatura ng CPU/GPU",
+  "welcomeControl": "Kontrolin",
+  "welcomeControlDescription": "Mga curve ng fan at profile ng performance",
+  "welcomeProtect": "Protektahan",
+  "welcomeProtectDescription": "Diagnostics at status ng system",
+  "welcomeDontShowAgain": "Huwag nang ipakita muli",
+  "welcomeExampleStatus": "Halimbawang status",
+  "welcomeSampleValues": "Mga halimbawang value",
+  "welcomeConnectHardware": "Ikonekta ang hardware",
+  "newAutomationRule": "Bagong tuntunin ng automation",
+  "editAutomationRule": "I-edit ang tuntunin ng automation",
+  "ruleName": "Pangalan ng tuntunin",
+  "sensor": "Sensor",
+  "cpuTemperatureLabel": "Temperatura ng CPU",
+  "gpuTemperatureLabel": "Temperatura ng GPU",
+  "threshold": "Threshold (°C)",
+  "fanTarget": "Target ng fan (%)",
+  "hardwareAutomation": "Automation ng hardware",
+  "automationSafetyNote": "Nagpapadala lang ng fan command ang mga tuntunin kapag may beripikadong backend ng kontrol ng hardware.",
+  "edit": "I-edit",
+  "delete": "Tanggalin",
+  "noAutomationRules": "Wala pang tuntunin ng automation.",
+  "addRule": "Magdagdag ng tuntunin",
+  "hardwareHealthCenter": "Sentro ng kalusugan ng hardware",
+  "status": "Status",
+  "safety": "Kaligtasan",
+  "recovery": "Pagbawi",
+  "warnings": "Mga babala",
+  "anomalies": "Mga anomalya",
+  "close": "Isara",
+  "checkForUpdates": "Tingnan ang mga update",
+  "maxCpuTemperature": "Pinakamataas na temperatura ng CPU: {temperature} °C",
+  "@maxCpuTemperature": {
+    "description": "Localized UI message: maxCpuTemperature. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "temperature": {
+        "type": "num"
+      }
+    }
+  },
+  "exportCsv": "I-export ang CSV",
+  "thermalStatus": "Katayuang thermal: {status}",
+  "@thermalStatus": {
+    "description": "Localized UI message: thermalStatus. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeMetricsWaiting": "Naghihintay sa mga sukatan ng bridge",
+  "gpuTelemetryNote": "Nakadepende ang advanced na GPU telemetry sa suporta ng driver at backend.",
+  "cpuCoreLoad": "Load ng mga core ng CPU",
+  "runAiAnalysis": "Patakbuhin ang AI analysis",
+  "clearAiModelCache": "I-clear ang cache ng AI model",
+  "modelDownloading": "Dina-download ang Gemma 3 1B model: {percent}% • humigit-kumulang 851 MB",
+  "@modelDownloading": {
+    "description": "Localized UI message: modelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "llmControlUnavailable": "Walang pahintulot sa kontrol ng LLM",
+  "storageUnavailable": "Hindi nakita ang storage device o hindi pa handa ang telemetry.",
+  "freeSpace": "Libre: {value}",
+  "@freeSpace": {
+    "description": "Localized UI message: freeSpace. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "readSpeed": "Basahin: {value}",
+  "@readSpeed": {
+    "description": "Localized UI message: readSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "writeSpeed": "Isulat: {value}",
+  "@writeSpeed": {
+    "description": "Localized UI message: writeSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "health": "Kalusugan: {value}",
+  "@health": {
+    "description": "Localized UI message: health. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSystem": "File system: {value}",
+  "@fileSystem": {
+    "description": "Localized UI message: fileSystem. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diagnosticPrivacy": "Diagnostics: {status} • hindi isinasama ang mga serial number sa mga ulat",
+  "@diagnosticPrivacy": {
+    "description": "Localized UI message: diagnosticPrivacy. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "detectedGame": "Natukoy na laro: {game}",
+  "@detectedGame": {
+    "description": "Localized UI message: detectedGame. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "gameModeWaiting": "Handa ang Game Mode — naghihintay ng laro",
+  "gameModeOff": "Naka-off ang Game Mode",
+  "activeGameProcess": "Minomonitor ang proseso ng laro",
+  "hardwareControlMonitorOnly": "Kontrol ng hardware: monitoring lang",
+  "extensionApiStatus": "Extension API: handa na ang kontrata ng metadata/capability provider • naka-disable ang pag-load ng native plugin",
+  "smartFanCurve": "Smart Fan Curve",
+  "smartFanEnabled": "Smart Fan: Naka-on",
+  "smartFanDisabled": "Smart Fan: Naka-off",
+  "automation": "Automation",
+  "benchmark": "Benchmark",
+  "downloadVerifiedUpdate": "I-download ang beripikadong update",
+  "newFanCurvePoint": "Bagong punto ng fan curve",
+  "smartFanCurveDescription": "Itakda ang target ng fan ayon sa temperatura. Awtomatikong inilalapat ang curve kapag may beripikadong backend ng kontrol ng hardware.",
+  "deletePoint": "Tanggalin ang punto",
+  "addPoint": "Magdagdag ng punto",
+  "resetBalanced": "I-reset sa balanseng setting",
+  "hardwareBenchmark": "Hardware benchmark",
+  "benchmarkDisclaimer": "Isang segundong CPU microbenchmark. Hindi ito stress test at hindi nito binabago ang mga setting ng hardware.",
+  "score": "Iskor: {value} iterasyon/s",
+  "@score": {
+    "description": "Localized UI message: score. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "iterations": "Mga iterasyon: {value}",
+  "@iterations": {
+    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "duration": "Tagal: {value} ms",
+  "@duration": {
+    "description": "Localized UI message: duration. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "run": "Patakbuhin",
+  "unknown": "Hindi alam",
+  "none": "Wala",
+  "power": "Lakas",
+  "voltage": "Boltahe",
+  "animationsOn": "Huwag paganahin ang mga animation",
+  "animationsOff": "Paganahin ang mga animation",
+  "appTagline": "Tumpak na pagkontrol ng hardware",
+  "cpuUsageLabel": "Paggamit ng CPU",
+  "coreClock": "Clock ng core",
+  "memoryClock": "Clock ng memory",
+  "advancedTelemetryDescription": "Load ng GPU, VRAM, power, bilis ng clock, at mga core ng CPU",
+  "localAiAnalysisDescription": "Lokal na pagsusuri ng live telemetry gamit ang Gemma",
+  "hardwareDetectionDescription": "Pagkakakilanlan ng PC, motherboard, CPU, at GPU",
+  "gameModeDescription": "Awtomatikong pagtukoy at pagsubaybay para sa laro habang tumatakbo ito",
+  "gameModeSet": "Itakda ang Game Mode",
+  "bridgeWaiting": "Naghihintay sa bridge",
+  "monitoringOnly": "Pagsubaybay lamang",
+  "powerLimit": "Limitasyon ng power",
+  "gpuState": "Estado ng GPU",
+  "encoderUsage": "Paggamit ng encoder",
+  "decoderUsage": "Paggamit ng decoder",
+  "samplingInterval": "Nakaraang 1 oras • sample kada 5 segundo",
+  "modelDigestLabel": "SHA-256 ng modelo",
+  "gpuAdapterLabel": "GPU adapter",
+  "lastActionLabel": "Huling aksyon",
+  "vramUsageLabel": "Paggamit ng VRAM",
+  "gpuPowerLimit": "Limitasyon ng power ng GPU",
+  "gpuEncoder": "Encoder",
+  "gpuDecoder": "Decoder",
+  "storageTitle": "Storage",
+  "storageDescription": "Paggamit at I/O status ng SSD, HDD, at NVMe",
+  "aiProcessingPower": "Lakas ng pagproseso ng AI",
+  "securityLabel": "Seguridad",
+  "securityKeyWaiting": "Naghihintay sa key",
+  "digestNotFound": "Hindi nahanap",
+  "digestNotChecked": "Hindi pa nasusuri",
+  "gpuAdapter": "GPU adapter",
+  "cpuCoreSummary": "{cores} core • {frequency} MHz",
+  "@cpuCoreSummary": {
+    "description": "Localized UI message: cpuCoreSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "cores": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "num"
+      }
+    }
+  },
+  "warningThresholdLabel": "Hangganan ng babala",
+  "hardwareControlUnavailableNote": "Hindi babaguhin ang mga setting ng fan o clock kapag hindi suportado ang pagkontrol sa hardware.",
+  "thermalStatusLabel": "Thermal na estado",
+  "fanControlLabel": "Kontrol ng fan",
+  "installerTitle": "HWControl Setup Wizard",
+  "installerLocalAiModel": "Lokal na AI (Gemma 3 1B)",
+  "installerAiDescription": "Opsyonal. Kapag pinili, ida-download ang Gemma 3 1B habang nagse-setup at ibe-verify gamit ang SHA-256.",
+  "installerChecking": "Sinusuri ang setup...",
+  "installerContinue": "Magpatuloy",
+  "installerFinish": "Tapusin ang setup",
+  "installerPackageStepTitle": "1. I-verify ang uri ng package",
+  "installerBridgeStepTitle": "2. I-verify ang status ng bridge",
+  "installerCompleteStepTitle": "3. Kumpletuhin ang setup",
+  "installerPackageStepDescription": "Ang format ng package na ito ay angkop para sa {platform}: {formats}.",
+  "@installerPackageStepDescription": {
+    "description": "Localized UI message: installerPackageStepDescription. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "installerAiStepDescription": "Opsyonal na i-install ang lokal na AI component. Kapag pinili, ida-download ang Gemma 3 1B Instruct Q5_K_M (~851 MB) habang nagse-setup at ibe-verify gamit ang SHA-256.",
+  "installerCompleteWithAi": "Ihahanda ang modelo sa huling hakbang ng setup. Kapag nawawala o sira ang modelo, aayusin ito sa pamamagitan ng beripikadong pag-download.",
+  "installerCompleteWithoutAi": "Naka-install ang pangunahing app; hindi ida-download ang AI model sa setup na ito.",
+  "installerAiSelectedFooter": "Pinili ang AI: ihahanda ang Gemma habang nagse-setup. Awtomatikong ida-download muli at ibe-verify ang mga nawawala o sirang file.",
+  "installerAiSkippedFooter": "Hindi pinili ang AI: hindi i-install ang Gemma. Maaari itong ligtas na i-download kapag unang hiniling ang AI analysis.",
+  "installerPreviouslyCompleted": "Nakumpleto na ang setup. Opsyonal ang AI model.",
+  "installerBridgeFound": "natagpuan",
+  "installerBridgePending": "inaasahang kasama sa naka-package na installation",
+  "installerModelReady": "handa at beripikado",
+  "installerModelOptional": "opsyonal; ida-download sa unang pagpapatakbo ng AI analysis",
+  "installerCheckFailed": "Nabigo ang setup check: {error}",
+  "@installerCheckFailed": {
+    "description": "Localized UI message: installerCheckFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelPreparing": "Inihahanda ang Gemma 3 1B model...",
+  "installerModelDownloading": "Dina-download ang Gemma 3 1B: {percent}%",
+  "@installerModelDownloading": {
+    "description": "Localized UI message: installerModelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "installerModelDownloadFailed": "Nabigo ang pag-install ng Gemma: {error}\\nMaaaring magpatuloy ang pangunahing setup; subukang i-set up muli ang AI sa ibang pagkakataon.",
+  "@installerModelDownloadFailed": {
+    "description": "Localized UI message: installerModelDownloadFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelDownloaded": "Na-download at na-verify ang Gemma 3 1B gamit ang SHA-256.",
+  "installerTestMode": "Test mode: nilaktawan ang setup at pag-download ng modelo.",
+  "installerCheckingComponents": "Sinusuri ang mga bahagi ng setup...",
+  "installerPlatformSummary": "Platform: {platform}\\nPackage: {formats}\\nBridge: {bridge}\\nAI model: {ai}",
+  "@installerPlatformSummary": {
+    "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      },
+      "ai": {
+        "type": "String"
+      }
+    }
+  },
+  "motherboardLabel": "Motherboard",
+  "gpuDriverLabel": "GPU driver",
+  "last20Events": "Huling 20 event"
+}

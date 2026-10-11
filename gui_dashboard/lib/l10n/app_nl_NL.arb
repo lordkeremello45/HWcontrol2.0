@@ -1,0 +1,388 @@
+{
+  "@@locale": "nl_NL",
+  "menu": "Menu",
+  "settings": "Instellingen",
+  "language": "Taal",
+  "appearance": "Weergave",
+  "notifications": "Meldingen",
+  "enableNotifications": "Meldingen inschakelen",
+  "temperatureWarning": "Temperatuurwaarschuwingsgrens",
+  "cancel": "Annuleren",
+  "save": "Opslaan",
+  "dashboard": "Dashboard",
+  "systemStatus": "Systeemstatus",
+  "controls": "Bediening",
+  "createErrorReport": "Foutrapport maken",
+  "reconnect": "Opnieuw verbinden",
+  "noEvents": "Nog geen gebeurtenissen",
+  "darkMode": "Dark mode",
+  "lightMode": "Light mode",
+  "animationsOn": "Disable animations",
+  "animationsOff": "Enable animations",
+  "accessibility": "Toegankelijkheid",
+  "offlineSpeech": "Offline spraak",
+  "piperOfflineDescription": "Laat dashboardinformatie voorlezen met lokaal geïnstalleerde Piper-stemmen. De spraak blijft op dit apparaat.",
+  "piperExecutablePath": "Pad naar Piper-uitvoerbaar bestand",
+  "piperModelPath": "Pad naar ONNX-stemmodel",
+  "testSpeech": "Spraak testen",
+  "readDashboard": "Dashboard voorlezen",
+  "piperTesting": "Spraak wordt getest...",
+  "piperTestSuccess": "Spraaktest voltooid.",
+  "piperTestFailed": "Spraaktest mislukt.",
+  "piperTestPhrase": "HWcontrol2.0-spraaktest voor toegankelijkheid. Uw hardwaregegevens blijven op dit apparaat.",
+  "stopSpeech": "Spraak stoppen",
+  "piperSpeechStopped": "Spraak gestopt.",
+  "browsePiperExecutable": "Piper-uitvoerbaar bestand kiezen",
+  "browsePiperModel": "ONNX-stemmodel kiezen",
+  "piperModelConfigHint": "Het bijbehorende .onnx.json-configuratiebestand moet in dezelfde map staan. Controleer vóór gebruik de licentie van de stem.",
+  "piperVoiceCatalog": "Officiële Piper-stemmen bekijken",
+  "getPiperExecutable": "Piper-uitvoerbaar bestand ophalen",
+  "systemDefault": "Systeemstandaard",
+  "telemetryHistory": "Meetgeschiedenis",
+  "lastHour": "Afgelopen uur • meting elke 5 seconden",
+  "hardwareDetection": "Hardwaredetectie",
+  "pcMotherboardCpuGpu": "Gegevens van pc, moederbord, CPU en GPU",
+  "controlFlow": "Besturingsstroom",
+  "safeUserSettings": "Veilige gebruikersinstellingen",
+  "gameMode": "Gamemodus",
+  "advancedTelemetry": "Geavanceerde metingen",
+  "aiAnalysis": "AI-analyse",
+  "diagnostics": "Diagnostiek",
+  "online": "BRUG ONLINE",
+  "offline": "OFFLINE",
+  "updateCheck": "Controleren op updates",
+  "releaseOpen": "Release openen",
+  "systemEvents": "Systeemgebeurtenissen",
+  "quiet": "Stil",
+  "balanced": "Gebalanceerd",
+  "performance": "Prestaties",
+  "game": "Game",
+  "manual": "Handmatig",
+  "reset": "Herstellen",
+  "saveProfile": "Profiel opslaan",
+  "fanSpeed": "Ventilatorsnelheid",
+  "apply": "Toepassen",
+  "languageChanged": "Taal gewijzigd",
+  "temperature": "Temperatuur",
+  "usage": "Gebruik",
+  "ramUsage": "Geheugengebruik",
+  "diskUsage": "Schijfgebruik",
+  "gpuUsage": "GPU-gebruik",
+  "fan": "Ventilator",
+  "welcomeTitle": "Welkom bij HWcontrol2.0",
+  "welcomeTagline": "Bewaken. Bedienen. Beschermen.",
+  "welcomeDescription": "Een eenvoudige, betrouwbare manier om hardware te bewaken, koeling te regelen en je systeem gezond te houden.",
+  "welcomeMonitor": "Bewaken",
+  "welcomeMonitorDescription": "CPU/GPU-sensoren en temperaturen",
+  "welcomeControl": "Bedienen",
+  "welcomeControlDescription": "Ventilatorcurves en prestatieprofielen",
+  "welcomeProtect": "Beschermen",
+  "welcomeProtectDescription": "Diagnostiek en systeemstatus",
+  "welcomeGetStarted": "Aan de slag",
+  "welcomeOpenDashboard": "Dashboard openen",
+  "welcomeDontShowAgain": "Niet meer tonen",
+  "welcomePreview": "Dashboardvoorbeeld",
+  "welcomeExampleStatus": "Voorbeeldstatus",
+  "welcomeSampleValues": "Voorbeeldwaarden",
+  "welcomeConnectHardware": "Hardware verbinden",
+  "newAutomationRule": "Nieuwe automatiseringsregel",
+  "editAutomationRule": "Automatiseringsregel bewerken",
+  "ruleName": "Regelnaam",
+  "sensor": "Sensor",
+  "cpuTemperatureLabel": "CPU-temperatuur",
+  "gpuTemperatureLabel": "GPU-temperatuur",
+  "threshold": "Drempelwaarde (°C)",
+  "fanTarget": "Ventilatordoel (%)",
+  "hardwareAutomation": "Hardwareautomatisering",
+  "automationSafetyNote": "Regels geven alleen ventilatoropdrachten als een geverifieerde hardwarebesturingsbackend beschikbaar is.",
+  "edit": "Bewerken",
+  "delete": "Verwijderen",
+  "noAutomationRules": "Er zijn nog geen automatiseringsregels.",
+  "addRule": "Regel toevoegen",
+  "hardwareHealthCenter": "Hardwarestatuscentrum",
+  "status": "Status",
+  "safety": "Veiligheid",
+  "recovery": "Herstel",
+  "warnings": "Waarschuwingen",
+  "anomalies": "Afwijkingen",
+  "close": "Sluiten",
+  "checkForUpdates": "Controleren op updates",
+  "maxCpuTemperature": "Max. CPU-temperatuur: {temperature} °C",
+  "@maxCpuTemperature": {
+    "description": "Localized UI message: maxCpuTemperature. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "temperature": {
+        "type": "num"
+      }
+    }
+  },
+  "exportCsv": "CSV exporteren",
+  "thermalStatus": "Thermische status: {status}",
+  "@thermalStatus": {
+    "description": "Localized UI message: thermalStatus. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeMetricsWaiting": "Wachten op bridgemetingen",
+  "gpuTelemetryNote": "Geavanceerde GPU-telemetrie is afhankelijk van ondersteuning door stuurprogramma en backend.",
+  "cpuCoreLoad": "CPU-kernbelasting",
+  "runAiAnalysis": "AI-analyse uitvoeren",
+  "clearAiModelCache": "AI-modelcache wissen",
+  "modelDownloading": "Gemma 3 1B-model downloaden: {percent}% • ongeveer 851 MB",
+  "@modelDownloading": {
+    "description": "Localized UI message: modelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "llmControlUnavailable": "Geen toestemming voor LLM-besturing",
+  "storageUnavailable": "Opslagapparaat niet gevonden of telemetrie is nog niet gereed.",
+  "freeSpace": "Vrij: {value}",
+  "@freeSpace": {
+    "description": "Localized UI message: freeSpace. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "readSpeed": "Lezen: {value}",
+  "@readSpeed": {
+    "description": "Localized UI message: readSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "writeSpeed": "Schrijven: {value}",
+  "@writeSpeed": {
+    "description": "Localized UI message: writeSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "health": "Gezondheid: {value}",
+  "@health": {
+    "description": "Localized UI message: health. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSystem": "Bestandssysteem: {value}",
+  "@fileSystem": {
+    "description": "Localized UI message: fileSystem. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diagnosticPrivacy": "Diagnostiek: {status} • serienummers worden niet in rapporten opgenomen",
+  "@diagnosticPrivacy": {
+    "description": "Localized UI message: diagnosticPrivacy. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "detectedGame": "Gedetecteerde game: {game}",
+  "@detectedGame": {
+    "description": "Localized UI message: detectedGame. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "gameModeWaiting": "Gamemodus gereed — wachten op een game",
+  "gameModeOff": "Gamemodus uit",
+  "activeGameProcess": "Gameproces wordt bewaakt",
+  "hardwareControlMonitorOnly": "Hardwarebesturing: alleen bewaking",
+  "extensionApiStatus": "Extensie-API: contract voor metadata-/mogelijkheidsprovider gereed • laden van native plug-ins uitgeschakeld",
+  "smartFanCurve": "Slimme ventilatorcurve",
+  "smartFanEnabled": "Smart Fan: aan",
+  "smartFanDisabled": "Smart Fan: uit",
+  "automation": "Automatisering",
+  "benchmark": "Benchmark",
+  "downloadVerifiedUpdate": "Geverifieerde update downloaden",
+  "newFanCurvePoint": "Nieuw punt van ventilatorcurve",
+  "smartFanCurveDescription": "Stel het ventilatordoel in op basis van de temperatuur. De curve wordt alleen automatisch toegepast als een geverifieerde hardwarebesturingsbackend beschikbaar is.",
+  "deletePoint": "Punt verwijderen",
+  "addPoint": "Punt toevoegen",
+  "resetBalanced": "Terugzetten op gebalanceerd",
+  "hardwareBenchmark": "Hardwarebenchmark",
+  "benchmarkDisclaimer": "CPU-microbenchmark van één seconde. Dit is geen stresstest en wijzigt geen hardware-instellingen.",
+  "score": "Score: {value} iteraties/s",
+  "@score": {
+    "description": "Localized UI message: score. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "iterations": "Iteraties: {value}",
+  "@iterations": {
+    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "duration": "Duur: {value} ms",
+  "@duration": {
+    "description": "Localized UI message: duration. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "run": "Uitvoeren",
+  "unknown": "Onbekend",
+  "none": "Geen",
+  "power": "Vermogen",
+  "voltage": "Spanning",
+  "appTagline": "Nauwkeurige hardwarebesturing",
+  "cpuUsageLabel": "CPU-gebruik",
+  "coreClock": "Kernklok",
+  "memoryClock": "Geheugenklok",
+  "advancedTelemetryDescription": "GPU-belasting, VRAM, vermogen, kloksnelheden en CPU-kernen",
+  "localAiAnalysisDescription": "Lokale Gemma-analyse van live telemetrie",
+  "hardwareDetectionDescription": "Identiteit van pc, moederbord, CPU en GPU",
+  "gameModeDescription": "Automatische detectie en gamegerichte bewaking terwijl een game actief is",
+  "gameModeSet": "Gamemodus instellen",
+  "bridgeWaiting": "Wachten op bridge",
+  "monitoringOnly": "Alleen bewaking",
+  "powerLimit": "Vermogenslimiet",
+  "gpuState": "GPU-status",
+  "encoderUsage": "Encodergebruik",
+  "decoderUsage": "Decodergebruik",
+  "samplingInterval": "Afgelopen uur • meting elke 5 seconden",
+  "modelDigestLabel": "Model-SHA-256",
+  "gpuAdapterLabel": "GPU-adapter",
+  "lastActionLabel": "Laatste actie",
+  "vramUsageLabel": "VRAM-gebruik",
+  "gpuPowerLimit": "GPU-vermogenslimiet",
+  "gpuEncoder": "Encoder",
+  "gpuDecoder": "Decoder",
+  "storageTitle": "Opslag",
+  "storageDescription": "SSD-/HDD-/NVMe-gebruik en I/O-status",
+  "aiProcessingPower": "AI-rekenkracht",
+  "securityLabel": "Beveiliging",
+  "securityKeyWaiting": "Wachten op sleutel",
+  "digestNotFound": "Niet gevonden",
+  "digestNotChecked": "Niet gecontroleerd",
+  "gpuAdapter": "GPU-adapter",
+  "cpuCoreSummary": "{cores} kernen • {frequency} MHz",
+  "@cpuCoreSummary": {
+    "description": "Localized UI message: cpuCoreSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "cores": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "num"
+      }
+    }
+  },
+  "warningThresholdLabel": "Waarschuwingsdrempel",
+  "hardwareControlUnavailableNote": "Zonder ondersteuning voor hardwarebesturing worden ventilator- en klokinstellingen niet gewijzigd.",
+  "thermalStatusLabel": "Thermische status",
+  "fanControlLabel": "Ventilatorregeling",
+  "installerTitle": "HWControl-installatiewizard",
+  "installerLocalAiModel": "Lokale AI (Gemma 3 1B)",
+  "installerAiDescription": "Optioneel. Als dit is geselecteerd, wordt Gemma 3 1B tijdens de installatie gedownload en met SHA-256 geverifieerd.",
+  "installerChecking": "Installatie controleren...",
+  "installerContinue": "Doorgaan",
+  "installerFinish": "Installatie voltooien",
+  "installerPackageStepTitle": "1. Pakkettype controleren",
+  "installerBridgeStepTitle": "2. Bridgestatus controleren",
+  "installerCompleteStepTitle": "3. Installatie voltooien",
+  "installerPackageStepDescription": "Dit pakketformaat is geschikt voor {platform}: {formats}.",
+  "@installerPackageStepDescription": {
+    "description": "Localized UI message: installerPackageStepDescription. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "installerAiStepDescription": "De lokale AI-component kan optioneel worden geïnstalleerd. Bij selectie wordt Gemma 3 1B Instruct Q5_K_M (ongeveer 851 MB) tijdens de installatie gedownload en met SHA-256 geverifieerd.",
+  "installerCompleteWithAi": "Het model wordt in de laatste stap voorbereid. Een ontbrekend of beschadigd model wordt hersteld via een geverifieerde download.",
+  "installerCompleteWithoutAi": "De basisapp wordt geïnstalleerd; het AI-model wordt tijdens deze installatie niet gedownload.",
+  "installerAiSelectedFooter": "AI geselecteerd: Gemma wordt tijdens de installatie voorbereid. Ontbrekende of beschadigde bestanden worden opnieuw gedownload en geverifieerd.",
+  "installerAiSkippedFooter": "AI niet geselecteerd: Gemma wordt niet geïnstalleerd. Het kan veilig worden gedownload wanneer de eerste AI-analyse wordt aangevraagd.",
+  "installerPreviouslyCompleted": "De installatie is al eerder voltooid. Het AI-model is optioneel.",
+  "installerBridgeFound": "gevonden",
+  "installerBridgePending": "verwacht bij pakketinstallatie",
+  "installerModelReady": "gereed en geverifieerd",
+  "installerModelOptional": "optioneel; downloaden bij de eerste AI-analyse",
+  "installerCheckFailed": "Installatiecontrole mislukt: {error}",
+  "@installerCheckFailed": {
+    "description": "Localized UI message: installerCheckFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelPreparing": "Gemma 3 1B-model voorbereiden...",
+  "installerModelDownloading": "Gemma 3 1B downloaden: {percent}%",
+  "@installerModelDownloading": {
+    "description": "Localized UI message: installerModelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "installerModelDownloadFailed": "Gemma-installatie mislukt: {error}\nDe basisinstallatie kan doorgaan; probeer de AI-installatie later opnieuw.",
+  "@installerModelDownloadFailed": {
+    "description": "Localized UI message: installerModelDownloadFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelDownloaded": "Gemma 3 1B is gedownload en met SHA-256 geverifieerd.",
+  "installerTestMode": "Testmodus: installatie en modeldownload zijn overgeslagen.",
+  "installerCheckingComponents": "Installatieonderdelen controleren...",
+  "installerPlatformSummary": "Platform: {platform}\nPakket: {formats}\nBridge: {bridge}\nAI-model: {ai}",
+  "@installerPlatformSummary": {
+    "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      },
+      "ai": {
+        "type": "String"
+      }
+    }
+  },
+  "motherboardLabel": "Moederbord",
+  "gpuDriverLabel": "GPU-stuurprogramma",
+  "last20Events": "Laatste 20 gebeurtenissen"
+}

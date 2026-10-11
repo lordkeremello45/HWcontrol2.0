@@ -1,0 +1,388 @@
+{
+  "@@locale": "de_DE",
+  "menu": "Menü",
+  "settings": "Einstellungen",
+  "language": "Sprache",
+  "appearance": "Darstellung",
+  "notifications": "Benachrichtigungen",
+  "enableNotifications": "Benachrichtigungen aktivieren",
+  "temperatureWarning": "Temperatur-Warnschwelle",
+  "cancel": "Abbrechen",
+  "save": "Speichern",
+  "darkMode": "Dunkelmodus",
+  "lightMode": "Hellmodus",
+  "animationsOn": "Animationen deaktivieren",
+  "animationsOff": "Animationen aktivieren",
+  "dashboard": "Dashboard",
+  "telemetryHistory": "Telemetrieverlauf",
+  "lastHour": "Letzte Stunde • 5-Sekunden-Abtastung",
+  "hardwareDetection": "Hardwareerkennung",
+  "pcMotherboardCpuGpu": "PC-, Mainboard-, CPU- und GPU-Identität",
+  "systemStatus": "Systemstatus",
+  "controlFlow": "Kontrollfluss",
+  "controls": "Steuerung",
+  "safeUserSettings": "Sichere Benutzereinstellungen",
+  "gameMode": "Spielmodus",
+  "advancedTelemetry": "Erweiterte Telemetrie",
+  "aiAnalysis": "KI-Analyse",
+  "diagnostics": "Diagnose",
+  "createErrorReport": "Fehlerbericht erstellen",
+  "reconnect": "Neu verbinden",
+  "online": "BRIDGE ONLINE",
+  "offline": "OFFLINE",
+  "updateCheck": "Nach Updates suchen",
+  "releaseOpen": "Release öffnen",
+  "systemEvents": "Systemereignisse",
+  "noEvents": "Noch keine Ereignisse",
+  "quiet": "Leise",
+  "balanced": "Ausgeglichen",
+  "performance": "Leistung",
+  "game": "Spiel",
+  "manual": "Manuell",
+  "reset": "Zurücksetzen",
+  "saveProfile": "Profil speichern",
+  "fanSpeed": "Lüftergeschwindigkeit",
+  "apply": "Anwenden",
+  "languageChanged": "Sprache geändert",
+  "temperature": "Temperatur",
+  "usage": "Auslastung",
+  "ramUsage": "RAM-Auslastung",
+  "diskUsage": "Festplattenauslastung",
+  "gpuUsage": "GPU-Auslastung",
+  "fan": "Lüfter",
+  "accessibility": "Barrierefreiheit",
+  "offlineSpeech": "Offline-Sprachausgabe",
+  "piperOfflineDescription": "Lassen Sie Dashboard-Informationen mit lokal installierten Piper-Stimmen vorlesen. Die Sprachausgabe bleibt auf diesem Gerät.",
+  "piperExecutablePath": "Pfad zur Piper-Programmdatei",
+  "piperModelPath": "Pfad zum ONNX-Sprachmodell",
+  "testSpeech": "Sprachausgabe testen",
+  "readDashboard": "Dashboard vorlesen",
+  "piperTesting": "Sprachausgabe wird getestet...",
+  "piperTestSuccess": "Sprachtest abgeschlossen.",
+  "piperTestFailed": "Sprachtest fehlgeschlagen.",
+  "piperTestPhrase": "HWcontrol2.0-Sprachtest für Barrierefreiheit. Ihre Hardwaredaten bleiben auf diesem Gerät.",
+  "stopSpeech": "Sprachausgabe stoppen",
+  "piperSpeechStopped": "Sprachausgabe gestoppt.",
+  "browsePiperExecutable": "Piper-Programmdatei auswählen",
+  "browsePiperModel": "ONNX-Sprachmodell auswählen",
+  "piperModelConfigHint": "Die passende .onnx.json-Konfigurationsdatei muss im selben Ordner liegen. Prüfen Sie vor der Nutzung die Lizenz der Stimme.",
+  "piperVoiceCatalog": "Offizielle Piper-Stimmen durchsuchen",
+  "getPiperExecutable": "Piper-Programmdatei herunterladen",
+  "systemDefault": "Systemsprache",
+  "welcomeTitle": "Willkommen bei HWcontrol2.0",
+  "welcomeTagline": "Überwachen. Steuern. Schützen.",
+  "welcomeDescription": "Eine einfache, zuverlässige Lösung, um Hardware zu überwachen, die Kühlung zu steuern und das System in gutem Zustand zu halten.",
+  "welcomeMonitor": "Überwachen",
+  "welcomeMonitorDescription": "CPU-/GPU-Sensoren und Temperaturen",
+  "welcomeControl": "Steuern",
+  "welcomeControlDescription": "Lüfterkurven und Leistungsprofile",
+  "welcomeProtect": "Schützen",
+  "welcomeProtectDescription": "Diagnose und Systemstatus",
+  "welcomeGetStarted": "Loslegen",
+  "welcomeOpenDashboard": "Übersicht öffnen",
+  "welcomeDontShowAgain": "Nicht mehr anzeigen",
+  "welcomePreview": "Vorschau der Übersicht",
+  "welcomeExampleStatus": "Nur ein Beispielstatus",
+  "welcomeSampleValues": "Beispielwerte — keine Live-Daten",
+  "welcomeConnectHardware": "Verbinden, um die Hardware anzuzeigen",
+  "newAutomationRule": "Neue Automatisierungsregel",
+  "editAutomationRule": "Automatisierungsregel bearbeiten",
+  "ruleName": "Regelname",
+  "sensor": "Sensor",
+  "cpuTemperatureLabel": "CPU-Temperatur",
+  "gpuTemperatureLabel": "GPU-Temperatur",
+  "threshold": "Schwellenwert (°C)",
+  "fanTarget": "Lüfterziel (%)",
+  "hardwareAutomation": "Hardwareautomatisierung",
+  "automationSafetyNote": "Regeln senden nur dann Lüfterbefehle, wenn ein verifiziertes Hardware-Steuerungs-Backend verfügbar ist.",
+  "edit": "Bearbeiten",
+  "delete": "Löschen",
+  "noAutomationRules": "Noch keine Automatisierungsregeln.",
+  "addRule": "Regel hinzufügen",
+  "hardwareHealthCenter": "Hardwarezustandszentrum",
+  "status": "Status",
+  "safety": "Sicherheit",
+  "recovery": "Wiederherstellung",
+  "warnings": "Warnungen",
+  "anomalies": "Anomalien",
+  "close": "Schließen",
+  "checkForUpdates": "Nach Updates suchen",
+  "maxCpuTemperature": "Max. CPU-Temperatur: {temperature} °C",
+  "@maxCpuTemperature": {
+    "description": "Localized UI message: maxCpuTemperature. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "temperature": {
+        "type": "num"
+      }
+    }
+  },
+  "exportCsv": "Als CSV exportieren",
+  "thermalStatus": "Thermischer Status: {status}",
+  "@thermalStatus": {
+    "description": "Localized UI message: thermalStatus. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeMetricsWaiting": "Warte auf Bridge-Messwerte",
+  "gpuTelemetryNote": "Erweiterte GPU-Telemetrie hängt von der Treiber- und Backend-Unterstützung ab.",
+  "cpuCoreLoad": "CPU-Kernlast",
+  "runAiAnalysis": "KI-Analyse starten",
+  "clearAiModelCache": "KI-Modellcache leeren",
+  "modelDownloading": "Gemma-3-1B-Modell wird heruntergeladen: {percent}% • ca. 851 MB",
+  "@modelDownloading": {
+    "description": "Localized UI message: modelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "llmControlUnavailable": "Berechtigung zur LLM-Steuerung nicht verfügbar",
+  "storageUnavailable": "Speichergerät nicht erkannt oder Messdaten noch nicht bereit.",
+  "freeSpace": "Frei: {value}",
+  "@freeSpace": {
+    "description": "Localized UI message: freeSpace. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "readSpeed": "Lesen: {value}",
+  "@readSpeed": {
+    "description": "Localized UI message: readSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "writeSpeed": "Schreiben: {value}",
+  "@writeSpeed": {
+    "description": "Localized UI message: writeSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "health": "Zustand: {value}",
+  "@health": {
+    "description": "Localized UI message: health. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSystem": "Dateisystem: {value}",
+  "@fileSystem": {
+    "description": "Localized UI message: fileSystem. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diagnosticPrivacy": "Diagnose: {status} • Seriennummern werden nicht in Berichte aufgenommen",
+  "@diagnosticPrivacy": {
+    "description": "Localized UI message: diagnosticPrivacy. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "detectedGame": "Erkanntes Spiel: {game}",
+  "@detectedGame": {
+    "description": "Localized UI message: detectedGame. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "gameModeWaiting": "Spielmodus bereit — warte auf ein Spiel",
+  "gameModeOff": "Spielmodus aus",
+  "activeGameProcess": "Spielprozess wird überwacht",
+  "hardwareControlMonitorOnly": "Hardwaresteuerung: nur Überwachung",
+  "extensionApiStatus": "Erweiterungs-API: Metadaten-/Fähigkeitsvertrag bereit • Laden nativer Plugins deaktiviert",
+  "smartFanCurve": "Intelligente Lüfterkurve",
+  "smartFanEnabled": "Smart Fan: Ein",
+  "smartFanDisabled": "Smart Fan: Aus",
+  "automation": "Automatisierung",
+  "benchmark": "Benchmark",
+  "downloadVerifiedUpdate": "Verifiziertes Update herunterladen",
+  "newFanCurvePoint": "Neuer Lüfterkurvenpunkt",
+  "smartFanCurveDescription": "Lege das Lüfterziel anhand der Temperatur fest. Die Kurve wird nur bei verfügbarem, verifiziertem Hardware-Steuerungs-Backend automatisch angewendet.",
+  "deletePoint": "Punkt löschen",
+  "addPoint": "Punkt hinzufügen",
+  "resetBalanced": "Auf ausgeglichen zurücksetzen",
+  "hardwareBenchmark": "Hardware-Benchmark",
+  "benchmarkDisclaimer": "Ein einsekündiger CPU-Mikrobenchmark. Kein Stresstest; Hardwareeinstellungen werden nicht verändert.",
+  "score": "Punktzahl: {value} Iterationen/s",
+  "@score": {
+    "description": "Localized UI message: score. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "iterations": "Iterationen: {value}",
+  "@iterations": {
+    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "duration": "Dauer: {value} ms",
+  "@duration": {
+    "description": "Localized UI message: duration. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "run": "Ausführen",
+  "unknown": "Unbekannt",
+  "none": "Keine",
+  "power": "Leistung",
+  "voltage": "Spannung",
+  "appTagline": "Präzise Hardwaresteuerung",
+  "cpuUsageLabel": "CPU-Auslastung",
+  "coreClock": "Kern-Takt",
+  "memoryClock": "Speichertakt",
+  "advancedTelemetryDescription": "GPU-Last, VRAM, Leistung, Taktraten und CPU-Kerne",
+  "localAiAnalysisDescription": "Lokale Gemma-Analyse der Live-Telemetrie",
+  "hardwareDetectionDescription": "Identität von PC, Mainboard, CPU und GPU",
+  "gameModeDescription": "Automatische Erkennung und spielorientierte Überwachung während ein Spiel läuft",
+  "gameModeSet": "Spielmodus festlegen",
+  "bridgeWaiting": "Warte auf die Bridge",
+  "monitoringOnly": "Nur Überwachung",
+  "powerLimit": "Leistungsgrenze",
+  "gpuState": "GPU-Status",
+  "encoderUsage": "Encoder-Auslastung",
+  "decoderUsage": "Decoder-Auslastung",
+  "samplingInterval": "Letzte Stunde • Messung alle 5 Sekunden",
+  "modelDigestLabel": "Modell-SHA-256",
+  "gpuAdapterLabel": "GPU-Adapter",
+  "lastActionLabel": "Letzte Aktion",
+  "vramUsageLabel": "VRAM-Nutzung",
+  "gpuPowerLimit": "GPU-Leistungsgrenze",
+  "gpuEncoder": "Encoder",
+  "gpuDecoder": "Decoder",
+  "storageTitle": "Speicher",
+  "storageDescription": "SSD-/HDD-/NVMe-Nutzung und Ein-/Ausgabestatus",
+  "aiProcessingPower": "KI-Rechenleistung",
+  "securityLabel": "Sicherheit",
+  "securityKeyWaiting": "Warte auf Schlüssel",
+  "digestNotFound": "Nicht gefunden",
+  "digestNotChecked": "Nicht geprüft",
+  "gpuAdapter": "GPU-Adapter",
+  "cpuCoreSummary": "{cores} Kerne • {frequency} MHz",
+  "@cpuCoreSummary": {
+    "description": "Localized UI message: cpuCoreSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "cores": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "num"
+      }
+    }
+  },
+  "warningThresholdLabel": "Warnschwelle",
+  "hardwareControlUnavailableNote": "Ohne Unterstützung für die Hardwaresteuerung werden weder Lüfter- noch Takteinstellungen geändert.",
+  "thermalStatusLabel": "Thermischer Status",
+  "fanControlLabel": "Lüftersteuerung",
+  "installerTitle": "HWControl-Installationsassistent",
+  "installerLocalAiModel": "Lokale KI (Gemma 3 1B)",
+  "installerAiDescription": "Optional. Bei Auswahl wird Gemma 3 1B während der Einrichtung heruntergeladen und mit SHA-256 überprüft.",
+  "installerChecking": "Einrichtung wird geprüft …",
+  "installerContinue": "Weiter",
+  "installerFinish": "Einrichtung abschließen",
+  "installerPackageStepTitle": "1. Pakettyp überprüfen",
+  "installerBridgeStepTitle": "2. Bridge-Status überprüfen",
+  "installerCompleteStepTitle": "3. Einrichtung abschließen",
+  "installerPackageStepDescription": "Dieses Paketformat ist für {platform} geeignet: {formats}.",
+  "@installerPackageStepDescription": {
+    "description": "Localized UI message: installerPackageStepDescription. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "installerAiStepDescription": "Die lokale KI-Komponente kann optional installiert werden. Bei Auswahl wird Gemma 3 1B Instruct Q5_K_M (ca. 851 MB) während der Einrichtung heruntergeladen und mit SHA-256 überprüft.",
+  "installerCompleteWithAi": "Das Modell wird im letzten Einrichtungsschritt vorbereitet. Ein fehlendes oder beschädigtes Modell wird durch einen verifizierten Download repariert.",
+  "installerCompleteWithoutAi": "Die Basisanwendung wird installiert; das KI-Modell wird bei dieser Einrichtung nicht heruntergeladen.",
+  "installerAiSelectedFooter": "KI ausgewählt: Gemma wird während der Einrichtung vorbereitet. Fehlende oder beschädigte Dateien werden erneut heruntergeladen und überprüft.",
+  "installerAiSkippedFooter": "KI nicht ausgewählt: Gemma wird nicht installiert. Bei der ersten KI-Analyse kann es sicher heruntergeladen werden.",
+  "installerPreviouslyCompleted": "Die Einrichtung wurde bereits abgeschlossen. Das KI-Modell ist optional.",
+  "installerBridgeFound": "gefunden",
+  "installerBridgePending": "wird bei der Paketinstallation erwartet",
+  "installerModelReady": "bereit und überprüft",
+  "installerModelOptional": "optional; Download beim ersten KI-Analyselauf",
+  "installerCheckFailed": "Einrichtungsprüfung fehlgeschlagen: {error}",
+  "@installerCheckFailed": {
+    "description": "Localized UI message: installerCheckFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelPreparing": "Gemma-3-1B-Modell wird vorbereitet …",
+  "installerModelDownloading": "Gemma 3 1B wird heruntergeladen: {percent}%",
+  "@installerModelDownloading": {
+    "description": "Localized UI message: installerModelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "installerModelDownloadFailed": "Gemma konnte nicht installiert werden: {error}\nDie Basiseinrichtung kann fortgesetzt werden; die KI-Einrichtung lässt sich später erneut versuchen.",
+  "@installerModelDownloadFailed": {
+    "description": "Localized UI message: installerModelDownloadFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelDownloaded": "Gemma 3 1B wurde heruntergeladen und mit SHA-256 überprüft.",
+  "installerTestMode": "Testmodus: Einrichtung und Modelldownload wurden übersprungen.",
+  "installerCheckingComponents": "Einrichtungskomponenten werden geprüft …",
+  "installerPlatformSummary": "Plattform: {platform}\nPaket: {formats}\nBridge: {bridge}\nKI-Modell: {ai}",
+  "@installerPlatformSummary": {
+    "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      },
+      "ai": {
+        "type": "String"
+      }
+    }
+  },
+  "motherboardLabel": "Mainboard",
+  "gpuDriverLabel": "GPU-Treiber",
+  "last20Events": "Letzte 20 Ereignisse"
+}

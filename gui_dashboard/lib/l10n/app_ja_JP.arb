@@ -1,0 +1,388 @@
+{
+  "@@locale": "ja_JP",
+  "menu": "メニュー",
+  "settings": "設定",
+  "language": "言語",
+  "appearance": "外観",
+  "notifications": "通知",
+  "enableNotifications": "通知を有効にする",
+  "temperatureWarning": "温度警告しきい値",
+  "cancel": "キャンセル",
+  "save": "保存",
+  "darkMode": "ダークモード",
+  "lightMode": "ライトモード",
+  "animationsOn": "アニメーションを無効化",
+  "animationsOff": "アニメーションを有効化",
+  "dashboard": "ダッシュボード",
+  "telemetryHistory": "テレメトリ履歴",
+  "lastHour": "過去1時間 • 5秒間隔",
+  "hardwareDetection": "ハードウェア検出",
+  "pcMotherboardCpuGpu": "PC、マザーボード、CPU、GPUの識別情報",
+  "systemStatus": "システム状態",
+  "controlFlow": "制御フロー",
+  "controls": "コントロール",
+  "safeUserSettings": "安全なユーザー設定",
+  "gameMode": "ゲームモード",
+  "advancedTelemetry": "高度なテレメトリ",
+  "aiAnalysis": "AI分析",
+  "diagnostics": "診断",
+  "createErrorReport": "エラーレポートを作成",
+  "reconnect": "再接続",
+  "online": "BRIDGE ONLINE",
+  "offline": "OFFLINE",
+  "updateCheck": "更新を確認",
+  "releaseOpen": "リリースを開く",
+  "systemEvents": "システムイベント",
+  "noEvents": "イベントはありません",
+  "quiet": "静音",
+  "balanced": "バランス",
+  "performance": "パフォーマンス",
+  "game": "ゲーム",
+  "manual": "手動",
+  "reset": "リセット",
+  "saveProfile": "プロファイルを保存",
+  "fanSpeed": "ファン速度",
+  "apply": "適用",
+  "languageChanged": "言語を変更しました",
+  "temperature": "温度",
+  "usage": "使用率",
+  "ramUsage": "RAM使用率",
+  "diskUsage": "ディスク使用率",
+  "gpuUsage": "GPU使用率",
+  "fan": "ファン",
+  "accessibility": "アクセシビリティ",
+  "offlineSpeech": "オフライン音声",
+  "piperOfflineDescription": "ローカルにインストールした Piper 音声でダッシュボードの情報を読み上げます。音声データはこの端末内にとどまります。",
+  "piperExecutablePath": "Piper 実行ファイルのパス",
+  "piperModelPath": "ONNX 音声モデルのパス",
+  "testSpeech": "音声をテスト",
+  "readDashboard": "ダッシュボードを読み上げ",
+  "piperTesting": "音声をテスト中...",
+  "piperTestSuccess": "音声テストが完了しました。",
+  "piperTestFailed": "音声テストに失敗しました。",
+  "piperTestPhrase": "HWcontrol2.0 のアクセシビリティ音声テストです。ハードウェアデータはこの端末内に保持されます。",
+  "stopSpeech": "読み上げを停止",
+  "piperSpeechStopped": "読み上げを停止しました。",
+  "browsePiperExecutable": "Piper 実行ファイルを選択",
+  "browsePiperModel": "ONNX 音声モデルを選択",
+  "piperModelConfigHint": "対応する .onnx.json 設定ファイルを同じフォルダーに置いてください。使用前に音声モデルのライセンスを確認してください。",
+  "piperVoiceCatalog": "Piper 公式音声を表示",
+  "getPiperExecutable": "Piper 実行ファイルを入手",
+  "systemDefault": "システムの言語",
+  "welcomeTitle": "HWcontrol2.0 へようこそ",
+  "welcomeTagline": "監視。管理。保護。",
+  "welcomeDescription": "ハードウェアの状態を確認し、冷却を管理して、システムを健全に保つためのシンプルで信頼できるツールです。",
+  "welcomeMonitor": "監視",
+  "welcomeMonitorDescription": "CPU/GPU のセンサーと温度",
+  "welcomeControl": "管理",
+  "welcomeControlDescription": "ファンカーブと性能プロファイル",
+  "welcomeProtect": "保護",
+  "welcomeProtectDescription": "診断とシステムの状態",
+  "welcomeGetStarted": "始める",
+  "welcomeOpenDashboard": "ダッシュボードを開く",
+  "welcomeDontShowAgain": "次回から表示しない",
+  "welcomePreview": "ダッシュボードのプレビュー",
+  "welcomeExampleStatus": "状態の例です",
+  "welcomeSampleValues": "サンプル値 — 実際のデータではありません",
+  "welcomeConnectHardware": "ハードウェアを表示するには接続してください",
+  "newAutomationRule": "新しい自動化ルール",
+  "editAutomationRule": "自動化ルールを編集",
+  "ruleName": "ルール名",
+  "sensor": "センサー",
+  "cpuTemperatureLabel": "CPU温度",
+  "gpuTemperatureLabel": "GPU温度",
+  "threshold": "しきい値 (°C)",
+  "fanTarget": "ファン目標 (%)",
+  "hardwareAutomation": "ハードウェア自動化",
+  "automationSafetyNote": "検証済みのハードウェア制御バックエンドが利用できる場合にのみ、ルールはファン制御コマンドを送信します。",
+  "edit": "編集",
+  "delete": "削除",
+  "noAutomationRules": "自動化ルールはまだありません。",
+  "addRule": "ルールを追加",
+  "hardwareHealthCenter": "ハードウェア状態センター",
+  "status": "状態",
+  "safety": "安全",
+  "recovery": "復旧",
+  "warnings": "警告",
+  "anomalies": "異常",
+  "close": "閉じる",
+  "checkForUpdates": "更新を確認",
+  "maxCpuTemperature": "CPU最高温度: {temperature} °C",
+  "@maxCpuTemperature": {
+    "description": "Localized UI message: maxCpuTemperature. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "temperature": {
+        "type": "num"
+      }
+    }
+  },
+  "exportCsv": "CSVを書き出す",
+  "thermalStatus": "熱状態: {status}",
+  "@thermalStatus": {
+    "description": "Localized UI message: thermalStatus. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeMetricsWaiting": "ブリッジの測定値を待っています",
+  "gpuTelemetryNote": "GPUの高度なテレメトリは、ドライバーとバックエンドの対応状況によって異なります。",
+  "cpuCoreLoad": "CPUコア負荷",
+  "runAiAnalysis": "AI分析を実行",
+  "clearAiModelCache": "AIモデルのキャッシュを消去",
+  "modelDownloading": "Gemma 3 1Bモデルをダウンロード中: {percent}% • 約851 MB",
+  "@modelDownloading": {
+    "description": "Localized UI message: modelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "llmControlUnavailable": "LLM制御の権限がありません",
+  "storageUnavailable": "ストレージデバイスが検出されないか、測定データの準備ができていません。",
+  "freeSpace": "空き容量: {value}",
+  "@freeSpace": {
+    "description": "Localized UI message: freeSpace. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "readSpeed": "読み取り: {value}",
+  "@readSpeed": {
+    "description": "Localized UI message: readSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "writeSpeed": "書き込み: {value}",
+  "@writeSpeed": {
+    "description": "Localized UI message: writeSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "health": "状態: {value}",
+  "@health": {
+    "description": "Localized UI message: health. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSystem": "ファイルシステム: {value}",
+  "@fileSystem": {
+    "description": "Localized UI message: fileSystem. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diagnosticPrivacy": "診断: {status} • シリアル番号はレポートに含まれません",
+  "@diagnosticPrivacy": {
+    "description": "Localized UI message: diagnosticPrivacy. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "detectedGame": "検出したゲーム: {game}",
+  "@detectedGame": {
+    "description": "Localized UI message: detectedGame. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "gameModeWaiting": "ゲームモード準備完了 — ゲームを待機中",
+  "gameModeOff": "ゲームモードはオフです",
+  "activeGameProcess": "ゲームのプロセスを監視しています",
+  "hardwareControlMonitorOnly": "ハードウェア制御: 監視のみ",
+  "extensionApiStatus": "拡張API: メタデータ/機能プロバイダー契約は準備済み • ネイティブプラグインの読み込みは無効",
+  "smartFanCurve": "スマートファンカーブ",
+  "smartFanEnabled": "スマートファン: オン",
+  "smartFanDisabled": "スマートファン: オフ",
+  "automation": "自動化",
+  "benchmark": "ベンチマーク",
+  "downloadVerifiedUpdate": "検証済みの更新をダウンロード",
+  "newFanCurvePoint": "新しいファンカーブのポイント",
+  "smartFanCurveDescription": "温度に応じたファン目標を設定します。検証済みのハードウェア制御バックエンドがある場合にのみ、カーブが自動適用されます。",
+  "deletePoint": "ポイントを削除",
+  "addPoint": "ポイントを追加",
+  "resetBalanced": "バランス設定に戻す",
+  "hardwareBenchmark": "ハードウェアベンチマーク",
+  "benchmarkDisclaimer": "1秒間のCPUマイクロベンチマークです。負荷試験ではなく、ハードウェア設定も変更しません。",
+  "score": "スコア: 毎秒{value}回",
+  "@score": {
+    "description": "Localized UI message: score. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "iterations": "反復回数: {value}",
+  "@iterations": {
+    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "duration": "時間: {value} ms",
+  "@duration": {
+    "description": "Localized UI message: duration. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "run": "実行",
+  "unknown": "不明",
+  "none": "なし",
+  "power": "電力",
+  "voltage": "電圧",
+  "appTagline": "高精度ハードウェア制御",
+  "cpuUsageLabel": "CPU 使用率",
+  "coreClock": "コアクロック",
+  "memoryClock": "メモリクロック",
+  "advancedTelemetryDescription": "GPU 負荷、VRAM、電力、クロック速度、CPU コア",
+  "localAiAnalysisDescription": "ライブテレメトリを Gemma でローカル分析",
+  "hardwareDetectionDescription": "PC、マザーボード、CPU、GPU の識別情報",
+  "gameModeDescription": "ゲーム実行中に自動検出し、ゲーム向けの監視を行います",
+  "gameModeSet": "ゲームモードを設定",
+  "bridgeWaiting": "ブリッジを待機中",
+  "monitoringOnly": "監視のみ",
+  "powerLimit": "電力制限",
+  "gpuState": "GPU 状態",
+  "encoderUsage": "エンコーダー使用率",
+  "decoderUsage": "デコーダー使用率",
+  "samplingInterval": "直近1時間 • 5秒ごとに測定",
+  "modelDigestLabel": "モデルのSHA-256",
+  "gpuAdapterLabel": "GPU アダプター",
+  "lastActionLabel": "最終操作",
+  "vramUsageLabel": "VRAM使用率",
+  "gpuPowerLimit": "GPU電力上限",
+  "gpuEncoder": "エンコーダー",
+  "gpuDecoder": "デコーダー",
+  "storageTitle": "ストレージ",
+  "storageDescription": "SSD / HDD / NVMeの使用状況と入出力",
+  "aiProcessingPower": "AI処理能力",
+  "securityLabel": "セキュリティ",
+  "securityKeyWaiting": "キーを待機中",
+  "digestNotFound": "見つかりません",
+  "digestNotChecked": "未確認",
+  "gpuAdapter": "GPUアダプター",
+  "cpuCoreSummary": "{cores}コア • {frequency} MHz",
+  "@cpuCoreSummary": {
+    "description": "Localized UI message: cpuCoreSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "cores": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "num"
+      }
+    }
+  },
+  "warningThresholdLabel": "警告しきい値",
+  "hardwareControlUnavailableNote": "ハードウェア制御に対応していない場合、ファンやクロックの設定は変更されません。",
+  "thermalStatusLabel": "熱状態",
+  "fanControlLabel": "ファン制御",
+  "installerTitle": "HWControl セットアップウィザード",
+  "installerLocalAiModel": "ローカルAI（Gemma 3 1B）",
+  "installerAiDescription": "任意です。選択すると、セットアップ中に Gemma 3 1B をダウンロードし、SHA-256 で検証します。",
+  "installerChecking": "セットアップを確認中...",
+  "installerContinue": "続行",
+  "installerFinish": "セットアップを完了",
+  "installerPackageStepTitle": "1. パッケージ形式を確認",
+  "installerBridgeStepTitle": "2. ブリッジの状態を確認",
+  "installerCompleteStepTitle": "3. セットアップを完了",
+  "installerPackageStepDescription": "{platform} に適したパッケージ形式：{formats}。",
+  "@installerPackageStepDescription": {
+    "description": "Localized UI message: installerPackageStepDescription. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "installerAiStepDescription": "ローカルAIコンポーネントは任意でインストールできます。選択すると Gemma 3 1B Instruct Q5_K_M（約851 MB）をセットアップ中にダウンロードし、SHA-256 で検証します。",
+  "installerCompleteWithAi": "最終ステップでモデルを準備します。モデルがない、または破損している場合は、検証済みダウンロードで修復します。",
+  "installerCompleteWithoutAi": "基本アプリをインストールします。このセットアップではAIモデルをダウンロードしません。",
+  "installerAiSelectedFooter": "AIを選択：セットアップ中に Gemma を準備します。不足または破損したファイルは再ダウンロードして検証します。",
+  "installerAiSkippedFooter": "AIを選択しない：Gemma はインストールされません。最初にAI分析を実行するときに安全にダウンロードできます。",
+  "installerPreviouslyCompleted": "セットアップはすでに完了しています。AIモデルは任意です。",
+  "installerBridgeFound": "検出済み",
+  "installerBridgePending": "パッケージ版のインストールで必要",
+  "installerModelReady": "準備完了・検証済み",
+  "installerModelOptional": "任意。初回のAI分析時にダウンロード",
+  "installerCheckFailed": "セットアップ確認に失敗しました：{error}",
+  "@installerCheckFailed": {
+    "description": "Localized UI message: installerCheckFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelPreparing": "Gemma 3 1B モデルを準備中...",
+  "installerModelDownloading": "Gemma 3 1B をダウンロード中：{percent}%",
+  "@installerModelDownloading": {
+    "description": "Localized UI message: installerModelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "installerModelDownloadFailed": "Gemma をインストールできませんでした：{error}\n基本セットアップは続行できます。AIのセットアップは後で再試行できます。",
+  "@installerModelDownloadFailed": {
+    "description": "Localized UI message: installerModelDownloadFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelDownloaded": "Gemma 3 1B をダウンロードし、SHA-256 で検証しました。",
+  "installerTestMode": "テストモード：セットアップとモデルのダウンロードを省略しました。",
+  "installerCheckingComponents": "セットアップコンポーネントを確認中...",
+  "installerPlatformSummary": "プラットフォーム：{platform}\nパッケージ：{formats}\nブリッジ：{bridge}\nAIモデル：{ai}",
+  "@installerPlatformSummary": {
+    "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      },
+      "ai": {
+        "type": "String"
+      }
+    }
+  },
+  "motherboardLabel": "マザーボード",
+  "gpuDriverLabel": "GPU ドライバー",
+  "last20Events": "直近20件のイベント"
+}

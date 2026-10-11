@@ -1,0 +1,388 @@
+{
+  "@@locale": "el_GR",
+  "menu": "Μενού",
+  "settings": "Ρυθμίσεις",
+  "language": "Γλώσσα",
+  "appearance": "Εμφάνιση",
+  "notifications": "Ειδοποιήσεις",
+  "enableNotifications": "Ενεργοποίηση ειδοποιήσεων",
+  "temperatureWarning": "Όριο προειδοποίησης θερμοκρασίας",
+  "cancel": "Ακύρωση",
+  "save": "Αποθήκευση",
+  "dashboard": "Πίνακας ελέγχου",
+  "systemStatus": "Κατάσταση συστήματος",
+  "controls": "Στοιχεία ελέγχου",
+  "createErrorReport": "Δημιουργία αναφοράς σφάλματος",
+  "reconnect": "Επανασύνδεση",
+  "noEvents": "Δεν υπάρχουν συμβάντα ακόμη",
+  "darkMode": "Dark mode",
+  "lightMode": "Light mode",
+  "animationsOn": "Disable animations",
+  "animationsOff": "Enable animations",
+  "accessibility": "Προσβασιμότητα",
+  "offlineSpeech": "Ομιλία εκτός σύνδεσης",
+  "piperOfflineDescription": "Ακούστε τις πληροφορίες του πίνακα μέσω τοπικά εγκατεστημένων φωνών Piper. Η ομιλία παραμένει σε αυτήν τη συσκευή.",
+  "piperExecutablePath": "Διαδρομή εκτελέσιμου Piper",
+  "piperModelPath": "Διαδρομή μοντέλου φωνής ONNX",
+  "testSpeech": "Δοκιμή ομιλίας",
+  "readDashboard": "Ανάγνωση πίνακα",
+  "piperTesting": "Δοκιμή ομιλίας...",
+  "piperTestSuccess": "Η δοκιμή ομιλίας ολοκληρώθηκε.",
+  "piperTestFailed": "Η δοκιμή ομιλίας απέτυχε.",
+  "piperTestPhrase": "Δοκιμή ομιλίας προσβασιμότητας HWcontrol2.0. Τα δεδομένα υλικού παραμένουν σε αυτήν τη συσκευή.",
+  "stopSpeech": "Διακοπή ομιλίας",
+  "piperSpeechStopped": "Η ομιλία σταμάτησε.",
+  "browsePiperExecutable": "Επιλογή εκτελέσιμου Piper",
+  "browsePiperModel": "Επιλογή μοντέλου φωνής ONNX",
+  "piperModelConfigHint": "Το αντίστοιχο αρχείο ρυθμίσεων .onnx.json πρέπει να βρίσκεται στον ίδιο φάκελο. Ελέγξτε την άδεια της φωνής πριν από τη χρήση.",
+  "piperVoiceCatalog": "Περιήγηση στις επίσημες φωνές Piper",
+  "getPiperExecutable": "Λήψη εκτελέσιμου Piper",
+  "systemDefault": "Προεπιλογή συστήματος",
+  "telemetryHistory": "Ιστορικό μετρήσεων",
+  "lastHour": "Τελευταία ώρα • δειγματοληψία κάθε 5 δευτερόλεπτα",
+  "hardwareDetection": "Εντοπισμός υλικού",
+  "pcMotherboardCpuGpu": "Πληροφορίες για PC, μητρική, CPU και GPU",
+  "controlFlow": "Ροή ελέγχου",
+  "safeUserSettings": "Ασφαλείς ρυθμίσεις χρήστη",
+  "gameMode": "Λειτουργία παιχνιδιού",
+  "advancedTelemetry": "Προηγμένες μετρήσεις",
+  "aiAnalysis": "Ανάλυση AI",
+  "diagnostics": "Διαγνωστικά",
+  "online": "Η ΓΕΦΥΡΑ ΕΙΝΑΙ ΣΥΝΔΕΔΕΜΕΝΗ",
+  "offline": "ΕΚΤΟΣ ΣΥΝΔΕΣΗΣ",
+  "updateCheck": "Έλεγχος για ενημερώσεις",
+  "releaseOpen": "Άνοιγμα έκδοσης",
+  "systemEvents": "Συμβάντα συστήματος",
+  "quiet": "Αθόρυβο",
+  "balanced": "Ισορροπημένο",
+  "performance": "Απόδοση",
+  "game": "Παιχνίδι",
+  "manual": "Χειροκίνητα",
+  "reset": "Επαναφορά",
+  "saveProfile": "Αποθήκευση προφίλ",
+  "fanSpeed": "Ταχύτητα ανεμιστήρα",
+  "apply": "Εφαρμογή",
+  "languageChanged": "Η γλώσσα άλλαξε",
+  "temperature": "Θερμοκρασία",
+  "usage": "Χρήση",
+  "ramUsage": "Χρήση μνήμης",
+  "diskUsage": "Χρήση δίσκου",
+  "gpuUsage": "Χρήση GPU",
+  "fan": "Ανεμιστήρας",
+  "welcomeTitle": "Καλώς ήρθατε στο HWcontrol2.0",
+  "welcomeTagline": "Παρακολούθηση. Έλεγχος. Προστασία.",
+  "welcomeDescription": "Ένας απλός και αξιόπιστος τρόπος παρακολούθησης του υλικού, ελέγχου της ψύξης και διατήρησης της υγείας του συστήματος.",
+  "welcomeMonitor": "Παρακολούθηση",
+  "welcomeMonitorDescription": "Αισθητήρες και θερμοκρασίες CPU/GPU",
+  "welcomeControl": "Έλεγχος",
+  "welcomeControlDescription": "Καμπύλες ανεμιστήρων και προφίλ απόδοσης",
+  "welcomeProtect": "Προστασία",
+  "welcomeProtectDescription": "Διαγνωστικά και κατάσταση συστήματος",
+  "welcomeGetStarted": "Έναρξη",
+  "welcomeOpenDashboard": "Άνοιγμα πίνακα ελέγχου",
+  "welcomeDontShowAgain": "Να μην εμφανιστεί ξανά",
+  "welcomePreview": "Προεπισκόπηση πίνακα ελέγχου",
+  "welcomeExampleStatus": "Ενδεικτική κατάσταση",
+  "welcomeSampleValues": "Ενδεικτικές τιμές",
+  "welcomeConnectHardware": "Σύνδεση υλικού",
+  "newAutomationRule": "Νέος κανόνας αυτοματισμού",
+  "editAutomationRule": "Επεξεργασία κανόνα αυτοματισμού",
+  "ruleName": "Όνομα κανόνα",
+  "sensor": "Αισθητήρας",
+  "cpuTemperatureLabel": "Θερμοκρασία CPU",
+  "gpuTemperatureLabel": "Θερμοκρασία GPU",
+  "threshold": "Όριο (°C)",
+  "fanTarget": "Στόχος ανεμιστήρα (%)",
+  "hardwareAutomation": "Αυτοματισμός υλικού",
+  "automationSafetyNote": "Οι κανόνες στέλνουν εντολές ανεμιστήρα μόνο όταν υπάρχει επαληθευμένο backend ελέγχου υλικού.",
+  "edit": "Επεξεργασία",
+  "delete": "Διαγραφή",
+  "noAutomationRules": "Δεν υπάρχουν ακόμη κανόνες αυτοματισμού.",
+  "addRule": "Προσθήκη κανόνα",
+  "hardwareHealthCenter": "Κέντρο κατάστασης υλικού",
+  "status": "Κατάσταση",
+  "safety": "Ασφάλεια",
+  "recovery": "Ανάκτηση",
+  "warnings": "Προειδοποιήσεις",
+  "anomalies": "Ανωμαλίες",
+  "close": "Κλείσιμο",
+  "checkForUpdates": "Έλεγχος για ενημερώσεις",
+  "maxCpuTemperature": "Μέγιστη θερμοκρασία CPU: {temperature} °C",
+  "@maxCpuTemperature": {
+    "description": "Localized UI message: maxCpuTemperature. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "temperature": {
+        "type": "num"
+      }
+    }
+  },
+  "exportCsv": "Εξαγωγή CSV",
+  "thermalStatus": "Θερμική κατάσταση: {status}",
+  "@thermalStatus": {
+    "description": "Localized UI message: thermalStatus. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeMetricsWaiting": "Αναμονή μετρήσεων από τη γέφυρα",
+  "gpuTelemetryNote": "Η προηγμένη τηλεμετρία GPU εξαρτάται από την υποστήριξη του προγράμματος οδήγησης και του backend.",
+  "cpuCoreLoad": "Φόρτος πυρήνων CPU",
+  "runAiAnalysis": "Εκτέλεση ανάλυσης AI",
+  "clearAiModelCache": "Εκκαθάριση προσωρινής μνήμης μοντέλου AI",
+  "modelDownloading": "Λήψη μοντέλου Gemma 3 1B: {percent}% • περίπου 851 MB",
+  "@modelDownloading": {
+    "description": "Localized UI message: modelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "llmControlUnavailable": "Δεν υπάρχει άδεια ελέγχου LLM",
+  "storageUnavailable": "Δεν εντοπίστηκε συσκευή αποθήκευσης ή η τηλεμετρία δεν είναι ακόμη έτοιμη.",
+  "freeSpace": "Ελεύθερος χώρος: {value}",
+  "@freeSpace": {
+    "description": "Localized UI message: freeSpace. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "readSpeed": "Ανάγνωση: {value}",
+  "@readSpeed": {
+    "description": "Localized UI message: readSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "writeSpeed": "Εγγραφή: {value}",
+  "@writeSpeed": {
+    "description": "Localized UI message: writeSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "health": "Κατάσταση: {value}",
+  "@health": {
+    "description": "Localized UI message: health. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSystem": "Σύστημα αρχείων: {value}",
+  "@fileSystem": {
+    "description": "Localized UI message: fileSystem. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diagnosticPrivacy": "Διαγνωστικά: {status} • οι σειριακοί αριθμοί δεν περιλαμβάνονται στις αναφορές",
+  "@diagnosticPrivacy": {
+    "description": "Localized UI message: diagnosticPrivacy. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "detectedGame": "Εντοπισμένο παιχνίδι: {game}",
+  "@detectedGame": {
+    "description": "Localized UI message: detectedGame. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "gameModeWaiting": "Η λειτουργία παιχνιδιού είναι έτοιμη — αναμονή παιχνιδιού",
+  "gameModeOff": "Λειτουργία παιχνιδιού ανενεργή",
+  "activeGameProcess": "Παρακολουθείται η διεργασία του παιχνιδιού",
+  "hardwareControlMonitorOnly": "Έλεγχος υλικού: μόνο παρακολούθηση",
+  "extensionApiStatus": "API επεκτάσεων: έτοιμη σύμβαση παρόχου μεταδεδομένων/δυνατοτήτων • απενεργοποιημένη φόρτωση εγγενών προσθέτων",
+  "smartFanCurve": "Έξυπνη καμπύλη ανεμιστήρα",
+  "smartFanEnabled": "Smart Fan: ενεργό",
+  "smartFanDisabled": "Smart Fan: ανενεργό",
+  "automation": "Αυτοματισμός",
+  "benchmark": "Δοκιμή επιδόσεων",
+  "downloadVerifiedUpdate": "Λήψη επαληθευμένης ενημέρωσης",
+  "newFanCurvePoint": "Νέο σημείο καμπύλης ανεμιστήρα",
+  "smartFanCurveDescription": "Ορίστε τον στόχο του ανεμιστήρα ανάλογα με τη θερμοκρασία. Η καμπύλη εφαρμόζεται αυτόματα μόνο όταν υπάρχει επαληθευμένο backend ελέγχου υλικού.",
+  "deletePoint": "Διαγραφή σημείου",
+  "addPoint": "Προσθήκη σημείου",
+  "resetBalanced": "Επαναφορά σε ισορροπημένο",
+  "hardwareBenchmark": "Δοκιμή υλικού",
+  "benchmarkDisclaimer": "Μικροδοκιμή CPU διάρκειας ενός δευτερολέπτου. Δεν είναι δοκιμή καταπόνησης και δεν αλλάζει τις ρυθμίσεις υλικού.",
+  "score": "Βαθμολογία: {value} επαναλήψεις/δευτ.",
+  "@score": {
+    "description": "Localized UI message: score. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "iterations": "Επαναλήψεις: {value}",
+  "@iterations": {
+    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "duration": "Διάρκεια: {value} ms",
+  "@duration": {
+    "description": "Localized UI message: duration. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "run": "Εκτέλεση",
+  "unknown": "Άγνωστο",
+  "none": "Κανένα",
+  "power": "Ισχύς",
+  "voltage": "Τάση",
+  "appTagline": "Ακριβής έλεγχος υλικού",
+  "cpuUsageLabel": "Χρήση CPU",
+  "coreClock": "Συχνότητα πυρήνα",
+  "memoryClock": "Συχνότητα μνήμης",
+  "advancedTelemetryDescription": "Φόρτος GPU, VRAM, ισχύς, συχνότητες και πυρήνες CPU",
+  "localAiAnalysisDescription": "Τοπική ανάλυση ζωντανής τηλεμετρίας από το Gemma",
+  "hardwareDetectionDescription": "Ταυτότητα υπολογιστή, μητρικής, CPU και GPU",
+  "gameModeDescription": "Αυτόματος εντοπισμός και παρακολούθηση με έμφαση στο παιχνίδι όσο εκτελείται",
+  "gameModeSet": "Ρύθμιση λειτουργίας παιχνιδιού",
+  "bridgeWaiting": "Αναμονή για τη γέφυρα",
+  "monitoringOnly": "Μόνο παρακολούθηση",
+  "powerLimit": "Όριο ισχύος",
+  "gpuState": "Κατάσταση GPU",
+  "encoderUsage": "Χρήση κωδικοποιητή",
+  "decoderUsage": "Χρήση αποκωδικοποιητή",
+  "samplingInterval": "Τελευταία ώρα • μέτρηση κάθε 5 δευτερόλεπτα",
+  "modelDigestLabel": "SHA-256 μοντέλου",
+  "gpuAdapterLabel": "Προσαρμογέας GPU",
+  "lastActionLabel": "Τελευταία ενέργεια",
+  "vramUsageLabel": "Χρήση VRAM",
+  "gpuPowerLimit": "Όριο ισχύος GPU",
+  "gpuEncoder": "Κωδικοποιητής",
+  "gpuDecoder": "Αποκωδικοποιητής",
+  "storageTitle": "Αποθήκευση",
+  "storageDescription": "Χρήση και κατάσταση I/O SSD, HDD και NVMe",
+  "aiProcessingPower": "Ισχύς επεξεργασίας AI",
+  "securityLabel": "Ασφάλεια",
+  "securityKeyWaiting": "Αναμονή κλειδιού",
+  "digestNotFound": "Δεν βρέθηκε",
+  "digestNotChecked": "Δεν ελέγχθηκε",
+  "gpuAdapter": "Προσαρμογέας GPU",
+  "cpuCoreSummary": "{cores} πυρήνες • {frequency} MHz",
+  "@cpuCoreSummary": {
+    "description": "Localized UI message: cpuCoreSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "cores": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "num"
+      }
+    }
+  },
+  "warningThresholdLabel": "Όριο προειδοποίησης",
+  "hardwareControlUnavailableNote": "Οι ρυθμίσεις ανεμιστήρα ή συχνότητας δεν αλλάζουν όταν δεν υποστηρίζεται ο έλεγχος υλικού.",
+  "thermalStatusLabel": "Θερμική κατάσταση",
+  "fanControlLabel": "Έλεγχος ανεμιστήρα",
+  "installerTitle": "Οδηγός εγκατάστασης HWControl",
+  "installerLocalAiModel": "Τοπική AI (Gemma 3 1B)",
+  "installerAiDescription": "Προαιρετικό. Αν επιλεγεί, το Gemma 3 1B λαμβάνεται κατά την εγκατάσταση και επαληθεύεται με SHA-256.",
+  "installerChecking": "Έλεγχος εγκατάστασης...",
+  "installerContinue": "Συνέχεια",
+  "installerFinish": "Ολοκλήρωση εγκατάστασης",
+  "installerPackageStepTitle": "1. Επαλήθευση τύπου πακέτου",
+  "installerBridgeStepTitle": "2. Επαλήθευση κατάστασης γέφυρας",
+  "installerCompleteStepTitle": "3. Ολοκλήρωση εγκατάστασης",
+  "installerPackageStepDescription": "Αυτή η μορφή πακέτου είναι κατάλληλη για {platform}: {formats}.",
+  "@installerPackageStepDescription": {
+    "description": "Localized UI message: installerPackageStepDescription. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "installerAiStepDescription": "Το τοπικό στοιχείο AI μπορεί να εγκατασταθεί προαιρετικά. Αν επιλεγεί, το Gemma 3 1B Instruct Q5_K_M (περίπου 851 MB) λαμβάνεται κατά την εγκατάσταση και επαληθεύεται με SHA-256.",
+  "installerCompleteWithAi": "Το μοντέλο θα προετοιμαστεί στο τελευταίο βήμα. Ένα μοντέλο που λείπει ή έχει καταστραφεί επιδιορθώνεται με επαληθευμένη λήψη.",
+  "installerCompleteWithoutAi": "Εγκαθίσταται η βασική εφαρμογή· το μοντέλο AI δεν λαμβάνεται σε αυτήν την εγκατάσταση.",
+  "installerAiSelectedFooter": "Επιλέχθηκε AI: το Gemma προετοιμάζεται κατά την εγκατάσταση. Τα αρχεία που λείπουν ή έχουν καταστραφεί λαμβάνονται ξανά και επαληθεύονται.",
+  "installerAiSkippedFooter": "Δεν επιλέχθηκε AI: το Gemma δεν εγκαθίσταται. Μπορεί να ληφθεί με ασφάλεια όταν ζητηθεί η πρώτη ανάλυση AI.",
+  "installerPreviouslyCompleted": "Η εγκατάσταση έχει ήδη ολοκληρωθεί. Το μοντέλο AI είναι προαιρετικό.",
+  "installerBridgeFound": "βρέθηκε",
+  "installerBridgePending": "αναμένεται από την εγκατάσταση πακέτου",
+  "installerModelReady": "έτοιμο και επαληθευμένο",
+  "installerModelOptional": "προαιρετικό· λήψη στην πρώτη ανάλυση AI",
+  "installerCheckFailed": "Απέτυχε ο έλεγχος εγκατάστασης: {error}",
+  "@installerCheckFailed": {
+    "description": "Localized UI message: installerCheckFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelPreparing": "Προετοιμασία μοντέλου Gemma 3 1B...",
+  "installerModelDownloading": "Λήψη Gemma 3 1B: {percent}%",
+  "@installerModelDownloading": {
+    "description": "Localized UI message: installerModelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "installerModelDownloadFailed": "Αποτυχία εγκατάστασης Gemma: {error}\nΗ βασική εγκατάσταση μπορεί να συνεχιστεί· δοκιμάστε ξανά την εγκατάσταση AI αργότερα.",
+  "@installerModelDownloadFailed": {
+    "description": "Localized UI message: installerModelDownloadFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelDownloaded": "Το Gemma 3 1B λήφθηκε και επαληθεύτηκε με SHA-256.",
+  "installerTestMode": "Λειτουργία δοκιμής: παραλείφθηκαν η εγκατάσταση και η λήψη μοντέλου.",
+  "installerCheckingComponents": "Έλεγχος στοιχείων εγκατάστασης...",
+  "installerPlatformSummary": "Πλατφόρμα: {platform}\nΠακέτο: {formats}\nΓέφυρα: {bridge}\nΜοντέλο AI: {ai}",
+  "@installerPlatformSummary": {
+    "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      },
+      "ai": {
+        "type": "String"
+      }
+    }
+  },
+  "motherboardLabel": "Μητρική πλακέτα",
+  "gpuDriverLabel": "Πρόγραμμα οδήγησης GPU",
+  "last20Events": "Τα 20 τελευταία συμβάντα"
+}

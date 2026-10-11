@@ -1,0 +1,388 @@
+{
+  "@@locale": "ar_SA",
+  "menu": "القائمة",
+  "settings": "الإعدادات",
+  "language": "اللغة",
+  "appearance": "المظهر",
+  "notifications": "الإشعارات",
+  "enableNotifications": "تفعيل الإشعارات",
+  "temperatureWarning": "حد التحذير من الحرارة",
+  "cancel": "إلغاء",
+  "save": "حفظ",
+  "dashboard": "لوحة المعلومات",
+  "systemStatus": "حالة النظام",
+  "controls": "عناصر التحكم",
+  "createErrorReport": "إنشاء تقرير خطأ",
+  "reconnect": "إعادة الاتصال",
+  "noEvents": "لا توجد أحداث بعد",
+  "darkMode": "Dark mode",
+  "lightMode": "Light mode",
+  "animationsOn": "Disable animations",
+  "animationsOff": "Enable animations",
+  "accessibility": "إمكانية الوصول",
+  "offlineSpeech": "النطق دون اتصال",
+  "piperOfflineDescription": "استمع إلى معلومات لوحة التحكم باستخدام أصوات Piper المثبتة محليًا. تبقى المعالجة الصوتية على هذا الجهاز.",
+  "piperExecutablePath": "مسار ملف Piper التنفيذي",
+  "piperModelPath": "مسار نموذج الصوت ONNX",
+  "testSpeech": "اختبار النطق",
+  "readDashboard": "قراءة لوحة التحكم",
+  "piperTesting": "جارٍ اختبار النطق...",
+  "piperTestSuccess": "اكتمل اختبار النطق.",
+  "piperTestFailed": "فشل اختبار النطق.",
+  "piperTestPhrase": "اختبار النطق لإمكانية الوصول في HWcontrol2.0. تبقى بيانات الأجهزة على هذا الجهاز.",
+  "stopSpeech": "إيقاف النطق",
+  "piperSpeechStopped": "تم إيقاف النطق.",
+  "browsePiperExecutable": "اختيار ملف Piper التنفيذي",
+  "browsePiperModel": "اختيار نموذج الصوت ONNX",
+  "piperModelConfigHint": "يجب أن يكون ملف الإعداد .onnx.json المطابق في المجلد نفسه. تحقق من ترخيص الصوت قبل الاستخدام.",
+  "piperVoiceCatalog": "استعراض أصوات Piper الرسمية",
+  "getPiperExecutable": "الحصول على ملف Piper التنفيذي",
+  "systemDefault": "إعدادات النظام",
+  "telemetryHistory": "سجل القياسات",
+  "lastHour": "آخر ساعة • أخذ عينة كل 5 ثوانٍ",
+  "hardwareDetection": "اكتشاف الأجهزة",
+  "pcMotherboardCpuGpu": "معلومات الكمبيوتر واللوحة الأم والمعالج وبطاقة الرسومات",
+  "controlFlow": "تدفق التحكم",
+  "safeUserSettings": "إعدادات مستخدم آمنة",
+  "gameMode": "وضع اللعب",
+  "advancedTelemetry": "قياسات متقدمة",
+  "aiAnalysis": "تحليل الذكاء الاصطناعي",
+  "diagnostics": "التشخيص",
+  "online": "الجسر متصل",
+  "offline": "غير متصل",
+  "updateCheck": "التحقق من التحديثات",
+  "releaseOpen": "فتح الإصدار",
+  "systemEvents": "أحداث النظام",
+  "quiet": "هادئ",
+  "balanced": "متوازن",
+  "performance": "الأداء",
+  "game": "لعبة",
+  "manual": "يدوي",
+  "reset": "إعادة الضبط",
+  "saveProfile": "حفظ الملف الشخصي",
+  "fanSpeed": "سرعة المروحة",
+  "apply": "تطبيق",
+  "languageChanged": "تم تغيير اللغة",
+  "temperature": "درجة الحرارة",
+  "usage": "الاستخدام",
+  "ramUsage": "استخدام الذاكرة",
+  "diskUsage": "استخدام القرص",
+  "gpuUsage": "استخدام GPU",
+  "fan": "المروحة",
+  "welcomeTitle": "مرحبًا بك في HWcontrol2.0",
+  "welcomeTagline": "راقب. تحكم. احمِ.",
+  "welcomeDescription": "طريقة بسيطة وموثوقة لمراقبة الأجهزة والتحكم في التبريد والحفاظ على سلامة النظام.",
+  "welcomeMonitor": "المراقبة",
+  "welcomeMonitorDescription": "مستشعرات CPU/GPU ودرجات الحرارة",
+  "welcomeControl": "التحكم",
+  "welcomeControlDescription": "منحنيات المراوح وملفات الأداء",
+  "welcomeProtect": "الحماية",
+  "welcomeProtectDescription": "التشخيص وحالة النظام",
+  "welcomeGetStarted": "ابدأ الآن",
+  "welcomeOpenDashboard": "فتح لوحة المعلومات",
+  "welcomeDontShowAgain": "عدم العرض مرة أخرى",
+  "welcomePreview": "معاينة لوحة المعلومات",
+  "welcomeExampleStatus": "حالة نموذجية",
+  "welcomeSampleValues": "قيم نموذجية",
+  "welcomeConnectHardware": "توصيل الأجهزة",
+  "newAutomationRule": "قاعدة أتمتة جديدة",
+  "editAutomationRule": "تعديل قاعدة الأتمتة",
+  "ruleName": "اسم القاعدة",
+  "sensor": "المستشعر",
+  "cpuTemperatureLabel": "درجة حرارة CPU",
+  "gpuTemperatureLabel": "درجة حرارة GPU",
+  "threshold": "الحد (°م)",
+  "fanTarget": "هدف المروحة (%)",
+  "hardwareAutomation": "أتمتة الأجهزة",
+  "automationSafetyNote": "لا ترسل القواعد أوامر للمروحة إلا عند توفر واجهة تحكم بالأجهزة تم التحقق منها.",
+  "edit": "تعديل",
+  "delete": "حذف",
+  "noAutomationRules": "لا توجد قواعد أتمتة بعد.",
+  "addRule": "إضافة قاعدة",
+  "hardwareHealthCenter": "مركز حالة الأجهزة",
+  "status": "الحالة",
+  "safety": "السلامة",
+  "recovery": "الاسترداد",
+  "warnings": "التحذيرات",
+  "anomalies": "الحالات الشاذة",
+  "close": "إغلاق",
+  "checkForUpdates": "التحقق من التحديثات",
+  "maxCpuTemperature": "أقصى درجة حرارة لـ CPU: {temperature} °م",
+  "@maxCpuTemperature": {
+    "description": "Localized UI message: maxCpuTemperature. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "temperature": {
+        "type": "num"
+      }
+    }
+  },
+  "exportCsv": "تصدير CSV",
+  "thermalStatus": "الحالة الحرارية: {status}",
+  "@thermalStatus": {
+    "description": "Localized UI message: thermalStatus. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeMetricsWaiting": "في انتظار مقاييس الجسر",
+  "gpuTelemetryNote": "تعتمد القياسات المتقدمة لـ GPU على دعم برنامج التشغيل والواجهة الخلفية.",
+  "cpuCoreLoad": "حمل أنوية CPU",
+  "runAiAnalysis": "تشغيل تحليل الذكاء الاصطناعي",
+  "clearAiModelCache": "مسح ذاكرة نموذج الذكاء الاصطناعي المؤقتة",
+  "modelDownloading": "جارٍ تنزيل نموذج Gemma 3 1B: {percent}% • نحو 851 ميغابايت",
+  "@modelDownloading": {
+    "description": "Localized UI message: modelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "llmControlUnavailable": "إذن التحكم في LLM غير متاح",
+  "storageUnavailable": "لم يتم اكتشاف جهاز تخزين أو أن القياسات لم تصبح جاهزة بعد.",
+  "freeSpace": "المساحة المتاحة: {value}",
+  "@freeSpace": {
+    "description": "Localized UI message: freeSpace. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "readSpeed": "القراءة: {value}",
+  "@readSpeed": {
+    "description": "Localized UI message: readSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "writeSpeed": "الكتابة: {value}",
+  "@writeSpeed": {
+    "description": "Localized UI message: writeSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "health": "الحالة: {value}",
+  "@health": {
+    "description": "Localized UI message: health. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSystem": "نظام الملفات: {value}",
+  "@fileSystem": {
+    "description": "Localized UI message: fileSystem. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diagnosticPrivacy": "التشخيص: {status} • لا تُضمّن الأرقام التسلسلية في التقارير",
+  "@diagnosticPrivacy": {
+    "description": "Localized UI message: diagnosticPrivacy. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "detectedGame": "اللعبة المكتشفة: {game}",
+  "@detectedGame": {
+    "description": "Localized UI message: detectedGame. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "gameModeWaiting": "وضع اللعب جاهز — في انتظار بدء اللعبة",
+  "gameModeOff": "وضع اللعب متوقف",
+  "activeGameProcess": "تجري مراقبة عملية اللعبة",
+  "hardwareControlMonitorOnly": "التحكم بالأجهزة: مراقبة فقط",
+  "extensionApiStatus": "واجهة الإضافات: عقد موفّر البيانات الوصفية/القدرات جاهز • تحميل المكونات الأصلية معطل",
+  "smartFanCurve": "منحنى المروحة الذكي",
+  "smartFanEnabled": "المروحة الذكية: تشغيل",
+  "smartFanDisabled": "المروحة الذكية: إيقاف",
+  "automation": "الأتمتة",
+  "benchmark": "اختبار الأداء",
+  "downloadVerifiedUpdate": "تنزيل التحديث الذي تم التحقق منه",
+  "newFanCurvePoint": "نقطة جديدة لمنحنى المروحة",
+  "smartFanCurveDescription": "حدد هدف المروحة حسب درجة الحرارة. لا يُطبّق المنحنى تلقائيًا إلا عند توفر واجهة تحكم بالأجهزة تم التحقق منها.",
+  "deletePoint": "حذف النقطة",
+  "addPoint": "إضافة نقطة",
+  "resetBalanced": "إعادة الضبط إلى المتوازن",
+  "hardwareBenchmark": "اختبار أداء الأجهزة",
+  "benchmarkDisclaimer": "اختبار مصغّر لوحدة CPU لمدة ثانية واحدة. ليس اختبار ضغط ولا يغيّر إعدادات الأجهزة.",
+  "score": "النتيجة: {value} تكرار/ثانية",
+  "@score": {
+    "description": "Localized UI message: score. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "iterations": "التكرارات: {value}",
+  "@iterations": {
+    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "duration": "المدة: {value} مللي ثانية",
+  "@duration": {
+    "description": "Localized UI message: duration. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "run": "تشغيل",
+  "unknown": "غير معروف",
+  "none": "لا شيء",
+  "power": "الطاقة",
+  "voltage": "الجهد",
+  "appTagline": "تحكم دقيق في الأجهزة",
+  "cpuUsageLabel": "استخدام وحدة المعالجة المركزية",
+  "coreClock": "تردد النواة",
+  "memoryClock": "تردد الذاكرة",
+  "advancedTelemetryDescription": "حمل GPU وذاكرة VRAM والطاقة والترددات وأنوية CPU",
+  "localAiAnalysisDescription": "تحليل محلي للقياسات المباشرة باستخدام Gemma",
+  "hardwareDetectionDescription": "معلومات تعريف الحاسوب واللوحة الأم والمعالج وبطاقة الرسومات",
+  "gameModeDescription": "اكتشاف تلقائي ومراقبة مخصصة للألعاب أثناء تشغيلها",
+  "gameModeSet": "ضبط وضع الألعاب",
+  "bridgeWaiting": "بانتظار الجسر",
+  "monitoringOnly": "مراقبة فقط",
+  "powerLimit": "حد الطاقة",
+  "gpuState": "حالة GPU",
+  "encoderUsage": "استخدام المرمّز",
+  "decoderUsage": "استخدام مفكّك الترميز",
+  "samplingInterval": "الساعة الأخيرة • قياس كل 5 ثوانٍ",
+  "modelDigestLabel": "SHA-256 للنموذج",
+  "gpuAdapterLabel": "مهايئ GPU",
+  "lastActionLabel": "آخر إجراء",
+  "vramUsageLabel": "استخدام ذاكرة VRAM",
+  "gpuPowerLimit": "حد طاقة GPU",
+  "gpuEncoder": "المُرمِّز",
+  "gpuDecoder": "مُفكِّك الترميز",
+  "storageTitle": "التخزين",
+  "storageDescription": "استخدام SSD / HDD / NVMe وحالة الإدخال/الإخراج",
+  "aiProcessingPower": "قدرة معالجة الذكاء الاصطناعي",
+  "securityLabel": "الأمان",
+  "securityKeyWaiting": "في انتظار المفتاح",
+  "digestNotFound": "غير موجود",
+  "digestNotChecked": "لم يتم التحقق",
+  "gpuAdapter": "محوّل GPU",
+  "cpuCoreSummary": "{cores} أنوية • {frequency} ميغاهرتز",
+  "@cpuCoreSummary": {
+    "description": "Localized UI message: cpuCoreSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "cores": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "num"
+      }
+    }
+  },
+  "warningThresholdLabel": "حد التحذير",
+  "hardwareControlUnavailableNote": "عند عدم توفر دعم التحكم بالأجهزة، لا يتم تغيير إعدادات المروحة أو تردد الساعة.",
+  "thermalStatusLabel": "الحالة الحرارية",
+  "fanControlLabel": "التحكم بالمروحة",
+  "installerTitle": "معالج تثبيت HWControl",
+  "installerLocalAiModel": "الذكاء الاصطناعي المحلي (Gemma 3 1B)",
+  "installerAiDescription": "اختياري. عند تحديده، يتم تنزيل Gemma 3 1B أثناء الإعداد والتحقق منه باستخدام SHA-256.",
+  "installerChecking": "جارٍ التحقق من الإعداد...",
+  "installerContinue": "متابعة",
+  "installerFinish": "إنهاء الإعداد",
+  "installerPackageStepTitle": "1. التحقق من نوع الحزمة",
+  "installerBridgeStepTitle": "2. التحقق من حالة الجسر",
+  "installerCompleteStepTitle": "3. إنهاء الإعداد",
+  "installerPackageStepDescription": "تنسيق الحزمة هذا مناسب لـ {platform}: {formats}.",
+  "@installerPackageStepDescription": {
+    "description": "Localized UI message: installerPackageStepDescription. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "installerAiStepDescription": "يمكن تثبيت مكوّن الذكاء الاصطناعي المحلي اختياريًا. عند تحديده، يتم تنزيل Gemma 3 1B Instruct Q5_K_M (نحو 851 ميغابايت) أثناء الإعداد والتحقق منه باستخدام SHA-256.",
+  "installerCompleteWithAi": "سيتم تجهيز النموذج في الخطوة الأخيرة. إذا كان مفقودًا أو تالفًا، فسيتم إصلاحه بتنزيل تم التحقق منه.",
+  "installerCompleteWithoutAi": "سيتم تثبيت التطبيق الأساسي؛ ولن يتم تنزيل نموذج الذكاء الاصطناعي في هذا الإعداد.",
+  "installerAiSelectedFooter": "تم اختيار الذكاء الاصطناعي: سيتم تجهيز Gemma أثناء الإعداد. تُنزّل الملفات المفقودة أو التالفة مجددًا ويُتحقق منها.",
+  "installerAiSkippedFooter": "لم يتم اختيار الذكاء الاصطناعي: لن يتم تثبيت Gemma. يمكن تنزيله بأمان عند طلب أول تحليل للذكاء الاصطناعي.",
+  "installerPreviouslyCompleted": "اكتمل الإعداد سابقًا. نموذج الذكاء الاصطناعي اختياري.",
+  "installerBridgeFound": "تم العثور عليه",
+  "installerBridgePending": "متوقع ضمن التثبيت المعبأ",
+  "installerModelReady": "جاهز وتم التحقق منه",
+  "installerModelOptional": "اختياري؛ يُنزّل عند أول تشغيل لتحليل الذكاء الاصطناعي",
+  "installerCheckFailed": "فشل التحقق من الإعداد: {error}",
+  "@installerCheckFailed": {
+    "description": "Localized UI message: installerCheckFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelPreparing": "جارٍ تجهيز نموذج Gemma 3 1B...",
+  "installerModelDownloading": "جارٍ تنزيل Gemma 3 1B: {percent}%",
+  "@installerModelDownloading": {
+    "description": "Localized UI message: installerModelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "installerModelDownloadFailed": "فشل تثبيت Gemma: {error}\nيمكن متابعة تثبيت الأساس؛ ويمكن إعادة محاولة تثبيت الذكاء الاصطناعي لاحقًا.",
+  "@installerModelDownloadFailed": {
+    "description": "Localized UI message: installerModelDownloadFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelDownloaded": "تم تنزيل Gemma 3 1B والتحقق منه باستخدام SHA-256.",
+  "installerTestMode": "وضع الاختبار: تم تخطي الإعداد وتنزيل النموذج.",
+  "installerCheckingComponents": "جارٍ التحقق من مكونات الإعداد...",
+  "installerPlatformSummary": "النظام الأساسي: {platform}\nالحزمة: {formats}\nالجسر: {bridge}\nنموذج الذكاء الاصطناعي: {ai}",
+  "@installerPlatformSummary": {
+    "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      },
+      "ai": {
+        "type": "String"
+      }
+    }
+  },
+  "motherboardLabel": "اللوحة الأم",
+  "gpuDriverLabel": "برنامج تشغيل GPU",
+  "last20Events": "آخر 20 حدثًا"
+}

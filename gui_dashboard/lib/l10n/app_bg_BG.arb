@@ -1,0 +1,388 @@
+{
+  "@@locale": "bg_BG",
+  "menu": "Меню",
+  "settings": "Настройки",
+  "language": "Език",
+  "appearance": "Външен вид",
+  "notifications": "Известия",
+  "enableNotifications": "Активиране на известия",
+  "temperatureWarning": "Праг за предупреждение за температура",
+  "cancel": "Отказ",
+  "save": "Запазване",
+  "dashboard": "Табло",
+  "systemStatus": "Състояние на системата",
+  "controls": "Контроли",
+  "createErrorReport": "Създаване на доклад за грешка",
+  "reconnect": "Свързване отново",
+  "noEvents": "Все още няма събития",
+  "darkMode": "Dark mode",
+  "lightMode": "Light mode",
+  "animationsOn": "Disable animations",
+  "animationsOff": "Enable animations",
+  "accessibility": "Достъпност",
+  "offlineSpeech": "Офлайн реч",
+  "piperOfflineDescription": "Слушайте информацията от таблото чрез локално инсталирани гласове на Piper. Речта остава на това устройство.",
+  "piperExecutablePath": "Път до изпълнимия файл на Piper",
+  "piperModelPath": "Път до гласовия модел ONNX",
+  "testSpeech": "Тест на речта",
+  "readDashboard": "Прочитане на таблото",
+  "piperTesting": "Тестване на речта...",
+  "piperTestSuccess": "Тестът на речта завърши.",
+  "piperTestFailed": "Тестът на речта е неуспешен.",
+  "piperTestPhrase": "Тест за достъпност на речта в HWcontrol2.0. Данните за хардуера остават на това устройство.",
+  "stopSpeech": "Спиране на речта",
+  "piperSpeechStopped": "Речта е спряна.",
+  "browsePiperExecutable": "Избор на изпълним файл на Piper",
+  "browsePiperModel": "Избор на гласов модел ONNX",
+  "piperModelConfigHint": "Съответният конфигурационен файл .onnx.json трябва да е в същата папка. Проверете лиценза на гласа преди употреба.",
+  "piperVoiceCatalog": "Разглеждане на официалните гласове на Piper",
+  "getPiperExecutable": "Получаване на изпълним файл на Piper",
+  "systemDefault": "Системни настройки",
+  "telemetryHistory": "История на измерванията",
+  "lastHour": "Последният час • измерване на всеки 5 секунди",
+  "hardwareDetection": "Откриване на хардуер",
+  "pcMotherboardCpuGpu": "Информация за компютъра, дънната платка, процесора и видеокартата",
+  "controlFlow": "Поток на управление",
+  "safeUserSettings": "Безопасни потребителски настройки",
+  "gameMode": "Игрови режим",
+  "advancedTelemetry": "Разширени измервания",
+  "aiAnalysis": "AI анализ",
+  "diagnostics": "Диагностика",
+  "online": "МОСТЪТ Е СВЪРЗАН",
+  "offline": "ИЗВЪН МРЕЖАТА",
+  "updateCheck": "Проверка за актуализации",
+  "releaseOpen": "Отваряне на изданието",
+  "systemEvents": "Системни събития",
+  "quiet": "Тих",
+  "balanced": "Балансиран",
+  "performance": "Производителност",
+  "game": "Игра",
+  "manual": "Ръчно",
+  "reset": "Нулиране",
+  "saveProfile": "Запазване на профил",
+  "fanSpeed": "Скорост на вентилатора",
+  "apply": "Прилагане",
+  "languageChanged": "Езикът е променен",
+  "temperature": "Температура",
+  "usage": "Използване",
+  "ramUsage": "Използване на паметта",
+  "diskUsage": "Използване на диска",
+  "gpuUsage": "Използване на GPU",
+  "fan": "Вентилатор",
+  "welcomeTitle": "Добре дошли в HWcontrol2.0",
+  "welcomeTagline": "Наблюдение. Управление. Защита.",
+  "welcomeDescription": "Лесен и надежден начин за наблюдение на хардуера, управление на охлаждането и поддържане на системата в добро състояние.",
+  "welcomeMonitor": "Наблюдение",
+  "welcomeMonitorDescription": "CPU/GPU датчици и температури",
+  "welcomeControl": "Управление",
+  "welcomeControlDescription": "Криви на вентилатора и профили на производителност",
+  "welcomeProtect": "Защита",
+  "welcomeProtectDescription": "Диагностика и състояние на системата",
+  "welcomeGetStarted": "Започнете",
+  "welcomeOpenDashboard": "Отваряне на таблото",
+  "welcomeDontShowAgain": "Не показвай отново",
+  "welcomePreview": "Преглед на таблото",
+  "welcomeExampleStatus": "Примерно състояние",
+  "welcomeSampleValues": "Примерни стойности",
+  "welcomeConnectHardware": "Свързване на хардуер",
+  "newAutomationRule": "Ново правило за автоматизация",
+  "editAutomationRule": "Редактиране на правило за автоматизация",
+  "ruleName": "Име на правилото",
+  "sensor": "Сензор",
+  "cpuTemperatureLabel": "Температура на CPU",
+  "gpuTemperatureLabel": "Температура на GPU",
+  "threshold": "Праг (°C)",
+  "fanTarget": "Целева скорост на вентилатора (%)",
+  "hardwareAutomation": "Хардуерна автоматизация",
+  "automationSafetyNote": "Правилата изпращат команди към вентилатора само когато има проверен бекенд за хардуерно управление.",
+  "edit": "Редактиране",
+  "delete": "Изтриване",
+  "noAutomationRules": "Все още няма правила за автоматизация.",
+  "addRule": "Добавяне на правило",
+  "hardwareHealthCenter": "Център за състоянието на хардуера",
+  "status": "Състояние",
+  "safety": "Безопасност",
+  "recovery": "Възстановяване",
+  "warnings": "Предупреждения",
+  "anomalies": "Аномалии",
+  "close": "Затваряне",
+  "checkForUpdates": "Проверка за актуализации",
+  "maxCpuTemperature": "Макс. температура на CPU: {temperature} °C",
+  "@maxCpuTemperature": {
+    "description": "Localized UI message: maxCpuTemperature. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "temperature": {
+        "type": "num"
+      }
+    }
+  },
+  "exportCsv": "Експортиране в CSV",
+  "thermalStatus": "Термично състояние: {status}",
+  "@thermalStatus": {
+    "description": "Localized UI message: thermalStatus. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeMetricsWaiting": "Изчакване на измерванията от моста",
+  "gpuTelemetryNote": "Разширената телеметрия на GPU зависи от поддръжката на драйвера и бекенда.",
+  "cpuCoreLoad": "Натоварване на ядрата на CPU",
+  "runAiAnalysis": "Стартиране на AI анализ",
+  "clearAiModelCache": "Изчистване на кеша на AI модела",
+  "modelDownloading": "Изтегляне на модела Gemma 3 1B: {percent}% • около 851 MB",
+  "@modelDownloading": {
+    "description": "Localized UI message: modelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "llmControlUnavailable": "Няма разрешение за управление на LLM",
+  "storageUnavailable": "Не е открито устройство за съхранение или телеметрията още не е готова.",
+  "freeSpace": "Свободно: {value}",
+  "@freeSpace": {
+    "description": "Localized UI message: freeSpace. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "readSpeed": "Четене: {value}",
+  "@readSpeed": {
+    "description": "Localized UI message: readSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "writeSpeed": "Запис: {value}",
+  "@writeSpeed": {
+    "description": "Localized UI message: writeSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "health": "Състояние: {value}",
+  "@health": {
+    "description": "Localized UI message: health. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSystem": "Файлова система: {value}",
+  "@fileSystem": {
+    "description": "Localized UI message: fileSystem. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diagnosticPrivacy": "Диагностика: {status} • серийните номера не се включват в отчетите",
+  "@diagnosticPrivacy": {
+    "description": "Localized UI message: diagnosticPrivacy. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "detectedGame": "Открита игра: {game}",
+  "@detectedGame": {
+    "description": "Localized UI message: detectedGame. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "gameModeWaiting": "Игровият режим е готов — изчакване на игра",
+  "gameModeOff": "Игровият режим е изключен",
+  "activeGameProcess": "Процесът на играта се наблюдава",
+  "hardwareControlMonitorOnly": "Хардуерно управление: само наблюдение",
+  "extensionApiStatus": "API за разширения: договорът за доставчик на метаданни/възможности е готов • зареждането на вградени добавки е изключено",
+  "smartFanCurve": "Интелигентна крива на вентилатора",
+  "smartFanEnabled": "Smart Fan: включен",
+  "smartFanDisabled": "Smart Fan: изключен",
+  "automation": "Автоматизация",
+  "benchmark": "Бенчмарк",
+  "downloadVerifiedUpdate": "Изтегляне на проверената актуализация",
+  "newFanCurvePoint": "Нова точка на кривата на вентилатора",
+  "smartFanCurveDescription": "Задайте целта на вентилатора според температурата. Кривата се прилага автоматично само при наличен проверен бекенд за хардуерно управление.",
+  "deletePoint": "Изтриване на точка",
+  "addPoint": "Добавяне на точка",
+  "resetBalanced": "Възстановяване на балансирано",
+  "hardwareBenchmark": "Хардуерен бенчмарк",
+  "benchmarkDisclaimer": "Едносекунден CPU микробенчмарк. Това не е стрес тест и не променя хардуерните настройки.",
+  "score": "Резултат: {value} итерации/сек",
+  "@score": {
+    "description": "Localized UI message: score. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "iterations": "Итерации: {value}",
+  "@iterations": {
+    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "duration": "Продължителност: {value} ms",
+  "@duration": {
+    "description": "Localized UI message: duration. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "run": "Стартиране",
+  "unknown": "Неизвестно",
+  "none": "Няма",
+  "power": "Мощност",
+  "voltage": "Напрежение",
+  "appTagline": "Прецизно управление на хардуера",
+  "cpuUsageLabel": "Натоварване на CPU",
+  "coreClock": "Честота на ядрото",
+  "memoryClock": "Честота на паметта",
+  "advancedTelemetryDescription": "Натоварване на GPU, VRAM, мощност, честоти и ядра на CPU",
+  "localAiAnalysisDescription": "Локален анализ на телеметрията в реално време с Gemma",
+  "hardwareDetectionDescription": "Идентификация на компютъра, дънната платка, CPU и GPU",
+  "gameModeDescription": "Автоматично откриване и наблюдение, насочено към игрите, докато играта работи",
+  "gameModeSet": "Задаване на игрови режим",
+  "bridgeWaiting": "Изчакване на моста",
+  "monitoringOnly": "Само наблюдение",
+  "powerLimit": "Ограничение на мощността",
+  "gpuState": "Състояние на GPU",
+  "encoderUsage": "Натоварване на кодера",
+  "decoderUsage": "Натоварване на декодера",
+  "samplingInterval": "Последният час • измерване на всеки 5 секунди",
+  "modelDigestLabel": "SHA-256 на модела",
+  "gpuAdapterLabel": "GPU адаптер",
+  "lastActionLabel": "Последно действие",
+  "vramUsageLabel": "Използване на VRAM",
+  "gpuPowerLimit": "Ограничение на мощността на GPU",
+  "gpuEncoder": "Кодер",
+  "gpuDecoder": "Декодер",
+  "storageTitle": "Съхранение",
+  "storageDescription": "Използване и I/O състояние на SSD, HDD и NVMe",
+  "aiProcessingPower": "Изчислителна мощност на AI",
+  "securityLabel": "Сигурност",
+  "securityKeyWaiting": "Изчакване на ключ",
+  "digestNotFound": "Не е намерено",
+  "digestNotChecked": "Не е проверено",
+  "gpuAdapter": "GPU адаптер",
+  "cpuCoreSummary": "{cores} ядра • {frequency} MHz",
+  "@cpuCoreSummary": {
+    "description": "Localized UI message: cpuCoreSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "cores": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "num"
+      }
+    }
+  },
+  "warningThresholdLabel": "Праг за предупреждение",
+  "hardwareControlUnavailableNote": "Настройките на вентилатора или честотата не се променят, когато управлението на хардуера не се поддържа.",
+  "thermalStatusLabel": "Термично състояние",
+  "fanControlLabel": "Управление на вентилатора",
+  "installerTitle": "Съветник за инсталиране на HWControl",
+  "installerLocalAiModel": "Локален AI (Gemma 3 1B)",
+  "installerAiDescription": "По избор. Ако е избрано, Gemma 3 1B се изтегля по време на инсталирането и се проверява със SHA-256.",
+  "installerChecking": "Проверка на инсталацията...",
+  "installerContinue": "Продължи",
+  "installerFinish": "Завърши инсталацията",
+  "installerPackageStepTitle": "1. Проверка на типа пакет",
+  "installerBridgeStepTitle": "2. Проверка на състоянието на моста",
+  "installerCompleteStepTitle": "3. Завършване на инсталацията",
+  "installerPackageStepDescription": "Този пакетен формат е подходящ за {platform}: {formats}.",
+  "@installerPackageStepDescription": {
+    "description": "Localized UI message: installerPackageStepDescription. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "installerAiStepDescription": "Локалният AI компонент може да се инсталира по избор. Ако е избран, Gemma 3 1B Instruct Q5_K_M (около 851 MB) се изтегля по време на инсталацията и се проверява със SHA-256.",
+  "installerCompleteWithAi": "Моделът се подготвя в последната стъпка. Липсващ или повреден модел се възстановява чрез проверено изтегляне.",
+  "installerCompleteWithoutAi": "Основното приложение се инсталира; AI моделът не се изтегля при тази инсталация.",
+  "installerAiSelectedFooter": "AI е избран: Gemma се подготвя по време на инсталирането. Липсващите или повредени файлове се изтеглят повторно и се проверяват.",
+  "installerAiSkippedFooter": "AI не е избран: Gemma не се инсталира. Може да бъде изтеглен безопасно при първата заявка за AI анализ.",
+  "installerPreviouslyCompleted": "Инсталацията вече е завършена. AI моделът е по избор.",
+  "installerBridgeFound": "намерен",
+  "installerBridgePending": "очаква се от пакетната инсталация",
+  "installerModelReady": "готов и проверен",
+  "installerModelOptional": "по избор; изтегля се при първия AI анализ",
+  "installerCheckFailed": "Проверката на инсталацията е неуспешна: {error}",
+  "@installerCheckFailed": {
+    "description": "Localized UI message: installerCheckFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelPreparing": "Подготовка на модела Gemma 3 1B...",
+  "installerModelDownloading": "Изтегляне на Gemma 3 1B: {percent}%",
+  "@installerModelDownloading": {
+    "description": "Localized UI message: installerModelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "installerModelDownloadFailed": "Инсталирането на Gemma е неуспешно: {error}\nОсновната инсталация може да продължи; опитайте инсталирането на AI по-късно.",
+  "@installerModelDownloadFailed": {
+    "description": "Localized UI message: installerModelDownloadFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelDownloaded": "Gemma 3 1B е изтеглен и проверен със SHA-256.",
+  "installerTestMode": "Тестов режим: инсталацията и изтеглянето на модела са пропуснати.",
+  "installerCheckingComponents": "Проверка на компонентите на инсталацията...",
+  "installerPlatformSummary": "Платформа: {platform}\nПакет: {formats}\nМост: {bridge}\nAI модел: {ai}",
+  "@installerPlatformSummary": {
+    "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      },
+      "ai": {
+        "type": "String"
+      }
+    }
+  },
+  "motherboardLabel": "Дънна платка",
+  "gpuDriverLabel": "Драйвер за GPU",
+  "last20Events": "Последните 20 събития"
+}

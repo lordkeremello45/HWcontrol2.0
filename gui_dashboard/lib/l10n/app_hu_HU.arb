@@ -1,0 +1,388 @@
+{
+  "@@locale": "hu_HU",
+  "menu": "Menü",
+  "settings": "Beállítások",
+  "language": "Nyelv",
+  "appearance": "Megjelenés",
+  "notifications": "Értesítések",
+  "enableNotifications": "Értesítések engedélyezése",
+  "temperatureWarning": "Hőmérsékleti figyelmeztetési küszöb",
+  "cancel": "Mégse",
+  "save": "Mentés",
+  "dashboard": "Vezérlőpult",
+  "systemStatus": "Rendszerállapot",
+  "controls": "Vezérlők",
+  "createErrorReport": "Hibajelentés létrehozása",
+  "reconnect": "Újracsatlakozás",
+  "noEvents": "Még nincsenek események",
+  "darkMode": "Dark mode",
+  "lightMode": "Light mode",
+  "animationsOn": "Disable animations",
+  "animationsOff": "Enable animations",
+  "accessibility": "Akadálymentesítés",
+  "offlineSpeech": "Offline beszéd",
+  "piperOfflineDescription": "A vezérlőpult adatait helyben telepített Piper-hangokkal olvastathatja fel. A beszéd ezen az eszközön marad.",
+  "piperExecutablePath": "Piper futtatható fájl elérési útja",
+  "piperModelPath": "ONNX hangmodell elérési útja",
+  "testSpeech": "Beszéd tesztelése",
+  "readDashboard": "Vezérlőpult felolvasása",
+  "piperTesting": "Beszéd tesztelése...",
+  "piperTestSuccess": "A beszédteszt befejeződött.",
+  "piperTestFailed": "A beszédteszt nem sikerült.",
+  "piperTestPhrase": "HWcontrol2.0 akadálymentesítési beszédteszt. A hardveradatok ezen az eszközön maradnak.",
+  "stopSpeech": "Beszéd leállítása",
+  "piperSpeechStopped": "A beszéd leállt.",
+  "browsePiperExecutable": "Piper futtatható fájl kiválasztása",
+  "browsePiperModel": "ONNX hangmodell kiválasztása",
+  "piperModelConfigHint": "A megfelelő .onnx.json konfigurációs fájlnak ugyanabban a mappában kell lennie. Használat előtt ellenőrizze a hang licencét.",
+  "piperVoiceCatalog": "Hivatalos Piper-hangok böngészése",
+  "getPiperExecutable": "Piper futtatható fájl beszerzése",
+  "systemDefault": "Rendszer alapértelmezett",
+  "telemetryHistory": "Mérési előzmények",
+  "lastHour": "Utolsó 1 óra • mintavétel 5 másodpercenként",
+  "hardwareDetection": "Hardverfelismerés",
+  "pcMotherboardCpuGpu": "PC, alaplap, CPU és GPU adatai",
+  "controlFlow": "Vezérlési folyamat",
+  "safeUserSettings": "Biztonságos felhasználói beállítások",
+  "gameMode": "Játék mód",
+  "advancedTelemetry": "Speciális mérések",
+  "aiAnalysis": "MI-elemzés",
+  "diagnostics": "Diagnosztika",
+  "online": "HÍD ONLINE",
+  "offline": "OFFLINE",
+  "updateCheck": "Frissítések keresése",
+  "releaseOpen": "Kiadás megnyitása",
+  "systemEvents": "Rendszeresemények",
+  "quiet": "Csendes",
+  "balanced": "Kiegyensúlyozott",
+  "performance": "Teljesítmény",
+  "game": "Játék",
+  "manual": "Kézi",
+  "reset": "Visszaállítás",
+  "saveProfile": "Profil mentése",
+  "fanSpeed": "Ventilátor sebessége",
+  "apply": "Alkalmazás",
+  "languageChanged": "A nyelv megváltozott",
+  "temperature": "Hőmérséklet",
+  "usage": "Használat",
+  "ramUsage": "Memóriahasználat",
+  "diskUsage": "Lemezhasználat",
+  "gpuUsage": "GPU-használat",
+  "fan": "Ventilátor",
+  "welcomeTitle": "Üdvözöljük a HWcontrol2.0-ban",
+  "welcomeTagline": "Figyelés. Vezérlés. Védelem.",
+  "welcomeDescription": "Egyszerű és megbízható mód a hardver figyelésére, a hűtés vezérlésére és a rendszer megfelelő állapotának megőrzésére.",
+  "welcomeMonitor": "Figyelés",
+  "welcomeMonitorDescription": "CPU/GPU-érzékelők és hőmérsékletek",
+  "welcomeControl": "Vezérlés",
+  "welcomeControlDescription": "Ventilátorgörbék és teljesítményprofilok",
+  "welcomeProtect": "Védelem",
+  "welcomeProtectDescription": "Diagnosztika és rendszerállapot",
+  "welcomeGetStarted": "Kezdés",
+  "welcomeOpenDashboard": "Irányítópult megnyitása",
+  "welcomeDontShowAgain": "Ne jelenjen meg újra",
+  "welcomePreview": "Irányítópult előnézete",
+  "welcomeExampleStatus": "Példaállapot",
+  "welcomeSampleValues": "Példaértékek",
+  "welcomeConnectHardware": "Hardver csatlakoztatása",
+  "newAutomationRule": "Új automatizálási szabály",
+  "editAutomationRule": "Automatizálási szabály szerkesztése",
+  "ruleName": "Szabály neve",
+  "sensor": "Érzékelő",
+  "cpuTemperatureLabel": "CPU-hőmérséklet",
+  "gpuTemperatureLabel": "GPU-hőmérséklet",
+  "threshold": "Küszöbérték (°C)",
+  "fanTarget": "Ventilátor célértéke (%)",
+  "hardwareAutomation": "Hardverautomatizálás",
+  "automationSafetyNote": "A szabályok csak ellenőrzött hardvervezérlő háttérrendszer esetén küldenek ventilátorparancsokat.",
+  "edit": "Szerkesztés",
+  "delete": "Törlés",
+  "noAutomationRules": "Még nincsenek automatizálási szabályok.",
+  "addRule": "Szabály hozzáadása",
+  "hardwareHealthCenter": "Hardverállapot-központ",
+  "status": "Állapot",
+  "safety": "Biztonság",
+  "recovery": "Helyreállítás",
+  "warnings": "Figyelmeztetések",
+  "anomalies": "Rendellenességek",
+  "close": "Bezárás",
+  "checkForUpdates": "Frissítések keresése",
+  "maxCpuTemperature": "Maximális CPU-hőmérséklet: {temperature} °C",
+  "@maxCpuTemperature": {
+    "description": "Localized UI message: maxCpuTemperature. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "temperature": {
+        "type": "num"
+      }
+    }
+  },
+  "exportCsv": "CSV exportálása",
+  "thermalStatus": "Hőállapot: {status}",
+  "@thermalStatus": {
+    "description": "Localized UI message: thermalStatus. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeMetricsWaiting": "Várakozás a híd mérési adataira",
+  "gpuTelemetryNote": "A fejlett GPU-telemetria az illesztőprogram és a háttérrendszer támogatásától függ.",
+  "cpuCoreLoad": "CPU-magok terhelése",
+  "runAiAnalysis": "MI-elemzés futtatása",
+  "clearAiModelCache": "MI-modell gyorsítótárának törlése",
+  "modelDownloading": "Gemma 3 1B modell letöltése: {percent}% • kb. 851 MB",
+  "@modelDownloading": {
+    "description": "Localized UI message: modelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "llmControlUnavailable": "Az LLM-vezérlési engedély nem érhető el",
+  "storageUnavailable": "A tárolóeszköz nem található, vagy a telemetria még nem áll készen.",
+  "freeSpace": "Szabad: {value}",
+  "@freeSpace": {
+    "description": "Localized UI message: freeSpace. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "readSpeed": "Olvasás: {value}",
+  "@readSpeed": {
+    "description": "Localized UI message: readSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "writeSpeed": "Írás: {value}",
+  "@writeSpeed": {
+    "description": "Localized UI message: writeSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "health": "Állapot: {value}",
+  "@health": {
+    "description": "Localized UI message: health. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSystem": "Fájlrendszer: {value}",
+  "@fileSystem": {
+    "description": "Localized UI message: fileSystem. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diagnosticPrivacy": "Diagnosztika: {status} • a sorozatszámok nem kerülnek a jelentésekbe",
+  "@diagnosticPrivacy": {
+    "description": "Localized UI message: diagnosticPrivacy. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "detectedGame": "Észlelt játék: {game}",
+  "@detectedGame": {
+    "description": "Localized UI message: detectedGame. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "gameModeWaiting": "Játék mód kész — játékra vár",
+  "gameModeOff": "Játék mód kikapcsolva",
+  "activeGameProcess": "A játékfolyamat figyelése folyamatban",
+  "hardwareControlMonitorOnly": "Hardvervezérlés: csak megfigyelés",
+  "extensionApiStatus": "Bővítmény-API: a metaadat-/képességszolgáltató szerződése kész • natív bővítmények betöltése letiltva",
+  "smartFanCurve": "Intelligens ventilátorgörbe",
+  "smartFanEnabled": "Smart Fan: be",
+  "smartFanDisabled": "Smart Fan: ki",
+  "automation": "Automatizálás",
+  "benchmark": "Teljesítményteszt",
+  "downloadVerifiedUpdate": "Ellenőrzött frissítés letöltése",
+  "newFanCurvePoint": "Új ventilátorgörbe-pont",
+  "smartFanCurveDescription": "A ventilátor célértékét a hőmérséklet szerint állítsd be. A görbe automatikusan csak ellenőrzött hardvervezérlő háttérrendszer esetén lép életbe.",
+  "deletePoint": "Pont törlése",
+  "addPoint": "Pont hozzáadása",
+  "resetBalanced": "Visszaállítás kiegyensúlyozottra",
+  "hardwareBenchmark": "Hardveres teljesítményteszt",
+  "benchmarkDisclaimer": "Egy másodperces CPU-mikroteszt. Nem terheléses teszt, és nem módosítja a hardver beállításait.",
+  "score": "Pontszám: {value} iteráció/s",
+  "@score": {
+    "description": "Localized UI message: score. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "iterations": "Iterációk: {value}",
+  "@iterations": {
+    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "duration": "Időtartam: {value} ms",
+  "@duration": {
+    "description": "Localized UI message: duration. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "run": "Futtatás",
+  "unknown": "Ismeretlen",
+  "none": "Nincs",
+  "power": "Teljesítmény",
+  "voltage": "Feszültség",
+  "appTagline": "Precíz hardvervezérlés",
+  "cpuUsageLabel": "CPU-használat",
+  "coreClock": "Magórajel",
+  "memoryClock": "Memóriaórajel",
+  "advancedTelemetryDescription": "GPU-terhelés, VRAM, teljesítmény, órajelek és CPU-magok",
+  "localAiAnalysisDescription": "Élő telemetria helyi elemzése Gemmával",
+  "hardwareDetectionDescription": "A PC, az alaplap, a CPU és a GPU azonosító adatai",
+  "gameModeDescription": "Automatikus felismerés és játékra összpontosító megfigyelés játék futása közben",
+  "gameModeSet": "Játékmód beállítása",
+  "bridgeWaiting": "Várakozás a hídra",
+  "monitoringOnly": "Csak megfigyelés",
+  "powerLimit": "Teljesítménykorlát",
+  "gpuState": "GPU állapota",
+  "encoderUsage": "Kódoló használata",
+  "decoderUsage": "Dekódoló használata",
+  "samplingInterval": "Utolsó óra • mintavétel 5 másodpercenként",
+  "modelDigestLabel": "Modell SHA-256",
+  "gpuAdapterLabel": "GPU-adapter",
+  "lastActionLabel": "Utolsó művelet",
+  "vramUsageLabel": "VRAM-használat",
+  "gpuPowerLimit": "GPU-teljesítménykorlát",
+  "gpuEncoder": "Kódoló",
+  "gpuDecoder": "Dekódoló",
+  "storageTitle": "Tárolás",
+  "storageDescription": "SSD, HDD és NVMe használata és I/O-állapota",
+  "aiProcessingPower": "MI-feldolgozási teljesítmény",
+  "securityLabel": "Biztonság",
+  "securityKeyWaiting": "Kulcsra vár",
+  "digestNotFound": "Nem található",
+  "digestNotChecked": "Nincs ellenőrizve",
+  "gpuAdapter": "GPU-adapter",
+  "cpuCoreSummary": "{cores} mag • {frequency} MHz",
+  "@cpuCoreSummary": {
+    "description": "Localized UI message: cpuCoreSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "cores": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "num"
+      }
+    }
+  },
+  "warningThresholdLabel": "Figyelmeztetési küszöb",
+  "hardwareControlUnavailableNote": "Hardvervezérlés hiányában a ventilátor- és órajelbeállítások nem módosulnak.",
+  "thermalStatusLabel": "Hőállapot",
+  "fanControlLabel": "Ventilátorvezérlés",
+  "installerTitle": "HWControl telepítővarázsló",
+  "installerLocalAiModel": "Helyi MI (Gemma 3 1B)",
+  "installerAiDescription": "Választható. Kiválasztásakor a Gemma 3 1B a telepítés során letöltődik, és SHA-256-tal ellenőrzésre kerül.",
+  "installerChecking": "Telepítés ellenőrzése...",
+  "installerContinue": "Folytatás",
+  "installerFinish": "Telepítés befejezése",
+  "installerPackageStepTitle": "1. Csomagtípus ellenőrzése",
+  "installerBridgeStepTitle": "2. Híd állapotának ellenőrzése",
+  "installerCompleteStepTitle": "3. Telepítés befejezése",
+  "installerPackageStepDescription": "Ez a csomagformátum megfelelő ehhez: {platform}: {formats}.",
+  "@installerPackageStepDescription": {
+    "description": "Localized UI message: installerPackageStepDescription. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "installerAiStepDescription": "A helyi MI-összetevő opcionálisan telepíthető. Kiválasztásakor a Gemma 3 1B Instruct Q5_K_M (kb. 851 MB) a telepítés közben letöltődik, majd SHA-256-tal ellenőrzésre kerül.",
+  "installerCompleteWithAi": "A modell az utolsó lépésben készül elő. A hiányzó vagy sérült modellt ellenőrzött letöltés javítja.",
+  "installerCompleteWithoutAi": "Az alapalkalmazás települ; az MI-modell ebben a telepítésben nem töltődik le.",
+  "installerAiSelectedFooter": "MI kiválasztva: a Gemma a telepítés során előkészül. A hiányzó vagy sérült fájlok újra letöltődnek és ellenőrzésre kerülnek.",
+  "installerAiSkippedFooter": "MI nincs kiválasztva: a Gemma nem települ. Az első MI-elemzés kérésekor biztonságosan letölthető.",
+  "installerPreviouslyCompleted": "A telepítés már befejeződött. Az MI-modell nem kötelező.",
+  "installerBridgeFound": "megtalálva",
+  "installerBridgePending": "a csomagtelepítéstől várható",
+  "installerModelReady": "kész és ellenőrzött",
+  "installerModelOptional": "választható; az első MI-elemzéskor töltődik le",
+  "installerCheckFailed": "A telepítés ellenőrzése sikertelen: {error}",
+  "@installerCheckFailed": {
+    "description": "Localized UI message: installerCheckFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelPreparing": "Gemma 3 1B modell előkészítése...",
+  "installerModelDownloading": "Gemma 3 1B letöltése: {percent}%",
+  "@installerModelDownloading": {
+    "description": "Localized UI message: installerModelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "installerModelDownloadFailed": "A Gemma telepítése sikertelen: {error}\nAz alaptelepítés folytatható; az MI telepítése később újrapróbálható.",
+  "@installerModelDownloadFailed": {
+    "description": "Localized UI message: installerModelDownloadFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelDownloaded": "A Gemma 3 1B letöltése és SHA-256 ellenőrzése megtörtént.",
+  "installerTestMode": "Tesztmód: a telepítés és a modell letöltése kimaradt.",
+  "installerCheckingComponents": "Telepítési összetevők ellenőrzése...",
+  "installerPlatformSummary": "Platform: {platform}\nCsomag: {formats}\nHíd: {bridge}\nMI-modell: {ai}",
+  "@installerPlatformSummary": {
+    "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      },
+      "ai": {
+        "type": "String"
+      }
+    }
+  },
+  "motherboardLabel": "Alaplap",
+  "gpuDriverLabel": "GPU-illesztőprogram",
+  "last20Events": "Az utolsó 20 esemény"
+}

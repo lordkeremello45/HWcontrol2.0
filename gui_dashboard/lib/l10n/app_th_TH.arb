@@ -1,0 +1,388 @@
+{
+  "@@locale": "th_TH",
+  "menu": "เมนู",
+  "settings": "การตั้งค่า",
+  "language": "ภาษา",
+  "appearance": "ลักษณะที่ปรากฏ",
+  "notifications": "การแจ้งเตือน",
+  "enableNotifications": "เปิดการแจ้งเตือน",
+  "temperatureWarning": "เกณฑ์แจ้งเตือนอุณหภูมิ",
+  "cancel": "ยกเลิก",
+  "save": "บันทึก",
+  "dashboard": "แดชบอร์ด",
+  "systemStatus": "สถานะระบบ",
+  "controls": "การควบคุม",
+  "createErrorReport": "สร้างรายงานข้อผิดพลาด",
+  "reconnect": "เชื่อมต่อใหม่",
+  "noEvents": "ยังไม่มีเหตุการณ์",
+  "darkMode": "Dark mode",
+  "lightMode": "Light mode",
+  "animationsOn": "Disable animations",
+  "animationsOff": "Enable animations",
+  "accessibility": "การช่วยการเข้าถึง",
+  "offlineSpeech": "เสียงออฟไลน์",
+  "piperOfflineDescription": "อ่านข้อมูลแดชบอร์ดด้วยเสียง Piper ที่ติดตั้งไว้ในเครื่อง การประมวลผลเสียงอยู่บนอุปกรณ์นี้",
+  "piperExecutablePath": "เส้นทางไฟล์โปรแกรม Piper",
+  "piperModelPath": "เส้นทางโมเดลเสียง ONNX",
+  "testSpeech": "ทดสอบเสียง",
+  "readDashboard": "อ่านแดชบอร์ด",
+  "piperTesting": "กำลังทดสอบเสียง...",
+  "piperTestSuccess": "ทดสอบเสียงเสร็จแล้ว",
+  "piperTestFailed": "ทดสอบเสียงไม่สำเร็จ",
+  "piperTestPhrase": "การทดสอบเสียงเพื่อการเข้าถึงของ HWcontrol2.0 ข้อมูลฮาร์ดแวร์ของคุณยังอยู่ในอุปกรณ์นี้",
+  "stopSpeech": "หยุดเสียง",
+  "piperSpeechStopped": "หยุดเสียงแล้ว",
+  "browsePiperExecutable": "เลือกไฟล์โปรแกรม Piper",
+  "browsePiperModel": "เลือกโมเดลเสียง ONNX",
+  "piperModelConfigHint": "ไฟล์กำหนดค่า .onnx.json ที่ตรงกันต้องอยู่ในโฟลเดอร์เดียวกัน โปรดตรวจสอบใบอนุญาตของเสียงก่อนใช้งาน",
+  "piperVoiceCatalog": "ดูเสียง Piper อย่างเป็นทางการ",
+  "getPiperExecutable": "รับไฟล์โปรแกรม Piper",
+  "systemDefault": "ค่าเริ่มต้นของระบบ",
+  "telemetryHistory": "ประวัติการวัด",
+  "lastHour": "1 ชั่วโมงล่าสุด • เก็บตัวอย่างทุก 5 วินาที",
+  "hardwareDetection": "ตรวจหาฮาร์ดแวร์",
+  "pcMotherboardCpuGpu": "ข้อมูล PC เมนบอร์ด CPU และ GPU",
+  "controlFlow": "ลำดับการควบคุม",
+  "safeUserSettings": "การตั้งค่าผู้ใช้ที่ปลอดภัย",
+  "gameMode": "โหมดเกม",
+  "advancedTelemetry": "การวัดขั้นสูง",
+  "aiAnalysis": "การวิเคราะห์ AI",
+  "diagnostics": "การวินิจฉัย",
+  "online": "บริดจ์ออนไลน์",
+  "offline": "ออฟไลน์",
+  "updateCheck": "ตรวจหาการอัปเดต",
+  "releaseOpen": "เปิดรุ่นเผยแพร่",
+  "systemEvents": "เหตุการณ์ของระบบ",
+  "quiet": "เงียบ",
+  "balanced": "สมดุล",
+  "performance": "ประสิทธิภาพ",
+  "game": "เกม",
+  "manual": "กำหนดเอง",
+  "reset": "รีเซ็ต",
+  "saveProfile": "บันทึกโปรไฟล์",
+  "fanSpeed": "ความเร็วพัดลม",
+  "apply": "นำไปใช้",
+  "languageChanged": "เปลี่ยนภาษาแล้ว",
+  "temperature": "อุณหภูมิ",
+  "usage": "การใช้งาน",
+  "ramUsage": "การใช้หน่วยความจำ",
+  "diskUsage": "การใช้ดิสก์",
+  "gpuUsage": "การใช้ GPU",
+  "fan": "พัดลม",
+  "welcomeTitle": "ยินดีต้อนรับสู่ HWcontrol2.0",
+  "welcomeTagline": "ตรวจสอบ ควบคุม ปกป้อง",
+  "welcomeDescription": "วิธีที่เรียบง่ายและเชื่อถือได้ในการตรวจสอบฮาร์ดแวร์ ควบคุมการระบายความร้อน และดูแลระบบให้ทำงานได้ดี",
+  "welcomeMonitor": "ตรวจสอบ",
+  "welcomeMonitorDescription": "เซ็นเซอร์และอุณหภูมิ CPU/GPU",
+  "welcomeControl": "ควบคุม",
+  "welcomeControlDescription": "เส้นโค้งพัดลมและโปรไฟล์ประสิทธิภาพ",
+  "welcomeProtect": "ปกป้อง",
+  "welcomeProtectDescription": "การวินิจฉัยและสถานะระบบ",
+  "welcomeGetStarted": "เริ่มต้นใช้งาน",
+  "welcomeOpenDashboard": "เปิดแดชบอร์ด",
+  "welcomeDontShowAgain": "ไม่ต้องแสดงอีก",
+  "welcomePreview": "ตัวอย่างแดชบอร์ด",
+  "welcomeExampleStatus": "สถานะตัวอย่าง",
+  "welcomeSampleValues": "ค่าตัวอย่าง",
+  "welcomeConnectHardware": "เชื่อมต่อฮาร์ดแวร์",
+  "newAutomationRule": "กฎอัตโนมัติใหม่",
+  "editAutomationRule": "แก้ไขกฎอัตโนมัติ",
+  "ruleName": "ชื่อกฎ",
+  "sensor": "เซ็นเซอร์",
+  "cpuTemperatureLabel": "อุณหภูมิ CPU",
+  "gpuTemperatureLabel": "อุณหภูมิ GPU",
+  "threshold": "เกณฑ์ (°C)",
+  "fanTarget": "เป้าหมายพัดลม (%)",
+  "hardwareAutomation": "ระบบอัตโนมัติของฮาร์ดแวร์",
+  "automationSafetyNote": "กฎจะส่งคำสั่งพัดลมเมื่อมีแบ็กเอนด์ควบคุมฮาร์ดแวร์ที่ผ่านการตรวจสอบเท่านั้น",
+  "edit": "แก้ไข",
+  "delete": "ลบ",
+  "noAutomationRules": "ยังไม่มีกฎอัตโนมัติ",
+  "addRule": "เพิ่มกฎ",
+  "hardwareHealthCenter": "ศูนย์สุขภาพฮาร์ดแวร์",
+  "status": "สถานะ",
+  "safety": "ความปลอดภัย",
+  "recovery": "การกู้คืน",
+  "warnings": "คำเตือน",
+  "anomalies": "ความผิดปกติ",
+  "close": "ปิด",
+  "checkForUpdates": "ตรวจหาการอัปเดต",
+  "maxCpuTemperature": "อุณหภูมิ CPU สูงสุด: {temperature} °C",
+  "@maxCpuTemperature": {
+    "description": "Localized UI message: maxCpuTemperature. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "temperature": {
+        "type": "num"
+      }
+    }
+  },
+  "exportCsv": "ส่งออก CSV",
+  "thermalStatus": "สถานะความร้อน: {status}",
+  "@thermalStatus": {
+    "description": "Localized UI message: thermalStatus. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeMetricsWaiting": "กำลังรอข้อมูลวัดจากบริดจ์",
+  "gpuTelemetryNote": "การวัด GPU ขั้นสูงขึ้นอยู่กับการรองรับของไดรเวอร์และแบ็กเอนด์",
+  "cpuCoreLoad": "โหลดคอร์ CPU",
+  "runAiAnalysis": "เรียกใช้การวิเคราะห์ AI",
+  "clearAiModelCache": "ล้างแคชโมเดล AI",
+  "modelDownloading": "กำลังดาวน์โหลดโมเดล Gemma 3 1B: {percent}% • ประมาณ 851 MB",
+  "@modelDownloading": {
+    "description": "Localized UI message: modelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "llmControlUnavailable": "ไม่มีสิทธิ์ควบคุม LLM",
+  "storageUnavailable": "ไม่พบอุปกรณ์จัดเก็บหรือข้อมูลวัดยังไม่พร้อม",
+  "freeSpace": "พื้นที่ว่าง: {value}",
+  "@freeSpace": {
+    "description": "Localized UI message: freeSpace. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "readSpeed": "อ่าน: {value}",
+  "@readSpeed": {
+    "description": "Localized UI message: readSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "writeSpeed": "เขียน: {value}",
+  "@writeSpeed": {
+    "description": "Localized UI message: writeSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "health": "สุขภาพ: {value}",
+  "@health": {
+    "description": "Localized UI message: health. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSystem": "ระบบไฟล์: {value}",
+  "@fileSystem": {
+    "description": "Localized UI message: fileSystem. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diagnosticPrivacy": "การวินิจฉัย: {status} • ไม่รวมหมายเลขประจำเครื่องในรายงาน",
+  "@diagnosticPrivacy": {
+    "description": "Localized UI message: diagnosticPrivacy. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "detectedGame": "เกมที่ตรวจพบ: {game}",
+  "@detectedGame": {
+    "description": "Localized UI message: detectedGame. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "gameModeWaiting": "โหมดเกมพร้อมแล้ว — กำลังรอเกม",
+  "gameModeOff": "ปิดโหมดเกม",
+  "activeGameProcess": "กำลังตรวจสอบกระบวนการเกม",
+  "hardwareControlMonitorOnly": "การควบคุมฮาร์ดแวร์: ตรวจสอบเท่านั้น",
+  "extensionApiStatus": "Extension API: สัญญาผู้ให้บริการข้อมูล/ความสามารถพร้อมแล้ว • ปิดการโหลดปลั๊กอินเนทีฟ",
+  "smartFanCurve": "เส้นโค้งพัดลมอัจฉริยะ",
+  "smartFanEnabled": "Smart Fan: เปิด",
+  "smartFanDisabled": "Smart Fan: ปิด",
+  "automation": "ระบบอัตโนมัติ",
+  "benchmark": "ทดสอบประสิทธิภาพ",
+  "downloadVerifiedUpdate": "ดาวน์โหลดการอัปเดตที่ตรวจสอบแล้ว",
+  "newFanCurvePoint": "จุดเส้นโค้งพัดลมใหม่",
+  "smartFanCurveDescription": "กำหนดเป้าหมายพัดลมตามอุณหภูมิ เส้นโค้งจะทำงานอัตโนมัติเฉพาะเมื่อมีแบ็กเอนด์ควบคุมฮาร์ดแวร์ที่ผ่านการตรวจสอบ",
+  "deletePoint": "ลบจุด",
+  "addPoint": "เพิ่มจุด",
+  "resetBalanced": "รีเซ็ตเป็นสมดุล",
+  "hardwareBenchmark": "ทดสอบประสิทธิภาพฮาร์ดแวร์",
+  "benchmarkDisclaimer": "การทดสอบ CPU ขนาดเล็ก 1 วินาที ไม่ใช่การทดสอบความเค้นและไม่เปลี่ยนการตั้งค่าฮาร์ดแวร์",
+  "score": "คะแนน: {value} รอบ/วินาที",
+  "@score": {
+    "description": "Localized UI message: score. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "iterations": "จำนวนรอบ: {value}",
+  "@iterations": {
+    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "duration": "ระยะเวลา: {value} ms",
+  "@duration": {
+    "description": "Localized UI message: duration. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "run": "เรียกใช้",
+  "unknown": "ไม่ทราบ",
+  "none": "ไม่มี",
+  "power": "พลังงาน",
+  "voltage": "แรงดันไฟฟ้า",
+  "appTagline": "การควบคุมฮาร์ดแวร์อย่างแม่นยำ",
+  "cpuUsageLabel": "การใช้งาน CPU",
+  "coreClock": "ความถี่คอร์",
+  "memoryClock": "ความถี่หน่วยความจำ",
+  "advancedTelemetryDescription": "โหลด GPU, VRAM, กำลังไฟ ความถี่สัญญาณนาฬิกา และคอร์ CPU",
+  "localAiAnalysisDescription": "วิเคราะห์ข้อมูลวัดแบบเรียลไทม์ด้วย Gemma ในเครื่อง",
+  "hardwareDetectionDescription": "ข้อมูลระบุ PC เมนบอร์ด CPU และ GPU",
+  "gameModeDescription": "ตรวจจับอัตโนมัติและติดตามแบบเน้นเกมขณะเกมกำลังทำงาน",
+  "gameModeSet": "ตั้งค่าโหมดเกม",
+  "bridgeWaiting": "กำลังรอ Bridge",
+  "monitoringOnly": "ตรวจสอบเท่านั้น",
+  "powerLimit": "ขีดจำกัดพลังงาน",
+  "gpuState": "สถานะ GPU",
+  "encoderUsage": "การใช้งานตัวเข้ารหัส",
+  "decoderUsage": "การใช้งานตัวถอดรหัส",
+  "samplingInterval": "1 ชั่วโมงล่าสุด • วัดทุก 5 วินาที",
+  "modelDigestLabel": "SHA-256 ของโมเดล",
+  "gpuAdapterLabel": "อะแดปเตอร์ GPU",
+  "lastActionLabel": "การดำเนินการล่าสุด",
+  "vramUsageLabel": "การใช้ VRAM",
+  "gpuPowerLimit": "ขีดจำกัดพลังงาน GPU",
+  "gpuEncoder": "ตัวเข้ารหัส",
+  "gpuDecoder": "ตัวถอดรหัส",
+  "storageTitle": "พื้นที่จัดเก็บ",
+  "storageDescription": "การใช้งานและสถานะ I/O ของ SSD / HDD / NVMe",
+  "aiProcessingPower": "กำลังประมวลผล AI",
+  "securityLabel": "ความปลอดภัย",
+  "securityKeyWaiting": "กำลังรอคีย์",
+  "digestNotFound": "ไม่พบ",
+  "digestNotChecked": "ยังไม่ได้ตรวจสอบ",
+  "gpuAdapter": "อะแดปเตอร์ GPU",
+  "cpuCoreSummary": "{cores} คอร์ • {frequency} MHz",
+  "@cpuCoreSummary": {
+    "description": "Localized UI message: cpuCoreSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "cores": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "num"
+      }
+    }
+  },
+  "warningThresholdLabel": "เกณฑ์การเตือน",
+  "hardwareControlUnavailableNote": "หากไม่มีการรองรับการควบคุมฮาร์ดแวร์ จะไม่เปลี่ยนการตั้งค่าพัดลมหรือความถี่สัญญาณนาฬิกา",
+  "thermalStatusLabel": "สถานะความร้อน",
+  "fanControlLabel": "การควบคุมพัดลม",
+  "installerTitle": "ตัวช่วยติดตั้ง HWControl",
+  "installerLocalAiModel": "AI ภายในเครื่อง (Gemma 3 1B)",
+  "installerAiDescription": "เป็นตัวเลือก หากเลือก จะดาวน์โหลด Gemma 3 1B ระหว่างการติดตั้งและตรวจสอบด้วย SHA-256",
+  "installerChecking": "กำลังตรวจสอบการติดตั้ง...",
+  "installerContinue": "ดำเนินการต่อ",
+  "installerFinish": "เสร็จสิ้นการติดตั้ง",
+  "installerPackageStepTitle": "1. ตรวจสอบประเภทแพ็กเกจ",
+  "installerBridgeStepTitle": "2. ตรวจสอบสถานะบริดจ์",
+  "installerCompleteStepTitle": "3. เสร็จสิ้นการติดตั้ง",
+  "installerPackageStepDescription": "รูปแบบแพ็กเกจนี้เหมาะสำหรับ {platform}: {formats}",
+  "@installerPackageStepDescription": {
+    "description": "Localized UI message: installerPackageStepDescription. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "installerAiStepDescription": "สามารถติดตั้งส่วนประกอบ AI ภายในเครื่องเป็นตัวเลือกได้ หากเลือก จะดาวน์โหลด Gemma 3 1B Instruct Q5_K_M (ประมาณ 851 MB) ระหว่างติดตั้งและตรวจสอบด้วย SHA-256",
+  "installerCompleteWithAi": "เตรียมโมเดลในขั้นตอนสุดท้าย หากไม่มีโมเดลหรือโมเดลเสียหาย จะซ่อมแซมด้วยการดาวน์โหลดที่ตรวจสอบแล้ว",
+  "installerCompleteWithoutAi": "ติดตั้งแอปหลัก แต่จะไม่ดาวน์โหลดโมเดล AI ในการติดตั้งครั้งนี้",
+  "installerAiSelectedFooter": "เลือก AI แล้ว: จะเตรียม Gemma ระหว่างติดตั้ง ไฟล์ที่หายไปหรือเสียหายจะถูกดาวน์โหลดใหม่และตรวจสอบ",
+  "installerAiSkippedFooter": "ไม่ได้เลือก AI: จะไม่ติดตั้ง Gemma สามารถดาวน์โหลดอย่างปลอดภัยเมื่อเรียกใช้การวิเคราะห์ AI ครั้งแรก",
+  "installerPreviouslyCompleted": "ติดตั้งเสร็จแล้วก่อนหน้านี้ โมเดล AI เป็นตัวเลือก",
+  "installerBridgeFound": "พบแล้ว",
+  "installerBridgePending": "คาดว่าจะมาจากการติดตั้งแพ็กเกจ",
+  "installerModelReady": "พร้อมและตรวจสอบแล้ว",
+  "installerModelOptional": "เป็นตัวเลือก; ดาวน์โหลดเมื่อเรียกใช้การวิเคราะห์ AI ครั้งแรก",
+  "installerCheckFailed": "ตรวจสอบการติดตั้งไม่สำเร็จ: {error}",
+  "@installerCheckFailed": {
+    "description": "Localized UI message: installerCheckFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelPreparing": "กำลังเตรียมโมเดล Gemma 3 1B...",
+  "installerModelDownloading": "กำลังดาวน์โหลด Gemma 3 1B: {percent}%",
+  "@installerModelDownloading": {
+    "description": "Localized UI message: installerModelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "installerModelDownloadFailed": "ติดตั้ง Gemma ไม่สำเร็จ: {error}\nยังติดตั้งส่วนหลักต่อได้ และลองติดตั้ง AI อีกครั้งภายหลังได้",
+  "@installerModelDownloadFailed": {
+    "description": "Localized UI message: installerModelDownloadFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelDownloaded": "ดาวน์โหลด Gemma 3 1B และตรวจสอบด้วย SHA-256 แล้ว",
+  "installerTestMode": "โหมดทดสอบ: ข้ามการติดตั้งและดาวน์โหลดโมเดล",
+  "installerCheckingComponents": "กำลังตรวจสอบส่วนประกอบการติดตั้ง...",
+  "installerPlatformSummary": "แพลตฟอร์ม: {platform}\nแพ็กเกจ: {formats}\nบริดจ์: {bridge}\nโมเดล AI: {ai}",
+  "@installerPlatformSummary": {
+    "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      },
+      "ai": {
+        "type": "String"
+      }
+    }
+  },
+  "motherboardLabel": "เมนบอร์ด",
+  "gpuDriverLabel": "ไดรเวอร์ GPU",
+  "last20Events": "20 เหตุการณ์ล่าสุด"
+}

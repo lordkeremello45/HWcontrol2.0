@@ -1,0 +1,388 @@
+{
+  "@@locale": "nb_NO",
+  "menu": "Meny",
+  "settings": "Innstillinger",
+  "language": "Språk",
+  "appearance": "Utseende",
+  "notifications": "Varsler",
+  "enableNotifications": "Aktiver varsler",
+  "temperatureWarning": "Temperaturvarselgrense",
+  "cancel": "Avbryt",
+  "save": "Lagre",
+  "dashboard": "Dashbord",
+  "systemStatus": "Systemstatus",
+  "controls": "Kontroller",
+  "createErrorReport": "Opprett feilrapport",
+  "reconnect": "Koble til på nytt",
+  "noEvents": "Ingen hendelser ennå",
+  "darkMode": "Dark mode",
+  "lightMode": "Light mode",
+  "animationsOn": "Disable animations",
+  "animationsOff": "Enable animations",
+  "accessibility": "Tilgjengelighet",
+  "offlineSpeech": "Frakoblet tale",
+  "piperOfflineDescription": "Få informasjon fra oversikten lest opp med lokalt installerte Piper-stemmer. Tale behandles på denne enheten.",
+  "piperExecutablePath": "Bane til Piper-programfil",
+  "piperModelPath": "Bane til ONNX-stemmemodell",
+  "testSpeech": "Test tale",
+  "readDashboard": "Les opp oversikten",
+  "piperTesting": "Tester tale...",
+  "piperTestSuccess": "Taletesten er fullført.",
+  "piperTestFailed": "Taletesten mislyktes.",
+  "piperTestPhrase": "HWcontrol2.0-taletest for tilgjengelighet. Maskinvaredataene dine forblir på denne enheten.",
+  "stopSpeech": "Stopp tale",
+  "piperSpeechStopped": "Tale stoppet.",
+  "browsePiperExecutable": "Velg Piper-programfil",
+  "browsePiperModel": "Velg ONNX-stemmemodell",
+  "piperModelConfigHint": "Den tilhørende .onnx.json-konfigurasjonsfilen må ligge i samme mappe. Kontroller stemmens lisens før bruk.",
+  "piperVoiceCatalog": "Bla gjennom offisielle Piper-stemmer",
+  "getPiperExecutable": "Hent Piper-programfil",
+  "systemDefault": "Systemstandard",
+  "telemetryHistory": "Målehistorikk",
+  "lastHour": "Siste time • måling hvert 5. sekund",
+  "hardwareDetection": "Maskinvaregjenkjenning",
+  "pcMotherboardCpuGpu": "Informasjon om PC, hovedkort, CPU og GPU",
+  "controlFlow": "Kontrollflyt",
+  "safeUserSettings": "Trygge brukerinnstillinger",
+  "gameMode": "Spillmodus",
+  "advancedTelemetry": "Avanserte målinger",
+  "aiAnalysis": "AI-analyse",
+  "diagnostics": "Diagnostikk",
+  "online": "BRO TILKOBLET",
+  "offline": "FRAKOBLET",
+  "updateCheck": "Se etter oppdateringer",
+  "releaseOpen": "Åpne utgivelse",
+  "systemEvents": "Systemhendelser",
+  "quiet": "Stille",
+  "balanced": "Balansert",
+  "performance": "Ytelse",
+  "game": "Spill",
+  "manual": "Manuell",
+  "reset": "Tilbakestill",
+  "saveProfile": "Lagre profil",
+  "fanSpeed": "Viftehastighet",
+  "apply": "Bruk",
+  "languageChanged": "Språket er endret",
+  "temperature": "Temperatur",
+  "usage": "Bruk",
+  "ramUsage": "Minnebruk",
+  "diskUsage": "Diskbruk",
+  "gpuUsage": "GPU-bruk",
+  "fan": "Vifte",
+  "welcomeTitle": "Velkommen til HWcontrol2.0",
+  "welcomeTagline": "Overvåk. Styr. Beskytt.",
+  "welcomeDescription": "En enkel og pålitelig måte å overvåke maskinvare, styre kjøling og holde systemet sunt på.",
+  "welcomeMonitor": "Overvåk",
+  "welcomeMonitorDescription": "CPU/GPU-sensorer og temperaturer",
+  "welcomeControl": "Styr",
+  "welcomeControlDescription": "Viftekurver og ytelsesprofiler",
+  "welcomeProtect": "Beskytt",
+  "welcomeProtectDescription": "Diagnostikk og systemstatus",
+  "welcomeGetStarted": "Kom i gang",
+  "welcomeOpenDashboard": "Åpne kontrollpanelet",
+  "welcomeDontShowAgain": "Ikke vis igjen",
+  "welcomePreview": "Forhåndsvisning av kontrollpanelet",
+  "welcomeExampleStatus": "Eksempelstatus",
+  "welcomeSampleValues": "Eksempelverdier",
+  "welcomeConnectHardware": "Koble til maskinvare",
+  "newAutomationRule": "Ny automatiseringsregel",
+  "editAutomationRule": "Rediger automatiseringsregel",
+  "ruleName": "Regelnavn",
+  "sensor": "Sensor",
+  "cpuTemperatureLabel": "CPU-temperatur",
+  "gpuTemperatureLabel": "GPU-temperatur",
+  "threshold": "Grense (°C)",
+  "fanTarget": "Viftemål (%)",
+  "hardwareAutomation": "Maskinvareautomatisering",
+  "automationSafetyNote": "Regler sender bare vifteinstruksjoner når en verifisert backend for maskinvarestyring er tilgjengelig.",
+  "edit": "Rediger",
+  "delete": "Slett",
+  "noAutomationRules": "Ingen automatiseringsregler ennå.",
+  "addRule": "Legg til regel",
+  "hardwareHealthCenter": "Maskinvarehelsesenter",
+  "status": "Status",
+  "safety": "Sikkerhet",
+  "recovery": "Gjenoppretting",
+  "warnings": "Advarsler",
+  "anomalies": "Avvik",
+  "close": "Lukk",
+  "checkForUpdates": "Se etter oppdateringer",
+  "maxCpuTemperature": "Maks. CPU-temperatur: {temperature} °C",
+  "@maxCpuTemperature": {
+    "description": "Localized UI message: maxCpuTemperature. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "temperature": {
+        "type": "num"
+      }
+    }
+  },
+  "exportCsv": "Eksporter CSV",
+  "thermalStatus": "Termisk status: {status}",
+  "@thermalStatus": {
+    "description": "Localized UI message: thermalStatus. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeMetricsWaiting": "Venter på målinger fra broen",
+  "gpuTelemetryNote": "Avansert GPU-telemetri avhenger av støtte fra driver og backend.",
+  "cpuCoreLoad": "CPU-kjernebelastning",
+  "runAiAnalysis": "Kjør AI-analyse",
+  "clearAiModelCache": "Tøm hurtigbufferen for AI-modellen",
+  "modelDownloading": "Laster ned Gemma 3 1B-modellen: {percent}% • ca. 851 MB",
+  "@modelDownloading": {
+    "description": "Localized UI message: modelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "llmControlUnavailable": "Tillatelse til LLM-styring er ikke tilgjengelig",
+  "storageUnavailable": "Fant ikke lagringsenheten, eller telemetrien er ikke klar ennå.",
+  "freeSpace": "Ledig: {value}",
+  "@freeSpace": {
+    "description": "Localized UI message: freeSpace. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "readSpeed": "Lesing: {value}",
+  "@readSpeed": {
+    "description": "Localized UI message: readSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "writeSpeed": "Skriving: {value}",
+  "@writeSpeed": {
+    "description": "Localized UI message: writeSpeed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "health": "Tilstand: {value}",
+  "@health": {
+    "description": "Localized UI message: health. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSystem": "Filsystem: {value}",
+  "@fileSystem": {
+    "description": "Localized UI message: fileSystem. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diagnosticPrivacy": "Diagnostikk: {status} • serienumre inkluderes ikke i rapporter",
+  "@diagnosticPrivacy": {
+    "description": "Localized UI message: diagnosticPrivacy. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "detectedGame": "Oppdaget spill: {game}",
+  "@detectedGame": {
+    "description": "Localized UI message: detectedGame. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "game": {
+        "type": "String"
+      }
+    }
+  },
+  "gameModeWaiting": "Spillmodus klar — venter på et spill",
+  "gameModeOff": "Spillmodus av",
+  "activeGameProcess": "Spillprosessen overvåkes",
+  "hardwareControlMonitorOnly": "Maskinvarestyring: bare overvåking",
+  "extensionApiStatus": "Utvidelses-API: avtale for metadata-/kapasitetsleverandør klar • lasting av innebygde programtillegg deaktivert",
+  "smartFanCurve": "Smart viftekurve",
+  "smartFanEnabled": "Smart Fan: på",
+  "smartFanDisabled": "Smart Fan: av",
+  "automation": "Automatisering",
+  "benchmark": "Referansemåling",
+  "downloadVerifiedUpdate": "Last ned verifisert oppdatering",
+  "newFanCurvePoint": "Nytt punkt på viftekurven",
+  "smartFanCurveDescription": "Angi viftemålet etter temperatur. Kurven brukes automatisk bare hvis en verifisert backend for maskinvarestyring er tilgjengelig.",
+  "deletePoint": "Slett punkt",
+  "addPoint": "Legg til punkt",
+  "resetBalanced": "Tilbakestill til balansert",
+  "hardwareBenchmark": "Maskinvaretest",
+  "benchmarkDisclaimer": "En ettsekunds mikrotest av CPU. Dette er ikke en belastningstest og endrer ikke maskinvareinnstillinger.",
+  "score": "Poengsum: {value} iterasjoner/s",
+  "@score": {
+    "description": "Localized UI message: score. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "iterations": "Iterasjoner: {value}",
+  "@iterations": {
+    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "duration": "Varighet: {value} ms",
+  "@duration": {
+    "description": "Localized UI message: duration. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "run": "Kjør",
+  "unknown": "Ukjent",
+  "none": "Ingen",
+  "power": "Effekt",
+  "voltage": "Spenning",
+  "appTagline": "Presis maskinvarestyring",
+  "cpuUsageLabel": "CPU-bruk",
+  "coreClock": "Kjerneklokke",
+  "memoryClock": "Minneklokke",
+  "advancedTelemetryDescription": "GPU-belastning, VRAM, effekt, klokkehastigheter og CPU-kjerner",
+  "localAiAnalysisDescription": "Lokal Gemma-analyse av telemetri i sanntid",
+  "hardwareDetectionDescription": "Identifikasjon av PC, hovedkort, CPU og GPU",
+  "gameModeDescription": "Automatisk registrering og spillrettet overvåking mens et spill kjører",
+  "gameModeSet": "Angi spillmodus",
+  "bridgeWaiting": "Venter på broen",
+  "monitoringOnly": "Kun overvåking",
+  "powerLimit": "Effektgrense",
+  "gpuState": "GPU-status",
+  "encoderUsage": "Encoderbruk",
+  "decoderUsage": "Decoderbruk",
+  "samplingInterval": "Siste time • måling hvert 5. sekund",
+  "modelDigestLabel": "Modellens SHA-256",
+  "gpuAdapterLabel": "GPU-adapter",
+  "lastActionLabel": "Siste handling",
+  "vramUsageLabel": "VRAM-bruk",
+  "gpuPowerLimit": "GPU-effektgrense",
+  "gpuEncoder": "Encoder",
+  "gpuDecoder": "Decoder",
+  "storageTitle": "Lagring",
+  "storageDescription": "Bruk og I/O-status for SSD, HDD og NVMe",
+  "aiProcessingPower": "AI-behandlingskraft",
+  "securityLabel": "Sikkerhet",
+  "securityKeyWaiting": "Venter på nøkkel",
+  "digestNotFound": "Ikke funnet",
+  "digestNotChecked": "Ikke kontrollert",
+  "gpuAdapter": "GPU-adapter",
+  "cpuCoreSummary": "{cores} kjerner • {frequency} MHz",
+  "@cpuCoreSummary": {
+    "description": "Localized UI message: cpuCoreSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "cores": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "num"
+      }
+    }
+  },
+  "warningThresholdLabel": "Varselgrense",
+  "hardwareControlUnavailableNote": "Vifte- eller klokkeinnstillinger endres ikke når maskinvarestyring ikke støttes.",
+  "thermalStatusLabel": "Termisk status",
+  "fanControlLabel": "Viftestyring",
+  "installerTitle": "Installasjonsveiviser for HWControl",
+  "installerLocalAiModel": "Lokal AI (Gemma 3 1B)",
+  "installerAiDescription": "Valgfritt. Hvis det velges, lastes Gemma 3 1B ned under installasjonen og verifiseres med SHA-256.",
+  "installerChecking": "Kontrollerer installasjonen...",
+  "installerContinue": "Fortsett",
+  "installerFinish": "Fullfør installasjonen",
+  "installerPackageStepTitle": "1. Kontroller pakketype",
+  "installerBridgeStepTitle": "2. Kontroller brostatus",
+  "installerCompleteStepTitle": "3. Fullfør installasjonen",
+  "installerPackageStepDescription": "Dette pakkeformatet passer for {platform}: {formats}.",
+  "@installerPackageStepDescription": {
+    "description": "Localized UI message: installerPackageStepDescription. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "installerAiStepDescription": "Den lokale AI-komponenten kan installeres som et valg. Hvis den velges, lastes Gemma 3 1B Instruct Q5_K_M (omtrent 851 MB) ned under installasjonen og verifiseres med SHA-256.",
+  "installerCompleteWithAi": "Modellen klargjøres i siste trinn. En manglende eller skadet modell repareres ved hjelp av en verifisert nedlasting.",
+  "installerCompleteWithoutAi": "Kjerneprogrammet installeres; AI-modellen lastes ikke ned i denne installasjonen.",
+  "installerAiSelectedFooter": "AI valgt: Gemma klargjøres under installasjonen. Manglende eller skadede filer lastes ned på nytt og verifiseres.",
+  "installerAiSkippedFooter": "AI ikke valgt: Gemma installeres ikke. Den kan lastes ned sikkert når AI-analyse startes første gang.",
+  "installerPreviouslyCompleted": "Installasjonen er allerede fullført. AI-modellen er valgfri.",
+  "installerBridgeFound": "funnet",
+  "installerBridgePending": "forventet fra pakkeinstallasjonen",
+  "installerModelReady": "klar og verifisert",
+  "installerModelOptional": "valgfritt; lastes ned ved første AI-analyse",
+  "installerCheckFailed": "Installasjonskontrollen mislyktes: {error}",
+  "@installerCheckFailed": {
+    "description": "Localized UI message: installerCheckFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelPreparing": "Klargjør Gemma 3 1B-modellen...",
+  "installerModelDownloading": "Laster ned Gemma 3 1B: {percent}%",
+  "@installerModelDownloading": {
+    "description": "Localized UI message: installerModelDownloading. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "percent": {
+        "type": "num"
+      }
+    }
+  },
+  "installerModelDownloadFailed": "Gemma kunne ikke installeres: {error}\nGrunninstallasjonen kan fortsette; prøv AI-installasjonen på nytt senere.",
+  "@installerModelDownloadFailed": {
+    "description": "Localized UI message: installerModelDownloadFailed. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "installerModelDownloaded": "Gemma 3 1B er lastet ned og verifisert med SHA-256.",
+  "installerTestMode": "Testmodus: installasjon og modellnedlasting ble hoppet over.",
+  "installerCheckingComponents": "Kontrollerer installasjonskomponenter...",
+  "installerPlatformSummary": "Plattform: {platform}\nPakke: {formats}\nBro: {bridge}\nAI-modell: {ai}",
+  "@installerPlatformSummary": {
+    "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      },
+      "formats": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      },
+      "ai": {
+        "type": "String"
+      }
+    }
+  },
+  "motherboardLabel": "Hovedkort",
+  "gpuDriverLabel": "GPU-driver",
+  "last20Events": "De 20 siste hendelsene"
+}
