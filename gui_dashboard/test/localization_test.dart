@@ -59,6 +59,20 @@ void main() {
 
     final english = translations['en-US'] as Map<String, dynamic>;
     final turkish = translations['tr-TR'] as Map<String, dynamic>;
+
+    // These locales are currently complete against the English source catalog.
+    // Keep them complete when new UI strings are introduced.
+    for (final locale in <String>[
+      'en-US', 'en-GB', 'tr-TR', 'ja-JP', 'de-DE', 'fr-FR', 'it-IT',
+    ]) {
+      final copy = translations[locale] as Map<String, dynamic>;
+      expect(copy.keys.toSet(), english.keys.toSet(),
+          reason: '$locale must define every source translation key.');
+      for (final entry in copy.entries) {
+        expect((entry.value as String).trim(), isNotEmpty,
+            reason: '$locale.${entry.key} must not be empty.');
+      }
+    }
     for (final key in <String>[
       'welcomeTitle', 'welcomeGetStarted', 'welcomeOpenDashboard',
       'welcomePreview', 'telemetryHistory', 'advancedTelemetry',
