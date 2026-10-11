@@ -586,7 +586,7 @@
       "cpuCoreLoad": "İşlemci çekirdeği yükü",
       "runAiAnalysis": "Yapay zekâ çözümlemesini çalıştır",
       "clearAiModelCache": "Yapay zekâ modeli önbelleğini temizle",
-      "modelDownloading": "Gemma 3 1B modeli indiriliyor: %{percent} • yaklaşık 851 MB",
+      "modelDownloading": "Gemma 3 1B modeli indiriliyor: {percent}% • yaklaşık 851 MB",
       "llmControlUnavailable": "Dil modeli denetim izni yok",
       "storageUnavailable": "Depolama aygıtı algılanmadı veya ölçümler henüz hazır değil.",
       "freeSpace": "Boş alan: {value}",
@@ -5210,8 +5210,8 @@
       "none": "Cap",
       "power": "Potència",
       "voltage": "Voltatge",
-      "animationsOn": "Disable animations",
-      "animationsOff": "Enable animations"
+      "animationsOn": "Desactiva les animacions",
+      "animationsOff": "Activa les animacions"
     },
     "es-MX": {
       "menu": "Menú",
@@ -5363,8 +5363,8 @@
       "none": "Ninguno",
       "power": "Potencia",
       "voltage": "Voltaje",
-      "animationsOn": "Disable animations",
-      "animationsOff": "Enable animations"
+      "animationsOn": "Desactivar animaciones",
+      "animationsOff": "Activar animaciones"
     },
     "pt-PT": {
       "menu": "Menu",
@@ -5516,8 +5516,8 @@
       "none": "Nenhum",
       "power": "Potência",
       "voltage": "Tensão",
-      "animationsOn": "Disable animations",
-      "animationsOff": "Enable animations"
+      "animationsOn": "Desativar animações",
+      "animationsOff": "Ativar animações"
     },
     "zh-TW": {
       "menu": "選單",
@@ -5669,8 +5669,8 @@
       "none": "無",
       "power": "功耗",
       "voltage": "電壓",
-      "animationsOn": "Disable animations",
-      "animationsOff": "Enable animations"
+      "animationsOn": "停用動畫",
+      "animationsOff": "啟用動畫"
     },
     "fil-PH": {
       "menu": "Menu",
@@ -5822,8 +5822,8 @@
       "none": "Wala",
       "power": "Lakas",
       "voltage": "Boltahe",
-      "animationsOn": "Disable animations",
-      "animationsOff": "Enable animations"
+      "animationsOn": "Huwag paganahin ang mga animation",
+      "animationsOff": "Paganahin ang mga animation"
     },
     "bn-BD": {
       "menu": "মেনু",
@@ -5975,8 +5975,8 @@
       "none": "কিছুই নয়",
       "power": "শক্তি",
       "voltage": "ভোল্টেজ",
-      "animationsOn": "Disable animations",
-      "animationsOff": "Enable animations"
+      "animationsOn": "অ্যানিমেশন বন্ধ করুন",
+      "animationsOff": "অ্যানিমেশন চালু করুন"
     },
     "en-CA": {
       "menu": "Menu",
@@ -6281,8 +6281,8 @@
       "none": "کوئی نہیں",
       "power": "طاقت",
       "voltage": "وولٹیج",
-      "animationsOn": "Disable animations",
-      "animationsOff": "Enable animations"
+      "animationsOn": "اینیمیشن بند کریں",
+      "animationsOff": "اینیمیشن فعال کریں"
     }
   }
 }
