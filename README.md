@@ -66,6 +66,15 @@ Use the DEB on Debian/Ubuntu-family systems, or the portable TAR package when ap
 
 For detailed platform instructions, see the [Wiki](https://github.com/lordkeremello45/HWcontrol2.0/wiki). For a careful first install, checksum guidance and issue-reporting checklist, use the [Beta Quickstart](docs/USER-QUICKSTART.md).
 
+## Why this project — and an honest status report
+
+We want HWcontrol2.0's strengths and limitations to be easy to evaluate, not hidden behind marketing claims:
+
+- [Why HWcontrol2.0? — motivation, goals and intended strengths](docs/whythisproject.md)
+- [Honest Description — Beta limitations, VM/physical-hardware coverage, signing and compatibility gaps](docs/honestdescription.md)
+
+These documents distinguish project goals from verified capabilities. In particular, CI success is not a substitute for a documented virtual-machine and physical-hardware test matrix.
+
 ## User help and product readiness
 
 - [Beta Quickstart and safe installation](docs/USER-QUICKSTART.md)
