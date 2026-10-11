@@ -15,6 +15,7 @@ void main() {
     'installer wizard renders in offline test mode without side effects',
     (tester) async {
       await tester.pumpWidget(const InstallerApp(initialize: false));
+      await tester.pumpAndSettle();
 
       expectOneOf(tester, ['HWControl Setup Wizard', 'HWControl Kurulum Sihirbazı']);
       expectOneOf(tester, ['Local AI (Gemma 3 1B)', 'Yerel AI (Gemma 3 1B)']);
@@ -26,6 +27,7 @@ void main() {
     'installer wizard keeps navigation controls available in test mode',
     (tester) async {
       await tester.pumpWidget(const InstallerApp(initialize: false));
+      await tester.pumpAndSettle();
 
       expectOneOf(tester, ['1. Verify package type', '1. Paket türünü doğrula']);
       expectOneOf(tester, ['Continue', 'Devam']);
@@ -42,6 +44,7 @@ void main() {
     'installer wizard does not start installation work while initialized state is disabled',
     (tester) async {
       await tester.pumpWidget(const InstallerApp(initialize: false));
+      await tester.pumpAndSettle();
 
       final checkbox = find.byType(CheckboxListTile);
       expect(checkbox, findsOneWidget);
