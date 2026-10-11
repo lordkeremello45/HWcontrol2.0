@@ -43,28 +43,44 @@ class _InstallerWizardState extends State<InstallerWizard> {
   String _details = 'Kurulum bileşenleri kontrol ediliyor...';
   String _locale = 'en-US';
   bool _catalogLoaded = false;
-  Map<String, Map<String, String>> _translations = <String, Map<String, String>>{};
+  Map<String, Map<String, String>> _translations =
+      <String, Map<String, String>>{};
   Directory? _stateDirectory;
 
   String _tr(String key, [Map<String, String> values = const {}]) {
-    var value = _translations[_locale]?[key] ?? _translations['en-US']?[key] ?? key;
+    var value =
+        _translations[_locale]?[key] ?? _translations['en-US']?[key] ?? key;
     for (final entry in values.entries) {
-      value = value.replaceAll('{'+entry.key+'}', entry.value);
+      value = value.replaceAll('{${entry.key}}', entry.value);
     }
     return value;
   }
 
   Future<void> _loadTranslations() async {
     try {
-      final root = jsonDecode(await rootBundle.loadString('assets/localization/language.json')) as Map<String, dynamic>;
-      final locales = (root['locales'] as List<dynamic>).whereType<Map<String, dynamic>>().map((e) => e['code'] as String).toSet();
+      final root = jsonDecode(
+        await rootBundle.loadString('assets/localization/language.json'),
+      ) as Map<String, dynamic>;
+      final locales = (root['locales'] as List<dynamic>)
+          .whereType<Map<String, dynamic>>()
+          .map((entry) => entry['code'] as String)
+          .toSet();
       final raw = root['translations'] as Map<String, dynamic>;
-      _translations = raw.map((locale, data) => MapEntry(locale, (data as Map<String, dynamic>).map((key, value) => MapEntry(key, value as String))));
+      _translations = raw.map(
+        (locale, data) => MapEntry(
+          locale,
+          (data as Map<String, dynamic>).map(
+            (key, value) => MapEntry(key, value as String),
+          ),
+        ),
+      );
       final systemTag = Platform.localeName.replaceAll('_', '-');
       final exactMatches = locales.where((e) => e.toLowerCase() == systemTag.toLowerCase()).toList();
       final language = systemTag.split('-').first.toLowerCase();
       final languageMatches = locales.where((e) => e.split('-').first.toLowerCase() == language).toList();
-      _locale = exactMatches.isNotEmpty ? exactMatches.first : (languageMatches.isNotEmpty ? languageMatches.first : 'en-US');
+      _locale = exactMatches.isNotEmpty
+          ? exactMatches.first
+          : (languageMatches.isNotEmpty ? languageMatches.first : 'en-US');
     } catch (_) {
       _translations = <String, Map<String, String>>{};
       _locale = 'en-US';
@@ -80,10 +96,10 @@ class _InstallerWizardState extends State<InstallerWizard> {
   }
 
   String get _packageFormats {
-    if (Platform.isWindows) return '.exe veya .msi';
-    if (Platform.isMacOS) return '.app, .dmg veya .pkg';
-    if (Platform.isLinux) return '.deb, .rpm, .pkg.tar.zst veya archive';
-    return 'platform paketi';
+    if (Platform.isWindows) return '.exe/.msi';
+    if (Platform.isMacOS) return '.app/.dmg/.pkg';
+    if (Platform.isLinux) return '.deb/.rpm/.pkg.tar.zst/archive';
+    return 'package';
   }
 
   @override
