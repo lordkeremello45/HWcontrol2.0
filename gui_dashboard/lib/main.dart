@@ -2531,7 +2531,8 @@ Attach this archive to a support issue only after reviewing it for personal info
     );
   }
 
-  Widget _presetButton(String labelKey, String legacyProfileName, IconData icon, double fan, double ai, Color color) {\n    final label = _tr(labelKey);
+  Widget _presetButton(String labelKey, String legacyProfileName, IconData icon, double fan, double ai, Color color) {
+    final label = _tr(labelKey);
     return OutlinedButton.icon(
       onPressed: _isSending || !_fanControlSupported ? null : () => _applyPreset(label, legacyProfileName, fan, ai),
       icon: Icon(icon, size: 16),
