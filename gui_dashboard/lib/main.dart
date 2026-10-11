@@ -2446,7 +2446,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             const SizedBox(height: 4),
             Text(active ? _tr('activeGameProcess') : _tr('hardwareControlMonitorOnly'), style: TextStyle(fontSize: 11, color: active ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withAlpha(130))),
           ])),
-          Switch(value: _gameModeEnabled, onChanged: _isSending ? null : (enabled) async {
+          Tooltip(message: _tr('gameModeSet'), child: Switch(value: _gameModeEnabled, onChanged: _isSending ? null : (enabled) async {
             final success = await _sendCommand('Set Game Mode', enabled ? 100 : 0);
             if (!mounted) return;
             if (success) {
@@ -2454,7 +2454,7 @@ Attach this archive to a support issue only after reviewing it for personal info
               await _playGameModeSound(enabled);
               if (mounted) _addEvent(enabled ? 'Game Mode etkinleştirildi' : 'Game Mode devre dışı bırakıldı');
             }
-          }),
+          })),
         ],
       ),
     );
