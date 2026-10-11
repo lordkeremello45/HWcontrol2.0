@@ -740,24 +740,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: Text(initial == null ? 'Yeni otomasyon kuralı' : 'Otomasyon kuralını düzenle'),
+          title: Text(initial == null ? _tr('newAutomationRule') : _tr('editAutomationRule')),
           content: SizedBox(
             width: 520,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(controller: name, decoration: const InputDecoration(labelText: 'Kural adı')),
+                TextField(controller: name, decoration: const InputDecoration(labelText: _tr('ruleName'))),
                 DropdownButtonFormField<String>(
                   initialValue: sensor,
                   decoration: const InputDecoration(labelText: 'Sensör'),
                   items: const [
-                    DropdownMenuItem(value: 'cpuTemperature', child: Text('CPU sıcaklığı')),
-                    DropdownMenuItem(value: 'gpuTemperature', child: Text('GPU sıcaklığı')),
+                    DropdownMenuItem(value: 'cpuTemperature', child: Text(_tr('cpuTemperatureLabel'))),
+                    DropdownMenuItem(value: 'gpuTemperature', child: Text(_tr('gpuTemperatureLabel'))),
                   ],
                   onChanged: (value) => setDialogState(() => sensor = value ?? sensor),
                 ),
-                TextField(controller: threshold, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Eşik °C')),
-                TextField(controller: fan, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Fan hedefi %')),
+                TextField(controller: threshold, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: _tr('threshold'))),
+                TextField(controller: fan, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: _tr('fanTarget'))),
               ],
             ),
           ),
@@ -795,7 +795,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Hardware Automation'),
+          title: Text(_tr('hardwareAutomation')),
           content: SizedBox(
             width: 620,
             child: SingleChildScrollView(
@@ -840,7 +840,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ],
                       ),
                     ),
-                  if (rules.isEmpty) const Text('Henüz otomasyon kuralı yok.'),
+                  if (rules.isEmpty) Text(_tr('noAutomationRules')),
                   const SizedBox(height: 8),
                   Align(
                     alignment: Alignment.centerLeft,
@@ -850,7 +850,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         if (created != null) setDialogState(() => rules.add(created));
                       },
                       icon: const Icon(Icons.add),
-                      label: const Text('Kural ekle'),
+                      label: Text(_tr('addRule')),
                     ),
                   ),
                 ],
@@ -1959,7 +1959,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('HWControl', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
-              Text('Precision hardware control', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withAlpha(140), fontSize: 12)),
+              Text(_tr('controls'), style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withAlpha(140), fontSize: 12)),
             ],
           ),
         ),
@@ -1996,7 +1996,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           children: [
             Icon(Icons.circle, size: 8, color: color),
             const SizedBox(width: 8),
-            Text(_isConnected ? 'BRIDGE ONLINE' : 'OFFLINE', style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700)),
+            Text(_isConnected ? _tr('online') : _tr('offline'), style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700)),
           ],
         ),
       ),
@@ -2017,7 +2017,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             const SizedBox(width: 12),
             Expanded(child: Text(available ? '${_updateInfo!.tag} hazır' : _updateStatus, style: TextStyle(color: color, fontWeight: FontWeight.w600))),
             if (available) TextButton.icon(onPressed: _openUpdate, icon: const Icon(Icons.download, size: 17), label: Text(_tr('releaseOpen'))),
-            IconButton(tooltip: 'Güncellemeleri kontrol et', onPressed: _isCheckingUpdate ? null : _checkForUpdate, icon: const Icon(Icons.refresh)),
+            IconButton(tooltip: _tr('checkForUpdates'), onPressed: _isCheckingUpdate ? null : _checkForUpdate, icon: const Icon(Icons.refresh)),
           ],
         ),
       ),
@@ -2026,11 +2026,11 @@ Attach this archive to a support issue only after reviewing it for personal info
 
   Widget _buildOverview(bool compact) {
     final cards = [
-      _MetricData('CPU sıcaklığı', _cpuTemperature.toStringAsFixed(1), '°C', Icons.thermostat, const Color(0xFFFFB454), (_cpuTemperature / 100).clamp(0, 1)),
-      _MetricData('CPU kullanımı', _cpuUsage.toStringAsFixed(0), '%', Icons.memory, const Color(0xFF64D8CB), (_cpuUsage / 100).clamp(0, 1)),
-      _MetricData('RAM kullanımı', _memoryUsage.toStringAsFixed(0), '%', Icons.storage, const Color(0xFF8FA7FF), (_memoryUsage / 100).clamp(0, 1)),
-      _MetricData('Disk kullanımı', _diskUsage.toStringAsFixed(0), '%', Icons.save, const Color(0xFFB995FF), (_diskUsage / 100).clamp(0, 1)),
-      _MetricData('GPU kullanımı', _gpuUsage.toStringAsFixed(0), '%', Icons.graphic_eq, const Color(0xFFFF8C69), (_gpuUsage / 100).clamp(0, 1)),
+      _MetricData(_tr('cpuTemperatureLabel'), _cpuTemperature.toStringAsFixed(1), '°C', Icons.thermostat, const Color(0xFFFFB454), (_cpuTemperature / 100).clamp(0, 1)),
+      _MetricData('CPU ${_tr('usage')}', _cpuUsage.toStringAsFixed(0), '%', Icons.memory, const Color(0xFF64D8CB), (_cpuUsage / 100).clamp(0, 1)),
+      _MetricData(_tr('ramUsage'), _memoryUsage.toStringAsFixed(0), '%', Icons.storage, const Color(0xFF8FA7FF), (_memoryUsage / 100).clamp(0, 1)),
+      _MetricData(_tr('diskUsage'), _diskUsage.toStringAsFixed(0), '%', Icons.save, const Color(0xFFB995FF), (_diskUsage / 100).clamp(0, 1)),
+      _MetricData(_tr('gpuUsage'), _gpuUsage.toStringAsFixed(0), '%', Icons.graphic_eq, const Color(0xFFFF8C69), (_gpuUsage / 100).clamp(0, 1)),
       _MetricData('Fan', _fanRpm > 0 ? _fanRpm.toStringAsFixed(0) : _fanPercent.toStringAsFixed(0), _fanRpm > 0 ? 'RPM' : '%', Icons.air, const Color(0xFF64D8CB), (_fanRpm > 0 ? _fanRpm / 3000 : _fanPercent / 100).clamp(0, 1)),
     ];
     return GridView.builder(
@@ -2085,7 +2085,7 @@ Attach this archive to a support issue only after reviewing it for personal info
         children: [
           Row(
             children: [
-              Expanded(child: _sectionTitle('Telemetry geçmişi', 'Son 1 saat • 5 saniyelik örnekleme')),
+              Expanded(child: _sectionTitle(_tr('telemetryHistory'), 'Son 1 saat • 5 saniyelik örnekleme')),
               Text('Maks. CPU ${maximum.toStringAsFixed(1)} °C', style: const TextStyle(color: Color(0xFFFFB454), fontSize: 12, fontWeight: FontWeight.w700)),
               const SizedBox(width: 8),
               IconButton(tooltip: 'CSV dışa aktar', onPressed: _history.isEmpty ? null : _exportTelemetryHistory, icon: const Icon(Icons.download_outlined, size: 18)),
@@ -2115,7 +2115,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionTitle('Advanced Telemetry', 'GPU yükü, VRAM, güç, saat hızları ve CPU çekirdekleri'),
+          _sectionTitle(_tr('advancedTelemetry'), 'GPU yükü, VRAM, güç, saat hızları ve CPU çekirdekleri'),
           const SizedBox(height: 16),
           Wrap(
             spacing: 10,
@@ -2190,7 +2190,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             children: [
               const Icon(Icons.auto_awesome, size: 20),
               const SizedBox(width: 10),
-              Expanded(child: _sectionTitle('Local AI Analysis', 'Gerçek telemetry üzerinde yerel Gemma yorumu')),
+              Expanded(child: _sectionTitle(_tr('aiAnalysis'), 'Gerçek telemetry üzerinde yerel Gemma yorumu')),
               OutlinedButton.icon(
                 onPressed: _aiSending || _aiStarting || _aiModelDownloading
                     ? null
@@ -2201,11 +2201,11 @@ Attach this archive to a support issue only after reviewing it for personal info
                         }
                       },
                 icon: const Icon(Icons.auto_awesome, size: 16),
-                label: const Text('AI analizini çalıştır'),
+                label: Text(_tr('runAiAnalysis')),
               ),
               const SizedBox(width: 8),
               IconButton(
-                tooltip: 'AI model cache temizle',
+                tooltip: _tr('clearAiModelCache'),
                 onPressed: _aiSending || _aiStarting || _aiModelDownloading || _aiProcess != null
                     ? null
                     : () async {
@@ -2373,7 +2373,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionTitle('Donanım tanıma', 'PC, anakart, CPU ve GPU kimliği'),
+          _sectionTitle(_tr('hardwareDetection'), 'PC, anakart, CPU ve GPU kimliği'),
           const SizedBox(height: 18),
           Wrap(
             spacing: 14,
@@ -2440,7 +2440,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           Container(width: 48, height: 48, decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: Theme.of(context).colorScheme.primary.withAlpha(18)), child: Icon(Icons.sports_esports_outlined, color: Theme.of(context).colorScheme.primary)),
           const SizedBox(width: 14),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            _sectionTitle('Game Mode', 'Oyun çalışırken otomatik algılama ve oyun odaklı izleme'),
+            _sectionTitle(_tr('gameMode'), 'Oyun çalışırken otomatik algılama ve oyun odaklı izleme'),
             const SizedBox(height: 8),
             Text(_gameDetected ? 'Algılanan oyun: ${_gameProcessName.isEmpty ? 'bilinmeyen işlem' : _gameProcessName}' : (_gameModeEnabled ? 'Game Mode hazır — oyun bekleniyor' : 'Game Mode kapalı'), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(170))),
             const SizedBox(height: 4),
@@ -2480,7 +2480,7 @@ Attach this archive to a support issue only after reviewing it for personal info
               OutlinedButton.icon(
                 onPressed: _openFanCurveEditor,
                 icon: const Icon(Icons.show_chart, size: 16),
-                label: const Text('Smart Fan Curve'),
+                label: Text(_tr('smartFanCurve')),
               ),
               OutlinedButton.icon(
                 onPressed: !_fanControlSupported ? null : () {
@@ -2566,7 +2566,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionTitle('Sistem durumu', 'Kontrol akışı'),
+          _sectionTitle(_tr('systemStatus'), _tr('controlFlow')),
           const SizedBox(height: 20),
           _statusRow('Bridge', _isConnected ? 'Bağlı' : 'Bağlı değil', _isConnected),
           _statusRow('Güvenlik', _sharedKey.isEmpty ? 'Anahtar bekleniyor' : 'HMAC-SHA-256', _sharedKey.isNotEmpty),
@@ -2600,7 +2600,7 @@ Attach this archive to a support issue only after reviewing it for personal info
               OutlinedButton.icon(onPressed: _isConnected ? null : _connectToBridge, icon: const Icon(Icons.refresh, size: 17), label: Text(_tr('reconnect'))),
               OutlinedButton.icon(onPressed: _updateInfo == null || _updateInfo!.digest.isEmpty || _isCheckingUpdate ? null : _downloadVerifiedUpdate, icon: const Icon(Icons.download_outlined, size: 17), label: const Text('Doğrulanmış güncellemeyi indir')),
               OutlinedButton.icon(onPressed: _isConnected ? _exportDiagnosticReport : null, icon: const Icon(Icons.archive_outlined, size: 17), label: Text(_tr('createErrorReport'))),
-              OutlinedButton.icon(onPressed: _isConnected ? _openHealthCenter : null, icon: const Icon(Icons.health_and_safety_outlined, size: 17), label: const Text('Health Center')),
+              OutlinedButton.icon(onPressed: _isConnected ? _openHealthCenter : null, icon: const Icon(Icons.health_and_safety_outlined, size: 17), label: Text(_tr('hardwareHealthCenter'))),
             ],
           ),
           const SizedBox(height: 18),
@@ -2614,7 +2614,7 @@ Attach this archive to a support issue only after reviewing it for personal info
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionTitle('Sistem olayları', 'Son 20 kayıt'),
+        _sectionTitle(_tr('systemEvents'), 'Son 20 kayıt'),
         const SizedBox(height: 10),
         if (_events.isEmpty) Text(_tr('noEvents'), style: TextStyle(color: Colors.white54, fontSize: 12)),
         for (final event in _events.take(5)) Padding(padding: const EdgeInsets.only(bottom: 6), child: Text(event, style: const TextStyle(fontSize: 11, color: Colors.white60))),
