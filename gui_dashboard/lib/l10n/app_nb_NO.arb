@@ -236,12 +236,13 @@
       }
     }
   },
-  "iterations": "Iterasjoner: {value}",
+  "iterations": "{value, plural, =0{Ingen iterasjoner} =1{1 iterasjon} other{# iterasjoner}}",
   "@iterations": {
-    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "description": "Number of benchmark iterations, using locale-specific ICU plural rules.",
     "placeholders": {
       "value": {
-        "type": "String"
+        "type": "num",
+        "example": 2
       }
     }
   },
@@ -388,5 +389,15 @@
   },
   "motherboardLabel": "Hovedkort",
   "gpuDriverLabel": "GPU-driver",
-  "last20Events": "De 20 siste hendelsene"
+  "last20Events": "De 20 siste hendelsene",
+  "anomalyCount": "{count, plural, =0{Ingen avvik} =1{1 avvikelse} other{# avvik}}",
+  "@anomalyCount": {
+    "description": "Number of detected hardware anomalies. Uses locale-specific ICU plural rules.",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "example": 2
+      }
+    }
+  }
 }

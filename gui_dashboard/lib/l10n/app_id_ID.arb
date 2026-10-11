@@ -236,12 +236,13 @@
       }
     }
   },
-  "iterations": "Iterasi: {value}",
+  "iterations": "{value, plural, =0{Tidak ada iterasi} other{# iterasi}}",
   "@iterations": {
-    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "description": "Number of benchmark iterations, using locale-specific ICU plural rules.",
     "placeholders": {
       "value": {
-        "type": "String"
+        "type": "num",
+        "example": 2
       }
     }
   },
@@ -388,5 +389,15 @@
   },
   "motherboardLabel": "Papan induk",
   "gpuDriverLabel": "Driver GPU",
-  "last20Events": "20 peristiwa terakhir"
+  "last20Events": "20 peristiwa terakhir",
+  "anomalyCount": "{count, plural, =0{Tidak ada anomali} other{# anomali}}",
+  "@anomalyCount": {
+    "description": "Number of detected hardware anomalies. Uses locale-specific ICU plural rules.",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "example": 2
+      }
+    }
+  }
 }
