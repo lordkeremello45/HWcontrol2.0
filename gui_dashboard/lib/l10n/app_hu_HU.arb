@@ -236,12 +236,13 @@
       }
     }
   },
-  "iterations": "Iterációk: {value}",
+  "iterations": "{value, plural, =0{Nincs iteráció} =1{1 iteráció} other{# iteráció}}",
   "@iterations": {
-    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "description": "Number of benchmark iterations, using locale-specific ICU plural rules.",
     "placeholders": {
       "value": {
-        "type": "String"
+        "type": "num",
+        "example": 2
       }
     }
   },
@@ -388,5 +389,15 @@
   },
   "motherboardLabel": "Alaplap",
   "gpuDriverLabel": "GPU-illesztőprogram",
-  "last20Events": "Az utolsó 20 esemény"
+  "last20Events": "Az utolsó 20 esemény",
+  "anomalyCount": "{count, plural, =0{Nincs rendellenesség} =1{1 rendellenesség} other{# rendellenesség}}",
+  "@anomalyCount": {
+    "description": "Number of detected hardware anomalies. Uses locale-specific ICU plural rules.",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "example": 2
+      }
+    }
+  }
 }

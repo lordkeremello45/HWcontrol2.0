@@ -236,12 +236,13 @@
       }
     }
   },
-  "iterations": "איטרציות: {value}",
+  "iterations": "{value, plural, =0{אין איטרציות} =1{איטרציה אחת} =2{שתי איטרציות} other{# איטרציות}}",
   "@iterations": {
-    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "description": "Number of benchmark iterations, using locale-specific ICU plural rules.",
     "placeholders": {
       "value": {
-        "type": "String"
+        "type": "num",
+        "example": 2
       }
     }
   },
@@ -388,5 +389,15 @@
   },
   "motherboardLabel": "לוח אם",
   "gpuDriverLabel": "מנהל התקן GPU",
-  "last20Events": "20 האירועים האחרונים"
+  "last20Events": "20 האירועים האחרונים",
+  "anomalyCount": "{count, plural, =0{אין חריגות} =1{חריגה אחת} =2{שתי חריגות} other{# חריגות}}",
+  "@anomalyCount": {
+    "description": "Number of detected hardware anomalies. Uses locale-specific ICU plural rules.",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "example": 2
+      }
+    }
+  }
 }
