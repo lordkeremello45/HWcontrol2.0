@@ -67,7 +67,7 @@ class PiperTtsService {
       final exitCode = await process.exitCode.timeout(
         const Duration(seconds: 45),
         onTimeout: () {
-          process?.kill(ProcessSignal.sigkill);
+          process?.kill();
           throw TimeoutException('Piper speech synthesis timed out.');
         },
       );
@@ -79,7 +79,9 @@ class PiperTtsService {
         throw StateError('Piper did not produce a valid WAV file.');
       }
       await _player.stop();
+      final completed = _player.onPlayerComplete.first;
       await _player.play(DeviceFileSource(outputPath));
+      await completed.timeout(const Duration(seconds: 90));
     } finally {
       _speaking = false;
       if (outputPath != null) {
