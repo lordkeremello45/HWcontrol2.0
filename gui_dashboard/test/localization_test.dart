@@ -63,6 +63,8 @@ void main() {
     // Every advertised locale must keep exact source-key parity. Missing
     // translations are not silently treated as completed localization work.
     final sourceKeys = english.keys.toSet();
+    expect(english.length, greaterThanOrEqualTo(160),
+        reason: 'The source catalog should cover the current major UI surfaces.');
     for (final locale in locales) {
       final copy = translations[locale] as Map<String, dynamic>;
       expect(copy.keys.toSet(), sourceKeys,
@@ -77,7 +79,7 @@ void main() {
       for (final entry in english.entries) {
         final sourceText = entry.value as String;
         final translatedText = copy[entry.key] as String;
-        final placeholderPattern = RegExp(r'\\{([A-Za-z][A-Za-z0-9_]*)\\}');
+        final placeholderPattern = RegExp(r'\{([A-Za-z][A-Za-z0-9_]*)\}');
         final sourcePlaceholders = placeholderPattern
             .allMatches(sourceText)
             .map((match) => match.group(1)!)
@@ -105,6 +107,8 @@ void main() {
     expect(turkish['ramUsage'], 'Bellek kullanımı');
     expect(turkish['gpuUsage'], 'Ekran kartı kullanımı');
     expect(turkish['fanSpeed'], 'Soğutucu pervanesi hızı');
+    expect(turkish['appTagline'], 'Hassas donanım denetimi');
+    expect(turkish['newFanCurvePoint'], 'Yeni soğutucu eğrisi noktası');
     expect((translations['es-ES'] as Map<String, dynamic>)['telemetryHistory'], 'Historial de mediciones');
     expect((translations['pt-BR'] as Map<String, dynamic>)['telemetryHistory'], 'Histórico de medições');
 
