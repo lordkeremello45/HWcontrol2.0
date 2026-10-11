@@ -17,7 +17,6 @@ const state = {
   manifest: null,
   releases: [],
   liveStatus: "pending",
-  loading: true
 };
 const labels = {
   windows: ["WINDOWS PACKAGE", "Choose your installer", "Windows 10 / 11 · x64"],
@@ -74,7 +73,7 @@ function render() {
     const sizeLabel = asset.size ? ` · ${formatSize(asset.size)}` : "";
     const verifyUrl = safeReleaseUrl(asset.checksum_sha256_url) || checksumUrl;
     const verifyLink = verifyUrl
-      ? `<a class="verify" href="${esc(verifyUrl)}" target="_blank" rel="noopener noreferrer">SHA-256 manifest ↗</a>`
+      ? `<a class="verify" href="${esc(verifyUrl)}" target="_blank" rel="noopener noreferrer">SHA-256 verification file ↗</a>`
       : "";
     return `<div class="package"><span class="name">${esc(asset.name)}<small>${esc(asset.name)}${sizeLabel}</small></span><div class="package-actions"><a class="download-link" href="${esc(assetUrl)}" target="_blank" rel="noopener noreferrer"><img src="${platformIcons[state.platform]}" alt="" aria-hidden="true" />Download ↗</a>${verifyLink}</div></div>`;
   }).join("");
@@ -176,7 +175,6 @@ function initializePlatformTabs() {
 async function load() {
   render();
   await Promise.allSettled([loadManifest(), loadLiveReleases()]);
-  state.loading = false;
   render();
 }
 
