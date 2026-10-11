@@ -349,7 +349,8 @@
       "gpuAdapter": "GPU adapter",
       "cpuCoreSummary": "{cores} cores • {frequency} MHz",
       "warningThresholdLabel": "Warning threshold",
-      "hardwareControlUnavailableNote": "Fan or clock settings are not changed when hardware-control support is unavailable."
+      "hardwareControlUnavailableNote": "Fan or clock settings are not changed when hardware-control support is unavailable.",
+      "thermalStatusLabel": "Thermal status"
     },
     "en-GB": {
       "menu": "Menu",
@@ -536,7 +537,8 @@
       "gpuAdapter": "GPU adapter",
       "cpuCoreSummary": "{cores} cores • {frequency} MHz",
       "warningThresholdLabel": "Warning threshold",
-      "hardwareControlUnavailableNote": "Fan or clock settings are not changed when hardware-control support is unavailable."
+      "hardwareControlUnavailableNote": "Fan or clock settings are not changed when hardware-control support is unavailable.",
+      "thermalStatusLabel": "Thermal status"
     },
     "tr-TR": {
       "menu": "Menü",
@@ -723,7 +725,8 @@
       "gpuAdapter": "Ekran kartı bağdaştırıcısı",
       "cpuCoreSummary": "{cores} çekirdek • {frequency} MHz",
       "warningThresholdLabel": "Uyarı eşiği",
-      "hardwareControlUnavailableNote": "Donanım denetimi desteklenmiyorsa fan veya saat hızı ayarları değiştirilmez."
+      "hardwareControlUnavailableNote": "Donanım denetimi desteklenmiyorsa fan veya saat hızı ayarları değiştirilmez.",
+      "thermalStatusLabel": "Isıl durum"
     },
     "ja-JP": {
       "menu": "メニュー",
@@ -893,7 +896,7 @@
       "encoderUsage": "エンコーダー使用率",
       "decoderUsage": "デコーダー使用率",
       "samplingInterval": "直近1時間 • 5秒ごとに測定",
-      "modelDigestLabel": "モデルの SHA-256",
+      "modelDigestLabel": "モデルのSHA-256",
       "gpuAdapterLabel": "GPU アダプター",
       "lastActionLabel": "最終操作",
       "vramUsageLabel": "VRAM使用率",
@@ -910,7 +913,8 @@
       "gpuAdapter": "GPUアダプター",
       "cpuCoreSummary": "{cores}コア • {frequency} MHz",
       "warningThresholdLabel": "警告しきい値",
-      "hardwareControlUnavailableNote": "ハードウェア制御に対応していない場合、ファンやクロックの設定は変更されません。"
+      "hardwareControlUnavailableNote": "ハードウェア制御に対応していない場合、ファンやクロックの設定は変更されません。",
+      "thermalStatusLabel": "熱状態"
     },
     "de-DE": {
       "menu": "Menü",
@@ -1097,7 +1101,8 @@
       "gpuAdapter": "GPU-Adapter",
       "cpuCoreSummary": "{cores} Kerne • {frequency} MHz",
       "warningThresholdLabel": "Warnschwelle",
-      "hardwareControlUnavailableNote": "Ohne Unterstützung für die Hardwaresteuerung werden weder Lüfter- noch Takteinstellungen geändert."
+      "hardwareControlUnavailableNote": "Ohne Unterstützung für die Hardwaresteuerung werden weder Lüfter- noch Takteinstellungen geändert.",
+      "thermalStatusLabel": "Thermischer Status"
     },
     "fr-FR": {
       "menu": "Menu",
@@ -1284,7 +1289,8 @@
       "gpuAdapter": "Adaptateur GPU",
       "cpuCoreSummary": "{cores} cœurs • {frequency} MHz",
       "warningThresholdLabel": "Seuil d’avertissement",
-      "hardwareControlUnavailableNote": "Sans prise en charge du contrôle matériel, les réglages des ventilateurs et des fréquences ne sont pas modifiés."
+      "hardwareControlUnavailableNote": "Sans prise en charge du contrôle matériel, les réglages des ventilateurs et des fréquences ne sont pas modifiés.",
+      "thermalStatusLabel": "État thermique"
     },
     "it-IT": {
       "menu": "Menu",
@@ -1471,7 +1477,8 @@
       "gpuAdapter": "Adattatore GPU",
       "cpuCoreSummary": "{cores} core • {frequency} MHz",
       "warningThresholdLabel": "Soglia di avviso",
-      "hardwareControlUnavailableNote": "Senza supporto per il controllo hardware, le impostazioni di ventole e frequenze non vengono modificate."
+      "hardwareControlUnavailableNote": "Senza supporto per il controllo hardware, le impostazioni di ventole e frequenze non vengono modificate.",
+      "thermalStatusLabel": "Stato termico"
     },
     "es-ES": {
       "menu": "Menú",
@@ -1658,7 +1665,8 @@
       "gpuAdapter": "Adaptador de GPU",
       "cpuCoreSummary": "{cores} núcleos • {frequency} MHz",
       "warningThresholdLabel": "Umbral de aviso",
-      "hardwareControlUnavailableNote": "Sin compatibilidad con el control del hardware, no se modifican los ajustes de ventiladores ni de frecuencia."
+      "hardwareControlUnavailableNote": "Sin compatibilidad con el control del hardware, no se modifican los ajustes de ventiladores ni de frecuencia.",
+      "thermalStatusLabel": "Estado térmico"
     },
     "pt-BR": {
       "menu": "Menu",
@@ -1845,7 +1853,8 @@
       "gpuAdapter": "Adaptador de GPU",
       "cpuCoreSummary": "{cores} núcleos • {frequency} MHz",
       "warningThresholdLabel": "Limite de aviso",
-      "hardwareControlUnavailableNote": "Sem suporte ao controle de hardware, as configurações de ventilador e clock não são alteradas."
+      "hardwareControlUnavailableNote": "Sem suporte ao controle de hardware, as configurações de ventilador e clock não são alteradas.",
+      "thermalStatusLabel": "Estado térmico"
     },
     "zh-CN": {
       "menu": "菜单",
@@ -2032,7 +2041,8 @@
       "gpuAdapter": "GPU 适配器",
       "cpuCoreSummary": "{cores} 个核心 • {frequency} MHz",
       "warningThresholdLabel": "警告阈值",
-      "hardwareControlUnavailableNote": "不支持硬件控制时，不会更改风扇或时钟频率设置。"
+      "hardwareControlUnavailableNote": "不支持硬件控制时，不会更改风扇或时钟频率设置。",
+      "thermalStatusLabel": "热状态"
     },
     "ko-KR": {
       "menu": "메뉴",
@@ -2219,7 +2229,8 @@
       "gpuAdapter": "GPU 어댑터",
       "cpuCoreSummary": "코어 {cores}개 • {frequency} MHz",
       "warningThresholdLabel": "경고 임계값",
-      "hardwareControlUnavailableNote": "하드웨어 제어를 지원하지 않으면 팬이나 클록 설정을 변경하지 않습니다."
+      "hardwareControlUnavailableNote": "하드웨어 제어를 지원하지 않으면 팬이나 클록 설정을 변경하지 않습니다.",
+      "thermalStatusLabel": "열 상태"
     },
     "ru-RU": {
       "menu": "Меню",
@@ -2406,7 +2417,8 @@
       "gpuAdapter": "Адаптер GPU",
       "cpuCoreSummary": "Ядер: {cores} • {frequency} МГц",
       "warningThresholdLabel": "Порог предупреждения",
-      "hardwareControlUnavailableNote": "При отсутствии поддержки управления оборудованием настройки вентиляторов и частот не изменяются."
+      "hardwareControlUnavailableNote": "При отсутствии поддержки управления оборудованием настройки вентиляторов и частот не изменяются.",
+      "thermalStatusLabel": "Тепловое состояние"
     },
     "ar-SA": {
       "menu": "القائمة",
@@ -2576,7 +2588,7 @@
       "encoderUsage": "استخدام المرمّز",
       "decoderUsage": "استخدام مفكّك الترميز",
       "samplingInterval": "الساعة الأخيرة • قياس كل 5 ثوانٍ",
-      "modelDigestLabel": "بصمة SHA-256 للنموذج",
+      "modelDigestLabel": "SHA-256 للنموذج",
       "gpuAdapterLabel": "مهايئ GPU",
       "lastActionLabel": "آخر إجراء",
       "vramUsageLabel": "استخدام ذاكرة VRAM",
@@ -2593,7 +2605,8 @@
       "gpuAdapter": "محوّل GPU",
       "cpuCoreSummary": "{cores} أنوية • {frequency} ميغاهرتز",
       "warningThresholdLabel": "حد التحذير",
-      "hardwareControlUnavailableNote": "عند عدم توفر دعم التحكم بالأجهزة، لا يتم تغيير إعدادات المروحة أو تردد الساعة."
+      "hardwareControlUnavailableNote": "عند عدم توفر دعم التحكم بالأجهزة، لا يتم تغيير إعدادات المروحة أو تردد الساعة.",
+      "thermalStatusLabel": "الحالة الحرارية"
     },
     "hi-IN": {
       "menu": "मेनू",
@@ -2780,7 +2793,8 @@
       "gpuAdapter": "GPU अडैप्टर",
       "cpuCoreSummary": "{cores} कोर • {frequency} MHz",
       "warningThresholdLabel": "चेतावनी सीमा",
-      "hardwareControlUnavailableNote": "हार्डवेयर नियंत्रण का समर्थन उपलब्ध न होने पर फैन या क्लॉक सेटिंग नहीं बदली जाती।"
+      "hardwareControlUnavailableNote": "हार्डवेयर नियंत्रण का समर्थन उपलब्ध न होने पर फैन या क्लॉक सेटिंग नहीं बदली जाती।",
+      "thermalStatusLabel": "तापीय स्थिति"
     },
     "nl-NL": {
       "menu": "Menu",
@@ -2967,7 +2981,8 @@
       "gpuAdapter": "GPU-adapter",
       "cpuCoreSummary": "{cores} kernen • {frequency} MHz",
       "warningThresholdLabel": "Waarschuwingsdrempel",
-      "hardwareControlUnavailableNote": "Zonder ondersteuning voor hardwarebesturing worden ventilator- en klokinstellingen niet gewijzigd."
+      "hardwareControlUnavailableNote": "Zonder ondersteuning voor hardwarebesturing worden ventilator- en klokinstellingen niet gewijzigd.",
+      "thermalStatusLabel": "Thermische status"
     },
     "pl-PL": {
       "menu": "Menu",
@@ -3154,7 +3169,8 @@
       "gpuAdapter": "Adapter GPU",
       "cpuCoreSummary": "Rdzenie: {cores} • {frequency} MHz",
       "warningThresholdLabel": "Próg ostrzegawczy",
-      "hardwareControlUnavailableNote": "Bez obsługi sterowania sprzętem ustawienia wentylatorów i zegarów nie są zmieniane."
+      "hardwareControlUnavailableNote": "Bez obsługi sterowania sprzętem ustawienia wentylatorów i zegarów nie są zmieniane.",
+      "thermalStatusLabel": "Stan termiczny"
     },
     "uk-UA": {
       "menu": "Меню",
@@ -3341,7 +3357,8 @@
       "gpuAdapter": "Адаптер GPU",
       "cpuCoreSummary": "Ядер: {cores} • {frequency} МГц",
       "warningThresholdLabel": "Поріг попередження",
-      "hardwareControlUnavailableNote": "За відсутності підтримки керування обладнанням налаштування вентиляторів і частот не змінюються."
+      "hardwareControlUnavailableNote": "За відсутності підтримки керування обладнанням налаштування вентиляторів і частот не змінюються.",
+      "thermalStatusLabel": "Тепловий стан"
     },
     "id-ID": {
       "menu": "Menu",
@@ -3528,7 +3545,8 @@
       "gpuAdapter": "Adaptor GPU",
       "cpuCoreSummary": "{cores} inti • {frequency} MHz",
       "warningThresholdLabel": "Ambang peringatan",
-      "hardwareControlUnavailableNote": "Jika dukungan kontrol perangkat keras tidak tersedia, pengaturan kipas atau clock tidak diubah."
+      "hardwareControlUnavailableNote": "Jika dukungan kontrol perangkat keras tidak tersedia, pengaturan kipas atau clock tidak diubah.",
+      "thermalStatusLabel": "Status termal"
     },
     "vi-VN": {
       "menu": "Menu",
@@ -3715,7 +3733,8 @@
       "gpuAdapter": "Bộ điều hợp GPU",
       "cpuCoreSummary": "{cores} lõi • {frequency} MHz",
       "warningThresholdLabel": "Ngưỡng cảnh báo",
-      "hardwareControlUnavailableNote": "Khi không có hỗ trợ điều khiển phần cứng, cài đặt quạt hoặc xung nhịp sẽ không bị thay đổi."
+      "hardwareControlUnavailableNote": "Khi không có hỗ trợ điều khiển phần cứng, cài đặt quạt hoặc xung nhịp sẽ không bị thay đổi.",
+      "thermalStatusLabel": "Trạng thái nhiệt"
     },
     "th-TH": {
       "menu": "เมนู",
@@ -3902,7 +3921,8 @@
       "gpuAdapter": "อะแดปเตอร์ GPU",
       "cpuCoreSummary": "{cores} คอร์ • {frequency} MHz",
       "warningThresholdLabel": "เกณฑ์การเตือน",
-      "hardwareControlUnavailableNote": "หากไม่มีการรองรับการควบคุมฮาร์ดแวร์ จะไม่เปลี่ยนการตั้งค่าพัดลมหรือความถี่สัญญาณนาฬิกา"
+      "hardwareControlUnavailableNote": "หากไม่มีการรองรับการควบคุมฮาร์ดแวร์ จะไม่เปลี่ยนการตั้งค่าพัดลมหรือความถี่สัญญาณนาฬิกา",
+      "thermalStatusLabel": "สถานะความร้อน"
     },
     "sv-SE": {
       "menu": "Meny",
@@ -4089,7 +4109,8 @@
       "gpuAdapter": "GPU-adapter",
       "cpuCoreSummary": "{cores} kärnor • {frequency} MHz",
       "warningThresholdLabel": "Varningströskel",
-      "hardwareControlUnavailableNote": "Fläkt- eller klockinställningar ändras inte när hårdvarustyrning saknas."
+      "hardwareControlUnavailableNote": "Fläkt- eller klockinställningar ändras inte när hårdvarustyrning saknas.",
+      "thermalStatusLabel": "Termiskt status"
     },
     "da-DK": {
       "menu": "Menu",
@@ -4259,7 +4280,7 @@
       "encoderUsage": "Encoderforbrug",
       "decoderUsage": "Decoderforbrug",
       "samplingInterval": "Seneste time • måling hvert 5. sekund",
-      "modelDigestLabel": "Modellens SHA-256",
+      "modelDigestLabel": "Model-SHA-256",
       "gpuAdapterLabel": "GPU-adapter",
       "lastActionLabel": "Seneste handling",
       "vramUsageLabel": "VRAM-forbrug",
@@ -4276,7 +4297,8 @@
       "gpuAdapter": "GPU-adapter",
       "cpuCoreSummary": "{cores} kerner • {frequency} MHz",
       "warningThresholdLabel": "Advarselsgrænse",
-      "hardwareControlUnavailableNote": "Blæser- eller clockindstillinger ændres ikke, når hardwarestyring ikke understøttes."
+      "hardwareControlUnavailableNote": "Blæser- eller clockindstillinger ændres ikke, når hardwarestyring ikke understøttes.",
+      "thermalStatusLabel": "Termisk status"
     },
     "nb-NO": {
       "menu": "Meny",
@@ -4463,7 +4485,8 @@
       "gpuAdapter": "GPU-adapter",
       "cpuCoreSummary": "{cores} kjerner • {frequency} MHz",
       "warningThresholdLabel": "Varselgrense",
-      "hardwareControlUnavailableNote": "Vifte- eller klokkeinnstillinger endres ikke når maskinvarestyring ikke støttes."
+      "hardwareControlUnavailableNote": "Vifte- eller klokkeinnstillinger endres ikke når maskinvarestyring ikke støttes.",
+      "thermalStatusLabel": "Termisk status"
     },
     "fi-FI": {
       "menu": "Valikko",
@@ -4650,7 +4673,8 @@
       "gpuAdapter": "GPU-sovitin",
       "cpuCoreSummary": "{cores} ydintä • {frequency} MHz",
       "warningThresholdLabel": "Varoitusraja",
-      "hardwareControlUnavailableNote": "Tuulettimen tai kellotaajuuden asetuksia ei muuteta, jos laitteiston ohjausta ei tueta."
+      "hardwareControlUnavailableNote": "Tuulettimen tai kellotaajuuden asetuksia ei muuteta, jos laitteiston ohjausta ei tueta.",
+      "thermalStatusLabel": "Lämpötila-tila"
     },
     "el-GR": {
       "menu": "Μενού",
@@ -4837,7 +4861,8 @@
       "gpuAdapter": "Προσαρμογέας GPU",
       "cpuCoreSummary": "{cores} πυρήνες • {frequency} MHz",
       "warningThresholdLabel": "Όριο προειδοποίησης",
-      "hardwareControlUnavailableNote": "Οι ρυθμίσεις ανεμιστήρα ή συχνότητας δεν αλλάζουν όταν δεν υποστηρίζεται ο έλεγχος υλικού."
+      "hardwareControlUnavailableNote": "Οι ρυθμίσεις ανεμιστήρα ή συχνότητας δεν αλλάζουν όταν δεν υποστηρίζεται ο έλεγχος υλικού.",
+      "thermalStatusLabel": "Θερμική κατάσταση"
     },
     "cs-CZ": {
       "menu": "Menu",
@@ -5024,7 +5049,8 @@
       "gpuAdapter": "Adaptér GPU",
       "cpuCoreSummary": "{cores} jader • {frequency} MHz",
       "warningThresholdLabel": "Varovný práh",
-      "hardwareControlUnavailableNote": "Pokud není podporováno řízení hardwaru, nastavení ventilátoru ani frekvence se nemění."
+      "hardwareControlUnavailableNote": "Pokud není podporováno řízení hardwaru, nastavení ventilátoru ani frekvence se nemění.",
+      "thermalStatusLabel": "Tepelný stav"
     },
     "he-IL": {
       "menu": "תפריט",
@@ -5211,7 +5237,8 @@
       "gpuAdapter": "מתאם GPU",
       "cpuCoreSummary": "{cores} ליבות • {frequency} MHz",
       "warningThresholdLabel": "סף אזהרה",
-      "hardwareControlUnavailableNote": "הגדרות המאוורר או תדר השעון לא ישתנו כאשר בקרת חומרה אינה נתמכת."
+      "hardwareControlUnavailableNote": "הגדרות המאוורר או תדר השעון לא ישתנו כאשר בקרת חומרה אינה נתמכת.",
+      "thermalStatusLabel": "מצב תרמי"
     },
     "ro-RO": {
       "menu": "Meniu",
@@ -5398,7 +5425,8 @@
       "gpuAdapter": "Adaptor GPU",
       "cpuCoreSummary": "{cores} nuclee • {frequency} MHz",
       "warningThresholdLabel": "Prag de avertizare",
-      "hardwareControlUnavailableNote": "Setările ventilatorului sau ale frecvenței nu se modifică atunci când controlul hardware nu este acceptat."
+      "hardwareControlUnavailableNote": "Setările ventilatorului sau ale frecvenței nu se modifică atunci când controlul hardware nu este acceptat.",
+      "thermalStatusLabel": "Stare termică"
     },
     "hu-HU": {
       "menu": "Menü",
@@ -5585,7 +5613,8 @@
       "gpuAdapter": "GPU-adapter",
       "cpuCoreSummary": "{cores} mag • {frequency} MHz",
       "warningThresholdLabel": "Figyelmeztetési küszöb",
-      "hardwareControlUnavailableNote": "Hardvervezérlés hiányában a ventilátor- és órajelbeállítások nem módosulnak."
+      "hardwareControlUnavailableNote": "Hardvervezérlés hiányában a ventilátor- és órajelbeállítások nem módosulnak.",
+      "thermalStatusLabel": "Hőállapot"
     },
     "bg-BG": {
       "menu": "Меню",
@@ -5772,7 +5801,8 @@
       "gpuAdapter": "GPU адаптер",
       "cpuCoreSummary": "{cores} ядра • {frequency} MHz",
       "warningThresholdLabel": "Праг за предупреждение",
-      "hardwareControlUnavailableNote": "Настройките на вентилатора или честотата не се променят, когато управлението на хардуера не се поддържа."
+      "hardwareControlUnavailableNote": "Настройките на вентилатора или честотата не се променят, когато управлението на хардуера не се поддържа.",
+      "thermalStatusLabel": "Термично състояние"
     },
     "hr-HR": {
       "menu": "Izbornik",
@@ -5959,7 +5989,8 @@
       "gpuAdapter": "GPU adapter",
       "cpuCoreSummary": "{cores} jezgri • {frequency} MHz",
       "warningThresholdLabel": "Prag upozorenja",
-      "hardwareControlUnavailableNote": "Postavke ventilatora ili takta ne mijenjaju se ako upravljanje hardverom nije podržano."
+      "hardwareControlUnavailableNote": "Postavke ventilatora ili takta ne mijenjaju se ako upravljanje hardverom nije podržano.",
+      "thermalStatusLabel": "Toplinsko stanje"
     },
     "ms-MY": {
       "menu": "Menu",
@@ -6146,7 +6177,8 @@
       "gpuAdapter": "Penyesuai GPU",
       "cpuCoreSummary": "{cores} teras • {frequency} MHz",
       "warningThresholdLabel": "Ambang amaran",
-      "hardwareControlUnavailableNote": "Tetapan kipas atau jam tidak diubah apabila kawalan perkakasan tidak disokong."
+      "hardwareControlUnavailableNote": "Tetapan kipas atau jam tidak diubah apabila kawalan perkakasan tidak disokong.",
+      "thermalStatusLabel": "Status terma"
     },
     "ca-ES": {
       "menu": "Menú",
@@ -6333,7 +6365,8 @@
       "gpuAdapter": "Adaptador de GPU",
       "cpuCoreSummary": "{cores} nuclis • {frequency} MHz",
       "warningThresholdLabel": "Llindar d'avís",
-      "hardwareControlUnavailableNote": "No es modifiquen els ajustos del ventilador ni de freqüència si no s'admet el control del maquinari."
+      "hardwareControlUnavailableNote": "No es modifiquen els ajustos del ventilador ni de freqüència si no s'admet el control del maquinari.",
+      "thermalStatusLabel": "Estat tèrmic"
     },
     "es-MX": {
       "menu": "Menú",
@@ -6520,7 +6553,8 @@
       "gpuAdapter": "Adaptador de GPU",
       "cpuCoreSummary": "{cores} núcleos • {frequency} MHz",
       "warningThresholdLabel": "Umbral de advertencia",
-      "hardwareControlUnavailableNote": "No se cambian los ajustes del ventilador ni de frecuencia cuando no hay compatibilidad con el control del hardware."
+      "hardwareControlUnavailableNote": "No se cambian los ajustes del ventilador ni de frecuencia cuando no hay compatibilidad con el control del hardware.",
+      "thermalStatusLabel": "Estado térmico"
     },
     "pt-PT": {
       "menu": "Menu",
@@ -6707,7 +6741,8 @@
       "gpuAdapter": "Adaptador de GPU",
       "cpuCoreSummary": "{cores} núcleos • {frequency} MHz",
       "warningThresholdLabel": "Limiar de aviso",
-      "hardwareControlUnavailableNote": "As definições da ventoinha ou da frequência não são alteradas quando o controlo do hardware não é suportado."
+      "hardwareControlUnavailableNote": "As definições da ventoinha ou da frequência não são alteradas quando o controlo do hardware não é suportado.",
+      "thermalStatusLabel": "Estado térmico"
     },
     "zh-TW": {
       "menu": "選單",
@@ -6894,7 +6929,8 @@
       "gpuAdapter": "GPU 配接器",
       "cpuCoreSummary": "{cores} 個核心 • {frequency} MHz",
       "warningThresholdLabel": "警告閾值",
-      "hardwareControlUnavailableNote": "不支援硬體控制時，不會變更風扇或時脈設定。"
+      "hardwareControlUnavailableNote": "不支援硬體控制時，不會變更風扇或時脈設定。",
+      "thermalStatusLabel": "熱狀態"
     },
     "fil-PH": {
       "menu": "Menu",
@@ -7081,7 +7117,8 @@
       "gpuAdapter": "GPU adapter",
       "cpuCoreSummary": "{cores} core • {frequency} MHz",
       "warningThresholdLabel": "Hangganan ng babala",
-      "hardwareControlUnavailableNote": "Hindi babaguhin ang mga setting ng fan o clock kapag hindi suportado ang pagkontrol sa hardware."
+      "hardwareControlUnavailableNote": "Hindi babaguhin ang mga setting ng fan o clock kapag hindi suportado ang pagkontrol sa hardware.",
+      "thermalStatusLabel": "Katayuang thermal"
     },
     "bn-BD": {
       "menu": "মেনু",
@@ -7251,7 +7288,7 @@
       "encoderUsage": "এনকোডার ব্যবহার",
       "decoderUsage": "ডিকোডার ব্যবহার",
       "samplingInterval": "গত ১ ঘণ্টা • প্রতি ৫ সেকেন্ডে নমুনা",
-      "modelDigestLabel": "মডেলের SHA-256",
+      "modelDigestLabel": "মডেল SHA-256",
       "gpuAdapterLabel": "GPU অ্যাডাপ্টার",
       "lastActionLabel": "সর্বশেষ কাজ",
       "vramUsageLabel": "VRAM ব্যবহার",
@@ -7268,7 +7305,8 @@
       "gpuAdapter": "GPU অ্যাডাপ্টার",
       "cpuCoreSummary": "{cores} কোর • {frequency} MHz",
       "warningThresholdLabel": "সতর্কতার সীমা",
-      "hardwareControlUnavailableNote": "হার্ডওয়্যার নিয়ন্ত্রণ সমর্থিত না হলে ফ্যান বা ক্লক সেটিংস পরিবর্তন করা হয় না।"
+      "hardwareControlUnavailableNote": "হার্ডওয়্যার নিয়ন্ত্রণ সমর্থিত না হলে ফ্যান বা ক্লক সেটিংস পরিবর্তন করা হয় না।",
+      "thermalStatusLabel": "তাপীয় অবস্থা"
     },
     "en-CA": {
       "menu": "Menu",
@@ -7455,7 +7493,8 @@
       "gpuAdapter": "GPU adapter",
       "cpuCoreSummary": "{cores} cores • {frequency} MHz",
       "warningThresholdLabel": "Warning threshold",
-      "hardwareControlUnavailableNote": "Fan or clock settings are not changed when hardware-control support is unavailable."
+      "hardwareControlUnavailableNote": "Fan or clock settings are not changed when hardware-control support is unavailable.",
+      "thermalStatusLabel": "Thermal status"
     },
     "ur-PK": {
       "menu": "مینو",
@@ -7625,7 +7664,7 @@
       "encoderUsage": "انکوڈر کا استعمال",
       "decoderUsage": "ڈیکوڈر کا استعمال",
       "samplingInterval": "گزشتہ ایک گھنٹہ • ہر 5 سیکنڈ بعد پیمائش",
-      "modelDigestLabel": "ماڈل کا SHA-256",
+      "modelDigestLabel": "ماڈل SHA-256",
       "gpuAdapterLabel": "GPU اڈاپٹر",
       "lastActionLabel": "آخری کارروائی",
       "vramUsageLabel": "VRAM کا استعمال",
@@ -7642,7 +7681,8 @@
       "gpuAdapter": "GPU اڈاپٹر",
       "cpuCoreSummary": "{cores} کور • {frequency} MHz",
       "warningThresholdLabel": "انتباہی حد",
-      "hardwareControlUnavailableNote": "ہارڈویئر کنٹرول دستیاب نہ ہونے پر پنکھے یا کلاک کی ترتیبات تبدیل نہیں کی جاتیں۔"
+      "hardwareControlUnavailableNote": "ہارڈویئر کنٹرول دستیاب نہ ہونے پر پنکھے یا کلاک کی ترتیبات تبدیل نہیں کی جاتیں۔",
+      "thermalStatusLabel": "حرارتی حالت"
     }
   }
 }
