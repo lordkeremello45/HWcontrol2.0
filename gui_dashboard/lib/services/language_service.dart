@@ -29,21 +29,50 @@ class HWControlLanguageService {
     if (savedLocale != null &&
         savedLocale != systemDefault &&
         supported.contains(savedLocale)) {
-      return savedLocale;
+      return _preferRegionalLocale(savedLocale, supported);
     }
 
     final systemLocale = _localeCode(ui.PlatformDispatcher.instance.locale);
-    if (supported.contains(systemLocale)) return systemLocale;
+    if (supported.contains(systemLocale)) {
+      return _preferRegionalLocale(systemLocale, supported);
+    }
 
     final languageCode =
         ui.PlatformDispatcher.instance.locale.languageCode.toLowerCase();
-    for (final code in supported) {
-      if (code.split('-').first.toLowerCase() == languageCode) {
-        return code;
-      }
-    }
+    final regionalFallback = _regionalFallback(languageCode, supported);
+    if (regionalFallback != null) return regionalFallback;
 
     return 'en-US';
+  }
+
+  static String _preferRegionalLocale(
+    String localeCode,
+    Set<String> supported,
+  ) {
+    if (localeCode.contains('-')) return localeCode;
+    return _regionalFallback(localeCode.toLowerCase(), supported) ?? localeCode;
+  }
+
+  static String? _regionalFallback(
+    String languageCode,
+    Set<String> supported,
+  ) {
+    const preferredRegionalCodes = <String, String>{
+      'en': 'en-US',
+      'es': 'es-ES',
+      'pt': 'pt-BR',
+      'zh': 'zh-CN',
+    };
+    final preferred = preferredRegionalCodes[languageCode];
+    if (preferred != null && supported.contains(preferred)) return preferred;
+
+    final regional = supported
+        .where((code) =>
+            code.contains('-') &&
+            code.split('-').first.toLowerCase() == languageCode)
+        .toList()
+      ..sort();
+    return regional.isEmpty ? null : regional.first;
   }
 
   static String _localeCode(ui.Locale locale) {

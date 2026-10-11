@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/fan_curve.dart';
+import 'package:hwcontrol_dashboard/fan_curve.dart';
 
 void main() {
   test('fan curve interpolates between points', () {

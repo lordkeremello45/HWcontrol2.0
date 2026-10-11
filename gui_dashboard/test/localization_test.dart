@@ -28,11 +28,27 @@ void main() {
       expect(file.uri.pathSegments.last, 'app_${locale}.arb');
     }
 
+    final languageCodes = catalogs.keys
+        .map((locale) => locale.split('_').first)
+        .toSet();
+    for (final languageCode in languageCodes) {
+      final fallbackFile = File('lib/l10n/app_${languageCode}.arb');
+      expect(
+        fallbackFile.existsSync(),
+        isTrue,
+        reason: 'Missing base-language fallback catalog for $languageCode',
+      );
+      final fallbackCatalog =
+          jsonDecode(fallbackFile.readAsStringSync()) as Map<String, dynamic>;
+      expect(fallbackCatalog['@@locale'], languageCode);
+      expect(fallbackCatalog['localeDisplayName'], isA<String>());
+    }
+
     final source = catalogs['en_US']!;
     final sourceKeys = source.keys
         .where((key) => !key.startsWith('@') && key != '@@locale')
         .toSet();
-    expect(sourceKeys.length, greaterThanOrEqualTo(233));
+    expect(sourceKeys.length, greaterThanOrEqualTo(235));
 
     const fallbackOnlyKeys = <String>{
       'securityBlockedTitle',
@@ -48,6 +64,8 @@ void main() {
       'updateStatusVerified',
       'updateStatusVerificationFailed',
       'updateReleaseReady',
+      'automationRuleSummary',
+      'dashboardSpeechSummary',
     };
 
     for (final locale in catalogs.entries) {

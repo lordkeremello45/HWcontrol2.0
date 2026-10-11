@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/extension_api.dart';
+import 'package:hwcontrol_dashboard/extension_api.dart';
 
 void main() {
   test('extension manifest round-trips safely', () {

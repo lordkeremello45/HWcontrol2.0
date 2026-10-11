@@ -296,7 +296,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   FanCurve _fanCurve = FanCurve.balanced;
   bool _smartFanEnabled = false;
   List<HardwareAutomationRule> _automationRules = <HardwareAutomationRule>[];
-  double? _lastAutomaticFanTarget;
   final FanCurveController _fanCurveController = FanCurveController();
   bool _gameProfileApplied = false;
   double _preGameFanValue = 50;
@@ -618,7 +617,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final locales = AppLocalizations.supportedLocales;
       _supportedLocales = <Map<String, String>>[
-        for (final locale in locales)
+        for (final locale in locales.where((locale) => locale.countryCode != null))
           <String, String>{
             'code': localeTag(locale),
             'name': lookupAppLocalizations(locale).localeDisplayName,
@@ -806,7 +805,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(rules[i].name),
-                      subtitle: Text(rules[i].sensor + ' ≥ ' + rules[i].threshold.round().toString() + ' °C → fan ' + rules[i].fanPercent.round().toString() + '%'),
+                      subtitle: Text(
+                        AppLocalizations.of(context)!.automationRuleSummary(
+                          _tr(rules[i].sensor == 'cpuTemperature'
+                              ? 'cpuTemperatureLabel'
+                              : 'gpuTemperatureLabel'),
+                          rules[i].threshold.round(),
+                          rules[i].fanPercent.round(),
+                        ),
+                      ),
                       leading: Switch(
                         value: rules[i].enabled,
                         onChanged: (value) => setDialogState(() {
@@ -900,7 +907,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final gpu = (telemetry['gpuTemperature'] as num?)?.toDouble() ?? double.nan;
     if (cpu >= 95 || (gpu.isFinite && gpu >= 95)) {
       _fanCurveController.reset();
-      _lastAutomaticFanTarget = null;
       return;
     }
     final curveTarget = _fanCurveController.nextTarget(
@@ -918,7 +924,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (target == null || !target.isFinite) return;
     final success = await _sendCommand('Fan Hızı', target);
     if (success) {
-      _lastAutomaticFanTarget = target;
       if (mounted) setState(() => _fanValue = target);
       _addEvent('Smart Fan otomatik hedef: ${target.round()}%');
     }
@@ -1609,7 +1614,11 @@ Attach this archive to a support issue only after reviewing it for personal info
                             ? () async {
                                 try {
                                   await _piperTts.speak(
-                                    text: '${_tr('dashboard')}. CPU ${_cpuTemperature.toStringAsFixed(1)} degrees Celsius. GPU ${_gpuTemperature.toStringAsFixed(1)} degrees Celsius. CPU usage ${_cpuUsage.toStringAsFixed(0)} percent. GPU usage ${_gpuUsage.toStringAsFixed(0)} percent.',
+                                    text: AppLocalizations.of(context)!.dashboardSpeechSummary(
+                                      _cpuTemperature.toStringAsFixed(1),
+                                      _cpuUsage.toStringAsFixed(0),
+                                      _gpuUsage.toStringAsFixed(0),
+                                    ),
                                     executablePath: piperExecutableController.text,
                                     modelPath: piperModelController.text,
                                   );

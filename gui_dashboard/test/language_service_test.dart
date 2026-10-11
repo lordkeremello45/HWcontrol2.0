@@ -13,6 +13,23 @@ void main() {
     );
   });
 
+  test('maps a base language selection to its regional catalog when available', () {
+    expect(
+      HWControlLanguageService.resolveLocale(
+        savedLocale: 'ar',
+        supportedCodes: const ['ar', 'ar-SA', 'en-US'],
+      ),
+      'ar-SA',
+    );
+    expect(
+      HWControlLanguageService.resolveLocale(
+        savedLocale: 'en',
+        supportedCodes: const ['en', 'en-CA', 'en-US'],
+      ),
+      'en-US',
+    );
+  });
+
   test('resolves System Default from the current platform locale', () {
     final systemCode = HWControlLanguageService.systemLocaleCode;
     final result = HWControlLanguageService.resolveLocale(

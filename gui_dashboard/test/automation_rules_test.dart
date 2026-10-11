@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/automation_rules.dart';
+import 'package:hwcontrol_dashboard/automation_rules.dart';
 
 void main() {
   test('automation selects highest matched threshold', () {

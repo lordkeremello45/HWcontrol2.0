@@ -469,5 +469,35 @@
   },
   "@installerCheckingComponents": {
     "description": "Status shown while the installer checks installed components."
+  },
+  "automationRuleSummary": "{sensor} ≥ {threshold} °C → fan %{fanPercent}",
+  "@automationRuleSummary": {
+    "description": "Summarizes a hardware automation rule in the UI. Preserve all placeholders.",
+    "placeholders": {
+      "sensor": {
+        "type": "String"
+      },
+      "threshold": {
+        "type": "int"
+      },
+      "fanPercent": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardSpeechSummary": "Ana ekran. İşlemci sıcaklığı {cpuTemperature} derece Celsius. İşlemci kullanımı yüzde {cpuUsage}. Ekran kartı kullanımı yüzde {gpuUsage}.",
+  "@dashboardSpeechSummary": {
+    "description": "Spoken summary of available dashboard telemetry. GPU temperature is omitted because this telemetry is not currently available.",
+    "placeholders": {
+      "cpuTemperature": {
+        "type": "String"
+      },
+      "cpuUsage": {
+        "type": "String"
+      },
+      "gpuUsage": {
+        "type": "String"
+      }
+    }
   }
 }

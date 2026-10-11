@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../lib/welcome_screen.dart';
+import 'package:hwcontrol_dashboard/welcome_screen.dart';
 
 void main() {
   testWidgets('renders the original HWcontrol2.0 welcome content', (tester) async {
