@@ -11,6 +11,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -1499,24 +1500,75 @@ Attach this archive to a support issue only after reviewing it for personal info
                     value: piperEnabled,
                     onChanged: (value) => setDialogState(() => piperEnabled = value),
                   ),
-                  TextField(
-                    controller: piperExecutableController,
-                    decoration: InputDecoration(
-                      labelText: _tr('piperExecutablePath'),
-                      hintText: Platform.isWindows ? r'C:\Tools\piper\piper.exe' : '/usr/local/bin/piper',
-                    ),
-                    autocorrect: false,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: piperExecutableController,
+                          decoration: InputDecoration(
+                            labelText: _tr('piperExecutablePath'),
+                            hintText: Platform.isWindows ? r'C:\Tools\piper\piper.exe' : '/usr/local/bin/piper',
+                          ),
+                          autocorrect: false,
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: _tr('browsePiperExecutable'),
+                        icon: const Icon(Icons.folder_open),
+                        onPressed: () async {
+                          final picked = await FilePicker.platform.pickFiles(type: FileType.any);
+                          final path = picked?.files.single.path;
+                          if (path != null && path.isNotEmpty) {
+                            piperExecutableController.text = path;
+                          }
+                        },
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
-                  TextField(
-                    controller: piperModelController,
-                    decoration: InputDecoration(
-                      labelText: _tr('piperModelPath'),
-                      hintText: 'voice.onnx',
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: piperModelController,
+                          decoration: InputDecoration(
+                            labelText: _tr('piperModelPath'),
+                            hintText: 'voice.onnx',
+                          ),
+                          autocorrect: false,
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: _tr('browsePiperModel'),
+                        icon: const Icon(Icons.folder_open),
+                        onPressed: () async {
+                          final picked = await FilePicker.platform.pickFiles(
+                            type: FileType.custom,
+                            allowedExtensions: ['onnx'],
+                          );
+                          final path = picked?.files.single.path;
+                          if (path != null && path.isNotEmpty) {
+                            piperModelController.text = path;
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  Text(_tr('piperModelConfigHint'), style: Theme.of(context).textTheme.bodySmall),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: () => launchUrl(
+                        Uri.parse('https://github.com/OHF-Voice/piper1-gpl/blob/main/docs/VOICES.md'),
+                        mode: LaunchMode.externalApplication,
+                      ),
+                      icon: const Icon(Icons.open_in_new),
+                      label: Text(_tr('piperVoiceCatalog')),
                     ),
-                    autocorrect: false,
                   ),
                   const SizedBox(height: 8),
+                  /*
+
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
