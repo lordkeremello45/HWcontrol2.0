@@ -9,10 +9,14 @@ class HWControlWelcomeScreen extends StatefulWidget {
     super.key,
     required this.onContinue,
     required this.onSettings,
+    this.locale = 'en-US',
+    this.translations = const <String, String>{},
   });
 
   final ValueChanged<bool> onContinue;
   final VoidCallback onSettings;
+  final String locale;
+  final Map<String, String> translations;
 
   @override
   State<HWControlWelcomeScreen> createState() => _HWControlWelcomeScreenState();
@@ -20,6 +24,11 @@ class HWControlWelcomeScreen extends StatefulWidget {
 
 class _HWControlWelcomeScreenState extends State<HWControlWelcomeScreen> {
   bool _dontShowAgain = false;
+
+  String _text(String key, String fallback) =>
+      widget.translations[key]?.trim().isNotEmpty == true
+          ? widget.translations[key]!.trim()
+          : fallback;
 
   static const _ink = Color(0xFF17202A);
   static const _panel = Color(0xFF1E2933);
@@ -85,9 +94,9 @@ class _HWControlWelcomeScreenState extends State<HWControlWelcomeScreen> {
       children: [
         _buildLogo(),
         const SizedBox(height: 34),
-        const Text(
-          'Welcome to HWcontrol2.0',
-          style: TextStyle(
+        Text(
+          _text('welcomeTitle', 'Welcome to HWcontrol2.0'),
+          style: const TextStyle(
             color: _mint,
             fontSize: 42,
             height: 1.08,
@@ -96,9 +105,9 @@ class _HWControlWelcomeScreenState extends State<HWControlWelcomeScreen> {
           ),
         ),
         const SizedBox(height: 14),
-        const Text(
-          'Monitor. Control. Protect.',
-          style: TextStyle(
+        Text(
+          _text('welcomeTagline', 'Monitor. Control. Protect.'),
+          style: const TextStyle(
             color: Color(0xFF64D8CB),
             fontSize: 20,
             height: 1.2,
@@ -109,8 +118,8 @@ class _HWControlWelcomeScreenState extends State<HWControlWelcomeScreen> {
         const SizedBox(
           width: 520,
           child: Text(
-            'A simple, reliable way to monitor your hardware, control cooling, and keep your system healthy.',
-            style: TextStyle(
+            _text('welcomeDescription', 'A simple, reliable way to monitor your hardware, control cooling, and keep your system healthy.'),
+            style: const TextStyle(
               color: _muted,
               fontSize: 16,
               height: 1.55,
@@ -152,9 +161,9 @@ class _HWControlWelcomeScreenState extends State<HWControlWelcomeScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              child: const Text(
-                'Get Started',
-                style: TextStyle(fontWeight: FontWeight.w700),
+              child: Text(
+                _text('welcomeGetStarted', 'Get Started'),
+                style: const TextStyle(fontWeight: FontWeight.w700),
               ),
             ),
             const SizedBox(width: 10),
@@ -164,7 +173,7 @@ class _HWControlWelcomeScreenState extends State<HWControlWelcomeScreen> {
                 foregroundColor: _mint,
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
               ),
-              child: const Text('Open Dashboard'),
+              child: Text(_text('welcomeOpenDashboard', 'Open Dashboard')),
             ),
           ],
         ),
@@ -187,9 +196,9 @@ class _HWControlWelcomeScreenState extends State<HWControlWelcomeScreen> {
                   visualDensity: VisualDensity.compact,
                 ),
                 const SizedBox(width: 2),
-                const Text(
-                  "Don't show this again",
-                  style: TextStyle(color: _muted, fontSize: 13),
+                Text(
+                  _text('welcomeDontShowAgain', "Don't show this again"),
+                  style: const TextStyle(color: _muted, fontSize: 13),
                 ),
               ],
             ),
@@ -255,8 +264,8 @@ class _HWControlWelcomeScreenState extends State<HWControlWelcomeScreen> {
               Icon(Icons.space_dashboard_outlined, color: _muted, size: 18),
               SizedBox(width: 8),
               Text(
-                'Dashboard preview',
-                style: TextStyle(
+                _text('welcomePreview', 'Dashboard preview'),
+                style: const TextStyle(
                   color: _mint,
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
@@ -287,17 +296,17 @@ class _HWControlWelcomeScreenState extends State<HWControlWelcomeScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          const _StatusRow(
+          _StatusRow(
             icon: Icons.check_circle_outline_rounded,
-            text: 'Example status only',
+            text: _text('welcomeExampleStatus', 'Example status only'),
           ),
-          const _StatusRow(
+          _StatusRow(
             icon: Icons.system_update_alt_rounded,
-            text: 'Sample values — not live data',
+            text: _text('welcomeSampleValues', 'Sample values — not live data'),
           ),
-          const _StatusRow(
+          _StatusRow(
             icon: Icons.verified_outlined,
-            text: 'Connect to view your hardware',
+            text: _text('welcomeConnectHardware', 'Connect to view your hardware'),
           ),
         ],
       ),
