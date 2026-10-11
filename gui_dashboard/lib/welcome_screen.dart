@@ -19,7 +19,7 @@ class HWControlWelcomeScreen extends StatefulWidget {
 }
 
 class _HWControlWelcomeScreenState extends State<HWControlWelcomeScreen> {
-  bool _dontShowAgain = true;
+  bool _dontShowAgain = false;
 
   static const _ink = Color(0xFF17202A);
   static const _panel = Color(0xFF1E2933);
@@ -164,7 +164,7 @@ class _HWControlWelcomeScreenState extends State<HWControlWelcomeScreen> {
                 foregroundColor: _mint,
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
               ),
-              child: const Text('Settings'),
+              child: const Text('Open Dashboard'),
             ),
           ],
         ),
@@ -255,7 +255,7 @@ class _HWControlWelcomeScreenState extends State<HWControlWelcomeScreen> {
               Icon(Icons.space_dashboard_outlined, color: _muted, size: 18),
               SizedBox(width: 8),
               Text(
-                'System status',
+                'Dashboard preview',
                 style: TextStyle(
                   color: _mint,
                   fontWeight: FontWeight.w600,
@@ -289,15 +289,15 @@ class _HWControlWelcomeScreenState extends State<HWControlWelcomeScreen> {
           const SizedBox(height: 12),
           const _StatusRow(
             icon: Icons.check_circle_outline_rounded,
-            text: 'System OK',
+            text: 'Example status only',
           ),
           const _StatusRow(
             icon: Icons.system_update_alt_rounded,
-            text: 'Up to date',
+            text: 'Sample values — not live data',
           ),
           const _StatusRow(
             icon: Icons.verified_outlined,
-            text: 'No Issues',
+            text: 'Connect to view your hardware',
           ),
         ],
       ),
