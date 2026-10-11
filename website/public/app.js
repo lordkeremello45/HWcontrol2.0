@@ -1,19 +1,184 @@
-const repo="lordkeremello45/HWcontrol2.0";
-const manifestUrl="./release.json";
-const apiUrl=`https://api.github.com/repos/${repo}/releases?per_page=100`;
-const state={platform:"windows",manifest:null,releases:[]};
-const labels={windows:["WINDOWS PACKAGE","Pick your installer","Windows 10 / 11 · x64"],macos:["MACOS PACKAGE","Pick your package","macOS 14+ · Apple Silicon"],linux:["LINUX PACKAGE","Pick your package","Linux · x64"]};
-const platformIcons={windows:"https://cdn.simpleicons.org/windows/0078D4",macos:"https://cdn.simpleicons.org/apple/F4F7FB",linux:"https://cdn.simpleicons.org/linux/FCC624"};
-const $=(s)=>document.querySelector(s);
-const esc=(v)=>String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-function nameOf(n){const x=n.toLowerCase();if(x.endsWith("-setup.exe"))return"HWControl Setup · recommended";if(x.endsWith(".msi"))return"HWControl MSI installer";if(x.endsWith(".msix"))return"HWControl MSIX installer";if(x.endsWith(".zip"))return"Portable ZIP";if(x.endsWith(".dmg"))return"DMG disk image";if(x.endsWith(".pkg"))return"PKG installer";if(x.endsWith(".deb"))return"DEB package";if(x.endsWith(".pkg.tar.zst"))return"Arch package";if(x.endsWith(".tar.zst"))return"TAR.ZST archive";if(x.endsWith(".tar.gz"))return"TAR.GZ archive";return"Release asset"}
-function size(n){if(!n)return"";const u=["B","KB","MB","GB"];let i=0,x=n;while(x>=1024&&i<3){x/=1024;i++}return `${x.toFixed(i?1:0)} ${u[i]}`}
-function render(){const [eyebrow,title,detected]=labels[state.platform];$("#packageEyebrow").textContent=eyebrow;$("#packageTitle").textContent=title;$("#detected").textContent=detected;let r=state.manifest?.platforms?.[state.platform];if(!r){r=state.releases.find(x=>!x.draft&&!x.prerelease&&new RegExp(`-${state.platform}$`,"i").test(x.tag_name))}if(!r){$("#packages").innerHTML='<div class="loading">No stable package release is currently available.</div>';return}$("#releaseLink").href=r.release_url||r.html_url;const assets=(r.assets||[]).filter(a=>a.name&&!/sha(256|512)|checksum/i.test(a.name));if(!assets.length){$("#packages").innerHTML='<div class="loading">No package assets found. Open the release page for details.</div>';return}$("#packages").innerHTML=assets.map(a=>{const verify=a.checksum_sha256_url?'<a class="verify" href="'+esc(a.checksum_sha256_url)+'" target="_blank" rel="noopener noreferrer">Verify SHA-256 ↗</a>':"";return'<div class="package"><span class="name">'+esc(nameOf(a.name))+'<small>'+esc(a.name)+(a.size?' · '+size(a.size):"")+'</small></span><div class="package-actions"><a class="download-link" href="'+esc(a.url||a.browser_download_url)+'" target="_blank" rel="noopener noreferrer"><img src="'+platformIcons[state.platform]+'" alt="" aria-hidden="true" />Download ↗</a>'+verify+'</div></div>'}).join("")}
-async function fetchWithRetry(url,options={},config={}){const timeout=config.timeout??5000;const retries=config.retries??2;const baseDelay=config.baseDelay??350;let lastError;
-for(let attempt=0;attempt<=retries;attempt++){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),timeout);try{const response=await fetch(url,{...options,signal:controller.signal,cache:options.cache||"no-store"});if(response.ok||[400,401,403,404,422].includes(response.status))return response;lastError=new Error("HTTP "+response.status)}catch(error){lastError=error}finally{clearTimeout(timer)}
-if(attempt<retries)await new Promise(resolve=>setTimeout(resolve,baseDelay*Math.pow(2,attempt)+Math.floor(Math.random()*150)))}throw lastError||new Error("Request failed")}
-async function fetchJson(url,options={},config={}){const response=await fetchWithRetry(url,options,config);if(!response.ok)throw new Error("HTTP "+response.status);return{response,data:await response.json()}}
-async function load(){let manifestLoaded=false;try{const{data}=await fetchJson(manifestUrl,{headers:{Accept:"application/json"}},{timeout:4500,retries:2,baseDelay:300});if(data.schema===1&&data.repository===repo&&data.platforms){state.manifest=data;manifestLoaded=true;const latest=Object.values(data.platforms).filter(x=>x&&x.published_at).sort((a,b)=>new Date(b.published_at)-new Date(a.published_at))[0];$("#latestBadge").textContent=latest?.tag?"Latest stable · "+latest.tag:"Stable release · unavailable";render()}}catch{}
-try{const{data}=await fetchJson(apiUrl,{headers:{Accept:"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"}},{timeout:5500,retries:2,baseDelay:500});if(Array.isArray(data)){state.releases=data.filter(x=>x&&typeof x==="object");const latest=state.releases.filter(x=>!x.draft&&!x.prerelease&&x.tag_name).sort((a,b)=>new Date(b.published_at||b.created_at)-new Date(a.published_at||a.created_at))[0];if(latest)$("#latestBadge").textContent="Latest stable · "+latest.tag_name;else if(!manifestLoaded)$("#latestBadge").textContent="Stable release · unavailable"}}catch{if(!manifestLoaded)$("#latestBadge").textContent="Latest release · unavailable"}render()}
-document.querySelectorAll(".platform").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".platform").forEach(x=>x.classList.remove("active"));b.classList.add("active");state.platform=b.dataset.platform;render()}));
+import {
+  formatSize,
+  getChecksumUrl,
+  getManifestPlatform,
+  getPackageAssets,
+  isValidManifest,
+  safeReleaseUrl,
+  selectPlatformRelease
+} from "./release-logic.mjs";
+
+const repo = "lordkeremello45/HWcontrol2.0";
+const manifestUrl = "./release.json";
+const apiUrl = `https://api.github.com/repos/${repo}/releases?per_page=100`;
+const allReleasesUrl = `https://github.com/${repo}/releases`;
+const state = {
+  platform: "windows",
+  manifest: null,
+  releases: [],
+  liveStatus: "pending",
+  loading: true
+};
+const labels = {
+  windows: ["WINDOWS PACKAGE", "Choose your installer", "Windows 10 / 11 · x64"],
+  macos: ["MACOS PACKAGE", "Choose your package", "macOS 14+ · Apple Silicon"],
+  linux: ["LINUX PACKAGE", "Choose your package", "Linux · x64"]
+};
+const platformIcons = {
+  windows: "https://cdn.simpleicons.org/windows/0078D4",
+  macos: "https://cdn.simpleicons.org/apple/F4F7FB",
+  linux: "https://cdn.simpleicons.org/linux/FCC624"
+};
+const $ = (selector) => document.querySelector(selector);
+const esc = (value) => String(value).replace(/[&<>"]/g, (character) => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"
+}[character]));
+
+function render() {
+  const [eyebrow, defaultTitle, detected] = labels[state.platform];
+  $("#packageEyebrow").textContent = eyebrow;
+  $("#detected").textContent = detected;
+
+  const release = state.liveStatus === "success"
+    ? selectPlatformRelease(state.releases, state.platform)
+    : getManifestPlatform(state.manifest, state.platform);
+  const usingManifest = Boolean(release) && state.liveStatus !== "success";
+  const releaseUrl = safeReleaseUrl(release?.release_url || release?.html_url) || allReleasesUrl;
+  $("#releaseLink").href = releaseUrl;
+
+  if (!release) {
+    $("#packageTitle").textContent = defaultTitle;
+    if (state.liveStatus === "pending") {
+      $("#packages").innerHTML = '<div class="loading">Checking current release metadata…</div><p class="muted">If release data cannot be reached, open the official releases page below.</p>';
+    } else {
+      $("#packages").innerHTML = '<div class="loading">No package data could be loaded for this platform.</div><p class="muted">The release service may be unavailable or no matching release is published. Open GitHub Releases to check the current status.</p>';
+    }
+    return;
+  }
+
+  const tag = release.tag_name || release.tag || "published release";
+  $("#packageTitle").textContent = `Available downloads · ${tag}`;
+  const assets = getPackageAssets(release, state.platform);
+  if (!assets.length) {
+    $("#packages").innerHTML = '<div class="loading">The release exists, but no compatible installer/archive asset was found.</div><p class="muted">Open the release page to inspect its assets. Do not download unrelated files as installers.</p>';
+    return;
+  }
+
+  const checksumUrl = getChecksumUrl(release);
+  const status = usingManifest
+    ? `<div class="loading">${state.liveStatus === "pending" ? "Showing cached release metadata while checking for newer packages." : "Live release metadata is unavailable; showing the last published manifest. Check GitHub Releases for newer packages."}</div>`
+    : "";
+  const packageRows = assets.map((asset) => {
+    const assetUrl = safeReleaseUrl(asset.url || asset.browser_download_url);
+    if (!assetUrl) return "";
+    const sizeLabel = asset.size ? ` · ${formatSize(asset.size)}` : "";
+    const verifyUrl = safeReleaseUrl(asset.checksum_sha256_url) || checksumUrl;
+    const verifyLink = verifyUrl
+      ? `<a class="verify" href="${esc(verifyUrl)}" target="_blank" rel="noopener noreferrer">SHA-256 manifest ↗</a>`
+      : "";
+    return `<div class="package"><span class="name">${esc(asset.name)}<small>${esc(asset.name)}${sizeLabel}</small></span><div class="package-actions"><a class="download-link" href="${esc(assetUrl)}" target="_blank" rel="noopener noreferrer"><img src="${platformIcons[state.platform]}" alt="" aria-hidden="true" />Download ↗</a>${verifyLink}</div></div>`;
+  }).join("");
+
+  $("#packages").innerHTML = status + packageRows;
+}
+
+async function fetchWithRetry(url, options = {}, config = {}) {
+  const timeout = config.timeout ?? 4500;
+  const retries = config.retries ?? 1;
+  const baseDelay = config.baseDelay ?? 350;
+  let lastError;
+
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+        cache: options.cache || "no-store"
+      });
+      if (response.ok || [400, 401, 403, 404, 422].includes(response.status)) return response;
+      lastError = new Error(`HTTP ${response.status}`);
+    } catch (error) {
+      lastError = error;
+    } finally {
+      clearTimeout(timer);
+    }
+    if (attempt < retries) await new Promise((resolve) => setTimeout(resolve, baseDelay * (2 ** attempt)));
+  }
+  throw lastError || new Error("Request failed");
+}
+
+async function fetchJson(url, options = {}, config = {}) {
+  const response = await fetchWithRetry(url, options, config);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return { response, data: await response.json() };
+}
+
+async function loadManifest() {
+  try {
+    const { data } = await fetchJson(
+      manifestUrl,
+      { headers: { Accept: "application/json" } },
+      { timeout: 3500, retries: 0 }
+    );
+    if (isValidManifest(data)) state.manifest = data;
+  } catch {
+    state.manifest = null;
+  }
+  render();
+}
+
+async function loadLiveReleases() {
+  try {
+    const { data } = await fetchJson(
+      apiUrl,
+      { headers: { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" } },
+      { timeout: 4500, retries: 1, baseDelay: 350 }
+    );
+    if (!Array.isArray(data)) throw new Error("Unexpected release API response");
+    state.releases = data.filter((release) => release && typeof release === "object");
+    state.liveStatus = "success";
+    const latest = state.releases
+      .filter((release) => !release.draft && release.tag_name)
+      .sort((a, b) => (Date.parse(b.published_at || b.created_at || "") || 0) - (Date.parse(a.published_at || a.created_at || "") || 0))[0];
+    $("#latestBadge").textContent = latest
+      ? `${latest.prerelease || /-beta/i.test(latest.tag_name) ? "Latest beta" : "Latest release"} · ${latest.tag_name}`
+      : "No published release found";
+  } catch {
+    state.liveStatus = "failed";
+    if (!state.manifest) $("#latestBadge").textContent = "Release data unavailable";
+    else {
+      const cached = Object.values(state.manifest.platforms || {})
+        .filter((release) => release && release.tag)
+        .sort((a, b) => (Date.parse(b.published_at || "") || 0) - (Date.parse(a.published_at || "") || 0))[0];
+      $("#latestBadge").textContent = cached ? `Cached release · ${cached.tag}` : "Release data unavailable";
+    }
+  }
+  render();
+}
+
+function initializePlatformTabs() {
+  document.querySelectorAll(".platform").forEach((button) => {
+    button.addEventListener("click", () => {
+      document.querySelectorAll(".platform").forEach((item) => {
+        item.classList.remove("active");
+        item.setAttribute("aria-selected", "false");
+      });
+      button.classList.add("active");
+      button.setAttribute("aria-selected", "true");
+      state.platform = button.dataset.platform;
+      render();
+    });
+  });
+}
+
+async function load() {
+  render();
+  await Promise.allSettled([loadManifest(), loadLiveReleases()]);
+  state.loading = false;
+  render();
+}
+
+initializePlatformTabs();
 load();
