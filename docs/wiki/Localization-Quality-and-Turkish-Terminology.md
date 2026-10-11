@@ -22,6 +22,16 @@ Initial terminology decisions:
 
 These are product terminology choices, not a claim that every word of foreign origin has been removed from Turkish. User comprehension and technical accuracy take precedence over forced word substitution. Review terminology consistently across visible UI, accessibility announcements, help text, and documentation.
 
+## Optional Turkish prose style: Edebî Türkçe
+
+The default is **Standart Türkçe**. Turkish users may optionally select **Edebî Türkçe** in the language settings for a more flowing, carefully composed interface voice. The literary style should improve rhythm and phrasing without becoming archaic, ornate, vague, or harder to understand. It is not a separate language or a translation of the whole application.
+
+The canonical messages, technical terminology, placeholders, and locale fallback remain owned by the ARB catalogs. The optional file at `gui_dashboard/assets/l10n/variants/tr_TR/literary.json` is a narrowly scoped style overlay: it may override only existing Turkish message keys and otherwise falls back to the canonical ARB wording. It is not a second locale catalog and must not be used for English or other locales. The current overlay contains 66 curated entries; its count is separate from the 235 canonical source-message keys.
+
+Security blocks, update-verification states, automation safety notes, hardware-control limitations, and critical installation errors are protected from stylistic overrides. Any future entry with placeholders must preserve the exact placeholder set. Tests check key existence, string values, placeholder parity, protected messages, standard-style fallback, and that the literary preference does not affect English. If an overlay is missing, malformed, or invalid, the application must start with canonical ARB text rather than fail.
+
+Keep Standard Turkish as the default and use Edebî Türkçe only where the longer wording remains legible in the actual UI. Review the full visible sentence in context; do not mechanically make every label longer. Do not add an Ottoman-style variant.
+
 ## Current source-catalog coverage
 
 The English (US) ARB template currently contains 235 message keys across 40 locale catalogs. Automated checks verify locale identifiers, required-key coverage, ICU placeholder parity, metadata consistency, the generated compatibility adapter, and the absence of runtime references to the removed JSON localization asset. Thirteen newer security/update status messages are currently supplied in English and Turkish; other locales use the English template fallback for those messages. The two parameterized accessibility/automation summaries are present in all 40 regional catalogs, with placeholder parity checks. The ICU plural messages for anomaly counts and benchmark iterations are present in all 40 catalogs. This is structural validation, not proof of native-quality translation: every locale still needs contextual linguistic review, regional terminology review, and UI layout/accessibility checks. Do not describe all 40 as professionally reviewed or fully quality-assured until those steps are completed.
