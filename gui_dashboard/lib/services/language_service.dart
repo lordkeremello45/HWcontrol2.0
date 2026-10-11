@@ -9,6 +9,13 @@ class HWControlLanguageService {
 
   static const String systemDefault = 'system';
 
+  /// Whether a locale uses a right-to-left writing direction.
+  static bool isRightToLeft(String localeCode) {
+    final language = localeCode.split('-').first.toLowerCase();
+    return const <String>{'ar', 'he', 'fa', 'ur', 'ps', 'sd', 'ug', 'yi'}
+        .contains(language);
+  }
+
   static String get systemLocaleCode {
     return _localeCode(ui.PlatformDispatcher.instance.locale);
   }
