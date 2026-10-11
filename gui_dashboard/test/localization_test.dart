@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/widgets.dart';
 
 import '../lib/l10n/app_localizations.dart';
+import '../lib/services/localization_style_service.dart';
 
 void main() {
   test('ARB catalogs cover supported locales and preserve ICU placeholders', () {
@@ -207,6 +208,79 @@ void main() {
       }
     }
   });
+  test('literary Turkish overlay preserves canonical keys and placeholders', () async {
+    final canonical = jsonDecode(
+      File('lib/l10n/app_tr_TR.arb').readAsStringSync(),
+    ) as Map<String, dynamic>;
+    final overlay = jsonDecode(
+      File('assets/l10n/variants/tr_TR/literary.json').readAsStringSync(),
+    ) as Map<String, dynamic>;
+    expect(overlay['schemaVersion'], 1);
+    expect(overlay['locale'], 'tr_TR');
+    expect(overlay['style'], HWControlLocalizationStyleService.literary);
+    final messages = overlay['messages'] as Map<String, dynamic>;
+
+    const protectedKeys = <String>{
+      'automationSafetyNote',
+      'benchmarkDisclaimer',
+      'hardwareControlUnavailableNote',
+      'securityBlockedTitle',
+      'securityBlockedDescription',
+      'securityBlockedRecommendation',
+      'securityCloseApplication',
+      'updateStatusNotChecked',
+      'updateStatusNoRelease',
+      'updateStatusCurrent',
+      'updateStatusAvailable',
+      'updateStatusCheckFailed',
+      'updateStatusDownloading',
+      'updateStatusVerified',
+      'updateStatusVerificationFailed',
+      'updateReleaseReady',
+      'installerCheckFailed',
+      'installerModelDownloadFailed',
+    };
+
+    for (final entry in messages.entries) {
+      expect(canonical[entry.key], isA<String>(),
+          reason: 'Unknown or non-string ARB key: ${entry.key}');
+      expect(entry.value, isA<String>(),
+          reason: 'Overlay value must be a string: ${entry.key}');
+      expect(protectedKeys.contains(entry.key), isFalse,
+          reason: 'Protected message must not be stylistically overridden: ${entry.key}');
+      expect(
+        HWControlLocalizationStyleService.placeholders(entry.value as String),
+        HWControlLocalizationStyleService.placeholders(canonical[entry.key] as String),
+        reason: 'Placeholder mismatch for ${entry.key}',
+      );
+    }
+
+    final turkish = lookupAppLocalizations(const Locale('tr', 'TR')).toStringMap();
+    final literary = await HWControlLocalizationStyleService.applyStyle(
+      localeCode: 'tr-TR',
+      style: HWControlLocalizationStyleService.literary,
+      translations: turkish,
+    );
+    expect(literary['dashboard'], 'Gösterge paneli');
+    expect(literary['welcomeDescription'], messages['welcomeDescription']);
+
+    final standard = await HWControlLocalizationStyleService.applyStyle(
+      localeCode: 'tr-TR',
+      style: HWControlLocalizationStyleService.standard,
+      translations: turkish,
+    );
+    expect(standard['dashboard'], turkish['dashboard']);
+
+    final english = lookupAppLocalizations(const Locale('en', 'US')).toStringMap();
+    final englishWithLiteraryPreference =
+        await HWControlLocalizationStyleService.applyStyle(
+      localeCode: 'en-US',
+      style: HWControlLocalizationStyleService.literary,
+      translations: english,
+    );
+    expect(englishWithLiteraryPreference, english);
+  });
+
   test('generated ICU messages handle plural forms in multiple locales', () {
     final english = lookupAppLocalizations(const Locale('en', 'US'));
     expect(english.anomalyCount(0), 'No anomalies');
