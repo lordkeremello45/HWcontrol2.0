@@ -84,19 +84,24 @@ class _HWControlAppState extends State<HWControlApp> {
 
       final settings = await _userData.readSettings();
       final savedLocale = settings['language'] as String?;
-      final translations = rawTranslations.map((locale, values) => MapEntry(
-        locale.toString(),
-        values is Map
-            ? values.map((key, value) => MapEntry(key.toString(), value.toString()))
-            : <String, String>{},
-      ));
+      final translations = <String, Map<String, String>>{};
+      for (final entry in rawTranslations.entries) {
+        final values = entry.value;
+        if (values is Map) {
+          translations[entry.key.toString()] = values.map<String, String>(
+            (key, value) => MapEntry(key.toString(), value.toString()),
+          );
+        }
+      }
       final locale = HWControlLanguageService.resolveLocale(
         savedLocale: savedLocale,
         supportedCodes: translations.keys,
       );
       if (!mounted) return;
       setState(() {
-        _welcomeTranslations = translations[locale] ?? translations['en-US'] ?? const <String, String>{};
+        _welcomeTranslations = translations[locale] ??
+            translations['en-US'] ??
+            const <String, String>{};
       });
     } catch (_) {
       // The welcome screen has English fallbacks and must remain available
