@@ -13,6 +13,8 @@ class PiperTtsService {
 
   final AudioPlayer _player;
   bool _speaking = false;
+  bool _cancelRequested = false;
+  Process? _activeProcess;
 
   Future<bool> isConfigured({
     required String executablePath,
@@ -47,6 +49,7 @@ class PiperTtsService {
     }
 
     _speaking = true;
+    _cancelRequested = false;
     String? outputPath;
     Process? process;
     try {
@@ -58,6 +61,7 @@ class PiperTtsService {
         <String>['--model', modelPath, '--output_file', outputPath],
         runInShell: false,
       );
+      _activeProcess = process;
       // Drain both streams to avoid blocking if Piper emits diagnostics.
       unawaited(process.stdout.drain<void>());
       unawaited(process.stderr.drain<void>());
@@ -71,6 +75,7 @@ class PiperTtsService {
           throw TimeoutException('Piper speech synthesis timed out.');
         },
       );
+      if (_cancelRequested) return;
       if (exitCode != 0) {
         throw StateError('Piper exited with code $exitCode.');
       }
@@ -84,6 +89,7 @@ class PiperTtsService {
       await completed.timeout(const Duration(seconds: 90));
     } finally {
       _speaking = false;
+      _activeProcess = null;
       if (outputPath != null) {
         try {
           final output = File(outputPath);
@@ -129,7 +135,14 @@ class PiperTtsService {
     return null;
   }
 
+  Future<void> stop() async {
+    _cancelRequested = true;
+    _activeProcess?.kill();
+    await _player.stop();
+  }
+
   Future<void> dispose() async {
+    await stop();
     await _player.dispose();
   }
 }
