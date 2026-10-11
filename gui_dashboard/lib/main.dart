@@ -1703,7 +1703,11 @@ Attach this archive to a support issue only after reviewing it for personal info
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Directionality(
+      textDirection: HWControlLanguageService.isRightToLeft(_locale)
+          ? TextDirection.rtl
+          : TextDirection.ltr,
+      child: Scaffold(
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -1758,6 +1762,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             );
           },
         ),
+      ),
       ),
     );
   }
