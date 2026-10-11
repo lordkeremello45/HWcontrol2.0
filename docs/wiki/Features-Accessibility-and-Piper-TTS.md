@@ -30,6 +30,7 @@ The executable path may be left blank when `piper` is available on `PATH`. The m
 ## Known limitations
 
 - Piper and voice models are not installed automatically and are not bundled with application installers. File browsing and validation are implemented; a managed download/install flow is not yet implemented.
+- Do not bundle a voice model by default until its model card has been reviewed. For example, the currently listed Turkish `tr_TR-dfki-medium` voice references a CC BY-NC-SA 4.0 dataset license; that may not fit every redistribution or commercial-use scenario. See the [model card](https://huggingface.co/rhasspy/piper-voices/blob/main/tr/tr_TR/dfki/medium/MODEL_CARD).
 - A screen reader should still be used for general navigation. This TTS integration is an additional speech feature, not a replacement for complete Flutter semantics, keyboard navigation, or the operating system's screen reader.
 - The dashboard summary currently reads a concise subset of telemetry; it does not continuously announce every changing sensor value.
 - Supported languages and voice quality depend on the model selected by the user.
