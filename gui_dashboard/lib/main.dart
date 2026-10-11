@@ -67,6 +67,7 @@ class _HWControlAppState extends State<HWControlApp> {
   bool _welcomeSeen = false;
   final HWControlUserDataStore _userData = HWControlUserDataStore();
   Map<String, String> _welcomeTranslations = const <String, String>{};
+  String _welcomeLocale = 'en-US';
 
   @override
   void initState() {
@@ -99,6 +100,7 @@ class _HWControlAppState extends State<HWControlApp> {
       );
       if (!mounted) return;
       setState(() {
+        _welcomeLocale = locale;
         _welcomeTranslations = translations[locale] ??
             translations['en-US'] ??
             const <String, String>{};
@@ -168,10 +170,15 @@ class _HWControlAppState extends State<HWControlApp> {
       home: blockedRelease
           ? const UnofficialBuildScreen()
           : _showWelcome
-              ? HWControlWelcomeScreen(
-                  onContinue: _completeWelcome,
-                  onSettings: _openDashboardFromWelcome,
-                  translations: _welcomeTranslations,
+              ? Directionality(
+                  textDirection: HWControlLanguageService.isRightToLeft(_welcomeLocale)
+                      ? TextDirection.rtl
+                      : TextDirection.ltr,
+                  child: HWControlWelcomeScreen(
+                    onContinue: _completeWelcome,
+                    onSettings: _openDashboardFromWelcome,
+                    translations: _welcomeTranslations,
+                  ),
                 )
               : DashboardScreen(
                   darkMode: _darkMode,
