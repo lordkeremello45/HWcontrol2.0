@@ -1555,16 +1555,26 @@ Attach this archive to a support issue only after reviewing it for personal info
                     ],
                   ),
                   Text(_tr('piperModelConfigHint'), style: Theme.of(context).textTheme.bodySmall),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: TextButton.icon(
-                      onPressed: () => launchUrl(
-                        Uri.parse('https://github.com/OHF-Voice/piper1-gpl/blob/main/docs/VOICES.md'),
-                        mode: LaunchMode.externalApplication,
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      TextButton.icon(
+                        onPressed: () => launchUrl(
+                          Uri.parse('https://github.com/OHF-Voice/piper1-gpl/releases'),
+                          mode: LaunchMode.externalApplication,
+                        ),
+                        icon: const Icon(Icons.download_outlined),
+                        label: Text(_tr('getPiperExecutable')),
                       ),
-                      icon: const Icon(Icons.open_in_new),
-                      label: Text(_tr('piperVoiceCatalog')),
-                    ),
+                      TextButton.icon(
+                        onPressed: () => launchUrl(
+                          Uri.parse('https://github.com/OHF-Voice/piper1-gpl/blob/main/docs/VOICES.md'),
+                          mode: LaunchMode.externalApplication,
+                        ),
+                        icon: const Icon(Icons.record_voice_over_outlined),
+                        label: Text(_tr('piperVoiceCatalog')),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   Wrap(
