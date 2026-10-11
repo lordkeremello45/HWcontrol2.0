@@ -26,6 +26,7 @@ import 'l10n/app_localizations.dart';
 import 'l10n/app_localizations_map.dart';
 import 'welcome_screen.dart';
 import 'services/language_service.dart';
+import 'services/localization_style_service.dart';
 import 'services/piper_tts_service.dart';
 import 'security/authenticity_guard.dart';
 
@@ -84,12 +85,20 @@ class _HWControlAppState extends State<HWControlApp> {
     try {
       final settings = await _userData.readSettings();
       final savedLocale = settings['language'] as String?;
+      final style = settings['languageStyle'] == HWControlLocalizationStyleService.literary
+          ? HWControlLocalizationStyleService.literary
+          : HWControlLocalizationStyleService.standard;
       final locale = HWControlLanguageService.resolveLocale(
         savedLocale: savedLocale,
         supportedCodes: AppLocalizations.supportedLocales.map(localeTag),
       );
-      final translations =
+      final baseTranslations =
           lookupAppLocalizations(localeFromTag(locale)).toStringMap();
+      final translations = await HWControlLocalizationStyleService.applyStyle(
+        localeCode: locale,
+        style: style,
+        translations: baseTranslations,
+      );
       if (!mounted) return;
       setState(() {
         _welcomeLocale = locale;
@@ -222,6 +231,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _aiStarting = false;
   String _locale = 'en-US';
   String _languagePreference = HWControlLanguageService.systemDefault;
+  String _languageStyle = HWControlLocalizationStyleService.standard;
   Map<String, String> _translations = <String, String>{};
   List<Map<String, String>> _supportedLocales = <Map<String, String>>[];
   bool _aiSending = false;
@@ -626,14 +636,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final settings = await _userData.readSettings();
       final savedLocale = settings['language'] as String?;
       _languagePreference = savedLocale ?? HWControlLanguageService.systemDefault;
+      _languageStyle = settings['languageStyle'] == HWControlLocalizationStyleService.literary
+          ? HWControlLocalizationStyleService.literary
+          : HWControlLocalizationStyleService.standard;
       _locale = HWControlLanguageService.resolveLocale(
         savedLocale: savedLocale,
         supportedCodes: locales.map(localeTag),
       );
-      _translations =
+      final baseTranslations =
           lookupAppLocalizations(localeFromTag(_locale)).toStringMap();
+      _translations = await HWControlLocalizationStyleService.applyStyle(
+        localeCode: _locale,
+        style: _languageStyle,
+        translations: baseTranslations,
+      );
     } catch (_) {
       _locale = 'en-US';
+      _languageStyle = HWControlLocalizationStyleService.standard;
       _translations = lookupAppLocalizations(const Locale('en', 'US')).toStringMap();
       _supportedLocales = <Map<String, String>>[
         <String, String>{'code': 'en-US', 'name': 'English (US)'},
@@ -680,6 +699,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         'notificationsEnabled': _notificationsEnabled,
         'temperatureLimit': _temperatureLimit,
         'language': _languagePreference,
+        'languageStyle': _languageStyle,
         'smartFanEnabled': _smartFanEnabled,
         'piperTtsEnabled': _piperTtsEnabled,
         'piperExecutablePath': _piperExecutablePath,
@@ -1453,6 +1473,7 @@ Attach this archive to a support issue only after reviewing it for personal info
     var notificationsEnabled = _notificationsEnabled;
     var temperatureLimit = _temperatureLimit;
     var selectedLocale = _languagePreference;
+    var selectedLanguageStyle = _languageStyle;
     var piperEnabled = _piperTtsEnabled;
     var piperStatus = '';
     final piperExecutableController = TextEditingController(text: _piperExecutablePath);
@@ -1494,6 +1515,36 @@ Attach this archive to a support issue only after reviewing it for personal info
                       ],
                     ),
                   ),
+                  if (selectedLocale == HWControlLanguageService.systemDefault
+                      ? HWControlLanguageService.systemLocaleCode.toLowerCase().startsWith('tr')
+                      : selectedLocale.toLowerCase().startsWith('tr')) ...[
+                    const SizedBox(height: 8),
+                    const Text('Dil üslubu', style: TextStyle(fontWeight: FontWeight.w700)),
+                    RadioGroup<String>(
+                      groupValue: selectedLanguageStyle,
+                      onChanged: (value) {
+                        if (value != null) {
+                          setDialogState(() => selectedLanguageStyle = value);
+                        }
+                      },
+                      child: const Column(
+                        children: [
+                          RadioListTile<String>(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text('Standart Türkçe'),
+                            subtitle: Text('Açık, doğrudan ve teknik anlatım'),
+                            value: HWControlLocalizationStyleService.standard,
+                          ),
+                          RadioListTile<String>(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text('Edebî Türkçe'),
+                            subtitle: Text('Daha akıcı ve özenli anlatım'),
+                            value: HWControlLocalizationStyleService.literary,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const Divider(height: 22),
                   Text(_tr('accessibility'), style: const TextStyle(fontWeight: FontWeight.w700)),
                   SwitchListTile(
@@ -1661,20 +1712,30 @@ Attach this archive to a support issue only after reviewing it for personal info
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: Text(_tr('cancel'))),
             FilledButton(
-              onPressed: () {
+              onPressed: () async {
+                final nextLocale = HWControlLanguageService.resolveLocale(
+                  savedLocale: selectedLocale,
+                  supportedCodes: AppLocalizations.supportedLocales.map(localeTag),
+                );
+                final baseTranslations =
+                    lookupAppLocalizations(localeFromTag(nextLocale)).toStringMap();
+                final nextTranslations =
+                    await HWControlLocalizationStyleService.applyStyle(
+                  localeCode: nextLocale,
+                  style: selectedLanguageStyle,
+                  translations: baseTranslations,
+                );
+                if (!mounted) return;
                 setState(() {
                   _notificationsEnabled = notificationsEnabled;
                   _temperatureLimit = temperatureLimit;
                   _languagePreference = selectedLocale;
+                  _languageStyle = selectedLanguageStyle;
                   _piperTtsEnabled = piperEnabled;
                   _piperExecutablePath = piperExecutableController.text.trim();
                   _piperModelPath = piperModelController.text.trim();
-                  _locale = HWControlLanguageService.resolveLocale(
-                    savedLocale: selectedLocale,
-                    supportedCodes: AppLocalizations.supportedLocales.map(localeTag),
-                  );
-                  _translations =
-                      lookupAppLocalizations(localeFromTag(_locale)).toStringMap();
+                  _locale = nextLocale;
+                  _translations = nextTranslations;
                 });
                 widget.onLocaleChanged(_locale);
                 unawaited(_saveSettings());
