@@ -9,7 +9,8 @@ class BenchmarkResult {
 }
 
 class HardwareBenchmarkDialog extends StatefulWidget {
-  const HardwareBenchmarkDialog({super.key});
+  const HardwareBenchmarkDialog({super.key, this.translations = const <String, String>{}});
+  final Map<String, String> translations;
 
   @override
   State<HardwareBenchmarkDialog> createState() => _HardwareBenchmarkDialogState();
@@ -39,30 +40,32 @@ class _HardwareBenchmarkDialogState extends State<HardwareBenchmarkDialog> {
     });
   }
 
+  String _tr(String key) => widget.translations[key] ?? key;
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Hardware Benchmark'),
+      title: Text(_tr('hardwareBenchmark')),
       content: SizedBox(
         width: 480,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('1 saniyelik CPU mikro-benchmark. Bu test stress test değildir ve donanım ayarlarını değiştirmez.'),
+            Text(_tr('benchmarkDisclaimer')),
             const SizedBox(height: 18),
             if (_running) const LinearProgressIndicator(),
             if (_result case final result?) ...[
-              Text('Skor: ${result.score.toStringAsFixed(0)} iterasyon/s'),
-              Text('İterasyon: ${result.iterations}'),
-              Text('Süre: ${result.durationMs} ms'),
+              Text(_tr('score').replaceAll('{value}', result.score.toStringAsFixed(0))),
+              Text(_tr('iterations').replaceAll('{value}', result.iterations.toString())), 
+              Text(_tr('duration').replaceAll('{value}', result.durationMs.toString())), 
             ],
           ],
         ),
       ),
       actions: [
-        TextButton(onPressed: _running ? null : () => Navigator.pop(context), child: const Text('Kapat')),
-        FilledButton.icon(onPressed: _running ? null : _run, icon: const Icon(Icons.speed), label: const Text('Çalıştır')),
+        TextButton(onPressed: _running ? null : () => Navigator.pop(context), child: Text(_tr('close'))),
+        FilledButton.icon(onPressed: _running ? null : _run, icon: const Icon(Icons.speed), label: Text(_tr('run'))),
       ],
     );
   }
