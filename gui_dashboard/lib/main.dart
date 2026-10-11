@@ -1834,14 +1834,14 @@ Attach this archive to a support issue only after reviewing it for personal info
     }
   }
 
-  Future<void> _applyPreset(String name, double fan, double ai) async {
+  Future<void> _applyPreset(String name, String legacyProfileName, double fan, double ai) async {
     if (_isSending) return;
     setState(() {
       _fanValue = fan;
       _aiValue = ai;
       _lastAction = '$name profili hazırlanıyor';
     });
-    final savedProfile = _profiles[name];
+    final savedProfile = _profiles[legacyProfileName] ?? _profiles[name];
     if (savedProfile != null) {
       fan = savedProfile['fan'] ?? fan;
       ai = savedProfile['ai'] ?? ai;
@@ -2383,11 +2383,11 @@ Attach this archive to a support issue only after reviewing it for personal info
             runSpacing: 14,
             children: [
               _hardwareIdentityTile(Icons.computer_outlined, 'PC', '$_systemManufacturer $_systemModel'),
-              _hardwareIdentityTile(Icons.developer_board_outlined, 'Anakart', '$_motherboardVendor $_motherboardModel'),
+              _hardwareIdentityTile(Icons.developer_board_outlined, _tr('motherboardLabel'), '$_motherboardVendor $_motherboardModel'),
               _hardwareIdentityTile(Icons.memory_outlined, 'CPU', '$_cpuManufacturer $_cpuModel'),
               _hardwareIdentityTile(Icons.videogame_asset_outlined, 'GPU', '$_gpuVendor • $_gpuModel'),
               _hardwareIdentityTile(Icons.dns_outlined, 'BIOS', _biosVersion),
-              _hardwareIdentityTile(Icons.drive_file_rename_outline, 'GPU sürücüsü', _gpuDriver),
+              _hardwareIdentityTile(Icons.drive_file_rename_outline, _tr('gpuDriverLabel'), _gpuDriver),
             ],
           ),
           const SizedBox(height: 12),
@@ -2404,7 +2404,7 @@ Attach this archive to a support issue only after reviewing it for personal info
   }
 
   Widget _hardwareIdentityTile(IconData icon, String label, String value) {
-    final text = value.trim().isEmpty ? 'Bilinmiyor' : value.trim();
+    final text = value.trim().isEmpty ? _tr('unknown') : value.trim();
     return SizedBox(
       width: 360,
       child: Container(
@@ -2474,7 +2474,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           const SizedBox(height: 20),
           _buildPresetRow(),
           const SizedBox(height: 14),
-          _buildSliderControl('Fan Hızı', Icons.air, _fanValue, (value) => setState(() => _fanValue = value), const Color(0xFF64D8CB)),
+          _buildSliderControl(_tr('fanSpeed'), Icons.air, _fanValue, (value) => setState(() => _fanValue = value), const Color(0xFF64D8CB), command: 'Fan Hızı'),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -2507,7 +2507,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             ],
           ),
           Divider(color: Theme.of(context).colorScheme.onSurface.withAlpha(20), height: 30),
-          _buildSliderControl('AI İşlem Gücü', Icons.auto_awesome, _aiValue, (value) => setState(() => _aiValue = value), const Color(0xFF8FA7FF)),
+          _buildSliderControl(_tr('aiProcessingPower'), Icons.auto_awesome, _aiValue, (value) => setState(() => _aiValue = value), const Color(0xFF8FA7FF), command: 'AI İşlem Gücü'),
         ],
       ),
     );
@@ -2520,27 +2520,27 @@ Attach this archive to a support issue only after reviewing it for personal info
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         if (!_fanControlSupported) Text(_tr('hardwareControlMonitorOnly'), style: const TextStyle(fontSize: 12)),
-        _presetButton('Sessiz', Icons.volume_off_outlined, 25, 45, const Color(0xFF64D8CB)),
-        _presetButton('Dengeli', Icons.tune, 50, 80, const Color(0xFFFFB454)),
-        _presetButton('Performans', Icons.speed, 85, 100, const Color(0xFFFF7B7B)),
-        _presetButton('Oyun', Icons.sports_esports_outlined, 75, 95, const Color(0xFFB995FF)),
-        _presetButton('Manuel', Icons.edit_outlined, _fanValue, _aiValue, const Color(0xFF8FA7FF)),
+        _presetButton('quiet', 'Sessiz', Icons.volume_off_outlined, 25, 45, const Color(0xFF64D8CB)),
+        _presetButton('balanced', 'Dengeli', Icons.tune, 50, 80, const Color(0xFFFFB454)),
+        _presetButton('performance', 'Performans', Icons.speed, 85, 100, const Color(0xFFFF7B7B)),
+        _presetButton('game', 'Oyun', Icons.sports_esports_outlined, 75, 95, const Color(0xFFB995FF)),
+        _presetButton('manual', 'Manuel', Icons.edit_outlined, _fanValue, _aiValue, const Color(0xFF8FA7FF)),
         TextButton.icon(onPressed: _isSending || !_fanControlSupported ? null : _resetControls, icon: const Icon(Icons.restart_alt, size: 16), label: Text(_tr('reset'))),
         TextButton.icon(onPressed: () => _saveProfile(_tr('manual')), icon: const Icon(Icons.save_outlined, size: 16), label: Text(_tr('saveProfile'))),
       ],
     );
   }
 
-  Widget _presetButton(String label, IconData icon, double fan, double ai, Color color) {
+  Widget _presetButton(String labelKey, String legacyProfileName, IconData icon, double fan, double ai, Color color) {\n    final label = _tr(labelKey);
     return OutlinedButton.icon(
-      onPressed: _isSending || !_fanControlSupported ? null : () => _applyPreset(label, fan, ai),
+      onPressed: _isSending || !_fanControlSupported ? null : () => _applyPreset(label, legacyProfileName, fan, ai),
       icon: Icon(icon, size: 16),
       label: Text(label),
       style: OutlinedButton.styleFrom(foregroundColor: color, side: BorderSide(color: color.withAlpha(100))),
     );
   }
 
-  Widget _buildSliderControl(String label, IconData icon, double value, ValueChanged<double> onChanged, Color color) {
+  Widget _buildSliderControl(String label, IconData icon, double value, ValueChanged<double> onChanged, Color color, {String? command}) {
     return Column(
       children: [
         Row(
@@ -2552,7 +2552,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             const SizedBox(width: 12),
             IconButton(
               tooltip: _tr('apply'),
-              onPressed: _isSending || !_fanControlSupported ? null : () => _sendCommand(label, value),
+              onPressed: _isSending || !_fanControlSupported ? null : () => _sendCommand(command ?? label, value),
               icon: const Icon(Icons.check_circle_outline),
               color: color,
             ),
@@ -2617,7 +2617,7 @@ Attach this archive to a support issue only after reviewing it for personal info
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionTitle(_tr('systemEvents'), 'Son 20 kayıt'),
+        _sectionTitle(_tr('systemEvents'), _tr('last20Events')),
         const SizedBox(height: 10),
         if (_events.isEmpty) Text(_tr('noEvents'), style: TextStyle(color: Colors.white54, fontSize: 12)),
         for (final event in _events.take(5)) Padding(padding: const EdgeInsets.only(bottom: 6), child: Text(event, style: const TextStyle(fontSize: 11, color: Colors.white60))),
