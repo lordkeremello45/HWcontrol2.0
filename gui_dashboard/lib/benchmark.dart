@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
+import 'l10n/app_localizations.dart';
+
 class BenchmarkResult {
   const BenchmarkResult({required this.durationMs, required this.iterations, required this.score});
   final int durationMs;
@@ -56,9 +58,9 @@ class _HardwareBenchmarkDialogState extends State<HardwareBenchmarkDialog> {
             const SizedBox(height: 18),
             if (_running) const LinearProgressIndicator(),
             if (_result case final result?) ...[
-              Text(_tr('score').replaceAll('{value}', result.score.toStringAsFixed(0))),
-              Text(_tr('iterations').replaceAll('{value}', result.iterations.toString())), 
-              Text(_tr('duration').replaceAll('{value}', result.durationMs.toString())), 
+              Text(AppLocalizations.of(context)!.score(result.score.toStringAsFixed(0))),
+              Text(AppLocalizations.of(context)!.iterations(result.iterations)), 
+              Text(AppLocalizations.of(context)!.duration(result.durationMs.toString())), 
             ],
           ],
         ),

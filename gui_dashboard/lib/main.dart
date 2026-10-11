@@ -1095,7 +1095,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   for (final warning in warnings) Text('• $warning'),
                   const SizedBox(height: 10),
                 ],
-                Text('${_tr('anomalies')}: ${anomalies.length}', style: const TextStyle(fontWeight: FontWeight.w700)),
+                Text(AppLocalizations.of(context)!.anomalyCount(anomalies.length), style: const TextStyle(fontWeight: FontWeight.w700)),
                 for (final anomaly in anomalies)
                   Padding(
                     padding: const EdgeInsets.only(top: 6),

@@ -45,8 +45,6 @@ class _InstallerWizardState extends State<InstallerWizard> {
   String _details = 'Kurulum bileşenleri kontrol ediliyor...';
   String _locale = 'en-US';
   bool _catalogLoaded = false;
-  Map<String, Map<String, String>> _translations =
-      <String, Map<String, String>>{};
   Directory? _stateDirectory;
 
   String _tr(String key, [Map<String, String> values = const {}]) {
