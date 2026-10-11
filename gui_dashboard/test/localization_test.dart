@@ -70,5 +70,20 @@ void main() {
     expect(turkish['telemetryHistory'], 'Telemetri geçmişi');
     expect(turkish['advancedTelemetry'], 'Gelişmiş telemetri');
     expect(turkish['releaseOpen'], 'Sürüm sayfasını aç');
+
+    for (final locale in <String>[
+      'ca-ES', 'es-MX', 'pt-PT', 'zh-TW', 'fil-PH', 'bn-BD', 'en-CA', 'ur-PK',
+    ]) {
+      final copy = translations[locale] as Map<String, dynamic>;
+      for (final key in <String>[
+        'welcomeTitle', 'welcomeDescription', 'welcomeTagline',
+        'welcomeGetStarted', 'welcomeOpenDashboard', 'welcomePreview',
+      ]) {
+        expect(copy[key], isA<String>(),
+            reason: '$locale must provide localized onboarding text for $key.');
+        expect((copy[key] as String).trim(), isNotEmpty,
+            reason: '$locale has empty onboarding text for $key.');
+      }
+    }
   });
 }
