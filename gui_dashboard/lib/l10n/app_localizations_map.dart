@@ -2,8 +2,9 @@ import 'package:flutter/widgets.dart';
 
 import 'app_localizations.dart';
 
-/// Locale helpers and a generated string map for legacy key-based call sites.
-/// All translated values originate in ARB catalogs through Flutter gen-l10n.
+/// Locale helpers and a compatibility map for older key-based widgets.
+/// The selected locale is mapped from Flutter-generated ARB accessors only;
+/// no JSON translation catalog is loaded at runtime.
 String localeTag(Locale locale) {
   final country = locale.countryCode;
   return country == null || country.isEmpty

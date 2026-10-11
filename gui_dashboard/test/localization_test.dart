@@ -121,6 +121,40 @@ void main() {
         reason: 'The legacy key adapter must stay in sync with the ARB template');
 
     final runtimeRoots = <Directory>[Directory('lib'), Directory('test')];
+
+    final allDartFiles = <File>[];
+    for (final root in runtimeRoots) {
+      allDartFiles.addAll(
+        root
+            .listSync(recursive: true, followLinks: false)
+            .whereType<File>()
+            .where((file) => file.path.endsWith('.dart')),
+      );
+    }
+    final usedLegacyKeys = <String>{};
+    for (final file in allDartFiles) {
+      final sourceText = file.readAsStringSync();
+      usedLegacyKeys.addAll(
+        RegExp(r"_tr\(\s*'([A-Za-z0-9_]+)'")
+            .allMatches(sourceText)
+            .map((match) => match.group(1)!),
+      );
+    }
+    final installerText = File('lib/installer_main.dart').readAsStringSync();
+    final explicitlyHandledParameterizedKeys =
+        RegExp(r"case '([A-Za-z0-9_]+)'")
+            .allMatches(installerText)
+            .map((match) => match.group(1)!)
+            .toSet();
+    final unmappedCalls = usedLegacyKeys.difference(
+      mappedKeys.union(explicitlyHandledParameterizedKeys),
+    );
+    expect(
+      unmappedCalls,
+      isEmpty,
+      reason: 'A key-based UI call has no ARB-generated message mapping',
+    );
+
     final legacyAssetName = 'language' + '.json';
     final legacyAssetPath = 'assets/' + 'localization/';
     for (final root in runtimeRoots) {

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'main.dart' show HWControlApp;
 import 'l10n/app_localizations.dart';
 import 'l10n/app_localizations_map.dart';
 import 'model_manager.dart';
@@ -22,6 +21,13 @@ class InstallerApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      localeResolutionCallback: (deviceLocale, supportedLocales) {
+        final resolved = HWControlLanguageService.resolveLocale(
+          savedLocale: HWControlLanguageService.systemDefault,
+          supportedCodes: supportedLocales.map(localeTag),
+        );
+        return localeFromTag(resolved);
+      },
       theme: ThemeData.dark(useMaterial3: true),
       home: InstallerWizard(initialize: initialize),
     );

@@ -222,7 +222,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _aiStarting = false;
   String _locale = 'en-US';
   String _languagePreference = HWControlLanguageService.systemDefault;
-  Map<String, Map<String, String>> _translations = <String, Map<String, String>>{};
+  Map<String, String> _translations = <String, String>{};
   List<Map<String, String>> _supportedLocales = <Map<String, String>>[];
   bool _aiSending = false;
   DateTime? _lastAiAnalysisAt;
@@ -612,15 +612,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  String _tr(String key) => _translations[_locale]?[key] ?? _translations['en-US']?[key] ?? key;
+  String _tr(String key) => _translations[key] ?? key;
 
   Future<void> _loadLanguage() async {
     try {
       final locales = AppLocalizations.supportedLocales;
-      _translations = <String, Map<String, String>>{
-        for (final locale in locales)
-          localeTag(locale): lookupAppLocalizations(locale).toStringMap(),
-      };
       _supportedLocales = <Map<String, String>>[
         for (final locale in locales)
           <String, String>{
@@ -635,15 +631,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         savedLocale: savedLocale,
         supportedCodes: locales.map(localeTag),
       );
+      _translations =
+          lookupAppLocalizations(localeFromTag(_locale)).toStringMap();
     } catch (_) {
-      final fallback = const Locale('en', 'US');
-      _translations = <String, Map<String, String>>{
-        'en-US': lookupAppLocalizations(fallback).toStringMap(),
-      };
+      _locale = 'en-US';
+      _translations = lookupAppLocalizations(const Locale('en', 'US')).toStringMap();
       _supportedLocales = <Map<String, String>>[
         <String, String>{'code': 'en-US', 'name': 'English (US)'},
       ];
-      _locale = 'en-US';
     }
   }
 
@@ -711,7 +706,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     await showDialog<void>(
       context: context,
       builder: (context) => FanCurveEditor(
-        translations: _translations[_locale] ?? _translations['en-US'] ?? const <String, String>{},
+        translations: _translations,
         initialCurve: _fanCurve,
         onSave: (curve) {
           _fanCurve = curve;
@@ -729,7 +724,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     await showDialog<void>(
       context: context,
       builder: (context) => HardwareBenchmarkDialog(
-        translations: _translations[_locale] ?? _translations['en-US'] ?? const <String, String>{},
+        translations: _translations,
       ),
     );
   }
@@ -1667,8 +1662,10 @@ Attach this archive to a support issue only after reviewing it for personal info
                   _piperModelPath = piperModelController.text.trim();
                   _locale = HWControlLanguageService.resolveLocale(
                     savedLocale: selectedLocale,
-                    supportedCodes: _translations.keys,
+                    supportedCodes: AppLocalizations.supportedLocales.map(localeTag),
                   );
+                  _translations =
+                      lookupAppLocalizations(localeFromTag(_locale)).toStringMap();
                 });
                 widget.onLocaleChanged(_locale);
                 unawaited(_saveSettings());
