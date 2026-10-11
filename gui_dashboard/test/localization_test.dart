@@ -64,8 +64,6 @@ void main() {
       'updateStatusVerified',
       'updateStatusVerificationFailed',
       'updateReleaseReady',
-      'automationRuleSummary',
-      'dashboardSpeechSummary',
     };
 
     for (final locale in catalogs.entries) {
@@ -216,10 +214,26 @@ void main() {
     expect(english.anomalyCount(2), '2 anomalies');
     expect(english.iterations(1), '1 iteration');
     expect(english.iterations(3), '3 iterations');
+    expect(
+      english.automationRuleSummary('CPU temperature', 70, 50),
+      'CPU temperature ≥ 70 °C → fan 50%',
+    );
+    expect(
+      english.dashboardSpeechSummary('50.0', '20', '30'),
+      'Dashboard. CPU temperature 50.0 degrees Celsius. CPU usage 20 percent. GPU usage 30 percent.',
+    );
 
     final turkish = lookupAppLocalizations(const Locale('tr', 'TR'));
     expect(turkish.anomalyCount(0), 'Anomali yok');
     expect(turkish.anomalyCount(2), '2 anomali');
+    expect(
+      turkish.automationRuleSummary('İşlemci sıcaklığı', 70, 50),
+      'İşlemci sıcaklığı ≥ 70 °C → fan %50',
+    );
+    expect(
+      turkish.dashboardSpeechSummary('50.0', '20', '30'),
+      'Ana ekran. İşlemci sıcaklığı 50.0 derece Celsius. İşlemci kullanımı yüzde 20. Ekran kartı kullanımı yüzde 30.',
+    );
 
     final polish = lookupAppLocalizations(const Locale('pl', 'PL'));
     expect(polish.iterations(1), '1 iteracja');

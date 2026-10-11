@@ -399,5 +399,35 @@
         "example": 2
       }
     }
+  },
+  "automationRuleSummary": "{sensor} ≥ {threshold} °C → kipas {fanPercent}%",
+  "@automationRuleSummary": {
+    "description": "Summarizes a hardware automation rule in the UI. Preserve all placeholders.",
+    "placeholders": {
+      "sensor": {
+        "type": "String"
+      },
+      "threshold": {
+        "type": "int"
+      },
+      "fanPercent": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardSpeechSummary": "Dasbor. Suhu CPU {cpuTemperature} derajat Celsius. Penggunaan CPU {cpuUsage} persen. Penggunaan GPU {gpuUsage} persen.",
+  "@dashboardSpeechSummary": {
+    "description": "Spoken summary of available dashboard telemetry. GPU temperature is omitted because this telemetry is not currently available.",
+    "placeholders": {
+      "cpuTemperature": {
+        "type": "String"
+      },
+      "cpuUsage": {
+        "type": "String"
+      },
+      "gpuUsage": {
+        "type": "String"
+      }
+    }
   }
 }
