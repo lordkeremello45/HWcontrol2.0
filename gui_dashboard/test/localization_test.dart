@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/widgets.dart';
+
+import '../lib/l10n/app_localizations.dart';
 
 void main() {
   test('ARB catalogs cover supported locales and preserve ICU placeholders', () {
@@ -131,6 +134,24 @@ void main() {
       }
     }
   });
+  test('generated ICU messages handle plural forms in multiple locales', () {
+    final english = lookupAppLocalizations(const Locale('en', 'US'));
+    expect(english.anomalyCount(0), 'No anomalies');
+    expect(english.anomalyCount(1), '1 anomaly');
+    expect(english.anomalyCount(2), '2 anomalies');
+    expect(english.iterations(1), '1 iteration');
+    expect(english.iterations(3), '3 iterations');
+
+    final turkish = lookupAppLocalizations(const Locale('tr', 'TR'));
+    expect(turkish.anomalyCount(0), 'Anomali yok');
+    expect(turkish.anomalyCount(2), '2 anomali');
+
+    final polish = lookupAppLocalizations(const Locale('pl', 'PL'));
+    expect(polish.iterations(1), '1 iteracja');
+    expect(polish.iterations(2), '2 iteracje');
+    expect(polish.iterations(5), '5 iteracji');
+  });
+
 }
 
 Set<String> _placeholders(String message) => RegExp(r'[{]([A-Za-z_][A-Za-z0-9_]*)(?=[,}])')

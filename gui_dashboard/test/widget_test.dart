@@ -32,7 +32,10 @@ void main() {
       expectOneOf(tester, ['1. Verify package type', '1. Paket türünü doğrula']);
       expectOneOf(tester, ['Continue', 'Devam']);
 
-      await tester.tap(find.text('Devam'));
+      final continueLabel = find.text('Continue').evaluate().isNotEmpty
+          ? find.text('Continue')
+          : find.text('Devam');
+      await tester.tap(continueLabel);
       await tester.pump();
 
       expectOneOf(tester, ['2. Verify bridge status', '2. Bridge durumunu doğrula']);

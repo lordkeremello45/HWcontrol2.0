@@ -7,6 +7,7 @@ import 'main.dart' show HWControlApp;
 import 'l10n/app_localizations.dart';
 import 'l10n/app_localizations_map.dart';
 import 'model_manager.dart';
+import 'services/language_service.dart';
 
 void main() => runApp(const InstallerApp());
 
@@ -77,17 +78,10 @@ class _InstallerWizardState extends State<InstallerWizard> {
 
   Future<void> _loadTranslations() async {
     final locales = AppLocalizations.supportedLocales.map(localeTag).toSet();
-    final systemTag = Platform.localeName.replaceAll('_', '-');
-    final exactMatches = locales.where(
-      (e) => e.toLowerCase() == systemTag.toLowerCase(),
-    ).toList();
-    final language = systemTag.split('-').first.toLowerCase();
-    final languageMatches = locales.where(
-      (e) => e.split('-').first.toLowerCase() == language,
-    ).toList();
-    _locale = exactMatches.isNotEmpty
-        ? exactMatches.first
-        : (languageMatches.isNotEmpty ? languageMatches.first : 'en-US');
+    _locale = HWControlLanguageService.resolveLocale(
+      savedLocale: HWControlLanguageService.systemDefault,
+      supportedCodes: locales,
+    );
     _catalogLoaded = true;
   }
 
