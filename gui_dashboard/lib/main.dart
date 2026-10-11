@@ -66,11 +66,42 @@ class _HWControlAppState extends State<HWControlApp> {
   bool _showWelcome = true;
   bool _welcomeSeen = false;
   final HWControlUserDataStore _userData = HWControlUserDataStore();
+  Map<String, String> _welcomeTranslations = const <String, String>{};
 
   @override
   void initState() {
     super.initState();
     _loadUiPreferences();
+    _loadWelcomeLocalization();
+  }
+
+  Future<void> _loadWelcomeLocalization() async {
+    try {
+      final raw = await rootBundle.loadString('assets/localization/language.json');
+      final root = jsonDecode(raw) as Map<String, dynamic>;
+      final rawTranslations = root['translations'];
+      if (rawTranslations is! Map) return;
+
+      final settings = await _userData.readSettings();
+      final savedLocale = settings['language'] as String?;
+      final translations = rawTranslations.map((locale, values) => MapEntry(
+        locale.toString(),
+        values is Map
+            ? values.map((key, value) => MapEntry(key.toString(), value.toString()))
+            : <String, String>{},
+      ));
+      final locale = HWControlLanguageService.resolveLocale(
+        savedLocale: savedLocale,
+        supportedCodes: translations.keys,
+      );
+      if (!mounted) return;
+      setState(() {
+        _welcomeTranslations = translations[locale] ?? translations['en-US'] ?? const <String, String>{};
+      });
+    } catch (_) {
+      // The welcome screen has English fallbacks and must remain available
+      // even if localization data or saved preferences cannot be read.
+    }
   }
 
   Future<void> _loadUiPreferences() async {
@@ -135,6 +166,7 @@ class _HWControlAppState extends State<HWControlApp> {
               ? HWControlWelcomeScreen(
                   onContinue: _completeWelcome,
                   onSettings: _openDashboardFromWelcome,
+                  translations: _welcomeTranslations,
                 )
               : DashboardScreen(
                   darkMode: _darkMode,
