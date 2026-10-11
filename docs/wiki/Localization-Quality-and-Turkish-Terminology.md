@@ -46,6 +46,10 @@ The English (US) ARB template currently contains 235 message keys across 40 loca
 6. Run localization unit tests, Flutter analysis/tests, and visual checks for truncation and accessibility for every completed locale.
 7. Add new locales only with a complete translation set; do not increase the advertised language count with English placeholders.
 
+## Locale-wide language authority research
+
+The expanded 40-locale source inventory, source-status rules, term research template, reuse-rights cautions, and review plan are maintained in [Language Authority and Terminology Research Registry](Language-Authority-Research-Registry.md). Use that registry as a research queue; do not treat a listed link as verified for every term or as proof of official endorsement.
+
 ## Language-authority research register
 
 Use these as primary starting points, not as an automated substitute for a native-language review. Record the date and the term checked when adopting a terminology decision.
