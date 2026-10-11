@@ -225,5 +225,11 @@ extension AppLocalizationsStringMap on AppLocalizations {
       'securityBlockedDescription': securityBlockedDescription,
       'securityBlockedRecommendation': securityBlockedRecommendation,
       'securityCloseApplication': securityCloseApplication,
+      'updateStatusNotChecked': updateStatusNotChecked,
+      'updateStatusNoRelease': updateStatusNoRelease,
+      'updateStatusCurrent': updateStatusCurrent,
+      'updateStatusAvailable': updateStatusAvailable,
+      'updateStatusCheckFailed': updateStatusCheckFailed,
+      'updateStatusDownloading': updateStatusDownloading,
     };
 }

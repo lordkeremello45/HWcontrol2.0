@@ -34,6 +34,15 @@ void main() {
       'securityBlockedDescription',
       'securityBlockedRecommendation',
       'securityCloseApplication',
+      'updateStatusNotChecked',
+      'updateStatusNoRelease',
+      'updateStatusCurrent',
+      'updateStatusAvailable',
+      'updateStatusCheckFailed',
+      'updateStatusDownloading',
+      'updateStatusVerified',
+      'updateStatusVerificationFailed',
+      'updateReleaseReady',
     };
     for (final locale in catalogs.entries) {
       final keys = locale.value.keys

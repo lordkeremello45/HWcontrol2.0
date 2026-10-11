@@ -240,7 +240,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _connectionGeneration = 0;
   bool _isCheckingUpdate = false;
   UpdateInfo? _updateInfo;
-  String _updateStatus = 'Güncellemeler kontrol edilmedi';
+  String _updateStatus = '';
   double _fanValue = 50;
   double _aiValue = 80;
   double _temperatureLimit = 85;
@@ -1387,11 +1387,11 @@ Attach this archive to a support issue only after reviewing it for personal info
       if (!mounted) return;
       setState(() {
         _updateInfo = newest != null && _isNewerVersion(newest.tag, _appVersion) ? newest : null;
-        _updateStatus = newest == null ? 'Güncel release bulunamadı' : _updateInfo == null ? 'Uygulama güncel' : 'Yeni sürüm hazır';
+        _updateStatus = newest == null ? _tr('updateStatusNoRelease') : _updateInfo == null ? _tr('updateStatusCurrent') : _tr('updateStatusAvailable');
       });
       _addEvent('Bridge bağlantısı aktif');
     } catch (_) {
-      if (mounted) setState(() => _updateStatus = 'Güncelleme kontrolü başarısız');
+      if (mounted) setState(() => _updateStatus = _tr('updateStatusCheckFailed'));
     } finally {
       if (mounted) setState(() => _isCheckingUpdate = false);
     }
@@ -1415,7 +1415,7 @@ Attach this archive to a support issue only after reviewing it for personal info
     try {
       setState(() {
         _isCheckingUpdate = true;
-        _updateStatus = 'Güncelleme indiriliyor ve doğrulanıyor...';
+        _updateStatus = _tr('updateStatusDownloading');
       });
       final response = await http.get(Uri.parse(info.assetUrl)).timeout(const Duration(seconds: 60));
       if (response.statusCode != 200) throw StateError('update download failed');
@@ -1429,11 +1429,11 @@ Attach this archive to a support issue only after reviewing it for personal info
       final file = File('${directory.path}${Platform.pathSeparator}${info.assetName}');
       await file.writeAsBytes(bytes, flush: true);
       if (!mounted) return;
-      setState(() => _updateStatus = 'Güncelleme doğrulandı: ${file.path}');
+      setState(() => _updateStatus = AppLocalizations.of(context)!.updateStatusVerified(file.path));
       _addEvent('Release indirildi ve SHA-256 doğrulandı');
     } catch (error) {
       if (mounted) {
-        setState(() => _updateStatus = 'Güncelleme doğrulama hatası: $error');
+        setState(() => _updateStatus = AppLocalizations.of(context)!.updateStatusVerificationFailed('$error'));
         _addEvent('Release indirme/doğrulama başarısız');
       }
     } finally {
@@ -2019,7 +2019,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           children: [
             Icon(available ? Icons.system_update_alt : Icons.verified_user_outlined, color: color),
             const SizedBox(width: 12),
-            Expanded(child: Text(available ? '${_updateInfo!.tag} hazır' : _updateStatus, style: TextStyle(color: color, fontWeight: FontWeight.w600))),
+            Expanded(child: Text(available ? AppLocalizations.of(context)!.updateReleaseReady(_updateInfo!.tag) : (_updateStatus.isEmpty ? _tr('updateStatusNotChecked') : _updateStatus), style: TextStyle(color: color, fontWeight: FontWeight.w600))),
             if (available) TextButton.icon(onPressed: _openUpdate, icon: const Icon(Icons.download, size: 17), label: Text(_tr('releaseOpen'))),
             IconButton(tooltip: _tr('checkForUpdates'), onPressed: _isCheckingUpdate ? null : _checkForUpdate, icon: const Icon(Icons.refresh)),
           ],

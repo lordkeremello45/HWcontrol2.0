@@ -391,18 +391,69 @@
   "last20Events": "Last 20 events",
   "securityBlockedTitle": "THIS CODE IS UNOFFICIAL AND UNSAFE",
   "@securityBlockedTitle": {
-    "description": "Security-critical message shown when release authenticity verification fails."
+    "description": "Security or update status shown to the user."
   },
   "securityBlockedDescription": "This release could not be verified as an official HWcontrol2.0 build. The application has been blocked for your security.",
   "@securityBlockedDescription": {
-    "description": "Security-critical message shown when release authenticity verification fails."
+    "description": "Security or update status shown to the user."
   },
   "securityBlockedRecommendation": "Do not use this build for hardware control. Obtain HWcontrol2.0 from the official release channel.",
   "@securityBlockedRecommendation": {
-    "description": "Security-critical message shown when release authenticity verification fails."
+    "description": "Security or update status shown to the user."
   },
   "securityCloseApplication": "Close application",
   "@securityCloseApplication": {
-    "description": "Security-critical message shown when release authenticity verification fails."
+    "description": "Security or update status shown to the user."
+  },
+  "updateStatusNotChecked": "Updates have not been checked yet",
+  "@updateStatusNotChecked": {
+    "description": "Security or update status shown to the user."
+  },
+  "updateStatusNoRelease": "No suitable release was found",
+  "@updateStatusNoRelease": {
+    "description": "Security or update status shown to the user."
+  },
+  "updateStatusCurrent": "You are using the latest version",
+  "@updateStatusCurrent": {
+    "description": "Security or update status shown to the user."
+  },
+  "updateStatusAvailable": "A new version is available",
+  "@updateStatusAvailable": {
+    "description": "Security or update status shown to the user."
+  },
+  "updateStatusCheckFailed": "Update check failed",
+  "@updateStatusCheckFailed": {
+    "description": "Security or update status shown to the user."
+  },
+  "updateStatusDownloading": "Downloading and verifying update...",
+  "@updateStatusDownloading": {
+    "description": "Security or update status shown to the user."
+  },
+  "updateStatusVerified": "Update verified: {path}",
+  "@updateStatusVerified": {
+    "description": "Security or update status shown to the user.",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "updateStatusVerificationFailed": "Update verification failed: {error}",
+  "@updateStatusVerificationFailed": {
+    "description": "Security or update status shown to the user.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "updateReleaseReady": "Version {version} is ready",
+  "@updateReleaseReady": {
+    "description": "Security or update status shown to the user.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
   }
 }
