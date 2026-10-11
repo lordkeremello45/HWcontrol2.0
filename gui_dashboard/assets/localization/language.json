@@ -316,7 +316,17 @@
       "none": "None",
       "power": "Power",
       "voltage": "Voltage",
-      "appTagline": "Precision hardware control"
+      "appTagline": "Precision hardware control",
+      "cpuUsageLabel": "CPU usage",
+      "coreClock": "Core clock",
+      "memoryClock": "Memory clock",
+      "advancedTelemetryDescription": "GPU load, VRAM, power, clock speeds, and CPU cores",
+      "localAiAnalysisDescription": "Local Gemma analysis of live telemetry",
+      "hardwareDetectionDescription": "PC, motherboard, CPU, and GPU identity",
+      "gameModeDescription": "Automatic detection and game-focused monitoring while a game is running",
+      "gameModeSet": "Set Game Mode",
+      "bridgeWaiting": "Waiting for bridge",
+      "monitoringOnly": "Monitoring only"
     },
     "en-GB": {
       "menu": "Menu",
@@ -470,7 +480,17 @@
       "none": "None",
       "power": "Power",
       "voltage": "Voltage",
-      "appTagline": "Precision hardware control"
+      "appTagline": "Precision hardware control",
+      "cpuUsageLabel": "CPU usage",
+      "coreClock": "Core clock",
+      "memoryClock": "Memory clock",
+      "advancedTelemetryDescription": "GPU load, VRAM, power, clock speeds and CPU cores",
+      "localAiAnalysisDescription": "Local Gemma analysis of live telemetry",
+      "hardwareDetectionDescription": "PC, motherboard, CPU and GPU identity",
+      "gameModeDescription": "Automatic detection and game-focused monitoring while a game is running",
+      "gameModeSet": "Set Game Mode",
+      "bridgeWaiting": "Waiting for bridge",
+      "monitoringOnly": "Monitoring only"
     },
     "tr-TR": {
       "menu": "Menü",
@@ -624,7 +644,17 @@
       "none": "Yok",
       "power": "Güç",
       "voltage": "Gerilim",
-      "appTagline": "Hassas donanım denetimi"
+      "appTagline": "Hassas donanım denetimi",
+      "cpuUsageLabel": "CPU kullanımı",
+      "coreClock": "Çekirdek saat hızı",
+      "memoryClock": "Bellek saat hızı",
+      "advancedTelemetryDescription": "GPU yükü, VRAM, güç, saat hızları ve CPU çekirdekleri",
+      "localAiAnalysisDescription": "Canlı ölçümlerin Gemma ile yerel analizi",
+      "hardwareDetectionDescription": "Bilgisayar, anakart, CPU ve GPU bilgileri",
+      "gameModeDescription": "Oyun çalışırken otomatik algılama ve oyuna odaklı izleme",
+      "gameModeSet": "Oyun kipini ayarla",
+      "bridgeWaiting": "Köprü bağlantısı bekleniyor",
+      "monitoringOnly": "Yalnızca izleme"
     },
     "ja-JP": {
       "menu": "メニュー",
@@ -778,7 +808,17 @@
       "none": "なし",
       "power": "電力",
       "voltage": "電圧",
-      "appTagline": "高精度ハードウェア制御"
+      "appTagline": "高精度ハードウェア制御",
+      "cpuUsageLabel": "CPU 使用率",
+      "coreClock": "コアクロック",
+      "memoryClock": "メモリクロック",
+      "advancedTelemetryDescription": "GPU 負荷、VRAM、電力、クロック速度、CPU コア",
+      "localAiAnalysisDescription": "ライブテレメトリを Gemma でローカル分析",
+      "hardwareDetectionDescription": "PC、マザーボード、CPU、GPU の識別情報",
+      "gameModeDescription": "ゲーム実行中に自動検出し、ゲーム向けの監視を行います",
+      "gameModeSet": "ゲームモードを設定",
+      "bridgeWaiting": "ブリッジを待機中",
+      "monitoringOnly": "監視のみ"
     },
     "de-DE": {
       "menu": "Menü",
@@ -932,7 +972,17 @@
       "none": "Keine",
       "power": "Leistung",
       "voltage": "Spannung",
-      "appTagline": "Präzise Hardwaresteuerung"
+      "appTagline": "Präzise Hardwaresteuerung",
+      "cpuUsageLabel": "CPU-Auslastung",
+      "coreClock": "Kern-Takt",
+      "memoryClock": "Speichertakt",
+      "advancedTelemetryDescription": "GPU-Last, VRAM, Leistung, Taktraten und CPU-Kerne",
+      "localAiAnalysisDescription": "Lokale Gemma-Analyse der Live-Telemetrie",
+      "hardwareDetectionDescription": "Identität von PC, Mainboard, CPU und GPU",
+      "gameModeDescription": "Automatische Erkennung und spielorientierte Überwachung während ein Spiel läuft",
+      "gameModeSet": "Spielmodus festlegen",
+      "bridgeWaiting": "Warte auf die Bridge",
+      "monitoringOnly": "Nur Überwachung"
     },
     "fr-FR": {
       "menu": "Menu",
@@ -1086,7 +1136,17 @@
       "none": "Aucun",
       "power": "Puissance",
       "voltage": "Tension",
-      "appTagline": "Contrôle matériel de précision"
+      "appTagline": "Contrôle matériel de précision",
+      "cpuUsageLabel": "Utilisation du CPU",
+      "coreClock": "Fréquence du cœur",
+      "memoryClock": "Fréquence mémoire",
+      "advancedTelemetryDescription": "Charge GPU, VRAM, puissance, fréquences et cœurs CPU",
+      "localAiAnalysisDescription": "Analyse locale des mesures en direct par Gemma",
+      "hardwareDetectionDescription": "Identification du PC, de la carte mère, du CPU et du GPU",
+      "gameModeDescription": "Détection automatique et surveillance adaptée au jeu pendant son exécution",
+      "gameModeSet": "Définir le mode Jeu",
+      "bridgeWaiting": "En attente du pont",
+      "monitoringOnly": "Surveillance uniquement"
     },
     "it-IT": {
       "menu": "Menu",
@@ -1240,7 +1300,17 @@
       "none": "Nessuno",
       "power": "Potenza",
       "voltage": "Tensione",
-      "appTagline": "Controllo hardware di precisione"
+      "appTagline": "Controllo hardware di precisione",
+      "cpuUsageLabel": "Utilizzo CPU",
+      "coreClock": "Frequenza del core",
+      "memoryClock": "Frequenza della memoria",
+      "advancedTelemetryDescription": "Carico GPU, VRAM, potenza, frequenze e core CPU",
+      "localAiAnalysisDescription": "Analisi locale Gemma della telemetria in tempo reale",
+      "hardwareDetectionDescription": "Identità di PC, scheda madre, CPU e GPU",
+      "gameModeDescription": "Rilevamento automatico e monitoraggio orientato al gioco mentre un gioco è in esecuzione",
+      "gameModeSet": "Imposta modalità Gioco",
+      "bridgeWaiting": "In attesa del bridge",
+      "monitoringOnly": "Solo monitoraggio"
     },
     "es-ES": {
       "menu": "Menú",
@@ -1394,7 +1464,17 @@
       "none": "Ninguno",
       "power": "Potencia",
       "voltage": "Voltaje",
-      "appTagline": "Control preciso del hardware"
+      "appTagline": "Control preciso del hardware",
+      "cpuUsageLabel": "Uso de CPU",
+      "coreClock": "Frecuencia del núcleo",
+      "memoryClock": "Frecuencia de memoria",
+      "advancedTelemetryDescription": "Carga de GPU, VRAM, potencia, frecuencias y núcleos de CPU",
+      "localAiAnalysisDescription": "Análisis local de Gemma de la telemetría en directo",
+      "hardwareDetectionDescription": "Identidad del PC, la placa base, la CPU y la GPU",
+      "gameModeDescription": "Detección automática y supervisión centrada en el juego mientras se ejecuta",
+      "gameModeSet": "Configurar el modo Juego",
+      "bridgeWaiting": "Esperando al puente",
+      "monitoringOnly": "Solo supervisión"
     },
     "pt-BR": {
       "menu": "Menu",
@@ -1548,7 +1628,17 @@
       "none": "Nenhum",
       "power": "Energia",
       "voltage": "Tensão",
-      "appTagline": "Controle preciso de hardware"
+      "appTagline": "Controle preciso de hardware",
+      "cpuUsageLabel": "Uso da CPU",
+      "coreClock": "Clock do núcleo",
+      "memoryClock": "Clock da memória",
+      "advancedTelemetryDescription": "Carga da GPU, VRAM, energia, clocks e núcleos da CPU",
+      "localAiAnalysisDescription": "Análise local do Gemma sobre a telemetria em tempo real",
+      "hardwareDetectionDescription": "Identificação do PC, placa-mãe, CPU e GPU",
+      "gameModeDescription": "Detecção automática e monitoramento focado no jogo enquanto ele estiver em execução",
+      "gameModeSet": "Configurar modo de jogo",
+      "bridgeWaiting": "Aguardando a ponte",
+      "monitoringOnly": "Somente monitoramento"
     },
     "zh-CN": {
       "menu": "菜单",
@@ -1702,7 +1792,17 @@
       "none": "无",
       "power": "功耗",
       "voltage": "电压",
-      "appTagline": "精准硬件控制"
+      "appTagline": "精准硬件控制",
+      "cpuUsageLabel": "CPU 使用率",
+      "coreClock": "核心时钟",
+      "memoryClock": "显存时钟",
+      "advancedTelemetryDescription": "GPU 负载、VRAM、功耗、时钟频率和 CPU 核心",
+      "localAiAnalysisDescription": "使用 Gemma 对实时遥测数据进行本地分析",
+      "hardwareDetectionDescription": "电脑、主板、CPU 和 GPU 标识信息",
+      "gameModeDescription": "游戏运行时自动检测并进行游戏场景监控",
+      "gameModeSet": "设置游戏模式",
+      "bridgeWaiting": "正在等待桥接服务",
+      "monitoringOnly": "仅监测"
     },
     "ko-KR": {
       "menu": "메뉴",
@@ -1856,7 +1956,17 @@
       "none": "없음",
       "power": "전력",
       "voltage": "전압",
-      "appTagline": "정밀 하드웨어 제어"
+      "appTagline": "정밀 하드웨어 제어",
+      "cpuUsageLabel": "CPU 사용률",
+      "coreClock": "코어 클럭",
+      "memoryClock": "메모리 클럭",
+      "advancedTelemetryDescription": "GPU 부하, VRAM, 전력, 클럭 속도 및 CPU 코어",
+      "localAiAnalysisDescription": "실시간 텔레메트리를 Gemma로 로컬 분석",
+      "hardwareDetectionDescription": "PC, 메인보드, CPU 및 GPU 식별 정보",
+      "gameModeDescription": "게임 실행 중 자동 감지 및 게임 중심 모니터링",
+      "gameModeSet": "게임 모드 설정",
+      "bridgeWaiting": "브리지 대기 중",
+      "monitoringOnly": "모니터링만"
     },
     "ru-RU": {
       "menu": "Меню",
@@ -2010,7 +2120,17 @@
       "none": "Нет",
       "power": "Мощность",
       "voltage": "Напряжение",
-      "appTagline": "Точное управление оборудованием"
+      "appTagline": "Точное управление оборудованием",
+      "cpuUsageLabel": "Загрузка CPU",
+      "coreClock": "Частота ядра",
+      "memoryClock": "Частота памяти",
+      "advancedTelemetryDescription": "Загрузка GPU, VRAM, мощность, частоты и ядра CPU",
+      "localAiAnalysisDescription": "Локальный анализ телеметрии в реальном времени с помощью Gemma",
+      "hardwareDetectionDescription": "Данные о ПК, материнской плате, CPU и GPU",
+      "gameModeDescription": "Автоматическое обнаружение и мониторинг для игр во время их запуска",
+      "gameModeSet": "Настроить игровой режим",
+      "bridgeWaiting": "Ожидание моста",
+      "monitoringOnly": "Только мониторинг"
     },
     "ar-SA": {
       "menu": "القائمة",
@@ -2164,7 +2284,17 @@
       "none": "لا شيء",
       "power": "الطاقة",
       "voltage": "الجهد",
-      "appTagline": "تحكم دقيق في الأجهزة"
+      "appTagline": "تحكم دقيق في الأجهزة",
+      "cpuUsageLabel": "استخدام وحدة المعالجة المركزية",
+      "coreClock": "تردد النواة",
+      "memoryClock": "تردد الذاكرة",
+      "advancedTelemetryDescription": "حمل GPU وذاكرة VRAM والطاقة والترددات وأنوية CPU",
+      "localAiAnalysisDescription": "تحليل محلي للقياسات المباشرة باستخدام Gemma",
+      "hardwareDetectionDescription": "معلومات تعريف الحاسوب واللوحة الأم والمعالج وبطاقة الرسومات",
+      "gameModeDescription": "اكتشاف تلقائي ومراقبة مخصصة للألعاب أثناء تشغيلها",
+      "gameModeSet": "ضبط وضع الألعاب",
+      "bridgeWaiting": "بانتظار الجسر",
+      "monitoringOnly": "مراقبة فقط"
     },
     "hi-IN": {
       "menu": "मेनू",
@@ -2318,7 +2448,17 @@
       "none": "कोई नहीं",
       "power": "पावर",
       "voltage": "वोल्टेज",
-      "appTagline": "सटीक हार्डवेयर नियंत्रण"
+      "appTagline": "सटीक हार्डवेयर नियंत्रण",
+      "cpuUsageLabel": "CPU उपयोग",
+      "coreClock": "कोर क्लॉक",
+      "memoryClock": "मेमोरी क्लॉक",
+      "advancedTelemetryDescription": "GPU लोड, VRAM, पावर, क्लॉक गति और CPU कोर",
+      "localAiAnalysisDescription": "लाइव टेलीमेट्री का Gemma द्वारा स्थानीय विश्लेषण",
+      "hardwareDetectionDescription": "PC, मदरबोर्ड, CPU और GPU की पहचान",
+      "gameModeDescription": "गेम चलते समय स्वतः पहचान और गेम-केंद्रित निगरानी",
+      "gameModeSet": "गेम मोड सेट करें",
+      "bridgeWaiting": "ब्रिज की प्रतीक्षा",
+      "monitoringOnly": "केवल निगरानी"
     },
     "nl-NL": {
       "menu": "Menu",
@@ -2472,7 +2612,17 @@
       "none": "Geen",
       "power": "Vermogen",
       "voltage": "Spanning",
-      "appTagline": "Nauwkeurige hardwarebesturing"
+      "appTagline": "Nauwkeurige hardwarebesturing",
+      "cpuUsageLabel": "CPU-gebruik",
+      "coreClock": "Kernklok",
+      "memoryClock": "Geheugenklok",
+      "advancedTelemetryDescription": "GPU-belasting, VRAM, vermogen, kloksnelheden en CPU-kernen",
+      "localAiAnalysisDescription": "Lokale Gemma-analyse van live telemetrie",
+      "hardwareDetectionDescription": "Identiteit van pc, moederbord, CPU en GPU",
+      "gameModeDescription": "Automatische detectie en gamegerichte bewaking terwijl een game actief is",
+      "gameModeSet": "Gamemodus instellen",
+      "bridgeWaiting": "Wachten op bridge",
+      "monitoringOnly": "Alleen bewaking"
     },
     "pl-PL": {
       "menu": "Menu",
@@ -2626,7 +2776,17 @@
       "none": "Brak",
       "power": "Moc",
       "voltage": "Napięcie",
-      "appTagline": "Precyzyjne sterowanie sprzętem"
+      "appTagline": "Precyzyjne sterowanie sprzętem",
+      "cpuUsageLabel": "Użycie CPU",
+      "coreClock": "Taktowanie rdzenia",
+      "memoryClock": "Taktowanie pamięci",
+      "advancedTelemetryDescription": "Obciążenie GPU, VRAM, moc, częstotliwości i rdzenie CPU",
+      "localAiAnalysisDescription": "Lokalna analiza bieżącej telemetrii przez Gemma",
+      "hardwareDetectionDescription": "Dane identyfikacyjne komputera, płyty głównej, CPU i GPU",
+      "gameModeDescription": "Automatyczne wykrywanie i monitorowanie pod kątem gier podczas ich działania",
+      "gameModeSet": "Ustaw tryb gry",
+      "bridgeWaiting": "Oczekiwanie na most",
+      "monitoringOnly": "Tylko monitorowanie"
     },
     "uk-UA": {
       "menu": "Меню",
@@ -2780,7 +2940,17 @@
       "none": "Немає",
       "power": "Потужність",
       "voltage": "Напруга",
-      "appTagline": "Точне керування обладнанням"
+      "appTagline": "Точне керування обладнанням",
+      "cpuUsageLabel": "Використання CPU",
+      "coreClock": "Частота ядра",
+      "memoryClock": "Частота пам’яті",
+      "advancedTelemetryDescription": "Навантаження GPU, VRAM, потужність, частоти та ядра CPU",
+      "localAiAnalysisDescription": "Локальний аналіз телеметрії наживо за допомогою Gemma",
+      "hardwareDetectionDescription": "Ідентифікація ПК, материнської плати, CPU та GPU",
+      "gameModeDescription": "Автоматичне виявлення та моніторинг для ігор під час їх запуску",
+      "gameModeSet": "Налаштувати ігровий режим",
+      "bridgeWaiting": "Очікування мосту",
+      "monitoringOnly": "Лише моніторинг"
     },
     "id-ID": {
       "menu": "Menu",
@@ -2934,7 +3104,17 @@
       "none": "Tidak ada",
       "power": "Daya",
       "voltage": "Tegangan",
-      "appTagline": "Kontrol perangkat keras yang presisi"
+      "appTagline": "Kontrol perangkat keras yang presisi",
+      "cpuUsageLabel": "Penggunaan CPU",
+      "coreClock": "Clock inti",
+      "memoryClock": "Clock memori",
+      "advancedTelemetryDescription": "Beban GPU, VRAM, daya, kecepatan clock, dan inti CPU",
+      "localAiAnalysisDescription": "Analisis lokal Gemma atas telemetri langsung",
+      "hardwareDetectionDescription": "Identitas PC, motherboard, CPU, dan GPU",
+      "gameModeDescription": "Deteksi otomatis dan pemantauan berfokus pada gim saat gim berjalan",
+      "gameModeSet": "Atur Mode Game",
+      "bridgeWaiting": "Menunggu bridge",
+      "monitoringOnly": "Hanya pemantauan"
     },
     "vi-VN": {
       "menu": "Menu",
@@ -3088,7 +3268,17 @@
       "none": "Không có",
       "power": "Công suất",
       "voltage": "Điện áp",
-      "appTagline": "Điều khiển phần cứng chính xác"
+      "appTagline": "Điều khiển phần cứng chính xác",
+      "cpuUsageLabel": "Mức sử dụng CPU",
+      "coreClock": "Xung nhịp lõi",
+      "memoryClock": "Xung nhịp bộ nhớ",
+      "advancedTelemetryDescription": "Tải GPU, VRAM, điện năng, tốc độ xung nhịp và lõi CPU",
+      "localAiAnalysisDescription": "Gemma phân tích cục bộ dữ liệu đo trực tiếp",
+      "hardwareDetectionDescription": "Thông tin nhận dạng PC, bo mạch chủ, CPU và GPU",
+      "gameModeDescription": "Tự động phát hiện và giám sát tối ưu cho trò chơi khi trò chơi đang chạy",
+      "gameModeSet": "Thiết lập Chế độ trò chơi",
+      "bridgeWaiting": "Đang chờ cầu nối",
+      "monitoringOnly": "Chỉ giám sát"
     },
     "th-TH": {
       "menu": "เมนู",
@@ -3242,7 +3432,17 @@
       "none": "ไม่มี",
       "power": "พลังงาน",
       "voltage": "แรงดันไฟฟ้า",
-      "appTagline": "การควบคุมฮาร์ดแวร์อย่างแม่นยำ"
+      "appTagline": "การควบคุมฮาร์ดแวร์อย่างแม่นยำ",
+      "cpuUsageLabel": "การใช้งาน CPU",
+      "coreClock": "ความถี่คอร์",
+      "memoryClock": "ความถี่หน่วยความจำ",
+      "advancedTelemetryDescription": "โหลด GPU, VRAM, กำลังไฟ ความถี่สัญญาณนาฬิกา และคอร์ CPU",
+      "localAiAnalysisDescription": "วิเคราะห์ข้อมูลวัดแบบเรียลไทม์ด้วย Gemma ในเครื่อง",
+      "hardwareDetectionDescription": "ข้อมูลระบุ PC เมนบอร์ด CPU และ GPU",
+      "gameModeDescription": "ตรวจจับอัตโนมัติและติดตามแบบเน้นเกมขณะเกมกำลังทำงาน",
+      "gameModeSet": "ตั้งค่าโหมดเกม",
+      "bridgeWaiting": "กำลังรอ Bridge",
+      "monitoringOnly": "ตรวจสอบเท่านั้น"
     },
     "sv-SE": {
       "menu": "Meny",
@@ -3396,7 +3596,17 @@
       "none": "Ingen",
       "power": "Effekt",
       "voltage": "Spänning",
-      "appTagline": "Precisionsstyrning av maskinvara"
+      "appTagline": "Precisionsstyrning av maskinvara",
+      "cpuUsageLabel": "CPU-användning",
+      "coreClock": "Kärnklocka",
+      "memoryClock": "Minnesklocka",
+      "advancedTelemetryDescription": "GPU-belastning, VRAM, effekt, klockfrekvenser och CPU-kärnor",
+      "localAiAnalysisDescription": "Lokal Gemma-analys av telemetri i realtid",
+      "hardwareDetectionDescription": "Identifiering av dator, moderkort, CPU och GPU",
+      "gameModeDescription": "Automatisk identifiering och spelinriktad övervakning medan ett spel körs",
+      "gameModeSet": "Ställ in spelläge",
+      "bridgeWaiting": "Väntar på bryggan",
+      "monitoringOnly": "Endast övervakning"
     },
     "da-DK": {
       "menu": "Menu",
@@ -3550,7 +3760,17 @@
       "none": "Ingen",
       "power": "Effekt",
       "voltage": "Spænding",
-      "appTagline": "Præcis hardwarestyring"
+      "appTagline": "Præcis hardwarestyring",
+      "cpuUsageLabel": "CPU-forbrug",
+      "coreClock": "Kernefrekvens",
+      "memoryClock": "Hukommelsesfrekvens",
+      "advancedTelemetryDescription": "GPU-belastning, VRAM, effekt, clockhastigheder og CPU-kerner",
+      "localAiAnalysisDescription": "Lokal Gemma-analyse af telemetri i realtid",
+      "hardwareDetectionDescription": "Identifikation af pc, bundkort, CPU og GPU",
+      "gameModeDescription": "Automatisk registrering og spilfokuseret overvågning, mens et spil kører",
+      "gameModeSet": "Indstil spiltilstand",
+      "bridgeWaiting": "Venter på broen",
+      "monitoringOnly": "Kun overvågning"
     },
     "nb-NO": {
       "menu": "Meny",
@@ -3704,7 +3924,17 @@
       "none": "Ingen",
       "power": "Effekt",
       "voltage": "Spenning",
-      "appTagline": "Presis maskinvarestyring"
+      "appTagline": "Presis maskinvarestyring",
+      "cpuUsageLabel": "CPU-bruk",
+      "coreClock": "Kjerneklokke",
+      "memoryClock": "Minneklokke",
+      "advancedTelemetryDescription": "GPU-belastning, VRAM, effekt, klokkehastigheter og CPU-kjerner",
+      "localAiAnalysisDescription": "Lokal Gemma-analyse av telemetri i sanntid",
+      "hardwareDetectionDescription": "Identifikasjon av PC, hovedkort, CPU og GPU",
+      "gameModeDescription": "Automatisk registrering og spillrettet overvåking mens et spill kjører",
+      "gameModeSet": "Angi spillmodus",
+      "bridgeWaiting": "Venter på broen",
+      "monitoringOnly": "Kun overvåking"
     },
     "fi-FI": {
       "menu": "Valikko",
@@ -3858,7 +4088,17 @@
       "none": "Ei mitään",
       "power": "Teho",
       "voltage": "Jännite",
-      "appTagline": "Tarkka laitteiston ohjaus"
+      "appTagline": "Tarkka laitteiston ohjaus",
+      "cpuUsageLabel": "Suorittimen käyttö",
+      "coreClock": "Ytimen kellotaajuus",
+      "memoryClock": "Muistin kellotaajuus",
+      "advancedTelemetryDescription": "GPU-kuormitus, VRAM, teho, kellotaajuudet ja suorittimen ytimet",
+      "localAiAnalysisDescription": "Gemman paikallinen analyysi reaaliaikaisista mittaustiedoista",
+      "hardwareDetectionDescription": "Tietokoneen, emolevyn, suorittimen ja näytönohjaimen tunnistetiedot",
+      "gameModeDescription": "Automaattinen tunnistus ja pelaamiseen keskittyvä valvonta pelin ollessa käynnissä",
+      "gameModeSet": "Aseta pelitila",
+      "bridgeWaiting": "Odotetaan siltaa",
+      "monitoringOnly": "Vain valvonta"
     },
     "el-GR": {
       "menu": "Μενού",
@@ -4012,7 +4252,17 @@
       "none": "Κανένα",
       "power": "Ισχύς",
       "voltage": "Τάση",
-      "appTagline": "Ακριβής έλεγχος υλικού"
+      "appTagline": "Ακριβής έλεγχος υλικού",
+      "cpuUsageLabel": "Χρήση CPU",
+      "coreClock": "Συχνότητα πυρήνα",
+      "memoryClock": "Συχνότητα μνήμης",
+      "advancedTelemetryDescription": "Φόρτος GPU, VRAM, ισχύς, συχνότητες και πυρήνες CPU",
+      "localAiAnalysisDescription": "Τοπική ανάλυση ζωντανής τηλεμετρίας από το Gemma",
+      "hardwareDetectionDescription": "Ταυτότητα υπολογιστή, μητρικής, CPU και GPU",
+      "gameModeDescription": "Αυτόματος εντοπισμός και παρακολούθηση με έμφαση στο παιχνίδι όσο εκτελείται",
+      "gameModeSet": "Ρύθμιση λειτουργίας παιχνιδιού",
+      "bridgeWaiting": "Αναμονή για τη γέφυρα",
+      "monitoringOnly": "Μόνο παρακολούθηση"
     },
     "cs-CZ": {
       "menu": "Menu",
@@ -4166,7 +4416,17 @@
       "none": "Žádné",
       "power": "Výkon",
       "voltage": "Napětí",
-      "appTagline": "Přesné řízení hardwaru"
+      "appTagline": "Přesné řízení hardwaru",
+      "cpuUsageLabel": "Využití CPU",
+      "coreClock": "Takt jádra",
+      "memoryClock": "Takt paměti",
+      "advancedTelemetryDescription": "Zátěž GPU, VRAM, příkon, taktovací frekvence a jádra CPU",
+      "localAiAnalysisDescription": "Lokální analýza živé telemetrie pomocí Gemma",
+      "hardwareDetectionDescription": "Identifikace počítače, základní desky, CPU a GPU",
+      "gameModeDescription": "Automatická detekce a sledování zaměřené na hry během jejich spuštění",
+      "gameModeSet": "Nastavit herní režim",
+      "bridgeWaiting": "Čekání na most",
+      "monitoringOnly": "Pouze sledování"
     },
     "he-IL": {
       "menu": "תפריט",
@@ -4320,7 +4580,17 @@
       "none": "אין",
       "power": "הספק",
       "voltage": "מתח",
-      "appTagline": "שליטה מדויקת בחומרה"
+      "appTagline": "שליטה מדויקת בחומרה",
+      "cpuUsageLabel": "שימוש במעבד",
+      "coreClock": "תדר ליבה",
+      "memoryClock": "תדר זיכרון",
+      "advancedTelemetryDescription": "עומס GPU, זיכרון VRAM, הספק, תדרי שעון וליבות CPU",
+      "localAiAnalysisDescription": "ניתוח מקומי של טלמטריה בזמן אמת באמצעות Gemma",
+      "hardwareDetectionDescription": "פרטי זיהוי של המחשב, לוח האם, המעבד וה-GPU",
+      "gameModeDescription": "זיהוי אוטומטי וניטור ממוקד משחק בזמן שהמשחק פועל",
+      "gameModeSet": "הגדרת מצב משחק",
+      "bridgeWaiting": "ממתין לגשר",
+      "monitoringOnly": "ניטור בלבד"
     },
     "ro-RO": {
       "menu": "Meniu",
@@ -4474,7 +4744,17 @@
       "none": "Niciunul",
       "power": "Putere",
       "voltage": "Tensiune",
-      "appTagline": "Control precis al hardware-ului"
+      "appTagline": "Control precis al hardware-ului",
+      "cpuUsageLabel": "Utilizare CPU",
+      "coreClock": "Frecvența nucleului",
+      "memoryClock": "Frecvența memoriei",
+      "advancedTelemetryDescription": "Încărcare GPU, VRAM, putere, frecvențe și nuclee CPU",
+      "localAiAnalysisDescription": "Analiză locală Gemma a telemetriei în timp real",
+      "hardwareDetectionDescription": "Identitatea PC-ului, plăcii de bază, CPU-ului și GPU-ului",
+      "gameModeDescription": "Detectare automată și monitorizare orientată spre jocuri cât timp un joc rulează",
+      "gameModeSet": "Setează modul Joc",
+      "bridgeWaiting": "Se așteaptă puntea",
+      "monitoringOnly": "Doar monitorizare"
     },
     "hu-HU": {
       "menu": "Menü",
@@ -4628,7 +4908,17 @@
       "none": "Nincs",
       "power": "Teljesítmény",
       "voltage": "Feszültség",
-      "appTagline": "Precíz hardvervezérlés"
+      "appTagline": "Precíz hardvervezérlés",
+      "cpuUsageLabel": "CPU-használat",
+      "coreClock": "Magórajel",
+      "memoryClock": "Memóriaórajel",
+      "advancedTelemetryDescription": "GPU-terhelés, VRAM, teljesítmény, órajelek és CPU-magok",
+      "localAiAnalysisDescription": "Élő telemetria helyi elemzése Gemmával",
+      "hardwareDetectionDescription": "A PC, az alaplap, a CPU és a GPU azonosító adatai",
+      "gameModeDescription": "Automatikus felismerés és játékra összpontosító megfigyelés játék futása közben",
+      "gameModeSet": "Játékmód beállítása",
+      "bridgeWaiting": "Várakozás a hídra",
+      "monitoringOnly": "Csak megfigyelés"
     },
     "bg-BG": {
       "menu": "Меню",
@@ -4782,7 +5072,17 @@
       "none": "Няма",
       "power": "Мощност",
       "voltage": "Напрежение",
-      "appTagline": "Прецизно управление на хардуера"
+      "appTagline": "Прецизно управление на хардуера",
+      "cpuUsageLabel": "Натоварване на CPU",
+      "coreClock": "Честота на ядрото",
+      "memoryClock": "Честота на паметта",
+      "advancedTelemetryDescription": "Натоварване на GPU, VRAM, мощност, честоти и ядра на CPU",
+      "localAiAnalysisDescription": "Локален анализ на телеметрията в реално време с Gemma",
+      "hardwareDetectionDescription": "Идентификация на компютъра, дънната платка, CPU и GPU",
+      "gameModeDescription": "Автоматично откриване и наблюдение, насочено към игрите, докато играта работи",
+      "gameModeSet": "Задаване на игрови режим",
+      "bridgeWaiting": "Изчакване на моста",
+      "monitoringOnly": "Само наблюдение"
     },
     "hr-HR": {
       "menu": "Izbornik",
@@ -4936,7 +5236,17 @@
       "none": "Nema",
       "power": "Snaga",
       "voltage": "Napon",
-      "appTagline": "Precizno upravljanje hardverom"
+      "appTagline": "Precizno upravljanje hardverom",
+      "cpuUsageLabel": "Upotreba CPU-a",
+      "coreClock": "Takt jezgre",
+      "memoryClock": "Takt memorije",
+      "advancedTelemetryDescription": "Opterećenje GPU-a, VRAM, snaga, taktovi i jezgre CPU-a",
+      "localAiAnalysisDescription": "Lokalna analiza telemetrije uživo pomoću Gemme",
+      "hardwareDetectionDescription": "Podaci o računalu, matičnoj ploči, CPU-u i GPU-u",
+      "gameModeDescription": "Automatsko otkrivanje i nadzor usmjeren na igru dok je igra pokrenuta",
+      "gameModeSet": "Postavi način igre",
+      "bridgeWaiting": "Čekanje na most",
+      "monitoringOnly": "Samo nadzor"
     },
     "ms-MY": {
       "menu": "Menu",
@@ -5090,7 +5400,17 @@
       "none": "Tiada",
       "power": "Kuasa",
       "voltage": "Voltan",
-      "appTagline": "Kawalan perkakasan yang tepat"
+      "appTagline": "Kawalan perkakasan yang tepat",
+      "cpuUsageLabel": "Penggunaan CPU",
+      "coreClock": "Jam teras",
+      "memoryClock": "Jam memori",
+      "advancedTelemetryDescription": "Beban GPU, VRAM, kuasa, kelajuan jam dan teras CPU",
+      "localAiAnalysisDescription": "Analisis telemetri langsung secara setempat dengan Gemma",
+      "hardwareDetectionDescription": "Maklumat pengenalan PC, papan induk, CPU dan GPU",
+      "gameModeDescription": "Pengesanan automatik dan pemantauan berfokuskan permainan semasa permainan berjalan",
+      "gameModeSet": "Tetapkan Mod Permainan",
+      "bridgeWaiting": "Menunggu jambatan",
+      "monitoringOnly": "Pemantauan sahaja"
     },
     "ca-ES": {
       "menu": "Menú",
@@ -5244,7 +5564,17 @@
       "voltage": "Voltatge",
       "animationsOn": "Desactiva les animacions",
       "animationsOff": "Activa les animacions",
-      "appTagline": "Control precís del maquinari"
+      "appTagline": "Control precís del maquinari",
+      "cpuUsageLabel": "Ús de la CPU",
+      "coreClock": "Freqüència del nucli",
+      "memoryClock": "Freqüència de la memòria",
+      "advancedTelemetryDescription": "Càrrega de GPU, VRAM, potència, freqüències i nuclis de CPU",
+      "localAiAnalysisDescription": "Anàlisi local de Gemma de la telemetria en directe",
+      "hardwareDetectionDescription": "Identificació de l'ordinador, la placa base, la CPU i la GPU",
+      "gameModeDescription": "Detecció automàtica i supervisió centrada en el joc mentre s'està executant",
+      "gameModeSet": "Configura el mode de joc",
+      "bridgeWaiting": "S'està esperant el pont",
+      "monitoringOnly": "Només supervisió"
     },
     "es-MX": {
       "menu": "Menú",
@@ -5398,7 +5728,17 @@
       "voltage": "Voltaje",
       "animationsOn": "Desactivar animaciones",
       "animationsOff": "Activar animaciones",
-      "appTagline": "Control preciso del hardware"
+      "appTagline": "Control preciso del hardware",
+      "cpuUsageLabel": "Uso de CPU",
+      "coreClock": "Frecuencia del núcleo",
+      "memoryClock": "Frecuencia de memoria",
+      "advancedTelemetryDescription": "Carga de GPU, VRAM, potencia, frecuencias y núcleos de CPU",
+      "localAiAnalysisDescription": "Análisis local de Gemma de la telemetría en tiempo real",
+      "hardwareDetectionDescription": "Identidad de la PC, la tarjeta madre, la CPU y la GPU",
+      "gameModeDescription": "Detección automática y monitoreo centrado en el juego mientras está en ejecución",
+      "gameModeSet": "Configurar el modo de juego",
+      "bridgeWaiting": "Esperando al puente",
+      "monitoringOnly": "Solo monitoreo"
     },
     "pt-PT": {
       "menu": "Menu",
@@ -5552,7 +5892,17 @@
       "voltage": "Tensão",
       "animationsOn": "Desativar animações",
       "animationsOff": "Ativar animações",
-      "appTagline": "Controlo preciso do hardware"
+      "appTagline": "Controlo preciso do hardware",
+      "cpuUsageLabel": "Utilização da CPU",
+      "coreClock": "Frequência do núcleo",
+      "memoryClock": "Frequência da memória",
+      "advancedTelemetryDescription": "Carga da GPU, VRAM, potência, frequências e núcleos da CPU",
+      "localAiAnalysisDescription": "Análise local do Gemma da telemetria em tempo real",
+      "hardwareDetectionDescription": "Identificação do PC, placa-mãe, CPU e GPU",
+      "gameModeDescription": "Deteção automática e monitorização orientada para jogos enquanto um jogo está em execução",
+      "gameModeSet": "Definir modo de jogo",
+      "bridgeWaiting": "À espera da ponte",
+      "monitoringOnly": "Apenas monitorização"
     },
     "zh-TW": {
       "menu": "選單",
@@ -5706,7 +6056,17 @@
       "voltage": "電壓",
       "animationsOn": "停用動畫",
       "animationsOff": "啟用動畫",
-      "appTagline": "精準硬體控制"
+      "appTagline": "精準硬體控制",
+      "cpuUsageLabel": "CPU 使用率",
+      "coreClock": "核心時脈",
+      "memoryClock": "記憶體時脈",
+      "advancedTelemetryDescription": "GPU 負載、VRAM、功耗、時脈速度及 CPU 核心",
+      "localAiAnalysisDescription": "使用 Gemma 在本機分析即時遙測資料",
+      "hardwareDetectionDescription": "電腦、主機板、CPU 與 GPU 的識別資訊",
+      "gameModeDescription": "遊戲執行時自動偵測並進行遊戲導向監控",
+      "gameModeSet": "設定遊戲模式",
+      "bridgeWaiting": "正在等待橋接服務",
+      "monitoringOnly": "僅監控"
     },
     "fil-PH": {
       "menu": "Menu",
@@ -5860,7 +6220,17 @@
       "voltage": "Boltahe",
       "animationsOn": "Huwag paganahin ang mga animation",
       "animationsOff": "Paganahin ang mga animation",
-      "appTagline": "Tumpak na pagkontrol ng hardware"
+      "appTagline": "Tumpak na pagkontrol ng hardware",
+      "cpuUsageLabel": "Paggamit ng CPU",
+      "coreClock": "Clock ng core",
+      "memoryClock": "Clock ng memory",
+      "advancedTelemetryDescription": "Load ng GPU, VRAM, power, bilis ng clock, at mga core ng CPU",
+      "localAiAnalysisDescription": "Lokal na pagsusuri ng live telemetry gamit ang Gemma",
+      "hardwareDetectionDescription": "Pagkakakilanlan ng PC, motherboard, CPU, at GPU",
+      "gameModeDescription": "Awtomatikong pagtukoy at pagsubaybay para sa laro habang tumatakbo ito",
+      "gameModeSet": "Itakda ang Game Mode",
+      "bridgeWaiting": "Naghihintay sa bridge",
+      "monitoringOnly": "Pagsubaybay lamang"
     },
     "bn-BD": {
       "menu": "মেনু",
@@ -6014,7 +6384,17 @@
       "voltage": "ভোল্টেজ",
       "animationsOn": "অ্যানিমেশন বন্ধ করুন",
       "animationsOff": "অ্যানিমেশন চালু করুন",
-      "appTagline": "নির্ভুল হার্ডওয়্যার নিয়ন্ত্রণ"
+      "appTagline": "নির্ভুল হার্ডওয়্যার নিয়ন্ত্রণ",
+      "cpuUsageLabel": "CPU ব্যবহার",
+      "coreClock": "কোরের ক্লক",
+      "memoryClock": "মেমরির ক্লক",
+      "advancedTelemetryDescription": "GPU লোড, VRAM, বিদ্যুৎ, ক্লক গতি এবং CPU কোর",
+      "localAiAnalysisDescription": "লাইভ টেলিমেট্রির Gemma-ভিত্তিক স্থানীয় বিশ্লেষণ",
+      "hardwareDetectionDescription": "PC, মাদারবোর্ড, CPU ও GPU-এর পরিচিতি",
+      "gameModeDescription": "গেম চলার সময় স্বয়ংক্রিয় শনাক্তকরণ ও গেম-কেন্দ্রিক পর্যবেক্ষণ",
+      "gameModeSet": "গেম মোড সেট করুন",
+      "bridgeWaiting": "ব্রিজের জন্য অপেক্ষা করা হচ্ছে",
+      "monitoringOnly": "শুধু পর্যবেক্ষণ"
     },
     "en-CA": {
       "menu": "Menu",
@@ -6168,7 +6548,17 @@
       "voltage": "Voltage",
       "animationsOn": "Disable animations",
       "animationsOff": "Enable animations",
-      "appTagline": "Precision hardware control"
+      "appTagline": "Precision hardware control",
+      "cpuUsageLabel": "CPU usage",
+      "coreClock": "Core clock",
+      "memoryClock": "Memory clock",
+      "advancedTelemetryDescription": "GPU load, VRAM, power, clock speeds, and CPU cores",
+      "localAiAnalysisDescription": "Local Gemma analysis of live telemetry",
+      "hardwareDetectionDescription": "PC, motherboard, CPU, and GPU identity",
+      "gameModeDescription": "Automatic detection and game-focused monitoring while a game is running",
+      "gameModeSet": "Set Game Mode",
+      "bridgeWaiting": "Waiting for bridge",
+      "monitoringOnly": "Monitoring only"
     },
     "ur-PK": {
       "menu": "مینو",
@@ -6322,7 +6712,17 @@
       "voltage": "وولٹیج",
       "animationsOn": "اینیمیشن بند کریں",
       "animationsOff": "اینیمیشن فعال کریں",
-      "appTagline": "ہارڈویئر کا درست کنٹرول"
+      "appTagline": "ہارڈویئر کا درست کنٹرول",
+      "cpuUsageLabel": "CPU کا استعمال",
+      "coreClock": "کور کی گھڑی کی رفتار",
+      "memoryClock": "میموری کی گھڑی کی رفتار",
+      "advancedTelemetryDescription": "GPU لوڈ، VRAM، پاور، گھڑی کی رفتار اور CPU کور",
+      "localAiAnalysisDescription": "لائیو ٹیلی میٹری کا Gemma کے ذریعے مقامی تجزیہ",
+      "hardwareDetectionDescription": "PC، مدربورڈ، CPU اور GPU کی شناخت",
+      "gameModeDescription": "گیم چلنے کے دوران خودکار شناخت اور گیم پر مرکوز نگرانی",
+      "gameModeSet": "گیم موڈ سیٹ کریں",
+      "bridgeWaiting": "برج کا انتظار ہے",
+      "monitoringOnly": "صرف نگرانی"
     }
   }
 }
