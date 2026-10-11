@@ -1,14 +1,30 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import "../styles/global.css";
+const applicationSchema = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "HWcontrol2.0",
+  applicationCategory: "UtilitiesApplication",
+  operatingSystem: "Windows 10/11 (x64), macOS 14+ (Apple Silicon), Debian/Ubuntu-family Linux (x64; hardware access varies)",
+  description: "Open-source beta desktop software for CPU and GPU monitoring, hardware diagnostics and capability-gated fan control. Actual device support depends on the operating system, drivers, firmware and hardware.",
+  url: "https://lordkeremello45.github.io/HWcontrol2.0/",
+  downloadUrl: "https://github.com/lordkeremello45/HWcontrol2.0/releases",
+  isAccessibleForFree: true
+};
 ---
-<BaseLayout>
+<BaseLayout
+  title="HWcontrol2.0 — Open-Source Hardware Monitoring for Windows, macOS and Linux"
+  description="Monitor CPU, GPU and supported hardware with HWcontrol2.0, an open-source beta desktop app for Windows, macOS and Linux. Review platform limits, security notes and current releases."
+  path="/"
+>
+  <script type="application/ld+json" set:html={JSON.stringify(applicationSchema)} />
   <section class="hero shell">
     <div class="eyebrow">Open source · Cross-platform · Beta</div>
     <h1>Hardware control,<br /><span>without the clutter.</span></h1>
-    <p class="lead">HWControl 2.0 brings hardware monitoring, performance controls, diagnostics and release integrity into one focused desktop platform.</p>
+    <p class="lead">HWcontrol2.0 brings hardware monitoring, performance controls, diagnostics and release integrity into one focused desktop platform.</p>
     <div class="actions">
-      <a class="btn primary" href="#download">Download HWControl ↓</a>
+      <a class="btn primary" href="#download">Download HWcontrol ↓</a>
       <a class="btn" href="https://github.com/lordkeremello45/HWcontrol2.0" target="_blank" rel="noopener noreferrer">View source ↗</a>
     </div>
     <div class="meta"><span id="latestBadge">Latest release · checking…</span><span>Windows · macOS · Linux</span><span>SHA-256 · provenance</span></div>
