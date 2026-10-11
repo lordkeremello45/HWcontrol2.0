@@ -60,17 +60,34 @@ void main() {
     final english = translations['en-US'] as Map<String, dynamic>;
     final turkish = translations['tr-TR'] as Map<String, dynamic>;
 
-    // These locales are currently complete against the English source catalog.
-    // Keep them complete when new UI strings are introduced.
-    for (final locale in <String>[
-      'en-US', 'en-GB', 'tr-TR', 'ja-JP', 'de-DE', 'fr-FR', 'it-IT', 'es-ES', 'pt-BR',
-    ]) {
+    // Every advertised locale must keep exact source-key parity. Missing
+    // translations are not silently treated as completed localization work.
+    final sourceKeys = english.keys.toSet();
+    for (final locale in locales) {
       final copy = translations[locale] as Map<String, dynamic>;
-      expect(copy.keys.toSet(), english.keys.toSet(),
+      expect(copy.keys.toSet(), sourceKeys,
           reason: '$locale must define every source translation key.');
       for (final entry in copy.entries) {
         expect((entry.value as String).trim(), isNotEmpty,
             reason: '$locale.${entry.key} must not be empty.');
+      }
+
+      // Interpolation placeholders are part of the runtime contract. A
+      // translated label must preserve every named value used by the UI.
+      for (final entry in english.entries) {
+        final sourceText = entry.value as String;
+        final translatedText = copy[entry.key] as String;
+        final placeholderPattern = RegExp(r'\\{([A-Za-z][A-Za-z0-9_]*)\\}');
+        final sourcePlaceholders = placeholderPattern
+            .allMatches(sourceText)
+            .map((match) => match.group(1)!)
+            .toSet();
+        final translatedPlaceholders = placeholderPattern
+            .allMatches(translatedText)
+            .map((match) => match.group(1)!)
+            .toSet();
+        expect(translatedPlaceholders, sourcePlaceholders,
+            reason: '$locale.${entry.key} must preserve source placeholders.');
       }
     }
     for (final key in <String>[
