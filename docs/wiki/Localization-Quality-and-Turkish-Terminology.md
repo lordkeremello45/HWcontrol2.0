@@ -24,7 +24,7 @@ These are product terminology choices, not a claim that every word of foreign or
 
 ## Current source-catalog coverage
 
-The source catalog currently contains 215 keys across 40 listed locales. As of the latest catalog audit, all 40 locales have exact source-key parity, non-empty string values, and matching named interpolation placeholders. This is structural completeness, not proof of native-quality translation: every locale still needs contextual linguistic review, regional terminology review, and UI layout/accessibility checks. Avoid describing all 40 as professionally reviewed or fully quality-assured until those steps are completed.
+The source catalog currently contains 218 keys across 40 listed locales. As of the latest catalog audit, all 40 locales have exact source-key parity, non-empty string values, and matching named interpolation placeholders. This is structural completeness, not proof of native-quality translation: every locale still needs contextual linguistic review, regional terminology review, and UI layout/accessibility checks. Avoid describing all 40 as professionally reviewed or fully quality-assured until those steps are completed.
 
 ## Required review workflow
 
