@@ -37,7 +37,7 @@ void main() {
     expect(dontShowAgain, isFalse);
 
     await tester.ensureVisible(find.text('Open Dashboard'));
-    await tester.tap(find.text('Settings'));
+    await tester.tap(find.text('Open Dashboard'));
     await tester.pump();
 
     expect(settingsOpened, isTrue);
