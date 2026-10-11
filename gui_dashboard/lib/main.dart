@@ -2088,7 +2088,7 @@ Attach this archive to a support issue only after reviewing it for personal info
         children: [
           Row(
             children: [
-              Expanded(child: _sectionTitle(_tr('telemetryHistory'), _tr('lastHour'))),
+              Expanded(child: _sectionTitle(_tr('telemetryHistory'), _tr('samplingInterval'))),
               Text(_tr('maxCpuTemperature').replaceAll('{temperature}', maximum.toStringAsFixed(1)), style: const TextStyle(color: Color(0xFFFFB454), fontSize: 12, fontWeight: FontWeight.w700)),
               const SizedBox(width: 8),
               IconButton(tooltip: _tr('exportCsv'), onPressed: _history.isEmpty ? null : _exportTelemetryHistory, icon: const Icon(Icons.download_outlined, size: 18)),
@@ -2098,7 +2098,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           Text(_tr('thermalStatus').replaceAll('{status}', _thermalStatus), style: TextStyle(fontSize: 11, color: _thermalAlertActive ? const Color(0xFFFFB454) : Theme.of(context).colorScheme.onSurface.withAlpha(140))),
           const SizedBox(height: 14),
           if (_history.isEmpty)
-            const SizedBox(height: 130, child: Center(child: Text(_tr('bridgeMetricsWaiting'), style: TextStyle(color: Colors.white54, fontSize: 12))))
+            SizedBox(height: 130, child: Center(child: Text(_tr('bridgeMetricsWaiting'), style: TextStyle(color: Colors.white54, fontSize: 12))))
           else ...[
             SizedBox(height: 90, child: CustomPaint(painter: _HistoryPainter(_history, Theme.of(context).colorScheme.primary, (sample) => sample.cpuTemperature))),
             const SizedBox(height: 8),
@@ -2127,12 +2127,12 @@ Attach this archive to a support issue only after reviewing it for personal info
               _telemetryChip('GPU', '${_gpuUsage.toStringAsFixed(0)}%'),
               _telemetryChip('VRAM', '${_gpuMemoryUsage.toStringAsFixed(0)}%'),
               _telemetryChip(_tr('power'), '${_gpuPowerWatts.toStringAsFixed(1)} W'),
-              _telemetryChip('Güç limiti', _gpuPowerLimitWatts > 0 ? '${_gpuPowerLimitWatts.toStringAsFixed(1)} W' : 'N/A'),
+              _telemetryChip(_tr('powerLimit'), _gpuPowerLimitWatts > 0 ? '${_gpuPowerLimitWatts.toStringAsFixed(1)} W' : 'N/A'),
               _telemetryChip(_tr('coreClock'), _gpuCoreClockMHz > 0 ? '${_gpuCoreClockMHz.toStringAsFixed(0)} MHz' : 'N/A'),
               _telemetryChip(_tr('memoryClock'), _gpuMemoryClockMHz > 0 ? '${_gpuMemoryClockMHz.toStringAsFixed(0)} MHz' : 'N/A'),
-              _telemetryChip('P-State', _gpuPState),
-              _telemetryChip('Encoder', '${_gpuEncoderUsage.toStringAsFixed(0)}%'),
-              _telemetryChip('Decoder', '${_gpuDecoderUsage.toStringAsFixed(0)}%'),
+              _telemetryChip(_tr('gpuState'), _gpuPState),
+              _telemetryChip(_tr('encoderUsage'), '${_gpuEncoderUsage.toStringAsFixed(0)}%'),
+              _telemetryChip(_tr('decoderUsage'), '${_gpuDecoderUsage.toStringAsFixed(0)}%'),
             ],
           ),
           const SizedBox(height: 16),
@@ -2573,15 +2573,15 @@ Attach this archive to a support issue only after reviewing it for personal info
           const SizedBox(height: 20),
           _statusRow('Bridge', _isConnected ? _tr('online') : _tr('offline'), _isConnected),
           _statusRow('Güvenlik', _sharedKey.isEmpty ? 'Anahtar bekleniyor' : 'HMAC-SHA-256', _sharedKey.isNotEmpty),
-          _statusRow('Model SHA-256', _modelDigest == 'unavailable' ? 'Bulunamadı' : (_modelDigest.length > 12 ? '${_modelDigest.substring(0, 12)}...' : _modelDigest), _modelDigest != 'unavailable' && _modelDigest != 'Kontrol edilmedi'),
+          _statusRow(_tr('modelDigestLabel'), _modelDigest == 'unavailable' ? 'Bulunamadı' : (_modelDigest.length > 12 ? '${_modelDigest.substring(0, 12)}...' : _modelDigest), _modelDigest != 'unavailable' && _modelDigest != 'Kontrol edilmedi'),
           _statusRow('CPU', _cpuCoreCount > 0 ? '$_cpuCoreCount çekirdek • ${_cpuFrequencyMHz.toStringAsFixed(0)} MHz' : 'Bilinmiyor', _cpuCoreCount > 0),
-          _statusRow('GPU adaptörü', _gpuVendor, _gpuVendor != 'Bilinmiyor'),
+          _statusRow(_tr('gpuAdapterLabel'), _gpuVendor, _gpuVendor != 'Bilinmiyor'),
           _statusRow(_tr('sensor'), _sensorSource, _sensorSource != 'Kontrol edilmedi'),
           _statusRow('Fan kontrolü', _fanControlSupported ? _fanControlBackend : _tr('monitoringOnly'), _fanControlSupported),
           _statusRow('Uyarı eşiği', '${_temperatureLimit.round()} °C', _notificationsEnabled),
           _statusRow(_tr('temperature'), '${_cpuTemperature.toStringAsFixed(1)} °C', _cpuTemperature < _temperatureLimit || _cpuTemperature == 0),
           _statusRow('Termal durum', _thermalStatus, !_thermalAlertActive),
-          _statusRow('Son işlem', _lastAction, true),
+          _statusRow(_tr('lastActionLabel'), _lastAction, true),
           const SizedBox(height: 18),
           Container(
             width: double.infinity,
