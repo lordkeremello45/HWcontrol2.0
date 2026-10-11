@@ -23,6 +23,7 @@ import 'model_manager.dart';
 import 'user_data_store.dart';
 import 'welcome_screen.dart';
 import 'services/language_service.dart';
+import 'services/piper_tts_service.dart';
 import 'security/authenticity_guard.dart';
 
 void main() {
@@ -248,6 +249,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   double _aiValue = 80;
   double _temperatureLimit = 85;
   bool _notificationsEnabled = true;
+  bool _piperTtsEnabled = false;
+  String _piperExecutablePath = '';
+  String _piperModelPath = '';
+  final PiperTtsService _piperTts = PiperTtsService();
   bool _polling = false;
   double _cpuUsage = 0;
   int _cpuCoreCount = 0;
@@ -648,6 +653,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final notifications = settings['notificationsEnabled'];
       final limit = settings['temperatureLimit'];
       final smartFan = settings['smartFanEnabled'];
+      final piperEnabled = settings['piperTtsEnabled'];
+      final piperExecutable = settings['piperExecutablePath'];
+      final piperModel = settings['piperModelPath'];
       final rawRules = settings['automationRules'];
       final rules = rawRules is List ? rawRules.map(HardwareAutomationRule.fromJson).whereType<HardwareAutomationRule>().toList(growable: false) : const <HardwareAutomationRule>[];
       setState(() {
@@ -656,6 +664,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _temperatureLimit = limit.toDouble().clamp(60, 100);
         }
         if (smartFan is bool) _smartFanEnabled = smartFan;
+        if (piperEnabled is bool) _piperTtsEnabled = piperEnabled;
+        if (piperExecutable is String) _piperExecutablePath = piperExecutable;
+        if (piperModel is String) _piperModelPath = piperModel;
         _automationRules = rules.isEmpty
             ? const <HardwareAutomationRule>[
                 HardwareAutomationRule(name: 'CPU thermal guard', sensor: 'cpuTemperature', threshold: 85, fanPercent: 80),
@@ -675,6 +686,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         'temperatureLimit': _temperatureLimit,
         'language': _languagePreference,
         'smartFanEnabled': _smartFanEnabled,
+        'piperTtsEnabled': _piperTtsEnabled,
+        'piperExecutablePath': _piperExecutablePath,
+        'piperModelPath': _piperModelPath,
         'automationRules': _automationRules.map((rule) => rule.toJson()).toList(growable: false),
       });
     } catch (_) {
@@ -1435,6 +1449,11 @@ Attach this archive to a support issue only after reviewing it for personal info
     var notificationsEnabled = _notificationsEnabled;
     var temperatureLimit = _temperatureLimit;
     var selectedLocale = _languagePreference;
+    var piperEnabled = _piperTtsEnabled;
+    var piperStatus = '';
+    final piperExecutableController = TextEditingController(text: _piperExecutablePath);
+    final piperModelController = TextEditingController(text: _piperModelPath);
+    try {
     await showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -1472,6 +1491,78 @@ Attach this archive to a support issue only after reviewing it for personal info
                     ),
                   ),
                   const Divider(height: 22),
+                  Text(_tr('accessibility'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(_tr('offlineSpeech')),
+                    subtitle: Text(_tr('piperOfflineDescription')),
+                    value: piperEnabled,
+                    onChanged: (value) => setDialogState(() => piperEnabled = value),
+                  ),
+                  TextField(
+                    controller: piperExecutableController,
+                    decoration: InputDecoration(
+                      labelText: _tr('piperExecutablePath'),
+                      hintText: Platform.isWindows ? r'C:\Tools\piper\piper.exe' : '/usr/local/bin/piper',
+                    ),
+                    autocorrect: false,
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: piperModelController,
+                    decoration: InputDecoration(
+                      labelText: _tr('piperModelPath'),
+                      hintText: 'voice.onnx',
+                    ),
+                    autocorrect: false,
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          setDialogState(() => piperStatus = _tr('piperTesting'));
+                          try {
+                            await _piperTts.speak(
+                              text: _tr('piperTestPhrase'),
+                              executablePath: piperExecutableController.text,
+                              modelPath: piperModelController.text,
+                            );
+                            setDialogState(() => piperStatus = _tr('piperTestSuccess'));
+                          } catch (error) {
+                            setDialogState(() => piperStatus = '${_tr('piperTestFailed')}: $error');
+                          }
+                        },
+                        icon: const Icon(Icons.volume_up_outlined),
+                        label: Text(_tr('testSpeech')),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: piperEnabled
+                            ? () async {
+                                try {
+                                  await _piperTts.speak(
+                                    text: '${_tr('dashboard')}. CPU ${_cpuTemperature.toStringAsFixed(1)} degrees Celsius. GPU ${_gpuTemperature.toStringAsFixed(1)} degrees Celsius. CPU usage ${_cpuUsage.toStringAsFixed(0)} percent. GPU usage ${_gpuUsage.toStringAsFixed(0)} percent.',
+                                    executablePath: piperExecutableController.text,
+                                    modelPath: piperModelController.text,
+                                  );
+                                  setDialogState(() => piperStatus = _tr('piperTestSuccess'));
+                                } catch (error) {
+                                  setDialogState(() => piperStatus = '${_tr('piperTestFailed')}: $error');
+                                }
+                              }
+                            : null,
+                        icon: const Icon(Icons.accessibility_new),
+                        label: Text(_tr('readDashboard')),
+                      ),
+                    ],
+                  ),
+                  if (piperStatus.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Semantics(liveRegion: true, child: Text(piperStatus)),
+                  ],
+                  const Divider(height: 22),
                   Text(_tr('settings'), style: const TextStyle(fontWeight: FontWeight.w700)),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
@@ -1500,6 +1591,9 @@ Attach this archive to a support issue only after reviewing it for personal info
                   _notificationsEnabled = notificationsEnabled;
                   _temperatureLimit = temperatureLimit;
                   _languagePreference = selectedLocale;
+                  _piperTtsEnabled = piperEnabled;
+                  _piperExecutablePath = piperExecutableController.text.trim();
+                  _piperModelPath = piperModelController.text.trim();
                   _locale = HWControlLanguageService.resolveLocale(
                     savedLocale: selectedLocale,
                     supportedCodes: _translations.keys,
@@ -1514,6 +1608,10 @@ Attach this archive to a support issue only after reviewing it for personal info
         ),
       ),
     );
+    } finally {
+      piperExecutableController.dispose();
+      piperModelController.dispose();
+    }
   }
 
   Future<void> _connectToBridge() async {
@@ -1705,6 +1803,7 @@ Attach this archive to a support issue only after reviewing it for personal info
     _socket?.destroy();
     _aiResponses?.cancel();
     _aiProcess?.kill();
+    unawaited(_piperTts.dispose());
     super.dispose();
   }
 
