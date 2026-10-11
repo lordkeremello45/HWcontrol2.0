@@ -63,7 +63,7 @@ void main() {
     // These locales are currently complete against the English source catalog.
     // Keep them complete when new UI strings are introduced.
     for (final locale in <String>[
-      'en-US', 'en-GB', 'tr-TR', 'ja-JP', 'de-DE', 'fr-FR', 'it-IT',
+      'en-US', 'en-GB', 'tr-TR', 'ja-JP', 'de-DE', 'fr-FR', 'it-IT', 'es-ES', 'pt-BR',
     ]) {
       final copy = translations[locale] as Map<String, dynamic>;
       expect(copy.keys.toSet(), english.keys.toSet(),
@@ -88,6 +88,8 @@ void main() {
     expect(turkish['ramUsage'], 'Bellek kullanımı');
     expect(turkish['gpuUsage'], 'Ekran kartı kullanımı');
     expect(turkish['fanSpeed'], 'Soğutucu pervanesi hızı');
+    expect((translations['es-ES'] as Map<String, dynamic>)['telemetryHistory'], 'Historial de mediciones');
+    expect((translations['pt-BR'] as Map<String, dynamic>)['telemetryHistory'], 'Histórico de medições');
 
     for (final locale in <String>[
       'ca-ES', 'es-MX', 'pt-PT', 'zh-TW', 'fil-PH', 'bn-BD', 'en-CA', 'ur-PK',
