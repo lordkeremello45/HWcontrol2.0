@@ -24,20 +24,49 @@ These are product terminology choices, not a claim that every word of foreign or
 
 ## Current source-catalog coverage
 
-The source catalog currently contains 85 keys. `en-US`, `en-GB`, `tr-TR`, `ja-JP`, `de-DE`, `fr-FR`, `it-IT`, `es-ES`, and `pt-BR` now have matching key sets. The other listed locales remain partial: their missing entries may fall back to English. Do not advertise those locales as fully translated until their coverage and wording have been reviewed.
+The source catalog currently contains 215 keys across 40 listed locales. As of the latest catalog audit, all 40 locales have exact source-key parity, non-empty string values, and matching named interpolation placeholders. This is structural completeness, not proof of native-quality translation: every locale still needs contextual linguistic review, regional terminology review, and UI layout/accessibility checks. Avoid describing all 40 as professionally reviewed or fully quality-assured until those steps are completed.
 
 ## Required review workflow
 
-1. Use the Turkish Language Association's Current Turkish Dictionary and Foreign Words Equivalents Guide for Turkish terminology research; record a rationale for terms that have competing alternatives.
-2. Use Unicode CLDR/LDML and BCP 47 conventions for locale identifiers and regional variants.
-3. Translate in context, preserving placeholders, units, punctuation, product names, and technical identifiers.
-4. Validate exact key parity, non-empty strings, placeholder parity, duplicate locale codes, RTL direction, and fallback behavior.
-5. Run localization unit tests, Flutter analysis/tests, and visual checks for every completed locale.
-6. Add new locales only with a complete, reviewed translation set; do not increase the advertised language count with English placeholders.
+1. For Turkish (Türkiye), consult TDK's Güncel Türkçe Sözlük, Yazım Kılavuzu, and Yabancı Sözlere Karşılıklar Kılavuzu. Record why a term was selected when alternatives compete.
+2. For each other locale, prefer the relevant official language institution, national terminology database, statutory spelling council, or recognized academic normative dictionary. Confirm that the source applies to the actual regional locale (for example, es-MX vs es-ES and pt-PT vs pt-BR). Not every language has a single government-mandated authority; do not label a private dictionary as an official government source.
+3. Use Unicode CLDR/LDML and BCP 47 conventions for locale identifiers, regional variants, plural rules, number/date formats, and text direction.
+4. Translate in context, preserving placeholders, units, punctuation, product names, and technical identifiers. Hardware terms should be understandable to ordinary users but remain technically precise.
+5. Validate exact key parity, non-empty strings, placeholder parity, duplicate locale codes, RTL direction, fallback behavior, and suspicious untranslated English strings. An identical string is acceptable for a product name, standard, protocol, or common technical acronym; it should be reviewed rather than automatically rejected.
+6. Run localization unit tests, Flutter analysis/tests, and visual checks for truncation and accessibility for every completed locale.
+7. Add new locales only with a complete translation set; do not increase the advertised language count with English placeholders.
+
+## Language-authority research register
+
+Use these as primary starting points, not as an automated substitute for a native-language review. Record the date and the term checked when adopting a terminology decision.
+
+| Locale / language | Preferred reference | Scope |
+| --- | --- | --- |
+| tr-TR — Turkish (Türkiye) | [TDK Current Turkish Dictionary](https://sozluk.tdk.gov.tr/), [TDK spelling guide](https://yazim.tdk.gov.tr/), [Foreign Words Equivalents Guide](https://tdk.gov.tr/icerik/diger-icerikler/yabanc-soezlere-karlklar-klavuzu/) | Spelling, established words, Turkish equivalents |
+| es-ES / es-MX — Spanish | [RAE / ASALE Dictionary of Doubts](https://www.rae.es/dpd/) | Shared Spanish guidance; check regional usage rather than assuming Spain-only wording |
+| fr-FR — French | [FranceTerme / French terminology resources](https://www.culture.fr/franceterme), [Académie française dictionary and terminology resources](https://www.academie-francaise.fr/la-langue-francaise/terminologie) | French technical terminology and normative usage |
+| de-DE — German | [Council for German Orthography](https://www.rechtschreibrat.com/) and its current official rules | Standard spelling and punctuation |
+| ja-JP — Japanese | [Agency for Cultural Affairs: Japanese language policy](https://www.bunka.go.jp/english/policy/japanese_language/) | Government language policy and writing references |
+| ca-ES — Catalan | [Institut d'Estudis Catalans — DIEC](https://dlc.iec.cat/) | Normative Catalan lexicon |
+| pt-PT — Portuguese (Portugal) | [Academia das Ciências de Lisboa — VOLP](https://vocabulario.acad-ciencias.pt/) | Portuguese spelling and lexical forms for the Portugal variety |
+| pt-BR — Portuguese (Brazil) | Check Brazilian official/academic lexicographic resources and the applicable orthographic agreement; do not copy Portugal-specific vocabulary blindly | Brazilian regional usage |
+| bn-BD — Bengali (Bangladesh) | [Bangla Academy](https://banglaacademy.gov.bd/) | Bengali dictionaries and editorial references |
+| zh-CN / zh-TW — Chinese | Consult the relevant mainland Chinese or Taiwan language-standardization/dictionary source separately; do not treat Simplified and Traditional Chinese as merely different fonts | Regional vocabulary, characters, and terminology |
+| Other locales | Identify a recognized language authority or national/academic terminology source for the specific locale before final review | Authority varies by language and country |
+
+The authority/source mapping is deliberately regional. For example, RAE/ASALE guidance supports shared Spanish norms but does not remove the need to review Mexican wording; likewise, the Portuguese authority listed for pt-PT must not be treated as the sole authority for pt-BR.
 
 ## Reference sources
 
 - [TDK — Yabancı Sözlere Karşılıklar Kılavuzu](https://tdk.gov.tr/icerik/diger-icerikler/yabanc-soezlere-karlklar-klavuzu/)
 - [TDK — Güncel Türkçe Sözlük](https://sozluk.tdk.gov.tr/)
+- [TDK — Yazım Kılavuzu](https://yazim.tdk.gov.tr/)
+- [RAE / ASALE — Diccionario panhispánico de dudas](https://www.rae.es/dpd/)
+- [Académie française — Terminologie](https://www.academie-francaise.fr/la-langue-francaise/terminologie)
+- [German Orthography Council](https://www.rechtschreibrat.com/)
+- [Japan Agency for Cultural Affairs — Japanese language policy](https://www.bunka.go.jp/english/policy/japanese_language/)
+- [Institut d'Estudis Catalans — DIEC](https://dlc.iec.cat/)
+- [Academia das Ciências de Lisboa — VOLP](https://vocabulario.acad-ciencias.pt/)
+- [Bangla Academy](https://banglaacademy.gov.bd/)
 - [Unicode CLDR/LDML specification](https://www.unicode.org/reports/tr35/)
 - [Flutter internationalization guide](https://docs.flutter.dev/ui/internationalization/)
