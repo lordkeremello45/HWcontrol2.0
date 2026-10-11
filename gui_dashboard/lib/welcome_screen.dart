@@ -113,7 +113,7 @@ class _HWControlWelcomeScreenState extends State<HWControlWelcomeScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        const SizedBox(
+        SizedBox(
           width: 520,
           child: Text(
             _text('welcomeDescription', 'A simple, reliable way to monitor your hardware, control cooling, and keep your system healthy.'),
@@ -128,7 +128,7 @@ class _HWControlWelcomeScreenState extends State<HWControlWelcomeScreen> {
         Wrap(
           spacing: 10,
           runSpacing: 10,
-          children: const [
+          children: [
             _FeaturePill(
               icon: Icons.monitor_heart_outlined,
               title: _text('welcomeMonitor', 'Monitor'),
@@ -258,9 +258,9 @@ class _HWControlWelcomeScreenState extends State<HWControlWelcomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
-              Icon(Icons.space_dashboard_outlined, color: _muted, size: 18),
-              SizedBox(width: 8),
+            children: [
+              const Icon(Icons.space_dashboard_outlined, color: _muted, size: 18),
+              const SizedBox(width: 8),
               Text(
                 _text('welcomePreview', 'Dashboard preview'),
                 style: const TextStyle(
@@ -269,8 +269,8 @@ class _HWControlWelcomeScreenState extends State<HWControlWelcomeScreen> {
                   fontSize: 14,
                 ),
               ),
-              Spacer(),
-              _StatusDot(),
+              const Spacer(),
+              const _StatusDot(),
             ],
           ),
           const SizedBox(height: 18),
