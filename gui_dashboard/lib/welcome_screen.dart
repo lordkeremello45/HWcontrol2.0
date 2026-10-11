@@ -9,13 +9,11 @@ class HWControlWelcomeScreen extends StatefulWidget {
     super.key,
     required this.onContinue,
     required this.onSettings,
-    this.locale = 'en-US',
     this.translations = const <String, String>{},
   });
 
   final ValueChanged<bool> onContinue;
   final VoidCallback onSettings;
-  final String locale;
   final Map<String, String> translations;
 
   @override
