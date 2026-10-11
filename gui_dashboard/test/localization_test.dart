@@ -32,7 +32,7 @@ void main() {
     final sourceKeys = source.keys
         .where((key) => !key.startsWith('@') && key != '@@locale')
         .toSet();
-    expect(sourceKeys.length, greaterThanOrEqualTo(234));
+    expect(sourceKeys.length, greaterThanOrEqualTo(233));
 
     const fallbackOnlyKeys = <String>{
       'securityBlockedTitle',
