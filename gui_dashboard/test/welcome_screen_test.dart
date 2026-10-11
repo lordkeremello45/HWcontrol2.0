@@ -42,4 +42,27 @@ void main() {
 
     expect(settingsOpened, isTrue);
   });
+  testWidgets('renders translated welcome copy when a locale is supplied', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: HWControlWelcomeScreen(
+          onContinue: (_) {},
+          onSettings: () {},
+          translations: const <String, String>{
+            'welcomeTitle': "HWcontrol2.0'ye hoş geldiniz",
+            'welcomeGetStarted': 'Başlayın',
+            'welcomeOpenDashboard': 'Kontrol Panelini Aç',
+            'welcomePreview': 'Kontrol paneli önizlemesi',
+          },
+        ),
+      ),
+    );
+
+    expect(find.text("HWcontrol2.0'ye hoş geldiniz"), findsOneWidget);
+    expect(find.text('Başlayın'), findsOneWidget);
+    expect(find.text('Kontrol Panelini Aç'), findsOneWidget);
+    expect(find.text('Kontrol paneli önizlemesi'), findsOneWidget);
+    expect(find.text('Welcome to HWcontrol2.0'), findsNothing);
+  });
+
 }
