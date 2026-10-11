@@ -236,12 +236,13 @@
       }
     }
   },
-  "iterations": "迭代次数：{value}",
+  "iterations": "{value, plural, =0{没有迭代} other{迭代 {value} 次}}",
   "@iterations": {
-    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "description": "Number of benchmark iterations, using locale-specific ICU plural rules.",
     "placeholders": {
       "value": {
-        "type": "String"
+        "type": "num",
+        "example": 2
       }
     }
   },
@@ -388,5 +389,15 @@
   },
   "motherboardLabel": "主板",
   "gpuDriverLabel": "GPU 驱动程序",
-  "last20Events": "最近 20 条事件"
+  "last20Events": "最近 20 条事件",
+  "anomalyCount": "{count, plural, =0{没有异常} other{异常：{count} 项}}",
+  "@anomalyCount": {
+    "description": "Number of detected hardware anomalies. Uses locale-specific ICU plural rules.",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "example": 2
+      }
+    }
+  }
 }
