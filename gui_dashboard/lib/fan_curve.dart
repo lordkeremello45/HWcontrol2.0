@@ -113,9 +113,10 @@ class FanCurveController {
 }
 
 class FanCurveEditor extends StatefulWidget {
-  const FanCurveEditor({super.key, required this.initialCurve, required this.onSave});
+  const FanCurveEditor({super.key, required this.initialCurve, required this.onSave, this.translations = const <String, String>{}});
   final FanCurve initialCurve;
   final ValueChanged<FanCurve> onSave;
+  final Map<String, String> translations;
 
   @override
   State<FanCurveEditor> createState() => _FanCurveEditorState();
@@ -130,6 +131,8 @@ class _FanCurveEditorState extends State<FanCurveEditor> {
     _points = [...widget.initialCurve.points];
   }
 
+  String _tr(String key) => widget.translations[key] ?? key;
+
   void _sort() => _points.sort((a, b) => a.temperature.compareTo(b.temperature));
 
   Future<void> _addPoint() async {
@@ -138,23 +141,23 @@ class _FanCurveEditorState extends State<FanCurveEditor> {
     final result = await showDialog<List<double>>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Yeni fan eğrisi noktası'),
+        title: Text(_tr('newFanCurvePoint')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: temperature, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Sıcaklık °C')),
-            TextField(controller: fan, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Fan %')),
+            TextField(controller: temperature, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: InputDecoration(labelText: '${_tr('temperature')} (°C)')),
+            TextField(controller: fan, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: InputDecoration(labelText: '${_tr('fan')} (%)')),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('İptal')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(_tr('cancel'))),
           FilledButton(
             onPressed: () {
               final t = double.tryParse(temperature.text);
               final f = double.tryParse(fan.text);
               if (t != null && f != null) Navigator.pop(context, <double>[t, f]);
             },
-            child: const Text('Ekle'),
+            child: Text(_tr('addPoint')),
           ),
         ],
       ),
@@ -171,13 +174,13 @@ class _FanCurveEditorState extends State<FanCurveEditor> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Smart Fan Curve'),
+      title: Text(_tr('smartFanCurve')),
       content: SizedBox(
         width: 560,
         child: SingleChildScrollView(
           child: Column(
             children: [
-              const Text('Sıcaklığa göre fan hedefini tanımlayın. Uygulama yalnızca doğrulanmış hardware-control backend mevcutsa eğriyi otomatik uygular.'),
+              Text(_tr('smartFanCurveDescription')),
               const SizedBox(height: 12),
               for (var i = 0; i < _points.length; i++)
                 Row(
@@ -196,7 +199,7 @@ class _FanCurveEditorState extends State<FanCurveEditor> {
                     ),
                     SizedBox(width: 50, child: Text('${_points[i].fanPercent.round()}%')),
                     IconButton(
-                      tooltip: 'Noktayı sil',
+                      tooltip: _tr('deletePoint'),
                       onPressed: _points.length <= 2 ? null : () => setState(() => _points.removeAt(i)),
                       icon: const Icon(Icons.delete_outline),
                     ),
@@ -204,9 +207,9 @@ class _FanCurveEditorState extends State<FanCurveEditor> {
                 ),
               Row(
                 children: [
-                  TextButton.icon(onPressed: _addPoint, icon: const Icon(Icons.add), label: const Text('Nokta ekle')),
+                  TextButton.icon(onPressed: _addPoint, icon: const Icon(Icons.add), label: Text(_tr('addPoint'))),
                   const Spacer(),
-                  TextButton(onPressed: () => setState(() => _points = [...FanCurve.balanced.points]), child: const Text('Dengeliye sıfırla')),
+                  TextButton(onPressed: () => setState(() => _points = [...FanCurve.balanced.points]), child: Text(_tr('resetBalanced'))),
                 ],
               ),
             ],
@@ -214,14 +217,14 @@ class _FanCurveEditorState extends State<FanCurveEditor> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('İptal')),
+        TextButton(onPressed: () => Navigator.pop(context), child: Text(_tr('cancel'))),
         FilledButton(
           onPressed: _points.length < 2 ? null : () {
             _sort();
             widget.onSave(FanCurve(List<FanCurvePoint>.unmodifiable(_points)));
             Navigator.pop(context);
           },
-          child: const Text('Kaydet'),
+          child: Text(_tr('save')),
         ),
       ],
     );
