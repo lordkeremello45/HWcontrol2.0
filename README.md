@@ -64,7 +64,19 @@ Use the Apple Silicon PKG or DMG from the macOS Beta release.
 
 Use the DEB on Debian/Ubuntu-family systems, or the portable TAR package when appropriate.
 
-For detailed platform instructions, see the [Wiki](https://github.com/lordkeremello45/HWcontrol2.0/wiki).
+For detailed platform instructions, see the [Wiki](https://github.com/lordkeremello45/HWcontrol2.0/wiki). For a careful first install, checksum guidance and issue-reporting checklist, use the [Beta Quickstart](docs/USER-QUICKSTART.md).
+
+## User help and product readiness
+
+- [Beta Quickstart and safe installation](docs/USER-QUICKSTART.md)
+- [Product readiness acceptance checklist](docs/PRODUCT-READINESS-CHECKLIST.md)
+- [Team product overview](https://lordkeremello45.github.io/HWcontrol-Team.github.io/product/)
+- [Getting started guide](https://lordkeremello45.github.io/HWcontrol-Team.github.io/getting-started/)
+- [Testing and contribution guide](https://lordkeremello45.github.io/HWcontrol-Team.github.io/contribute/)
+- [Privacy explanation](https://lordkeremello45.github.io/HWcontrol-Team.github.io/privacy/)
+- [Security and release integrity](https://lordkeremello45.github.io/HWcontrol-Team.github.io/security/)
+
+The checklist is an acceptance standard, not a claim that every gate has passed. Use real CI, packaging and hardware-test evidence to determine readiness for each platform.
 
 ## Language and localization
 
