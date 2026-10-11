@@ -2034,7 +2034,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       _MetricData(_tr('ramUsage'), _memoryUsage.toStringAsFixed(0), '%', Icons.storage, const Color(0xFF8FA7FF), (_memoryUsage / 100).clamp(0, 1)),
       _MetricData(_tr('diskUsage'), _diskUsage.toStringAsFixed(0), '%', Icons.save, const Color(0xFFB995FF), (_diskUsage / 100).clamp(0, 1)),
       _MetricData(_tr('gpuUsage'), _gpuUsage.toStringAsFixed(0), '%', Icons.graphic_eq, const Color(0xFFFF8C69), (_gpuUsage / 100).clamp(0, 1)),
-      _MetricData('Fan', _fanRpm > 0 ? _fanRpm.toStringAsFixed(0) : _fanPercent.toStringAsFixed(0), _fanRpm > 0 ? 'RPM' : '%', Icons.air, const Color(0xFF64D8CB), (_fanRpm > 0 ? _fanRpm / 3000 : _fanPercent / 100).clamp(0, 1)),
+      _MetricData(_tr('fan'), _fanRpm > 0 ? _fanRpm.toStringAsFixed(0) : _fanPercent.toStringAsFixed(0), _fanRpm > 0 ? 'RPM' : '%', Icons.air, const Color(0xFF64D8CB), (_fanRpm > 0 ? _fanRpm / 3000 : _fanPercent / 100).clamp(0, 1)),
     ];
     return GridView.builder(
       shrinkWrap: true,
@@ -2125,7 +2125,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             runSpacing: 10,
             children: [
               _telemetryChip('GPU', '${_gpuUsage.toStringAsFixed(0)}%'),
-              _telemetryChip('VRAM', '${_gpuMemoryUsage.toStringAsFixed(0)}%'),
+              _telemetryChip(_tr('vramUsageLabel'), '${_gpuMemoryUsage.toStringAsFixed(0)}%'),
               _telemetryChip(_tr('power'), '${_gpuPowerWatts.toStringAsFixed(1)} W'),
               _telemetryChip(_tr('powerLimit'), _gpuPowerLimitWatts > 0 ? '${_gpuPowerLimitWatts.toStringAsFixed(1)} W' : 'N/A'),
               _telemetryChip(_tr('coreClock'), _gpuCoreClockMHz > 0 ? '${_gpuCoreClockMHz.toStringAsFixed(0)} MHz' : 'N/A'),
@@ -2288,7 +2288,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionTitle('Depolama', 'SSD / HDD / NVMe kullanım ve I/O durumu'),
+          _sectionTitle(_tr('storageTitle'), _tr('storageDescription')),
           const SizedBox(height: 18),
           if (_storageVolumes.isEmpty)
             Text(_tr('storageUnavailable'), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(150)))
@@ -2572,13 +2572,13 @@ Attach this archive to a support issue only after reviewing it for personal info
           _sectionTitle(_tr('systemStatus'), _tr('controlFlow')),
           const SizedBox(height: 20),
           _statusRow('Bridge', _isConnected ? _tr('online') : _tr('offline'), _isConnected),
-          _statusRow('Güvenlik', _sharedKey.isEmpty ? 'Anahtar bekleniyor' : 'HMAC-SHA-256', _sharedKey.isNotEmpty),
-          _statusRow(_tr('modelDigestLabel'), _modelDigest == 'unavailable' ? 'Bulunamadı' : (_modelDigest.length > 12 ? '${_modelDigest.substring(0, 12)}...' : _modelDigest), _modelDigest != 'unavailable' && _modelDigest != 'Kontrol edilmedi'),
-          _statusRow('CPU', _cpuCoreCount > 0 ? '$_cpuCoreCount çekirdek • ${_cpuFrequencyMHz.toStringAsFixed(0)} MHz' : 'Bilinmiyor', _cpuCoreCount > 0),
+          _statusRow(_tr('securityLabel'), _sharedKey.isEmpty ? _tr('securityKeyWaiting') : 'HMAC-SHA-256', _sharedKey.isNotEmpty),
+          _statusRow(_tr('modelDigestLabel'), _modelDigest == 'unavailable' ? _tr('digestNotFound') : (_modelDigest.length > 12 ? '${_modelDigest.substring(0, 12)}...' : _modelDigest), _modelDigest != 'unavailable' && _modelDigest != 'Kontrol edilmedi'),
+          _statusRow('CPU', _cpuCoreCount > 0 ? _tr('cpuCoreSummary').replaceAll('{cores}', _cpuCoreCount.toString()).replaceAll('{frequency}', _cpuFrequencyMHz.toStringAsFixed(0)) : _tr('unknown'), _cpuCoreCount > 0),
           _statusRow(_tr('gpuAdapterLabel'), _gpuVendor, _gpuVendor != 'Bilinmiyor'),
           _statusRow(_tr('sensor'), _sensorSource, _sensorSource != 'Kontrol edilmedi'),
           _statusRow('Fan kontrolü', _fanControlSupported ? _fanControlBackend : _tr('monitoringOnly'), _fanControlSupported),
-          _statusRow('Uyarı eşiği', '${_temperatureLimit.round()} °C', _notificationsEnabled),
+          _statusRow(_tr('warningThresholdLabel'), '${_temperatureLimit.round()} °C', _notificationsEnabled),
           _statusRow(_tr('temperature'), '${_cpuTemperature.toStringAsFixed(1)} °C', _cpuTemperature < _temperatureLimit || _cpuTemperature == 0),
           _statusRow('Termal durum', _thermalStatus, !_thermalAlertActive),
           _statusRow(_tr('lastActionLabel'), _lastAction, true),
