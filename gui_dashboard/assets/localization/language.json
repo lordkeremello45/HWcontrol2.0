@@ -4080,16 +4080,16 @@
       "gpuEncoder": "Kodare",
       "gpuDecoder": "Avkodare",
       "storageTitle": "Lagring",
-      "storageDescription": "Användning och I/O-status för SSD / HDD / NVMe",
-      "aiProcessingPower": "AI-beräkningskraft",
+      "storageDescription": "Användning och I/O-status för SSD, HDD och NVMe",
+      "aiProcessingPower": "AI-bearbetningskraft",
       "securityLabel": "Säkerhet",
       "securityKeyWaiting": "Väntar på nyckel",
       "digestNotFound": "Hittades inte",
       "digestNotChecked": "Inte kontrollerad",
       "gpuAdapter": "GPU-adapter",
       "cpuCoreSummary": "{cores} kärnor • {frequency} MHz",
-      "warningThresholdLabel": "Varningsgräns",
-      "hardwareControlUnavailableNote": "Om maskinvarustyrning inte stöds ändras inte fläkt- eller klockinställningar."
+      "warningThresholdLabel": "Varningströskel",
+      "hardwareControlUnavailableNote": "Fläkt- eller klockinställningar ändras inte när hårdvarustyrning saknas."
     },
     "da-DK": {
       "menu": "Menu",
@@ -4267,7 +4267,7 @@
       "gpuEncoder": "Encoder",
       "gpuDecoder": "Decoder",
       "storageTitle": "Lager",
-      "storageDescription": "SSD / HDD / NVMe-forbrug og I/O-status",
+      "storageDescription": "Brug og I/O-status for SSD, HDD og NVMe",
       "aiProcessingPower": "AI-behandlingskraft",
       "securityLabel": "Sikkerhed",
       "securityKeyWaiting": "Venter på nøgle",
@@ -4276,7 +4276,7 @@
       "gpuAdapter": "GPU-adapter",
       "cpuCoreSummary": "{cores} kerner • {frequency} MHz",
       "warningThresholdLabel": "Advarselsgrænse",
-      "hardwareControlUnavailableNote": "Hvis hardwarestyring ikke understøttes, ændres blæser- eller clockindstillinger ikke."
+      "hardwareControlUnavailableNote": "Blæser- eller clockindstillinger ændres ikke, når hardwarestyring ikke understøttes."
     },
     "nb-NO": {
       "menu": "Meny",
@@ -4451,10 +4451,10 @@
       "lastActionLabel": "Siste handling",
       "vramUsageLabel": "VRAM-bruk",
       "gpuPowerLimit": "GPU-effektgrense",
-      "gpuEncoder": "Koder",
-      "gpuDecoder": "Dekoder",
+      "gpuEncoder": "Encoder",
+      "gpuDecoder": "Decoder",
       "storageTitle": "Lagring",
-      "storageDescription": "SSD / HDD / NVMe-bruk og I/O-status",
+      "storageDescription": "Bruk og I/O-status for SSD, HDD og NVMe",
       "aiProcessingPower": "AI-behandlingskraft",
       "securityLabel": "Sikkerhet",
       "securityKeyWaiting": "Venter på nøkkel",
@@ -4462,8 +4462,8 @@
       "digestNotChecked": "Ikke kontrollert",
       "gpuAdapter": "GPU-adapter",
       "cpuCoreSummary": "{cores} kjerner • {frequency} MHz",
-      "warningThresholdLabel": "Advarselsgrense",
-      "hardwareControlUnavailableNote": "Hvis maskinvarestyring ikke støttes, endres ikke vifte- eller klokkeinnstillingene."
+      "warningThresholdLabel": "Varselgrense",
+      "hardwareControlUnavailableNote": "Vifte- eller klokkeinnstillinger endres ikke når maskinvarestyring ikke støttes."
     },
     "fi-FI": {
       "menu": "Valikko",
@@ -4637,20 +4637,20 @@
       "gpuAdapterLabel": "GPU-sovitin",
       "lastActionLabel": "Viimeisin toiminto",
       "vramUsageLabel": "VRAM-käyttö",
-      "gpuPowerLimit": "Näytönohjaimen tehoraja",
+      "gpuPowerLimit": "GPU:n tehoraja",
       "gpuEncoder": "Kooderi",
       "gpuDecoder": "Dekooderi",
-      "storageTitle": "Tallennustila",
-      "storageDescription": "SSD-/HDD-/NVMe-levyjen käyttö ja I/O-tila",
+      "storageTitle": "Tallennus",
+      "storageDescription": "SSD-, HDD- ja NVMe-laitteiden käyttö ja I/O-tila",
       "aiProcessingPower": "Tekoälyn laskentateho",
       "securityLabel": "Tietoturva",
       "securityKeyWaiting": "Odotetaan avainta",
       "digestNotFound": "Ei löytynyt",
       "digestNotChecked": "Ei tarkistettu",
-      "gpuAdapter": "Näytönohjainsovitin",
+      "gpuAdapter": "GPU-sovitin",
       "cpuCoreSummary": "{cores} ydintä • {frequency} MHz",
       "warningThresholdLabel": "Varoitusraja",
-      "hardwareControlUnavailableNote": "Jos laitteiston ohjausta ei tueta, tuulettimen tai kellotaajuuden asetuksia ei muuteta."
+      "hardwareControlUnavailableNote": "Tuulettimen tai kellotaajuuden asetuksia ei muuteta, jos laitteiston ohjausta ei tueta."
     },
     "el-GR": {
       "menu": "Μενού",
@@ -4828,7 +4828,7 @@
       "gpuEncoder": "Κωδικοποιητής",
       "gpuDecoder": "Αποκωδικοποιητής",
       "storageTitle": "Αποθήκευση",
-      "storageDescription": "Χρήση SSD / HDD / NVMe και κατάσταση εισόδου/εξόδου",
+      "storageDescription": "Χρήση και κατάσταση I/O SSD, HDD και NVMe",
       "aiProcessingPower": "Ισχύς επεξεργασίας AI",
       "securityLabel": "Ασφάλεια",
       "securityKeyWaiting": "Αναμονή κλειδιού",
@@ -4837,7 +4837,7 @@
       "gpuAdapter": "Προσαρμογέας GPU",
       "cpuCoreSummary": "{cores} πυρήνες • {frequency} MHz",
       "warningThresholdLabel": "Όριο προειδοποίησης",
-      "hardwareControlUnavailableNote": "Χωρίς υποστήριξη ελέγχου υλικού, οι ρυθμίσεις ανεμιστήρα ή συχνότητας δεν αλλάζουν."
+      "hardwareControlUnavailableNote": "Οι ρυθμίσεις ανεμιστήρα ή συχνότητας δεν αλλάζουν όταν δεν υποστηρίζεται ο έλεγχος υλικού."
     },
     "cs-CZ": {
       "menu": "Menu",
@@ -5011,20 +5011,20 @@
       "gpuAdapterLabel": "Adaptér GPU",
       "lastActionLabel": "Poslední akce",
       "vramUsageLabel": "Využití VRAM",
-      "gpuPowerLimit": "Limit výkonu GPU",
+      "gpuPowerLimit": "Limit příkonu GPU",
       "gpuEncoder": "Kodér",
       "gpuDecoder": "Dekodér",
       "storageTitle": "Úložiště",
-      "storageDescription": "Využití SSD / HDD / NVMe a stav I/O",
+      "storageDescription": "Využití a stav I/O disků SSD, HDD a NVMe",
       "aiProcessingPower": "Výpočetní výkon AI",
       "securityLabel": "Zabezpečení",
-      "securityKeyWaiting": "Čeká se na klíč",
+      "securityKeyWaiting": "Čekání na klíč",
       "digestNotFound": "Nenalezeno",
       "digestNotChecked": "Nezkontrolováno",
       "gpuAdapter": "Adaptér GPU",
       "cpuCoreSummary": "{cores} jader • {frequency} MHz",
-      "warningThresholdLabel": "Prahová hodnota varování",
-      "hardwareControlUnavailableNote": "Bez podpory řízení hardwaru se nastavení ventilátorů ani taktů nemění."
+      "warningThresholdLabel": "Varovný práh",
+      "hardwareControlUnavailableNote": "Pokud není podporováno řízení hardwaru, nastavení ventilátoru ani frekvence se nemění."
     },
     "he-IL": {
       "menu": "תפריט",
@@ -5197,13 +5197,13 @@
       "modelDigestLabel": "SHA-256 של המודל",
       "gpuAdapterLabel": "מתאם GPU",
       "lastActionLabel": "פעולה אחרונה",
-      "vramUsageLabel": "שימוש ב־VRAM",
+      "vramUsageLabel": "שימוש ב-VRAM",
       "gpuPowerLimit": "מגבלת הספק GPU",
       "gpuEncoder": "מקודד",
       "gpuDecoder": "מפענח",
       "storageTitle": "אחסון",
-      "storageDescription": "שימוש ומצב קלט/פלט של SSD / HDD / NVMe",
-      "aiProcessingPower": "יכולת עיבוד AI",
+      "storageDescription": "שימוש ומצב קלט/פלט של SSD, HDD ו-NVMe",
+      "aiProcessingPower": "עוצמת עיבוד AI",
       "securityLabel": "אבטחה",
       "securityKeyWaiting": "ממתין למפתח",
       "digestNotFound": "לא נמצא",
@@ -5211,7 +5211,7 @@
       "gpuAdapter": "מתאם GPU",
       "cpuCoreSummary": "{cores} ליבות • {frequency} MHz",
       "warningThresholdLabel": "סף אזהרה",
-      "hardwareControlUnavailableNote": "כאשר אין תמיכה בשליטה בחומרה, הגדרות המאוורר או תדר השעון אינן משתנות."
+      "hardwareControlUnavailableNote": "הגדרות המאוורר או תדר השעון לא ישתנו כאשר בקרת חומרה אינה נתמכת."
     },
     "ro-RO": {
       "menu": "Meniu",
@@ -5386,10 +5386,10 @@
       "lastActionLabel": "Ultima acțiune",
       "vramUsageLabel": "Utilizare VRAM",
       "gpuPowerLimit": "Limită de putere GPU",
-      "gpuEncoder": "Codificator",
-      "gpuDecoder": "Decodificator",
+      "gpuEncoder": "Encoder",
+      "gpuDecoder": "Decoder",
       "storageTitle": "Stocare",
-      "storageDescription": "Utilizare și stare I/O pentru SSD / HDD / NVMe",
+      "storageDescription": "Utilizarea și starea I/O pentru SSD, HDD și NVMe",
       "aiProcessingPower": "Putere de procesare AI",
       "securityLabel": "Securitate",
       "securityKeyWaiting": "Se așteaptă cheia",
@@ -5398,7 +5398,7 @@
       "gpuAdapter": "Adaptor GPU",
       "cpuCoreSummary": "{cores} nuclee • {frequency} MHz",
       "warningThresholdLabel": "Prag de avertizare",
-      "hardwareControlUnavailableNote": "Fără suport pentru controlul hardware, setările ventilatorului sau ale frecvenței nu se modifică."
+      "hardwareControlUnavailableNote": "Setările ventilatorului sau ale frecvenței nu se modifică atunci când controlul hardware nu este acceptat."
     },
     "hu-HU": {
       "menu": "Menü",
@@ -5575,17 +5575,17 @@
       "gpuPowerLimit": "GPU-teljesítménykorlát",
       "gpuEncoder": "Kódoló",
       "gpuDecoder": "Dekódoló",
-      "storageTitle": "Tárhely",
-      "storageDescription": "SSD / HDD / NVMe használat és I/O-állapot",
+      "storageTitle": "Tárolás",
+      "storageDescription": "SSD, HDD és NVMe használata és I/O-állapota",
       "aiProcessingPower": "MI-feldolgozási teljesítmény",
       "securityLabel": "Biztonság",
-      "securityKeyWaiting": "Kulcsra várakozás",
+      "securityKeyWaiting": "Kulcsra vár",
       "digestNotFound": "Nem található",
       "digestNotChecked": "Nincs ellenőrizve",
       "gpuAdapter": "GPU-adapter",
       "cpuCoreSummary": "{cores} mag • {frequency} MHz",
       "warningThresholdLabel": "Figyelmeztetési küszöb",
-      "hardwareControlUnavailableNote": "Hardvervezérlési támogatás nélkül a ventilátor- és órajel-beállítások nem módosulnak."
+      "hardwareControlUnavailableNote": "Hardvervezérlés hiányában a ventilátor- és órajelbeállítások nem módosulnak."
     },
     "bg-BG": {
       "menu": "Меню",
@@ -5759,12 +5759,12 @@
       "gpuAdapterLabel": "GPU адаптер",
       "lastActionLabel": "Последно действие",
       "vramUsageLabel": "Използване на VRAM",
-      "gpuPowerLimit": "Лимит на мощността на GPU",
+      "gpuPowerLimit": "Ограничение на мощността на GPU",
       "gpuEncoder": "Кодер",
       "gpuDecoder": "Декодер",
       "storageTitle": "Съхранение",
-      "storageDescription": "Използване и I/O състояние на SSD / HDD / NVMe",
-      "aiProcessingPower": "Изчислителна мощност за AI",
+      "storageDescription": "Използване и I/O състояние на SSD, HDD и NVMe",
+      "aiProcessingPower": "Изчислителна мощност на AI",
       "securityLabel": "Сигурност",
       "securityKeyWaiting": "Изчакване на ключ",
       "digestNotFound": "Не е намерено",
@@ -5772,7 +5772,7 @@
       "gpuAdapter": "GPU адаптер",
       "cpuCoreSummary": "{cores} ядра • {frequency} MHz",
       "warningThresholdLabel": "Праг за предупреждение",
-      "hardwareControlUnavailableNote": "Без поддръжка на хардуерно управление настройките на вентилатора и честотата не се променят."
+      "hardwareControlUnavailableNote": "Настройките на вентилатора или честотата не се променят, когато управлението на хардуера не се поддържа."
     },
     "hr-HR": {
       "menu": "Izbornik",
@@ -5950,16 +5950,16 @@
       "gpuEncoder": "Koder",
       "gpuDecoder": "Dekoder",
       "storageTitle": "Pohrana",
-      "storageDescription": "Upotreba SSD-a / HDD-a / NVMe-a i I/O status",
-      "aiProcessingPower": "Snaga obrade AI-ja",
+      "storageDescription": "Upotreba i I/O stanje SSD-a, HDD-a i NVMe-a",
+      "aiProcessingPower": "Računalna snaga umjetne inteligencije",
       "securityLabel": "Sigurnost",
-      "securityKeyWaiting": "Čeka se ključ",
+      "securityKeyWaiting": "Čekanje ključa",
       "digestNotFound": "Nije pronađeno",
       "digestNotChecked": "Nije provjereno",
       "gpuAdapter": "GPU adapter",
       "cpuCoreSummary": "{cores} jezgri • {frequency} MHz",
       "warningThresholdLabel": "Prag upozorenja",
-      "hardwareControlUnavailableNote": "Ako upravljanje hardverom nije podržano, postavke ventilatora i takta neće se mijenjati."
+      "hardwareControlUnavailableNote": "Postavke ventilatora ili takta ne mijenjaju se ako upravljanje hardverom nije podržano."
     },
     "ms-MY": {
       "menu": "Menu",
@@ -6137,7 +6137,7 @@
       "gpuEncoder": "Pengekod",
       "gpuDecoder": "Penyahkod",
       "storageTitle": "Storan",
-      "storageDescription": "Penggunaan SSD / HDD / NVMe dan status I/O",
+      "storageDescription": "Penggunaan dan status I/O SSD, HDD dan NVMe",
       "aiProcessingPower": "Kuasa pemprosesan AI",
       "securityLabel": "Keselamatan",
       "securityKeyWaiting": "Menunggu kunci",
@@ -6146,7 +6146,7 @@
       "gpuAdapter": "Penyesuai GPU",
       "cpuCoreSummary": "{cores} teras • {frequency} MHz",
       "warningThresholdLabel": "Ambang amaran",
-      "hardwareControlUnavailableNote": "Jika kawalan perkakasan tidak disokong, tetapan kipas atau jam tidak akan diubah."
+      "hardwareControlUnavailableNote": "Tetapan kipas atau jam tidak diubah apabila kawalan perkakasan tidak disokong."
     },
     "ca-ES": {
       "menu": "Menú",
@@ -6324,16 +6324,16 @@
       "gpuEncoder": "Codificador",
       "gpuDecoder": "Descodificador",
       "storageTitle": "Emmagatzematge",
-      "storageDescription": "Ús i estat d’E/S de SSD / HDD / NVMe",
+      "storageDescription": "Ús i estat d'E/S de SSD, HDD i NVMe",
       "aiProcessingPower": "Potència de processament de la IA",
       "securityLabel": "Seguretat",
-      "securityKeyWaiting": "S’espera la clau",
-      "digestNotFound": "No s’ha trobat",
-      "digestNotChecked": "No s’ha comprovat",
+      "securityKeyWaiting": "S'està esperant la clau",
+      "digestNotFound": "No s'ha trobat",
+      "digestNotChecked": "No s'ha comprovat",
       "gpuAdapter": "Adaptador de GPU",
       "cpuCoreSummary": "{cores} nuclis • {frequency} MHz",
-      "warningThresholdLabel": "Llindar d’avís",
-      "hardwareControlUnavailableNote": "Si no s’admet el control del maquinari, no es modifiquen els ajustos del ventilador ni de la freqüència."
+      "warningThresholdLabel": "Llindar d'avís",
+      "hardwareControlUnavailableNote": "No es modifiquen els ajustos del ventilador ni de freqüència si no s'admet el control del maquinari."
     },
     "es-MX": {
       "menu": "Menú",
@@ -6511,16 +6511,16 @@
       "gpuEncoder": "Codificador",
       "gpuDecoder": "Decodificador",
       "storageTitle": "Almacenamiento",
-      "storageDescription": "Uso y estado de E/S de SSD / HDD / NVMe",
+      "storageDescription": "Uso y estado de E/S de SSD, HDD y NVMe",
       "aiProcessingPower": "Potencia de procesamiento de IA",
       "securityLabel": "Seguridad",
       "securityKeyWaiting": "Esperando la clave",
-      "digestNotFound": "No encontrado",
-      "digestNotChecked": "No verificado",
+      "digestNotFound": "No se encontró",
+      "digestNotChecked": "No se verificó",
       "gpuAdapter": "Adaptador de GPU",
       "cpuCoreSummary": "{cores} núcleos • {frequency} MHz",
       "warningThresholdLabel": "Umbral de advertencia",
-      "hardwareControlUnavailableNote": "Si no hay compatibilidad con el control del hardware, no se modifican los ajustes del ventilador ni de frecuencia."
+      "hardwareControlUnavailableNote": "No se cambian los ajustes del ventilador ni de frecuencia cuando no hay compatibilidad con el control del hardware."
     },
     "pt-PT": {
       "menu": "Menu",
@@ -6698,16 +6698,16 @@
       "gpuEncoder": "Codificador",
       "gpuDecoder": "Descodificador",
       "storageTitle": "Armazenamento",
-      "storageDescription": "Utilização e estado de E/S de SSD / HDD / NVMe",
-      "aiProcessingPower": "Potência de processamento de IA",
+      "storageDescription": "Utilização e estado de E/S de SSD, HDD e NVMe",
+      "aiProcessingPower": "Capacidade de processamento de IA",
       "securityLabel": "Segurança",
       "securityKeyWaiting": "À espera da chave",
       "digestNotFound": "Não encontrado",
       "digestNotChecked": "Não verificado",
       "gpuAdapter": "Adaptador de GPU",
       "cpuCoreSummary": "{cores} núcleos • {frequency} MHz",
-      "warningThresholdLabel": "Limite de aviso",
-      "hardwareControlUnavailableNote": "Sem suporte para controlo de hardware, as definições da ventoinha e da frequência não são alteradas."
+      "warningThresholdLabel": "Limiar de aviso",
+      "hardwareControlUnavailableNote": "As definições da ventoinha ou da frequência não são alteradas quando o controlo do hardware não é suportado."
     },
     "zh-TW": {
       "menu": "選單",
@@ -6885,16 +6885,16 @@
       "gpuEncoder": "編碼器",
       "gpuDecoder": "解碼器",
       "storageTitle": "儲存空間",
-      "storageDescription": "SSD / HDD / NVMe 使用量與 I/O 狀態",
+      "storageDescription": "SSD、HDD 與 NVMe 的使用狀況及 I/O 狀態",
       "aiProcessingPower": "AI 處理能力",
       "securityLabel": "安全性",
       "securityKeyWaiting": "正在等待金鑰",
       "digestNotFound": "找不到",
       "digestNotChecked": "尚未檢查",
-      "gpuAdapter": "GPU 介面卡",
+      "gpuAdapter": "GPU 配接器",
       "cpuCoreSummary": "{cores} 個核心 • {frequency} MHz",
-      "warningThresholdLabel": "警告門檻",
-      "hardwareControlUnavailableNote": "若不支援硬體控制，就不會變更風扇或時脈設定。"
+      "warningThresholdLabel": "警告閾值",
+      "hardwareControlUnavailableNote": "不支援硬體控制時，不會變更風扇或時脈設定。"
     },
     "fil-PH": {
       "menu": "Menu",
@@ -7068,20 +7068,20 @@
       "gpuAdapterLabel": "GPU adapter",
       "lastActionLabel": "Huling aksyon",
       "vramUsageLabel": "Paggamit ng VRAM",
-      "gpuPowerLimit": "Limit ng power ng GPU",
+      "gpuPowerLimit": "Limitasyon ng power ng GPU",
       "gpuEncoder": "Encoder",
       "gpuDecoder": "Decoder",
       "storageTitle": "Storage",
-      "storageDescription": "Paggamit at I/O status ng SSD / HDD / NVMe",
+      "storageDescription": "Paggamit at I/O status ng SSD, HDD, at NVMe",
       "aiProcessingPower": "Lakas ng pagproseso ng AI",
       "securityLabel": "Seguridad",
       "securityKeyWaiting": "Naghihintay sa key",
       "digestNotFound": "Hindi nahanap",
-      "digestNotChecked": "Hindi nasuri",
+      "digestNotChecked": "Hindi pa nasusuri",
       "gpuAdapter": "GPU adapter",
       "cpuCoreSummary": "{cores} core • {frequency} MHz",
-      "warningThresholdLabel": "Threshold ng babala",
-      "hardwareControlUnavailableNote": "Kapag walang suporta sa kontrol ng hardware, hindi binabago ang mga setting ng fan o clock."
+      "warningThresholdLabel": "Hangganan ng babala",
+      "hardwareControlUnavailableNote": "Hindi babaguhin ang mga setting ng fan o clock kapag hindi suportado ang pagkontrol sa hardware."
     },
     "bn-BD": {
       "menu": "মেনু",
@@ -7259,16 +7259,16 @@
       "gpuEncoder": "এনকোডার",
       "gpuDecoder": "ডিকোডার",
       "storageTitle": "স্টোরেজ",
-      "storageDescription": "SSD / HDD / NVMe ব্যবহার ও I/O অবস্থা",
+      "storageDescription": "SSD, HDD ও NVMe-এর ব্যবহার এবং I/O অবস্থা",
       "aiProcessingPower": "AI প্রক্রিয়াকরণ ক্ষমতা",
       "securityLabel": "নিরাপত্তা",
-      "securityKeyWaiting": "কী-এর অপেক্ষায়",
+      "securityKeyWaiting": "কির জন্য অপেক্ষা করা হচ্ছে",
       "digestNotFound": "পাওয়া যায়নি",
       "digestNotChecked": "পরীক্ষা করা হয়নি",
       "gpuAdapter": "GPU অ্যাডাপ্টার",
       "cpuCoreSummary": "{cores} কোর • {frequency} MHz",
       "warningThresholdLabel": "সতর্কতার সীমা",
-      "hardwareControlUnavailableNote": "হার্ডওয়্যার নিয়ন্ত্রণ সমর্থিত না হলে ফ্যান বা ক্লক সেটিং পরিবর্তন করা হয় না।"
+      "hardwareControlUnavailableNote": "হার্ডওয়্যার নিয়ন্ত্রণ সমর্থিত না হলে ফ্যান বা ক্লক সেটিংস পরিবর্তন করা হয় না।"
     },
     "en-CA": {
       "menu": "Menu",
@@ -7629,20 +7629,20 @@
       "gpuAdapterLabel": "GPU اڈاپٹر",
       "lastActionLabel": "آخری کارروائی",
       "vramUsageLabel": "VRAM کا استعمال",
-      "gpuPowerLimit": "GPU کی طاقت کی حد",
+      "gpuPowerLimit": "GPU پاور کی حد",
       "gpuEncoder": "انکوڈر",
-      "gpuDecoder": "ڈی کوڈر",
+      "gpuDecoder": "ڈیکوڈر",
       "storageTitle": "اسٹوریج",
-      "storageDescription": "SSD / HDD / NVMe کا استعمال اور I/O حالت",
-      "aiProcessingPower": "AI پراسیسنگ کی طاقت",
+      "storageDescription": "SSD، HDD اور NVMe کا استعمال اور I/O حالت",
+      "aiProcessingPower": "AI پروسیسنگ کی طاقت",
       "securityLabel": "سیکیورٹی",
-      "securityKeyWaiting": "کلید کا انتظار ہے",
+      "securityKeyWaiting": "کلید کا انتظار",
       "digestNotFound": "نہیں ملا",
       "digestNotChecked": "جانچ نہیں ہوئی",
       "gpuAdapter": "GPU اڈاپٹر",
       "cpuCoreSummary": "{cores} کور • {frequency} MHz",
-      "warningThresholdLabel": "انتباہ کی حد",
-      "hardwareControlUnavailableNote": "ہارڈویئر کنٹرول کی معاونت دستیاب نہ ہو تو پنکھے یا کلاک کی ترتیبات تبدیل نہیں کی جاتیں۔"
+      "warningThresholdLabel": "انتباہی حد",
+      "hardwareControlUnavailableNote": "ہارڈویئر کنٹرول دستیاب نہ ہونے پر پنکھے یا کلاک کی ترتیبات تبدیل نہیں کی جاتیں۔"
     }
   }
 }
