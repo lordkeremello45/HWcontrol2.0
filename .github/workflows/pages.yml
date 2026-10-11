@@ -38,6 +38,10 @@ jobs:
         working-directory: website
         run: npm install --ignore-scripts --no-audit --no-fund
 
+      - name: Test release selection and URL validation
+        working-directory: website
+        run: npm test
+
       - name: Audit dependency tree
         working-directory: website
         run: npm audit --audit-level=high
@@ -79,6 +83,7 @@ jobs:
           set -euo pipefail
           test -s dist/index.html
           test -s dist/app.js
+          test -s dist/release-logic.mjs
           test -s dist/release.json
           test -s dist/robots.txt
           test -s dist/sitemap.xml
