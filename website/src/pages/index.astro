@@ -11,7 +11,7 @@ import "../styles/global.css";
       <a class="btn primary" href="#download">Download HWControl ↓</a>
       <a class="btn" href="https://github.com/lordkeremello45/HWcontrol2.0" target="_blank" rel="noopener noreferrer">View source ↗</a>
     </div>
-    <div class="meta"><span id="latestBadge">Latest stable · checking…</span><span>Windows · macOS · Linux</span><span>SHA-256 · provenance</span></div>
+    <div class="meta"><span id="latestBadge">Latest release · checking…</span><span>Windows · macOS · Linux</span><span>SHA-256 · provenance</span></div>
   </section>
 
   <section id="features" class="section shell">
@@ -37,16 +37,16 @@ import "../styles/global.css";
   <section id="download" class="download shell">
     <div class="download-copy"><div class="eyebrow">DOWNLOAD</div><h2>Choose your platform.</h2><p>Package metadata is generated from GitHub Releases during deployment. The page does not invent download URLs or package availability.</p></div>
     <div class="platforms" role="tablist" aria-label="Operating system">
-      <button class="platform active" data-platform="windows" role="tab" aria-selected="true"><span><b>Windows 10 / 11</b><small>x64 · EXE · MSI · MSIX · ZIP</small></span></button>
-      <button class="platform" data-platform="macos" role="tab" aria-selected="false"><span><b>macOS 14+</b><small>Apple Silicon · PKG · DMG</small></span></button>
-      <button class="platform" data-platform="linux" role="tab" aria-selected="false"><span><b>Linux</b><small>x64 · DEB · TAR.GZ · TAR.ZST</small></span></button>
+      <button class="platform active" data-platform="windows" role="tab" aria-selected="true" aria-controls="packages"><span><b>Windows 10 / 11</b><small>x64 · EXE · MSI · MSIX · ZIP</small></span></button>
+      <button class="platform" data-platform="macos" role="tab" aria-selected="false" aria-controls="packages"><span><b>macOS 14+</b><small>Apple Silicon · PKG · DMG</small></span></button>
+      <button class="platform" data-platform="linux" role="tab" aria-selected="false" aria-controls="packages"><span><b>Linux</b><small>x64 · DEB · TAR.GZ · TAR.ZST</small></span></button>
     </div>
     <div class="package-panel" aria-live="polite">
-      <div class="package-head"><div><div class="eyebrow" id="packageEyebrow">WINDOWS PACKAGE</div><h3 id="packageTitle">Pick your installer</h3></div><span class="detected" id="detected">Windows 10 / 11 · x64</span></div>
-      <div id="packages" class="packages"><div class="loading">Loading release assets…</div></div>
+      <div class="package-head"><div><div class="eyebrow" id="packageEyebrow">WINDOWS PACKAGE</div><h3 id="packageTitle">Choose your installer</h3></div><span class="detected" id="detected">Windows 10 / 11 · x64</span></div>
+      <div id="packages" class="packages"><div class="loading">Checking current release metadata…</div></div>
       <div class="actions"><a id="releaseLink" class="btn" href="https://github.com/lordkeremello45/HWcontrol2.0/releases" target="_blank" rel="noopener noreferrer">Open release ↗</a></div>
     </div>
     <div class="note"><strong>Integrity:</strong> use the published SHA-256 manifest when one is available. Checksums establish file integrity; they do not establish publisher identity.</div>
   </section>
 </BaseLayout>
-<script src={import.meta.env.BASE_URL + "app.js"} defer></script>
+<script type="module" src={import.meta.env.BASE_URL + "app.js"}></script>
