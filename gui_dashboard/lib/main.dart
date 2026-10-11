@@ -1539,6 +1539,14 @@ Attach this archive to a support issue only after reviewing it for personal info
                         label: Text(_tr('testSpeech')),
                       ),
                       OutlinedButton.icon(
+                        onPressed: () async {
+                          await _piperTts.stop();
+                          setDialogState(() => piperStatus = _tr('piperSpeechStopped'));
+                        },
+                        icon: const Icon(Icons.stop_circle_outlined),
+                        label: Text(_tr('stopSpeech')),
+                      ),
+                      OutlinedButton.icon(
                         onPressed: piperEnabled
                             ? () async {
                                 try {
