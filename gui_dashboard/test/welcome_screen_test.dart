@@ -42,7 +42,7 @@ void main() {
 
     expect(settingsOpened, isTrue);
   });
-  testWidgets('renders translated welcome copy when a locale is supplied', (tester) async {
+  testWidgets('renders translated welcome copy when translations are supplied', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: HWControlWelcomeScreen(
