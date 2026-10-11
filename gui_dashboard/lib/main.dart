@@ -711,6 +711,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     await showDialog<void>(
       context: context,
       builder: (context) => FanCurveEditor(
+        translations: _translations[_locale] ?? _translations['en-US'] ?? const <String, String>{},
         initialCurve: _fanCurve,
         onSave: (curve) {
           _fanCurve = curve;
@@ -727,7 +728,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _openBenchmark() async {
     await showDialog<void>(
       context: context,
-      builder: (context) => const HardwareBenchmarkDialog(),
+      builder: (context) => HardwareBenchmarkDialog(
+        translations: _translations[_locale] ?? _translations['en-US'] ?? const <String, String>{},
+      ),
     );
   }
 
@@ -746,23 +749,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(controller: name, decoration: const InputDecoration(labelText: _tr('ruleName'))),
+                TextField(controller: name, decoration: InputDecoration(labelText: _tr('ruleName'))),
                 DropdownButtonFormField<String>(
                   initialValue: sensor,
-                  decoration: const InputDecoration(labelText: 'Sensör'),
-                  items: const [
+                  decoration: InputDecoration(labelText: _tr('sensor')),
+                  items: [
                     DropdownMenuItem(value: 'cpuTemperature', child: Text(_tr('cpuTemperatureLabel'))),
                     DropdownMenuItem(value: 'gpuTemperature', child: Text(_tr('gpuTemperatureLabel'))),
                   ],
                   onChanged: (value) => setDialogState(() => sensor = value ?? sensor),
                 ),
-                TextField(controller: threshold, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: _tr('threshold'))),
-                TextField(controller: fan, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: _tr('fanTarget'))),
+                TextField(controller: threshold, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: InputDecoration(labelText: _tr('threshold'))),
+                TextField(controller: fan, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: InputDecoration(labelText: _tr('fanTarget'))),
               ],
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('İptal')),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text(_tr('cancel'))),
             FilledButton(
               onPressed: () {
                 final cleanName = name.text.trim();
@@ -777,7 +780,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   enabled: initial?.enabled ?? true,
                 ));
               },
-              child: const Text('Kaydet'),
+              child: Text(_tr('save')),
             ),
           ],
         ),
@@ -802,7 +805,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('Kurallar yalnızca doğrulanmış hardware-control backend mevcutsa fan komutu uygular.'),
+                  Text(_tr('automationSafetyNote')),
                   const SizedBox(height: 12),
                   for (var i = 0; i < rules.length; i++)
                     ListTile(
@@ -825,7 +828,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         spacing: 0,
                         children: [
                           IconButton(
-                            tooltip: 'Düzenle',
+                            tooltip: _tr('edit'),
                             onPressed: () async {
                               final edited = await _editAutomationRuleDialog(initial: rules[i]);
                               if (edited != null) setDialogState(() => rules[i] = edited);
@@ -833,7 +836,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             icon: const Icon(Icons.edit_outlined),
                           ),
                           IconButton(
-                            tooltip: 'Sil',
+                            tooltip: _tr('delete'),
                             onPressed: () => setDialogState(() => rules.removeAt(i)),
                             icon: const Icon(Icons.delete_outline),
                           ),
@@ -858,7 +861,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('İptal')),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text(_tr('cancel'))),
             FilledButton(
               onPressed: () {
                 _automationRules = List<HardwareAutomationRule>.unmodifiable(rules);
@@ -867,7 +870,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 if (mounted) setState(() {});
                 Navigator.pop(context);
               },
-              child: const Text('Kaydet'),
+              child: Text(_tr('save')),
             ),
           ],
         ),
@@ -1071,38 +1074,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Hardware Health Center'),
+        title: Text(_tr('hardwareHealthCenter')),
         content: SizedBox(
           width: 620,
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Durum: ${health['status'] ?? 'unknown'}'),
-                Text('Safety: ${health['safetyState'] ?? 'unknown'}'),
-                Text('Recovery: ${health['recoveryAction'] ?? 'none'}'),
+                Text('${_tr('status')}: ${health['status'] ?? _tr('unknown')}'),
+                Text('${_tr('safety')}: ${health['safetyState'] ?? _tr('unknown')}'),
+                Text('${_tr('recovery')}: ${health['recoveryAction'] ?? _tr('none')}'),
                 const Divider(),
-                Text('CPU: ${_formatHealthMetric(metrics['cpuTemperature'], '°C')} • ${_formatHealthMetric(metrics['cpuUsage'], '%')}'),
-                Text('GPU: ${_formatHealthMetric(metrics['gpuTemperature'], '°C')} • ${_formatHealthMetric(metrics['gpuUsage'], '%')}'),
-                Text('Fan: ${_formatHealthMetric(metrics['fanRpm'], 'RPM')} • ${_formatHealthMetric(metrics['fanPercent'], '%')}'),
-                Text('Power: ${_formatHealthMetric(metrics['powerWatts'], 'W')} • Voltage: ${_formatHealthMetric(metrics['voltage'], 'V')}'),
+                Text('${_tr('cpuTemperatureLabel')}: ${_formatHealthMetric(metrics['cpuTemperature'], '°C')} • ${_tr('usage')}: ${_formatHealthMetric(metrics['cpuUsage'], '%')}'),
+                Text('${_tr('gpuTemperatureLabel')}: ${_formatHealthMetric(metrics['gpuTemperature'], '°C')} • ${_formatHealthMetric(metrics['gpuUsage'], '%')}'),
+                Text('${_tr('fanSpeed')}: ${_formatHealthMetric(metrics['fanRpm'], 'RPM')} • ${_formatHealthMetric(metrics['fanPercent'], '%')}'),
+                Text('${_tr('power')}: ${_formatHealthMetric(metrics['powerWatts'], 'W')} • ${_tr('voltage')}: ${_formatHealthMetric(metrics['voltage'], 'V')}'),
                 const SizedBox(height: 8),
                 if (warnings.isNotEmpty) ...[
-                  const Text('Uyarılar', style: TextStyle(fontWeight: FontWeight.w700)),
+                  Text(_tr('warnings'), style: const TextStyle(fontWeight: FontWeight.w700)),
                   for (final warning in warnings) Text('• $warning'),
                   const SizedBox(height: 10),
                 ],
-                Text('Anomaliler: ${anomalies.length}', style: const TextStyle(fontWeight: FontWeight.w700)),
+                Text('${_tr('anomalies')}: ${anomalies.length}', style: const TextStyle(fontWeight: FontWeight.w700)),
                 for (final anomaly in anomalies)
                   Padding(
                     padding: const EdgeInsets.only(top: 6),
-                    child: Text('${anomaly['severity'] ?? 'unknown'} • ${anomaly['code'] ?? 'unknown'} • ${anomaly['message'] ?? ''}'),
+                    child: Text('${anomaly['severity'] ?? _tr('unknown')} • ${anomaly['code'] ?? _tr('unknown')} • ${anomaly['message'] ?? ''}'),
                   ),
               ],
             ),
           ),
         ),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Kapat'))],
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text(_tr('close')))],
       ),
     );
   }
@@ -1959,7 +1962,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('HWControl', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
-              Text(_tr('controls'), style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withAlpha(140), fontSize: 12)),
+              Text(_tr('appTagline'), style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withAlpha(140), fontSize: 12)),
             ],
           ),
         ),
@@ -2085,14 +2088,14 @@ Attach this archive to a support issue only after reviewing it for personal info
         children: [
           Row(
             children: [
-              Expanded(child: _sectionTitle(_tr('telemetryHistory'), 'Son 1 saat • 5 saniyelik örnekleme')),
-              Text('Maks. CPU ${maximum.toStringAsFixed(1)} °C', style: const TextStyle(color: Color(0xFFFFB454), fontSize: 12, fontWeight: FontWeight.w700)),
+              Expanded(child: _sectionTitle(_tr('telemetryHistory'), _tr('lastHour'))),
+              Text(_tr('maxCpuTemperature').replaceAll('{temperature}', maximum.toStringAsFixed(1)), style: const TextStyle(color: Color(0xFFFFB454), fontSize: 12, fontWeight: FontWeight.w700)),
               const SizedBox(width: 8),
               IconButton(tooltip: _tr('exportCsv'), onPressed: _history.isEmpty ? null : _exportTelemetryHistory, icon: const Icon(Icons.download_outlined, size: 18)),
             ],
           ),
           const SizedBox(height: 8),
-          Text('Termal durum: $_thermalStatus', style: TextStyle(fontSize: 11, color: _thermalAlertActive ? const Color(0xFFFFB454) : Theme.of(context).colorScheme.onSurface.withAlpha(140))),
+          Text(_tr('thermalStatus').replaceAll('{status}', _thermalStatus), style: TextStyle(fontSize: 11, color: _thermalAlertActive ? const Color(0xFFFFB454) : Theme.of(context).colorScheme.onSurface.withAlpha(140))),
           const SizedBox(height: 14),
           if (_history.isEmpty)
             const SizedBox(height: 130, child: Center(child: Text(_tr('bridgeMetricsWaiting'), style: TextStyle(color: Colors.white54, fontSize: 12))))
@@ -2136,7 +2139,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           if (hasGpuTelemetry)
             LinearProgressIndicator(value: (_gpuPowerLimitWatts > 0 ? _gpuPowerWatts / _gpuPowerLimitWatts : _gpuUsage / 100).clamp(0, 1), minHeight: 4)
           else
-            const Text('GPU gelişmiş telemetrisi sürücü/backend desteğine bağlıdır.', style: TextStyle(fontSize: 12)),
+            Text(_tr('gpuTelemetryNote'), style: const TextStyle(fontSize: 12)),
           if (_cpuPerCoreUsage.isNotEmpty) ...[
             const SizedBox(height: 16),
             Text(_tr('cpuCoreLoad'), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(160))),
@@ -2237,7 +2240,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           if (_aiModelDownloading) ...[
             LinearProgressIndicator(value: _aiModelProgress),
             const SizedBox(height: 8),
-            Text('Gemma 3 1B modeli indiriliyor %${(_aiModelProgress * 100).round()} • ~851 MB', style: const TextStyle(fontSize: 11)),
+            Text(_tr('modelDownloading').replaceAll('{percent}', (_aiModelProgress * 100).round().toString()), style: const TextStyle(fontSize: 11)),
             const SizedBox(height: 12),
           ],
           if (_aiModelError != null) ...[
@@ -2272,7 +2275,7 @@ Attach this archive to a support issue only after reviewing it for personal info
               const SizedBox(width: 8),
               Expanded(child: Text(_aiAnalysisTime == null ? _aiStatus : '$_aiStatus • ${_aiAnalysisTime!.toLocal().toString().substring(11, 19)}', style: const TextStyle(fontSize: 11))),
               const SizedBox(width: 8),
-              const Text('LLM kontrol yetkisi yok', style: TextStyle(fontSize: 11)),
+              Text(_tr('llmControlUnavailable'), style: const TextStyle(fontSize: 11)),
             ],
           ),
         ],
@@ -2288,7 +2291,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           _sectionTitle('Depolama', 'SSD / HDD / NVMe kullanım ve I/O durumu'),
           const SizedBox(height: 18),
           if (_storageVolumes.isEmpty)
-            Text('Depolama aygıtı algılanamadı veya telemetry henüz hazır değil.', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(150)))
+            Text(_tr('storageUnavailable'), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(150)))
           else
             ..._storageVolumes.map(_storageVolumeTile),
         ],
@@ -2350,11 +2353,11 @@ Attach this archive to a support issue only after reviewing it for personal info
             spacing: 18,
             runSpacing: 8,
             children: [
-              Text('Boş: ${bytes(free)}', style: const TextStyle(fontSize: 11)),
-              Text('Okuma: ${rate(read)}', style: const TextStyle(fontSize: 11)),
-              Text('Yazma: ${rate(write)}', style: const TextStyle(fontSize: 11)),
-              Text('Health: $healthText', style: const TextStyle(fontSize: 11)),
-              if (fs != null && fs.isNotEmpty) Text('FS: $fs', style: const TextStyle(fontSize: 11)),
+              Text(_tr('freeSpace').replaceAll('{value}', bytes(free)), style: const TextStyle(fontSize: 11)),
+              Text(_tr('readSpeed').replaceAll('{value}', rate(read)), style: const TextStyle(fontSize: 11)),
+              Text(_tr('writeSpeed').replaceAll('{value}', rate(write)), style: const TextStyle(fontSize: 11)),
+              Text(_tr('health').replaceAll('{value}', healthText), style: const TextStyle(fontSize: 11)),
+              if (fs != null && fs.isNotEmpty) Text(_tr('fileSystem').replaceAll('{value}', fs), style: const TextStyle(fontSize: 11)),
             ],
           ),
           if (health == null && healthReason.isNotEmpty) ...[
@@ -2392,7 +2395,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             children: [
               Icon(Icons.verified_outlined, size: 16, color: detected ? const Color(0xFF64D8CB) : const Color(0xFFFFB454)),
               const SizedBox(width: 8),
-              Text('Tanılama: $_hardwareDetectionStatus • Seri numaraları rapora dahil edilmez', style: const TextStyle(fontSize: 11)),
+              Text(_tr('diagnosticPrivacy').replaceAll('{status}', _hardwareDetectionStatus), style: const TextStyle(fontSize: 11)),
             ],
           ),
         ],
@@ -2467,7 +2470,7 @@ Attach this archive to a support issue only after reviewing it for personal info
         children: [
           _sectionTitle(_tr('controls'), _tr('safeUserSettings')),
           const SizedBox(height: 6),
-          Text('Extension API: metadata/capability provider contract hazır • native plugin yükleme kapalı', style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurface.withAlpha(110))),
+          Text(_tr('extensionApiStatus'), style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurface.withAlpha(110))),
           const SizedBox(height: 20),
           _buildPresetRow(),
           const SizedBox(height: 14),
@@ -2516,14 +2519,14 @@ Attach this archive to a support issue only after reviewing it for personal info
       runSpacing: 8,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        if (!_fanControlSupported) const Text('Donanım kontrolü: yalnızca izleme', style: TextStyle(fontSize: 12)),
+        if (!_fanControlSupported) Text(_tr('hardwareControlMonitorOnly'), style: const TextStyle(fontSize: 12)),
         _presetButton('Sessiz', Icons.volume_off_outlined, 25, 45, const Color(0xFF64D8CB)),
         _presetButton('Dengeli', Icons.tune, 50, 80, const Color(0xFFFFB454)),
         _presetButton('Performans', Icons.speed, 85, 100, const Color(0xFFFF7B7B)),
         _presetButton('Oyun', Icons.sports_esports_outlined, 75, 95, const Color(0xFFB995FF)),
         _presetButton('Manuel', Icons.edit_outlined, _fanValue, _aiValue, const Color(0xFF8FA7FF)),
         TextButton.icon(onPressed: _isSending || !_fanControlSupported ? null : _resetControls, icon: const Icon(Icons.restart_alt, size: 16), label: Text(_tr('reset'))),
-        TextButton.icon(onPressed: () => _saveProfile('Manuel'), icon: const Icon(Icons.save_outlined, size: 16), label: Text(_tr('saveProfile'))),
+        TextButton.icon(onPressed: () => _saveProfile(_tr('manual')), icon: const Icon(Icons.save_outlined, size: 16), label: Text(_tr('saveProfile'))),
       ],
     );
   }
@@ -2548,7 +2551,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             Text('${value.round()}%', style: TextStyle(color: color, fontWeight: FontWeight.w700)),
             const SizedBox(width: 12),
             IconButton(
-              tooltip: 'Uygula',
+              tooltip: _tr('apply'),
               onPressed: _isSending || !_fanControlSupported ? null : () => _sendCommand(label, value),
               icon: const Icon(Icons.check_circle_outline),
               color: color,
@@ -2598,7 +2601,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             runSpacing: 10,
             children: [
               OutlinedButton.icon(onPressed: _isConnected ? null : _connectToBridge, icon: const Icon(Icons.refresh, size: 17), label: Text(_tr('reconnect'))),
-              OutlinedButton.icon(onPressed: _updateInfo == null || _updateInfo!.digest.isEmpty || _isCheckingUpdate ? null : _downloadVerifiedUpdate, icon: const Icon(Icons.download_outlined, size: 17), label: const Text('Doğrulanmış güncellemeyi indir')),
+              OutlinedButton.icon(onPressed: _updateInfo == null || _updateInfo!.digest.isEmpty || _isCheckingUpdate ? null : _downloadVerifiedUpdate, icon: const Icon(Icons.download_outlined, size: 17), label: Text(_tr('downloadVerifiedUpdate'))),
               OutlinedButton.icon(onPressed: _isConnected ? _exportDiagnosticReport : null, icon: const Icon(Icons.archive_outlined, size: 17), label: Text(_tr('createErrorReport'))),
               OutlinedButton.icon(onPressed: _isConnected ? _openHealthCenter : null, icon: const Icon(Icons.health_and_safety_outlined, size: 17), label: Text(_tr('hardwareHealthCenter'))),
             ],
