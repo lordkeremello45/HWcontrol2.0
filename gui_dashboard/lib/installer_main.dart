@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'main.dart' show HWControlApp;
@@ -39,7 +41,34 @@ class _InstallerWizardState extends State<InstallerWizard> {
   bool _aiDownloading = false;
   double _aiProgress = 0;
   String _details = 'Kurulum bileşenleri kontrol ediliyor...';
+  String _locale = 'en-US';
+  Map<String, Map<String, String>> _translations = <String, Map<String, String>>{};
   Directory? _stateDirectory;
+
+  String _tr(String key, [Map<String, String> values = const {}]) {
+    var value = _translations[_locale]?[key] ?? _translations['en-US']?[key] ?? key;
+    for (final entry in values.entries) {
+      value = value.replaceAll('{'+entry.key+'}', entry.value);
+    }
+    return value;
+  }
+
+  Future<void> _loadTranslations() async {
+    try {
+      final root = jsonDecode(await rootBundle.loadString('assets/localization/language.json')) as Map<String, dynamic>;
+      final locales = (root['locales'] as List<dynamic>).whereType<Map<String, dynamic>>().map((e) => e['code'] as String).toSet();
+      final raw = root['translations'] as Map<String, dynamic>;
+      _translations = raw.map((locale, data) => MapEntry(locale, (data as Map<String, dynamic>).map((key, value) => MapEntry(key, value as String))));
+      final systemTag = Platform.localeName.replaceAll('_', '-');
+      final exact = locales.where((e) => e.toLowerCase() == systemTag.toLowerCase()).firstOrNull;
+      final language = systemTag.split('-').first.toLowerCase();
+      final languageMatch = locales.where((e) => e.split('-').first.toLowerCase() == language).firstOrNull;
+      _locale = exact ?? languageMatch ?? 'en-US';
+    } catch (_) {
+      _translations = <String, Map<String, String>>{};
+      _locale = 'en-US';
+    }
+  }
 
   String get _platformName {
     if (Platform.isWindows) return 'Windows';
@@ -58,11 +87,19 @@ class _InstallerWizardState extends State<InstallerWizard> {
   @override
   void initState() {
     super.initState();
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    await _loadTranslations();
+    if (!mounted) return;
     if (widget.initialize) {
-      _inspectInstallation();
+      await _inspectInstallation();
     } else {
-      _checking = false;
-      _details = 'Test modu: kurulum ve model indirme atlandı.';
+      setState(() {
+        _checking = false;
+        _details = _tr('installerTestMode');
+      });
     }
   }
 
