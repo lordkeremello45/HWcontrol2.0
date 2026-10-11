@@ -1567,8 +1567,6 @@ Attach this archive to a support issue only after reviewing it for personal info
                     ),
                   ),
                   const SizedBox(height: 8),
-                  /*
-
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
