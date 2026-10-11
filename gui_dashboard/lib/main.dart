@@ -2027,7 +2027,7 @@ Attach this archive to a support issue only after reviewing it for personal info
   Widget _buildOverview(bool compact) {
     final cards = [
       _MetricData(_tr('cpuTemperatureLabel'), _cpuTemperature.toStringAsFixed(1), '°C', Icons.thermostat, const Color(0xFFFFB454), (_cpuTemperature / 100).clamp(0, 1)),
-      _MetricData('CPU ${_tr('usage')}', _cpuUsage.toStringAsFixed(0), '%', Icons.memory, const Color(0xFF64D8CB), (_cpuUsage / 100).clamp(0, 1)),
+      _MetricData(_tr('cpuUsageLabel'), _cpuUsage.toStringAsFixed(0), '%', Icons.memory, const Color(0xFF64D8CB), (_cpuUsage / 100).clamp(0, 1)),
       _MetricData(_tr('ramUsage'), _memoryUsage.toStringAsFixed(0), '%', Icons.storage, const Color(0xFF8FA7FF), (_memoryUsage / 100).clamp(0, 1)),
       _MetricData(_tr('diskUsage'), _diskUsage.toStringAsFixed(0), '%', Icons.save, const Color(0xFFB995FF), (_diskUsage / 100).clamp(0, 1)),
       _MetricData(_tr('gpuUsage'), _gpuUsage.toStringAsFixed(0), '%', Icons.graphic_eq, const Color(0xFFFF8C69), (_gpuUsage / 100).clamp(0, 1)),
@@ -2115,7 +2115,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionTitle(_tr('advancedTelemetry'), 'GPU yükü, VRAM, güç, saat hızları ve CPU çekirdekleri'),
+          _sectionTitle(_tr('advancedTelemetry'), _tr('advancedTelemetryDescription')),
           const SizedBox(height: 16),
           Wrap(
             spacing: 10,
@@ -2125,8 +2125,8 @@ Attach this archive to a support issue only after reviewing it for personal info
               _telemetryChip('VRAM', '${_gpuMemoryUsage.toStringAsFixed(0)}%'),
               _telemetryChip('GPU güç', '${_gpuPowerWatts.toStringAsFixed(1)} W'),
               _telemetryChip('Güç limiti', _gpuPowerLimitWatts > 0 ? '${_gpuPowerLimitWatts.toStringAsFixed(1)} W' : 'N/A'),
-              _telemetryChip('Core clock', _gpuCoreClockMHz > 0 ? '${_gpuCoreClockMHz.toStringAsFixed(0)} MHz' : 'N/A'),
-              _telemetryChip('Memory clock', _gpuMemoryClockMHz > 0 ? '${_gpuMemoryClockMHz.toStringAsFixed(0)} MHz' : 'N/A'),
+              _telemetryChip(_tr('coreClock'), _gpuCoreClockMHz > 0 ? '${_gpuCoreClockMHz.toStringAsFixed(0)} MHz' : 'N/A'),
+              _telemetryChip(_tr('memoryClock'), _gpuMemoryClockMHz > 0 ? '${_gpuMemoryClockMHz.toStringAsFixed(0)} MHz' : 'N/A'),
               _telemetryChip('P-State', _gpuPState),
               _telemetryChip('Encoder', '${_gpuEncoderUsage.toStringAsFixed(0)}%'),
               _telemetryChip('Decoder', '${_gpuDecoderUsage.toStringAsFixed(0)}%'),
@@ -2190,7 +2190,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             children: [
               const Icon(Icons.auto_awesome, size: 20),
               const SizedBox(width: 10),
-              Expanded(child: _sectionTitle(_tr('aiAnalysis'), 'Gerçek telemetry üzerinde yerel Gemma yorumu')),
+              Expanded(child: _sectionTitle(_tr('aiAnalysis'), _tr('localAiAnalysisDescription'))),
               OutlinedButton.icon(
                 onPressed: _aiSending || _aiStarting || _aiModelDownloading
                     ? null
@@ -2373,7 +2373,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionTitle(_tr('hardwareDetection'), 'PC, anakart, CPU ve GPU kimliği'),
+          _sectionTitle(_tr('hardwareDetection'), _tr('hardwareDetectionDescription')),
           const SizedBox(height: 18),
           Wrap(
             spacing: 14,
@@ -2440,7 +2440,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           Container(width: 48, height: 48, decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: Theme.of(context).colorScheme.primary.withAlpha(18)), child: Icon(Icons.sports_esports_outlined, color: Theme.of(context).colorScheme.primary)),
           const SizedBox(width: 14),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            _sectionTitle(_tr('gameMode'), 'Oyun çalışırken otomatik algılama ve oyun odaklı izleme'),
+            _sectionTitle(_tr('gameMode'), _tr('gameModeDescription')),
             const SizedBox(height: 8),
             Text(_gameDetected ? 'Algılanan oyun: ${_gameProcessName.isEmpty ? 'bilinmeyen işlem' : _gameProcessName}' : (_gameModeEnabled ? 'Game Mode hazır — oyun bekleniyor' : 'Game Mode kapalı'), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(170))),
             const SizedBox(height: 4),
@@ -2568,15 +2568,15 @@ Attach this archive to a support issue only after reviewing it for personal info
         children: [
           _sectionTitle(_tr('systemStatus'), _tr('controlFlow')),
           const SizedBox(height: 20),
-          _statusRow('Bridge', _isConnected ? 'Bağlı' : 'Bağlı değil', _isConnected),
+          _statusRow('Bridge', _isConnected ? _tr('online') : _tr('offline'), _isConnected),
           _statusRow('Güvenlik', _sharedKey.isEmpty ? 'Anahtar bekleniyor' : 'HMAC-SHA-256', _sharedKey.isNotEmpty),
           _statusRow('Model SHA-256', _modelDigest == 'unavailable' ? 'Bulunamadı' : (_modelDigest.length > 12 ? '${_modelDigest.substring(0, 12)}...' : _modelDigest), _modelDigest != 'unavailable' && _modelDigest != 'Kontrol edilmedi'),
           _statusRow('CPU', _cpuCoreCount > 0 ? '$_cpuCoreCount çekirdek • ${_cpuFrequencyMHz.toStringAsFixed(0)} MHz' : 'Bilinmiyor', _cpuCoreCount > 0),
           _statusRow('GPU adaptörü', _gpuVendor, _gpuVendor != 'Bilinmiyor'),
-          _statusRow('Sensör kaynağı', _sensorSource, _sensorSource != 'Kontrol edilmedi'),
-          _statusRow('Fan kontrolü', _fanControlSupported ? _fanControlBackend : 'Yalnızca izleme', _fanControlSupported),
+          _statusRow(_tr('sensor'), _sensorSource, _sensorSource != 'Kontrol edilmedi'),
+          _statusRow('Fan kontrolü', _fanControlSupported ? _fanControlBackend : _tr('monitoringOnly'), _fanControlSupported),
           _statusRow('Uyarı eşiği', '${_temperatureLimit.round()} °C', _notificationsEnabled),
-          _statusRow('Son sıcaklık', '${_cpuTemperature.toStringAsFixed(1)} °C', _cpuTemperature < _temperatureLimit || _cpuTemperature == 0),
+          _statusRow(_tr('temperature'), '${_cpuTemperature.toStringAsFixed(1)} °C', _cpuTemperature < _temperatureLimit || _cpuTemperature == 0),
           _statusRow('Termal durum', _thermalStatus, !_thermalAlertActive),
           _statusRow('Son işlem', _lastAction, true),
           const SizedBox(height: 18),
