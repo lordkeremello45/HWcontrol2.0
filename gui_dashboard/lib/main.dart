@@ -1348,7 +1348,16 @@ Attach this archive to a support issue only after reviewing it for personal info
         final rawDigest = selected['digest'] as String?;
         if (rawDigest == null || !rawDigest.startsWith('sha256:')) continue;
         final digest = rawDigest.substring(7).trim();
-        if (!RegExp(r'^[0-9a-fA-F]{64}
+        if (!RegExp(r'^[0-9a-fA-F]{64}$').hasMatch(digest)) continue;
+        final assetName = selected['name'] as String? ?? '';
+        if (assetName.isEmpty) continue;
+        newest = UpdateInfo(
+          tag: tag,
+          releaseUrl: url,
+          assetName: assetName,
+          assetUrl: assetUrl,
+          digest: digest,
+        );
       }
       if (!mounted) return;
       setState(() {
