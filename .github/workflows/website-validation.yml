@@ -62,7 +62,7 @@ jobs:
         run: |
           set -euo pipefail
           grep -Fq 'manifestUrl = "./release.json"' website/public/app.js
-          grep -Fq 'checksum_sha256_url' website/public/release-logic.mjs
+          grep -Fq 'checksum_sha256_url' website/public/app.js
           grep -Fq 'state.manifest' website/public/app.js
           grep -Fq 'release-web-sync' .github/workflows/release-web-sync.yml
           echo 'Website release integration: OK'
