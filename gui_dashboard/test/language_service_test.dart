@@ -31,4 +31,12 @@ void main() {
       'en-US',
     );
   });
+  test('detects right-to-left locales by language subtag', () {
+    expect(HWControlLanguageService.isRightToLeft('ar-SA'), isTrue);
+    expect(HWControlLanguageService.isRightToLeft('ur-PK'), isTrue);
+    expect(HWControlLanguageService.isRightToLeft('he-IL'), isTrue);
+    expect(HWControlLanguageService.isRightToLeft('en-US'), isFalse);
+    expect(HWControlLanguageService.isRightToLeft('tr-TR'), isFalse);
+  });
+
 }
