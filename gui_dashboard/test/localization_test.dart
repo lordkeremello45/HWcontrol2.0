@@ -95,7 +95,7 @@ void main() {
     for (final key in <String>[
       'welcomeTitle', 'welcomeGetStarted', 'welcomeOpenDashboard',
       'welcomePreview', 'telemetryHistory', 'advancedTelemetry',
-      'releaseOpen',
+      'releaseOpen', 'motherboardLabel', 'gpuDriverLabel', 'last20Events',
     ]) {
       expect(english[key], isNotEmpty, reason: 'Missing en-US key: $key');
     }
@@ -107,6 +107,9 @@ void main() {
     expect(turkish['ramUsage'], 'Bellek kullanımı');
     expect(turkish['gpuUsage'], 'Ekran kartı kullanımı');
     expect(turkish['fanSpeed'], 'Soğutucu pervanesi hızı');
+    expect(turkish['motherboardLabel'], 'Anakart');
+    expect(turkish['gpuDriverLabel'], 'GPU sürücüsü');
+    expect(turkish['last20Events'], 'Son 20 kayıt');
     expect(turkish['appTagline'], 'Hassas donanım denetimi');
     expect(turkish['newFanCurvePoint'], 'Yeni soğutucu eğrisi noktası');
     expect((translations['es-ES'] as Map<String, dynamic>)['telemetryHistory'], 'Historial de mediciones');
