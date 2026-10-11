@@ -234,12 +234,13 @@
       }
     }
   },
-  "iterations": "পুনরাবৃত্তি: {value}",
+  "iterations": "{value, plural, =0{কোনো পুনরাবৃত্তি নেই} =1{১টি পুনরাবৃত্তি} other{{value}টি পুনরাবৃত্তি}}",
   "@iterations": {
-    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "description": "Number of benchmark iterations, using locale-specific ICU plural rules.",
     "placeholders": {
       "value": {
-        "type": "String"
+        "type": "num",
+        "example": 2
       }
     }
   },
@@ -388,5 +389,15 @@
   },
   "motherboardLabel": "মাদারবোর্ড",
   "gpuDriverLabel": "GPU ড্রাইভার",
-  "last20Events": "সর্বশেষ ২০টি ঘটনা"
+  "last20Events": "সর্বশেষ ২০টি ঘটনা",
+  "anomalyCount": "{count, plural, =0{কোনো অস্বাভাবিকতা নেই} =1{১টি অস্বাভাবিকতা} other{{count}টি অস্বাভাবিকতা}}",
+  "@anomalyCount": {
+    "description": "Number of detected hardware anomalies. Uses locale-specific ICU plural rules.",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "example": 2
+      }
+    }
+  }
 }

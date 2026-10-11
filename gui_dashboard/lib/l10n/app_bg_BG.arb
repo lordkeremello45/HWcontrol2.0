@@ -236,12 +236,13 @@
       }
     }
   },
-  "iterations": "Итерации: {value}",
+  "iterations": "{value, plural, =0{Няма итерации} =1{1 итерация} other{# итерации}}",
   "@iterations": {
-    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "description": "Number of benchmark iterations, using locale-specific ICU plural rules.",
     "placeholders": {
       "value": {
-        "type": "String"
+        "type": "num",
+        "example": 2
       }
     }
   },
@@ -388,5 +389,15 @@
   },
   "motherboardLabel": "Дънна платка",
   "gpuDriverLabel": "Драйвер за GPU",
-  "last20Events": "Последните 20 събития"
+  "last20Events": "Последните 20 събития",
+  "anomalyCount": "{count, plural, =0{Няма аномалии} =1{1 аномалия} other{# аномалии}}",
+  "@anomalyCount": {
+    "description": "Number of detected hardware anomalies. Uses locale-specific ICU plural rules.",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "example": 2
+      }
+    }
+  }
 }

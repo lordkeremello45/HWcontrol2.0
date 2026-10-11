@@ -236,12 +236,13 @@
       }
     }
   },
-  "iterations": "Επαναλήψεις: {value}",
+  "iterations": "{value, plural, =0{Δεν υπάρχουν επαναλήψεις} =1{1 επανάληψη} other{# επαναλήψεις}}",
   "@iterations": {
-    "description": "Localized UI message: iterations. Keep placeholders intact and use locale-appropriate grammar.",
+    "description": "Number of benchmark iterations, using locale-specific ICU plural rules.",
     "placeholders": {
       "value": {
-        "type": "String"
+        "type": "num",
+        "example": 2
       }
     }
   },
@@ -388,5 +389,15 @@
   },
   "motherboardLabel": "Μητρική πλακέτα",
   "gpuDriverLabel": "Πρόγραμμα οδήγησης GPU",
-  "last20Events": "Τα 20 τελευταία συμβάντα"
+  "last20Events": "Τα 20 τελευταία συμβάντα",
+  "anomalyCount": "{count, plural, =0{Δεν υπάρχουν ανωμαλίες} =1{1 ανωμαλία} other{# ανωμαλίες}}",
+  "@anomalyCount": {
+    "description": "Number of detected hardware anomalies. Uses locale-specific ICU plural rules.",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "example": 2
+      }
+    }
+  }
 }
