@@ -9,7 +9,7 @@ void main() {
     final files = directory
         .listSync()
         .whereType<File>()
-        .where((file) => RegExp(r'^app_[a-z]{2,3}_[A-Z]{2}\\.arb$')
+        .where((file) => RegExp(r'^app_[a-z]{2,3}_[A-Z]{2}[.]arb$')
             .hasMatch(file.uri.pathSegments.last))
         .toList();
     expect(files.length, 40);
@@ -105,7 +105,7 @@ void main() {
     }
 
     final mapFile = File('lib/l10n/app_localizations_map.dart').readAsStringSync();
-    final mappedKeys = RegExp(r"'([A-Za-z0-9_]+)':\\s*([A-Za-z0-9_]+),")
+    final mappedKeys = RegExp(r"'([A-Za-z0-9_]+)':[ ]*([A-Za-z0-9_]+),")
         .allMatches(mapFile)
         .where((match) => match.group(1) == match.group(2))
         .map((match) => match.group(1)!)
@@ -133,7 +133,7 @@ void main() {
   });
 }
 
-Set<String> _placeholders(String message) => RegExp(r'\\{([A-Za-z_][A-Za-z0-9_]*)(?=[,}])')
+Set<String> _placeholders(String message) => RegExp(r'[{]([A-Za-z_][A-Za-z0-9_]*)(?=[,}])')
     .allMatches(message)
     .map((match) => match.group(1)!)
     .toSet();
