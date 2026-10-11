@@ -60,10 +60,10 @@ class _InstallerWizardState extends State<InstallerWizard> {
       final raw = root['translations'] as Map<String, dynamic>;
       _translations = raw.map((locale, data) => MapEntry(locale, (data as Map<String, dynamic>).map((key, value) => MapEntry(key, value as String))));
       final systemTag = Platform.localeName.replaceAll('_', '-');
-      final exact = locales.where((e) => e.toLowerCase() == systemTag.toLowerCase()).firstOrNull;
+      final exactMatches = locales.where((e) => e.toLowerCase() == systemTag.toLowerCase()).toList();
       final language = systemTag.split('-').first.toLowerCase();
-      final languageMatch = locales.where((e) => e.split('-').first.toLowerCase() == language).firstOrNull;
-      _locale = exact ?? languageMatch ?? 'en-US';
+      final languageMatches = locales.where((e) => e.split('-').first.toLowerCase() == language).toList();
+      _locale = exactMatches.isNotEmpty ? exactMatches.first : (languageMatches.isNotEmpty ? languageMatches.first : 'en-US');
     } catch (_) {
       _translations = <String, Map<String, String>>{};
       _locale = 'en-US';
@@ -124,18 +124,20 @@ class _InstallerWizardState extends State<InstallerWizard> {
       if (!mounted) return;
       setState(() {
         _details = completed
-            ? 'Kurulum daha önce tamamlandı. AI modeli isteğe bağlıdır.'
-            : 'Platform: $_platformName\n'
-                'Paket: $_packageFormats\n'
-                'Bridge: ${bridgePresent ? 'bulundu' : 'paketlenmiş kurulumdan bekleniyor'}\n'
-                'AI modeli: ${modelReady ? 'hazır ve doğrulanmış' : 'isteğe bağlı; ilk AI analizinde indirilir'}';
+            ? _tr('installerPreviouslyCompleted')
+            : _tr('installerPlatformSummary', <String, String>{
+                'platform': _platformName,
+                'formats': _packageFormats,
+                'bridge': bridgePresent ? _tr('installerBridgeFound') : _tr('installerBridgePending'),
+                'ai': modelReady ? _tr('installerModelReady') : _tr('installerModelOptional'),
+              });
         _checking = false;
       });
     } catch (error) {
       if (!mounted) return;
       setState(() {
         _checking = false;
-        _details = 'Kurulum denetimi tamamlanamadı: $error';
+        _details = _tr('installerCheckFailed', <String, String>{'error': '$error'});
       });
     }
   }
@@ -144,7 +146,7 @@ class _InstallerWizardState extends State<InstallerWizard> {
       setState(() {
         _aiDownloading = true;
         _aiProgress = 0;
-        _details = 'Gemma 3 1B modeli hazırlanıyor...';
+        _details = _tr('installerModelPreparing');
       });
       try {
         await HWControlModelManager.ensureReady(
@@ -152,7 +154,7 @@ class _InstallerWizardState extends State<InstallerWizard> {
             if (!mounted) return;
             setState(() {
               _aiProgress = progress.clamp(0.0, 1.0);
-              _details = 'Gemma 3 1B indiriliyor: ${(_aiProgress * 100).toStringAsFixed(0)}%';
+              _details = _tr('installerModelDownloading', <String, String>{'percent': (_aiProgress * 100).toStringAsFixed(0)});
             });
           },
         );
@@ -160,7 +162,7 @@ class _InstallerWizardState extends State<InstallerWizard> {
         if (!mounted) return;
         setState(() {
           _aiDownloading = false;
-          _details = 'Gemma kurulamadı: $error\nTemel kurulum devam edebilir; AI daha sonra tekrar denenebilir.';
+          _details = _tr('installerModelDownloadFailed', <String, String>{'error': '$error'});
         });
         return;
       }
@@ -168,7 +170,7 @@ class _InstallerWizardState extends State<InstallerWizard> {
       setState(() {
         _aiDownloading = false;
         _aiProgress = 1;
-        _details = 'Gemma 3 1B indirildi ve SHA-256 ile doğrulandı.';
+        _details = _tr('installerModelDownloaded');
       });
     }
     try {
@@ -207,7 +209,7 @@ class _InstallerWizardState extends State<InstallerWizard> {
                   Row(children: [
                     const Icon(Icons.install_desktop, size: 34),
                     const SizedBox(width: 14),
-                    Expanded(child: Text('HWControl Kurulum Sihirbazı', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700))),
+                    Expanded(child: Text(_tr('installerTitle'), style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700))),
                     Text(_platformName, style: Theme.of(context).textTheme.labelLarge),
                   ]),
                   const SizedBox(height: 24),
@@ -223,10 +225,8 @@ class _InstallerWizardState extends State<InstallerWizard> {
                     onChanged: _aiDownloading
                         ? null
                         : (value) => setState(() => _installAiModel = value ?? false),
-                    title: const Text('Yerel AI (Gemma 3 1B)'),
-                    subtitle: const Text(
-                      'İsteğe bağlı. Seçilirse Gemma 3 1B modeli kurulum sırasında indirilir ve SHA-256 ile doğrulanır.',
-                    ),
+                    title: Text(_tr('installerLocalAiModel')),
+                    subtitle: Text(_tr('installerAiDescription')),
                     controlAffinity: ListTileControlAffinity.leading,
                   ),
                   const SizedBox(height: 18),
@@ -241,7 +241,7 @@ class _InstallerWizardState extends State<InstallerWizard> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(_checking ? 'Kurulum kontrol ediliyor...' : _details),
+                          Text(_checking ? _tr('installerCheckingComponents') : _details),
                           if (_aiDownloading) ...[
                             const SizedBox(height: 12),
                             LinearProgressIndicator(value: _aiProgress),
@@ -255,14 +255,14 @@ class _InstallerWizardState extends State<InstallerWizard> {
                     FilledButton.icon(
                       onPressed: (_checking && _step == 2) || _aiDownloading ? null : _next,
                       icon: Icon(_step == 2 ? Icons.rocket_launch : Icons.arrow_forward),
-                      label: Text(_step == 2 ? 'Kurulumu tamamla' : 'Devam'),
+                      label: Text(_tr(_step == 2 ? 'installerFinish' : 'installerContinue')),
                     ),
                   ]),
                   const SizedBox(height: 12),
                   Text(
                     _installAiModel
-                        ? 'AI seçildi: Gemma kurulum sırasında hazırlanır. Eksik veya bozuk model tespit edilirse yeniden indirilerek otomatik onarılır.'
-                        : 'AI seçilmedi: Gemma kurulmaz. İlk AI analizi istendiğinde model güvenli biçimde indirilebilir.',
+                        ? _tr('installerAiSelectedFooter')
+                        : _tr('installerAiSkippedFooter'),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
@@ -276,17 +276,17 @@ class _InstallerWizardState extends State<InstallerWizard> {
 
   String _titleForStep() {
     switch (_step) {
-      case 0: return '1. Paket türünü doğrula';
-      case 1: return '2. Bridge durumunu doğrula';
-      default: return '3. Kurulumu tamamla';
+      case 0: return _tr('installerPackageStepTitle');
+      case 1: return _tr('installerBridgeStepTitle');
+      default: return _tr('installerCompleteStepTitle');
     }
   }
 
   String _bodyForStep() {
     switch (_step) {
-      case 0: return 'Bu çalıştırmada $_platformName için uygun paket biçimi $_packageFormats.';
-      case 1: return 'Yerel AI bileşenini isteğe bağlı olarak kur. Seçersen Gemma 3 1B Instruct Q5_K_M (~851 MB) kurulum sırasında indirilir ve SHA-256 ile doğrulanır.';
-      default: return _installAiModel ? 'Kurulum son adımında model hazırlanır. Eksik veya bozuk bir model varsa güvenli indirme ile otomatik onarılır.' : 'Temel uygulama kurulumu tamamlanır; AI modeli bu kurulumda indirilmez.';
+      case 0: return _tr('installerPackageStepDescription', <String, String>{'platform': _platformName, 'formats': _packageFormats});
+      case 1: return _tr('installerAiStepDescription');
+      default: return _installAiModel ? _tr('installerCompleteWithAi') : _tr('installerCompleteWithoutAi');
     }
   }
 }
