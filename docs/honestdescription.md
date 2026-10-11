@@ -6,7 +6,7 @@ The repository's stated target is not the same thing as a feature being verified
 
 ## 1. Virtual machines and test coverage
 
-We do not currently claim exhaustive testing across a documented matrix of virtual machines, operating-system versions, and hardware configurations.
+We do not currently have a published, regularly maintained VM test lab or a complete VM test matrix with reproducible results. We also do not claim exhaustive testing across operating-system versions and physical hardware configurations. This is a coverage gap, not something we should obscure.
 
 - GitHub-hosted CI runners can test builds, code paths, packaging, and selected smoke tests, but they do not replace a full VM matrix or tests on physical hardware.
 - A successful build does not prove that CPU/GPU sensors, fan control, sleep/resume, service lifecycle, or permissions work on every target system.
