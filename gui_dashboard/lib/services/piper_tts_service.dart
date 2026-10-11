@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
@@ -114,8 +115,8 @@ class PiperTtsService {
     final config = File('$modelPath.json');
     if (!await config.exists() || await config.length() == 0) return false;
     try {
-      final decoded = await config.readAsString();
-      return decoded.trimLeft().startsWith('{');
+      final decoded = jsonDecode(await config.readAsString());
+      return decoded is Map<String, dynamic>;
     } catch (_) {
       return false;
     }
