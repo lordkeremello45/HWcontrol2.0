@@ -157,6 +157,29 @@ void main() {
 
     final legacyAssetName = 'language' + '.json';
     final legacyAssetPath = 'assets/' + 'localization/';
+    final legacyAssetFile = File('${legacyAssetPath}${legacyAssetName}');
+    expect(legacyAssetFile.existsSync(), isFalse,
+        reason: 'The old runtime localization asset must remain removed');
+    expect(
+      File('pubspec.yaml').readAsStringSync().contains(legacyAssetPath),
+      isFalse,
+      reason: 'pubspec.yaml must not bundle the old localization directory',
+    );
+    expect(
+      File('pubspec.yaml').readAsStringSync(),
+      contains('generate: true'),
+      reason: 'Flutter gen-l10n must be enabled',
+    );
+    expect(
+      File('pubspec.yaml').readAsStringSync(),
+      contains('flutter_localizations:'),
+      reason: 'Flutter platform widgets must use the localization package',
+    );
+    expect(
+      File('l10n.yaml').readAsStringSync(),
+      contains('template-arb-file: app_en_US.arb'),
+      reason: 'The canonical localization template must be ARB',
+    );
     for (final root in runtimeRoots) {
       for (final entity in root.listSync(recursive: true, followLinks: false)) {
         if (entity is! File || !entity.path.endsWith('.dart')) continue;
