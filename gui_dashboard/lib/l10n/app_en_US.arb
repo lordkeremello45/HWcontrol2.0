@@ -368,7 +368,7 @@
   },
   "installerModelDownloaded": "Gemma 3 1B was downloaded and verified with SHA-256.",
   "installerTestMode": "Test mode: setup and model download were skipped.",
-  "installerCheckingComponents": "Checking setup components...",
+  "installerCheckingComponents": "Checking installation components...",
   "installerPlatformSummary": "Platform: {platform}\nPackage: {formats}\nBridge: {bridge}\nAI model: {ai}",
   "@installerPlatformSummary": {
     "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
@@ -466,5 +466,8 @@
         "example": 2
       }
     }
+  },
+  "@installerCheckingComponents": {
+    "description": "Status shown while the installer checks installed components."
   }
 }

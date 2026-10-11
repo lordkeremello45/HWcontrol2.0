@@ -368,7 +368,7 @@
   },
   "installerModelDownloaded": "Gemma 3 1B indirildi ve SHA-256 ile doğrulandı.",
   "installerTestMode": "Deneme kipi: kurulum ve model indirme atlandı.",
-  "installerCheckingComponents": "Kurulum bileşenleri denetleniyor...",
+  "installerCheckingComponents": "Kurulum bileşenleri kontrol ediliyor...",
   "installerPlatformSummary": "Platform: {platform}\nPaket: {formats}\nKöprü: {bridge}\nYapay zekâ modeli: {ai}",
   "@installerPlatformSummary": {
     "description": "Localized UI message: installerPlatformSummary. Keep placeholders intact and use locale-appropriate grammar.",
@@ -466,5 +466,8 @@
         "example": 2
       }
     }
+  },
+  "@installerCheckingComponents": {
+    "description": "Status shown while the installer checks installed components."
   }
 }

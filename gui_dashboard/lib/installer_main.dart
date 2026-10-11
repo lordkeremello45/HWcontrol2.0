@@ -22,8 +22,11 @@ class InstallerApp extends StatelessWidget {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       localeResolutionCallback: (deviceLocale, supportedLocales) {
+        final requestedLocale = deviceLocale == null
+            ? HWControlLanguageService.systemDefault
+            : localeTag(deviceLocale);
         final resolved = HWControlLanguageService.resolveLocale(
-          savedLocale: HWControlLanguageService.systemDefault,
+          savedLocale: requestedLocale,
           supportedCodes: supportedLocales.map(localeTag),
         );
         return localeFromTag(resolved);
@@ -49,7 +52,7 @@ class _InstallerWizardState extends State<InstallerWizard> {
   bool _installAiModel = true;
   bool _aiDownloading = false;
   double _aiProgress = 0;
-  String _details = 'Kurulum bileşenleri kontrol ediliyor...';
+  String _details = '';
   String _locale = 'en-US';
   bool _catalogLoaded = false;
   Directory? _stateDirectory;
@@ -114,6 +117,7 @@ class _InstallerWizardState extends State<InstallerWizard> {
   Future<void> _initialize() async {
     await _loadTranslations();
     if (!mounted) return;
+    setState(() => _details = _tr('installerCheckingComponents'));
     if (widget.initialize) {
       await _inspectInstallation();
     } else {
