@@ -18,3 +18,4 @@ Feature status in this wiki is based on the current source tree; planned functio
 - [Advanced Control and Automation](Features-Advanced-Control.md)
 - [Hardware Benchmark](Features-Benchmark.md)
 - [Extension API](Features-Extension-API.md)
+- [Accessibility and Offline Piper TTS](Features-Accessibility-and-Piper-TTS.md)
