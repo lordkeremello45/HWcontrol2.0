@@ -10,9 +10,10 @@ import 'package:path_provider/path_provider.dart';
 /// Piper and a compatible ONNX voice model must be installed locally. No text
 /// is sent to a network service. The executable is launched without a shell.
 class PiperTtsService {
-  PiperTtsService({AudioPlayer? player}) : _player = player ?? AudioPlayer();
+  PiperTtsService({AudioPlayer? player}) : _player = player;
 
-  final AudioPlayer _player;
+  AudioPlayer? _player;
+  AudioPlayer get _audioPlayer => _player ??= AudioPlayer();
   bool _speaking = false;
   bool _cancelRequested = false;
   Process? _activeProcess;
@@ -86,9 +87,9 @@ class PiperTtsService {
       if (!await output.exists() || await output.length() < 44) {
         throw StateError('Piper did not produce a valid WAV file.');
       }
-      await _player.stop();
-      final completed = _player.onPlayerComplete.first;
-      await _player.play(DeviceFileSource(outputPath));
+      await _audioPlayer.stop();
+      final completed = _audioPlayer.onPlayerComplete.first;
+      await _audioPlayer.play(DeviceFileSource(outputPath));
       await Future.any<void>([
         completed.timeout(const Duration(seconds: 90)),
         _stopCompleter!.future,
@@ -163,11 +164,11 @@ class PiperTtsService {
       stopCompleter.complete();
     }
     _activeProcess?.kill();
-    await _player.stop();
+    if (_player != null) await _player!.stop();
   }
 
   Future<void> dispose() async {
     await stop();
-    await _player.dispose();
+    if (_player != null) await _player!.dispose();
   }
 }
