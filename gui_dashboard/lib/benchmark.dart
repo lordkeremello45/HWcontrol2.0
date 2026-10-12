@@ -58,9 +58,9 @@ class _HardwareBenchmarkDialogState extends State<HardwareBenchmarkDialog> {
             const SizedBox(height: 18),
             if (_running) const LinearProgressIndicator(),
             if (_result case final result?) ...[
-              Text(AppLocalizations.of(context)!.score(result.score.toStringAsFixed(0))),
-              Text(AppLocalizations.of(context)!.iterations(result.iterations)), 
-              Text(AppLocalizations.of(context)!.duration(result.durationMs.toString())), 
+              Text(AppLocalizations.of(context).score(result.score.toStringAsFixed(0))),
+              Text(AppLocalizations.of(context).iterations(result.iterations)), 
+              Text(AppLocalizations.of(context).duration(result.durationMs.toString())), 
             ],
           ],
         ),
