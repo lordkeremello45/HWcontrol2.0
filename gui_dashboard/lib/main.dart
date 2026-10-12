@@ -1049,8 +1049,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       'cpuTemperature': cpu,
       'gpuTemperature': gpu,
     });
-    final target = ruleTarget ?? curveTarget;
-    if (target == null || !target.isFinite) return;
+    final automaticTarget = ruleTarget ?? curveTarget;
+    if (automaticTarget == null || !automaticTarget.isFinite) return;
+    // A game profile is a minimum target, not permission to suppress thermal
+    // automation. Smart Fan may raise the target above the selected profile.
+    final target = _gameProfileApplied
+        ? math.max(_fanValue, automaticTarget)
+        : automaticTarget;
+    if (!target.isFinite) return;
     final success = await _sendCommand('Fan Hızı', target);
     if (success) {
       if (mounted) setState(() => _fanValue = target);
