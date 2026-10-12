@@ -67,9 +67,9 @@ Each capability reports one of: supported, applied, unsupported, or failed. Neve
 
 ## Proposed rollout
 
-1. **Phase 1 — honest UI and capability reporting:** separate in-app fan preset state from OS power mode; no privileged writes.
-2. **Phase 2 — Windows 11 adapter:** implement configured-mode read/write with AC/DC separation, state read-back, rollback, and unit/integration tests. Windows 10 remains explicitly unsupported for this adapter unless a separately validated path is added.
-3. **Phase 3 — Linux adapter:** integrate with a detected power-profile service and its advertised capabilities; never require root for the initial implementation.
+1. **Phase 1 — honest UI and capability reporting:** implemented.
+2. **Phase 2 — Windows 11 adapter:** implemented; runtime validation remains pending. Windows 10 is unsupported by this API path.
+3. **Phase 3 — Linux adapter:** implemented through power-profiles-daemon over system D-Bus; runtime validation on a Linux host with the service remains pending.
 4. **Phase 4 — macOS:** only implement automated changes after confirming a supported public API for the target OS/model matrix.
 5. **Phase 5 — optional vendor adapters:** per-GPU/per-app integrations, opt-in and separately tested.
 
@@ -79,7 +79,7 @@ Each capability reports one of: supported, applied, unsupported, or failed. Neve
 - The Performance Lab now exposes separate AC (plugged-in) and DC (battery) choices for Balanced, Best Power Efficiency, and Best Performance, plus a readback action. It does not automatically force Best Performance on battery.
 - The bridge checks whether the APIs exist at runtime, reads the configured modes, applies only the selected supply mode, and reads back the result. If readback does not confirm the requested state, it attempts to restore the prior setting for that same supply mode.
 - The bridge protocol now returns a response for successful hardware-control commands. Previously, the generic command path could execute a command without writing a success response, leaving the GUI waiting for a response timeout; this is corrected as part of the bridge integration.
-- Windows 10 and non-Windows systems are reported as unsupported by this adapter. The effective power mode can still be overridden by Windows, firmware, thermal limits, and other system signals.
+- Windows 10 is unsupported by this API adapter. Linux has a separate power-profiles-daemon adapter; macOS automation remains unavailable. The effective power mode can still be overridden by Windows, firmware, thermal limits, and other system signals.
 - API references:
   - https://learn.microsoft.com/en-us/windows/win32/api/powrprof/nf-powrprof-powergetuserconfiguredacpowermode
   - https://learn.microsoft.com/en-us/windows/win32/api/powrprof/nf-powrprof-powergetuserconfigureddcpowermode
@@ -87,13 +87,21 @@ Each capability reports one of: supported, applied, unsupported, or failed. Neve
   - https://learn.microsoft.com/en-us/windows/win32/api/powrprof/nf-powrprof-powersetuserconfigureddcpowermode
 - **Validation status: UNVERIFIED.** The adapter and unit tests have been committed, but Go tests, Windows cross-compilation, and Windows 11 hardware/runtime tests have not yet been run. Do not treat this as verified support until CI and a Windows 11 smoke test pass.
 
+## Phase 3 — Linux power-profile adapter
+
+- Added `power_mode_linux.go`, which queries `net.hadess.PowerProfiles.ActiveProfile` using `busctl` and supports `power-saver`, `balanced`, and `performance`.
+- The adapter reads the active profile before changing it, applies the requested system profile, and reads back the value. If confirmation fails, it attempts rollback only while the active profile still matches the value HWcontrol requested.
+- Commands use argument arrays (no shell interpolation) and short timeouts. If `busctl`, power-profiles-daemon, or policy authorization is unavailable, the bridge returns an explicit error instead of pretending the change succeeded.
+- Linux exposes one active system profile through this interface; the adapter does not claim independent AC and battery settings. It does not write CPUFreq sysfs directly or bypass thermal/firmware limits.
+- Unit tests cover busctl string parsing and supported profile mappings. **Validation status: UNVERIFIED** until Go CI and a Linux runtime test with power-profiles-daemon complete.
+
 ## Current UI state
 
 - Performance Mode toggle is available in the dashboard. Activating it plays the existing locally synthesized mode sound, opens the Performance Lab panel, and animates the dashboard accent from blue to red.
 - The toggle selects the existing app-level Performance preset (fan target 85%, AI target 100%). A physical fan command is sent only when the bridge reports fan-control support; this does not imply that an OS power mode or overclock was applied.
-- Performance Lab explicitly labels game-process prioritization, per-application RAM budgets, CPU/GPU overclocking, and OS power-mode changes as **NOT IMPLEMENTED**. These are informational capability rows, not active controls.
+- Performance Lab labels game-process prioritization, per-application RAM budgets, and CPU/GPU overclocking as **NOT IMPLEMENTED**. OS power-profile controls are separately available for supported Windows 11 and Linux systems; macOS automation remains unavailable.
 - Generic “allocate N GiB to any application” is not a valid cross-platform promise. A future implementation must define whether it limits a managed process or configures an OS-specific mechanism, report the effective value, and avoid pretending that memory was reserved.
-- No voltage, clock, power-limit, process-priority, or OS power-mode setting is changed by the current Performance Mode toggle.
+- No voltage, clock, power-limit, or process-priority setting is changed by the current Performance Mode toggle. OS power profiles can be changed separately from Performance Lab on supported Windows 11/Linux systems.
 
 ## Current HWcontrol2.0 status
 
