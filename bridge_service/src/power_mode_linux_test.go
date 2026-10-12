@@ -17,7 +17,7 @@ func TestParseBusctlString(t *testing.T) {
 		{`s ""`, "", false},
 		{`garbage`, "", false},
 	} {
-		got, err := parseBusctlString([]byte(test.input))
+		got, err := parseBusctlString(test.input)
 		if (err == nil) != test.ok || got != test.want {
 			t.Errorf("parseBusctlString(%q) = (%q, %v), want (%q, ok=%v)", test.input, got, err, test.want, test.ok)
 		}
