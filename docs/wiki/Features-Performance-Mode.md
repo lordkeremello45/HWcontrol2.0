@@ -1,6 +1,6 @@
 # Performance Mode — Research and Implementation Plan
 
-**Status: PHASE 1 UI IMPLEMENTED; PLATFORM POWER CONTROL NOT IMPLEMENTED**
+**Status: PHASE 2 WINDOWS ADAPTER IMPLEMENTED; RUNTIME VALIDATION PENDING**
 
 This document separates HWcontrol2.0's in-app presets from operating-system power modes and hardware fan control. A GUI preset must not be presented as a system-wide performance change unless the relevant platform backend confirms that the OS setting was changed.
 
@@ -71,6 +71,20 @@ Each capability reports one of: supported, applied, unsupported, or failed. Neve
 4. **Phase 4 — macOS:** only implement automated changes after confirming a supported public API for the target OS/model matrix.
 5. **Phase 5 — optional vendor adapters:** per-GPU/per-app integrations, opt-in and separately tested.
 
+## Phase 2 — Windows power-mode adapter
+
+- Added a Go bridge adapter using the documented Windows 11 desktop APIs in `powrprof.dll`: `PowerGetUserConfiguredACPowerMode`, `PowerGetUserConfiguredDCPowerMode`, `PowerSetUserConfiguredACPowerMode`, and `PowerSetUserConfiguredDCPowerMode`.
+- The Performance Lab now exposes separate AC (plugged-in) and DC (battery) choices for Balanced, Best Power Efficiency, and Best Performance, plus a readback action. It does not automatically force Best Performance on battery.
+- The bridge checks whether the APIs exist at runtime, reads the configured modes, applies only the selected supply mode, and reads back the result. If readback does not confirm the requested state, it attempts to restore the prior setting for that same supply mode.
+- The bridge protocol now returns a response for successful hardware-control commands. Previously, the generic command path could execute a command without writing a success response, leaving the GUI waiting for a response timeout; this is corrected as part of the bridge integration.
+- Windows 10 and non-Windows systems are reported as unsupported by this adapter. The effective power mode can still be overridden by Windows, firmware, thermal limits, and other system signals.
+- API references:
+  - https://learn.microsoft.com/en-us/windows/win32/api/powrprof/nf-powrprof-powergetuserconfiguredacpowermode
+  - https://learn.microsoft.com/en-us/windows/win32/api/powrprof/nf-powrprof-powergetuserconfigureddcpowermode
+  - https://learn.microsoft.com/en-us/windows/win32/api/powrprof/nf-powrprof-powersetuserconfiguredacpowermode
+  - https://learn.microsoft.com/en-us/windows/win32/api/powrprof/nf-powrprof-powersetuserconfigureddcpowermode
+- **Validation status: UNVERIFIED.** The adapter and unit tests have been committed, but Go tests, Windows cross-compilation, and Windows 11 hardware/runtime tests have not yet been run. Do not treat this as verified support until CI and a Windows 11 smoke test pass.
+
 ## Current UI state
 
 - Performance Mode toggle is available in the dashboard. Activating it plays the existing locally synthesized mode sound, opens the Performance Lab panel, and animates the dashboard accent from blue to red.
@@ -82,7 +96,8 @@ Each capability reports one of: supported, applied, unsupported, or failed. Neve
 ## Current HWcontrol2.0 status
 
 - In-app Quiet/Balanced/Performance preset buttons: **IMPLEMENTED**, but they primarily set application-level values and only send fan commands when the bridge reports fan-control support.
-- Cross-platform OS power-mode switching: **NOT IMPLEMENTED**.
+- Windows 11 configured OS power-mode adapter: **IMPLEMENTED, VALIDATION PENDING**.
+- Linux and macOS OS power-mode adapters: **NOT IMPLEMENTED**.
 - Universal CPU/GPU clock or voltage tuning: **NOT IMPLEMENTED**.
 - Per-vendor GPU driver power-mode integration: **NOT IMPLEMENTED**.
 - Platform hardware behavior and performance gains: **UNVERIFIED** until tested on real supported systems.
