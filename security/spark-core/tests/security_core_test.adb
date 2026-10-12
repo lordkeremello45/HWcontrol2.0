@@ -103,5 +103,45 @@ begin
          Authorized => 1) = 0);
 
 
+   pragma Assert
+     (Validate_Hardware_Identity
+        (Schema_Valid => True, Payload_Bounded => True,
+         Counts_Valid => True, Status_Valid => True) = Allow);
+
+   pragma Assert
+     (Validate_Hardware_Identity
+        (Schema_Valid => False, Payload_Bounded => True,
+         Counts_Valid => True, Status_Valid => True) = Deny);
+
+   pragma Assert
+     (Validate_Hardware_Identity
+        (Schema_Valid => True, Payload_Bounded => False,
+         Counts_Valid => True, Status_Valid => True) = Deny);
+
+   pragma Assert
+     (Validate_Hardware_Identity
+        (Schema_Valid => True, Payload_Bounded => True,
+         Counts_Valid => False, Status_Valid => True) = Deny);
+
+   pragma Assert
+     (Validate_Hardware_Identity
+        (Schema_Valid => True, Payload_Bounded => True,
+         Counts_Valid => True, Status_Valid => False) = Deny);
+
+   pragma Assert
+     (Validate_Hardware_Identity_C
+        (Schema_Valid => 1, Payload_Bounded => 1,
+         Counts_Valid => 1, Status_Valid => 1) = 1);
+
+   pragma Assert
+     (Validate_Hardware_Identity_C
+        (Schema_Valid => 2, Payload_Bounded => 1,
+         Counts_Valid => 1, Status_Valid => 1) = 0);
+
+   pragma Assert
+     (Validate_Hardware_Identity_C
+        (Schema_Valid => 1, Payload_Bounded => 0,
+         Counts_Valid => 1, Status_Valid => 1) = 0);
+
    Put_Line ("HWcontrol SPARK security core: PASS");
 end Security_Core_Test;
