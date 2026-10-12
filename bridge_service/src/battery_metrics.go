@@ -38,6 +38,3 @@ func makeBatteryMetrics(present bool, status string, design, full float64, unit 
 	return result
 }
 
-func isFinitePositive(value float64) bool {
-	return value > 0 && !math.IsNaN(value) && !math.IsInf(value, 0)
-}
