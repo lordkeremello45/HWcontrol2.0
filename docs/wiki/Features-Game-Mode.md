@@ -8,6 +8,7 @@ Game Mode provides a conservative game-session detection and monitoring layer.
 - Automatically scans running processes for known game executables.
 - Reports the detected process name and PID through the authenticated bridge.
 - Preserves the session start timestamp while the same process name and PID remain detected.
+- Reports elapsed session duration in seconds through the bridge state.
 - Starts a new session when the detected PID changes and clears the timestamp when no allow-listed game is found.
 - Includes Game Mode state in diagnostics.
 - Does not change clocks, voltage, power limits, process priority, or terminate background processes.
