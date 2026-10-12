@@ -23,13 +23,11 @@ func mergeBatteryMetrics(metrics *HardwareMetrics) {
 	}
 	values := map[string]string{}
 	for _, match := range ioregBatteryValue.FindAllStringSubmatch(string(output), -1) {
-		if len(match) >= 4 {
-			value := match[2]
-			if value == "" {
-				value = match[3]
-			}
-			values[match[1]] = value
+		if len(match) < 3 {
+			continue
 		}
+		value := strings.Trim(match[2], `"`)
+		values[match[1]] = value
 	}
 	if len(values) == 0 {
 		metrics.Battery = BatteryMetrics{Status: "unavailable"}
