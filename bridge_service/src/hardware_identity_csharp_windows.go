@@ -21,6 +21,7 @@ const (
 )
 
 type csharpHardwareInventory struct {
+	Collector          string          `json:"collector"`
 	SchemaVersion      int             `json:"schemaVersion"`
 	Platform           string          `json:"platform"`
 	Status             string          `json:"status"`
@@ -129,6 +130,7 @@ func parseCSharpHardwareInventory(output []byte) (csharpHardwareInventory, error
 		return inventory, errors.New("invalid hardware identity output size")
 	}
 	decoder := json.NewDecoder(bytes.NewReader(output))
+	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&inventory); err != nil {
 		return inventory, err
 	}
@@ -136,24 +138,81 @@ func parseCSharpHardwareInventory(output []byte) (csharpHardwareInventory, error
 	if err := decoder.Decode(&extra); err != io.EOF {
 		return inventory, errors.New("trailing data after hardware identity JSON")
 	}
-	if inventory.SchemaVersion != 1 || inventory.Platform != "windows" {
-		return inventory, errors.New("unsupported hardware identity schema or platform")
-	}
-	if inventory.Status != "ok" && inventory.Status != "partial" && inventory.Status != "unavailable" {
-		return inventory, errors.New("invalid hardware identity status")
-	}
-	if len(inventory.Cpus) > 64 || len(inventory.Gpus) > 128 || len(inventory.Warnings) > 128 {
-		return inventory, errors.New("hardware identity collection exceeds limits")
-	}
-	for _, cpu := range inventory.Cpus {
-		if cpu.PhysicalCores != nil && (*cpu.PhysicalCores < 0 || *cpu.PhysicalCores > 1024) {
-			return inventory, errors.New("invalid physical core count")
-		}
-		if cpu.LogicalProcessors != nil && (*cpu.LogicalProcessors < 0 || *cpu.LogicalProcessors > 4096) {
-			return inventory, errors.New("invalid logical processor count")
-		}
+	if err := validateHardwareIdentityPolicy(inventory); err != nil {
+		return inventory, err
 	}
 	return inventory, nil
+}
+
+// validateHardwareIdentityPolicy is the Go-side runtime enforcement of the
+// fail-closed hardware-identity contract specified in security/spark-core.
+// Model strings are untrusted display metadata; they never authorize control.
+func validateHardwareIdentityPolicy(inventory csharpHardwareInventory) error {
+	if inventory.SchemaVersion != 1 || inventory.Platform != "windows" {
+		return errors.New("unsupported hardware identity schema or platform")
+	}
+	if inventory.Status != "ok" && inventory.Status != "partial" && inventory.Status != "unavailable" {
+		return errors.New("invalid hardware identity status")
+	}
+	if inventory.Status == "ok" && len(inventory.Cpus) == 0 && len(inventory.Gpus) == 0 &&
+		strings.TrimSpace(inventory.SystemModel) == "" && strings.TrimSpace(inventory.MotherboardModel) == "" {
+		return errors.New("empty inventory cannot be marked ok")
+	}
+	if len(inventory.Cpus) > 64 || len(inventory.Gpus) > 128 || len(inventory.Warnings) > 128 {
+		return errors.New("hardware identity collection exceeds limits")
+	}
+	fields := []string{
+		inventory.Collector, inventory.SystemManufacturer, inventory.SystemModel, inventory.SystemFamily,
+		inventory.BiosVendor, inventory.BiosVersion, inventory.MotherboardVendor,
+		inventory.MotherboardModel, inventory.MotherboardVersion,
+	}
+	for _, field := range fields {
+		if len(field) > 512 {
+			return errors.New("hardware identity text field exceeds limit")
+		}
+	}
+	for _, warning := range inventory.Warnings {
+		if len(warning) > 512 {
+			return errors.New("hardware identity warning exceeds limit")
+		}
+	}
+	for _, cpu := range inventory.Cpus {
+		if len(cpu.Manufacturer) > 512 || len(cpu.Model) > 512 || len(cpu.Architecture) > 128 || len(cpu.VendorFamily) > 128 {
+			return errors.New("CPU identity text field exceeds limit")
+		}
+		if cpu.PhysicalCores != nil && (*cpu.PhysicalCores < 0 || *cpu.PhysicalCores > 1024) {
+			return errors.New("invalid physical core count")
+		}
+		if cpu.LogicalProcessors != nil && (*cpu.LogicalProcessors < 0 || *cpu.LogicalProcessors > 4096) {
+			return errors.New("invalid logical processor count")
+		}
+		if cpu.PhysicalCores != nil && cpu.LogicalProcessors != nil && *cpu.PhysicalCores > *cpu.LogicalProcessors {
+			return errors.New("physical core count exceeds logical processor count")
+		}
+	}
+	for _, gpu := range inventory.Gpus {
+		if len(gpu.Manufacturer) > 512 || len(gpu.Model) > 512 || len(gpu.DriverProvider) > 512 ||
+			len(gpu.DriverVersion) > 128 || len(gpu.PciDeviceID) > 16 || len(gpu.VendorFamily) > 128 {
+			return errors.New("GPU identity text field exceeds limit")
+		}
+		if gpu.PciDeviceID != "" && !validPCIDeviceToken(gpu.PciDeviceID) {
+			return errors.New("invalid PCI vendor/device token")
+		}
+	}
+	return nil
+}
+
+func validPCIDeviceToken(value string) bool {
+	if len(value) != 17 || !strings.HasPrefix(value, "VEN_") || value[8:13] != "&DEV_" {
+		return false
+	}
+	for _, i := range []int{4, 5, 6, 7, 13, 14, 15, 16} {
+		c := value[i]
+		if !((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F')) {
+			return false
+		}
+	}
+	return true
 }
 
 type limitedHardwareOutput struct {
