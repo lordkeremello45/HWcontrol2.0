@@ -1,32 +1,24 @@
 # Game Mode
 
-Game Mode provides a safe game-session detection layer.
+Game Mode provides a conservative game-session detection and monitoring layer.
 
 ## Behavior
 
 - Can be armed from the dashboard.
 - Automatically scans running processes for known game executables.
-- Reports the detected game process and PID.
-- Exposes Game Mode state through the authenticated bridge.
-- Includes the state in diagnostics.
-- When a validated writable fan-control backend exists, can apply the Game fan target and restore the previous target when the game exits.
-- Never changes clocks, voltage, power limits, or process priority.
-- On monitor-only hardware, Game Mode remains detection/monitoring only.
+- Reports the detected process name and PID through the authenticated bridge.
+- Preserves the session start timestamp while the same process name and PID remain detected.
+- Starts a new session when the detected PID changes and clears the timestamp when no allow-listed game is found.
+- Includes Game Mode state in diagnostics.
+- Does not change clocks, voltage, power limits, process priority, or terminate background processes.
+- Hardware actions remain disabled unless a platform backend has been validated and explicitly reports support.
 
-## Safety
+## Detection limitations
 
-The current native hardware-control backend is monitor-only. Therefore Game Mode never pretends to apply a fan/clock optimization when the platform does not expose a validated control backend.
+Detection uses a conservative executable allow-list. Unknown games are not automatically treated as games. Generic `javaw.exe` is intentionally not allow-listed because it is also used by non-game Java applications; Minecraft Java Edition may therefore require a future explicit, user-configurable executable rule.
 
-When hardware control is implemented for a platform, Game Mode can use this state as the trigger for a platform-specific performance policy.
+The detector reports one matching process at a time and does not yet provide per-game profile persistence, user-defined game registration, launcher/library integrations, or FPS/frame-time capture.
 
-## Detection
+## Safety and platform support
 
-The detector uses a conservative executable allow-list. Unknown games are not automatically treated as games.
-
-Status values distinguish:
-
-- Game Mode armed
-- game process detected
-- monitoring-only operation
-
-This design avoids unsafe automatic hardware changes while establishing the foundation for platform-specific gaming optimization.
+The bridge is the source of truth for hardware-control capabilities. A GUI control is not proof of hardware support. On monitor-only hardware, Game Mode remains detection/monitoring only and must not claim that a fan, clock, or power optimization was applied.
