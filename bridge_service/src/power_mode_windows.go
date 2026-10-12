@@ -28,7 +28,7 @@ var (
 	setDCPowerMode = powerProfileDLL.NewProc("PowerSetUserConfiguredDCPowerMode")
 )
 
-func powerModeGUID(value float64) (powerModeGUID, error) {
+func powerModeGUIDForValue(value float64) (powerModeGUID, error) {
 	switch value {
 	case powerModeBalanced:
 		return powerBalancedGUID, nil
@@ -101,7 +101,7 @@ func setPlatformPowerMode(supply string, value float64) (PowerModeState, error) 
 	if supply != "AC" && supply != "DC" {
 		return getPlatformPowerMode(), fmt.Errorf("power supply must be AC or DC")
 	}
-	target, err := powerModeGUID(value)
+	target, err := powerModeGUIDForValue(value)
 	if err != nil {
 		return getPlatformPowerMode(), err
 	}
@@ -151,7 +151,7 @@ func setPlatformPowerMode(supply string, value float64) (PowerModeState, error) 
 	default:
 		return after, fmt.Errorf("power mode readback did not confirm the requested state; prior mode unknown, manual verification required")
 	}
-	previous, _ := powerModeGUID(previousValue)
+	previous, _ := powerModeGUIDForValue(previousValue)
 	_, _, _ = proc.Call(uintptr(unsafe.Pointer(&previous)))
 	if readErr != nil {
 		return getPlatformPowerMode(), fmt.Errorf("power mode readback failed; attempted to restore previous %s setting: %w", supply, readErr)
