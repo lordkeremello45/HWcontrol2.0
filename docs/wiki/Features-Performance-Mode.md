@@ -1,6 +1,6 @@
 # Performance Mode — Research and Implementation Plan
 
-**Status: PHASE 3 WINDOWS + LINUX ADAPTERS IMPLEMENTED; RUNTIME VALIDATION PENDING**
+**Status: PHASE 4 MACOS CAPABILITY REVIEW COMPLETE; MANUAL GUIDANCE ADDED; AUTOMATION NOT IMPLEMENTED**
 
 This document separates HWcontrol2.0's in-app presets from operating-system power modes and hardware fan control. A GUI preset must not be presented as a system-wide performance change unless the relevant platform backend confirms that the OS setting was changed.
 
@@ -39,11 +39,12 @@ Each capability reports one of: supported, applied, unsupported, or failed. Neve
 - Do not directly write CPUFreq sysfs knobs as a universal solution. The Linux kernel documents that the performance governor requests the highest frequency within a policy's allowed limit, not an unconditional hardware maximum. Driver, firmware, thermal, and policy constraints still apply.
 - Sources: https://freedesktop.org/software/power-profiles-daemon/ and https://docs.kernel.org/admin-guide/pm/cpufreq.html
 
-### macOS
+### macOS — Phase 4 capability review
 
-- Apple's Power Modes vary by model, chip, macOS version, and power source. High Power Mode is only available on specific Apple silicon models and can increase fan noise; Low Power Mode trades performance for lower energy use.
-- Do not advertise a universal macOS High Power Mode switch. First detect OS version/model capability and use a documented, supported interface. Until a supported automation interface is validated, expose status/help rather than simulating a successful change.
-- Source: https://support.apple.com/en-us/101613
+- **Decision: automatic power-mode switching is not implemented.** Apple's supported user-facing modes vary by exact Mac model, chip, macOS version, and power source. High Power Mode is limited to specific models and may increase fan noise; Low Power Mode trades energy use/performance.
+- Apple's public support guidance documents changing modes in System Settings (Battery or Energy) and identifies supported model families. The reviewed public documentation does not establish a stable, supported general-purpose API for HWcontrol to set and read back High Power Mode across the target macOS 14+ Apple Silicon matrix.
+- HWcontrol therefore provides a link to Apple's official guide rather than calling undocumented/private APIs, parsing unstable UI internals, or claiming a mode changed when it cannot verify the result.
+- Official guide: https://support.apple.com/en-us/101613
 
 ### GPU vendor settings
 
@@ -70,7 +71,7 @@ Each capability reports one of: supported, applied, unsupported, or failed. Neve
 1. **Phase 1 — honest UI and capability reporting:** implemented.
 2. **Phase 2 — Windows 11 adapter:** implemented; runtime validation remains pending. Windows 10 is unsupported by this API path.
 3. **Phase 3 — Linux adapter:** implemented through power-profiles-daemon over system D-Bus; runtime validation on a Linux host with the service remains pending.
-4. **Phase 4 — macOS:** only implement automated changes after confirming a supported public API for the target OS/model matrix.
+4. **Phase 4 — macOS:** capability review complete; UI now links to Apple's supported guide. Automated mode switching remains unavailable until a documented, stable public API supports detection, write, and read-back across the target OS/model matrix.
 5. **Phase 5 — optional vendor adapters:** per-GPU/per-app integrations, opt-in and separately tested.
 
 ## Phase 2 — Windows power-mode adapter
@@ -99,15 +100,16 @@ Each capability reports one of: supported, applied, unsupported, or failed. Neve
 
 - Performance Mode toggle is available in the dashboard. Activating it plays the existing locally synthesized mode sound, opens the Performance Lab panel, and animates the dashboard accent from blue to red.
 - The toggle selects the existing app-level Performance preset (fan target 85%, AI target 100%). A physical fan command is sent only when the bridge reports fan-control support; this does not imply that an OS power mode or overclock was applied.
-- Performance Lab labels game-process prioritization, per-application RAM budgets, and CPU/GPU overclocking as **NOT IMPLEMENTED**. OS power-profile controls are separately available for supported Windows 11 and Linux systems; macOS automation remains unavailable.
+- Performance Lab labels game-process prioritization, per-application RAM budgets, and CPU/GPU overclocking as **NOT IMPLEMENTED**. OS power-profile controls are separately available for supported Windows 11 and Linux systems. On macOS, Performance Lab links to Apple's official guide; automatic switching remains unavailable.
 - Generic “allocate N GiB to any application” is not a valid cross-platform promise. A future implementation must define whether it limits a managed process or configures an OS-specific mechanism, report the effective value, and avoid pretending that memory was reserved.
-- No voltage, clock, power-limit, or process-priority setting is changed by the current Performance Mode toggle. OS power profiles can be changed separately from Performance Lab on supported Windows 11/Linux systems.
+- No voltage, clock, power-limit, or process-priority setting is changed by the current Performance Mode toggle. OS power profiles can be changed separately from Performance Lab on supported Windows 11/Linux systems. macOS mode selection remains a user action in Apple's supported settings UI.
 
 ## Current HWcontrol2.0 status
 
 - In-app Quiet/Balanced/Performance preset buttons: **IMPLEMENTED**, but they primarily set application-level values and only send fan commands when the bridge reports fan-control support.
 - Windows 11 configured OS power-mode adapter: **IMPLEMENTED, VALIDATION PENDING**.
-- Linux and macOS OS power-mode adapters: **NOT IMPLEMENTED**.
+- Linux power-profiles-daemon adapter: **IMPLEMENTED, RUNTIME VALIDATION PENDING**.
+- macOS automated OS power-mode adapter: **NOT IMPLEMENTED**; official Apple guidance is linked from Performance Lab.
 - Universal CPU/GPU clock or voltage tuning: **NOT IMPLEMENTED**.
 - Per-vendor GPU driver power-mode integration: **NOT IMPLEMENTED**.
 - Platform hardware behavior and performance gains: **UNVERIFIED** until tested on real supported systems.
