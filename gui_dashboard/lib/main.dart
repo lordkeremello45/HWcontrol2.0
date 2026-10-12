@@ -2320,9 +2320,9 @@ Attach this archive to a support issue only after reviewing it for personal info
           const Text('Windows 11 OS power mode', style: TextStyle(fontWeight: FontWeight.w800)),
           const SizedBox(height: 5),
           Text(
-            Platform.isWindows
+            (Platform.isWindows || Platform.isLinux)
                 ? _osPowerModeStatus
-                : 'This adapter is Windows 11 desktop-only. Other platforms remain unsupported.',
+                : 'Automated OS power-mode control is unavailable on this platform.',
             style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(175)),
           ),
           if (Platform.isLinux) ...[
