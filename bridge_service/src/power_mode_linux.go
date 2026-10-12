@@ -71,7 +71,7 @@ func readLinuxPowerProfile() (string, error) {
 		}
 		return "", fmt.Errorf("power-profiles-daemon is unavailable or denied access: %s", detail)
 	}
-	profile, err := parseBusctlString(output)
+	profile, err := parseBusctlString(string(output))
 	if err != nil {
 		return "", err
 	}
