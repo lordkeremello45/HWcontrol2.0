@@ -19,6 +19,7 @@ Game Mode provides a conservative game-session detection and monitoring layer.
 - When a supported game is detected, the dashboard exposes a profile-assignment control for that executable.
 - Assignments are stored in the user's local settings as executable-name-to-saved-profile mappings.
 - A mapped profile currently applies its saved fan target only. The AI value is not a hardware-control action.
+- When Smart Fan is enabled, its valid automatic target may raise the game profile's fan target; a game profile must not suppress thermal automation.
 - If no profile is assigned, Game Mode retains its default 75% fan target, but only when the bridge reports a validated fan-control backend.
 - On game exit, Game Mode disable, or switching to another detected game, the dashboard attempts to restore the fan target that was active before the game session.
 - The profile mapping is keyed by executable basename, not a full path or Steam app ID. Different games that use the same executable basename share the mapping.
