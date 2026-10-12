@@ -847,7 +847,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       contentPadding: EdgeInsets.zero,
                       title: Text(rules[i].name),
                       subtitle: Text(
-                        AppLocalizations.of(context)!.automationRuleSummary(
+                        AppLocalizations.of(context).automationRuleSummary(
                           _tr(rules[i].sensor == 'cpuTemperature'
                               ? 'cpuTemperatureLabel'
                               : 'gpuTemperatureLabel'),
@@ -951,7 +951,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text(process),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: selected,
+                  initialValue: selected,
                   decoration: InputDecoration(labelText: _tr('saveProfile')),
                   items: [
                     for (final name in names)
@@ -1239,7 +1239,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   for (final warning in warnings) Text('• $warning'),
                   const SizedBox(height: 10),
                 ],
-                Text(AppLocalizations.of(context)!.anomalyCount(anomalies.length), style: const TextStyle(fontWeight: FontWeight.w700)),
+                Text(AppLocalizations.of(context).anomalyCount(anomalies.length), style: const TextStyle(fontWeight: FontWeight.w700)),
                 for (final anomaly in anomalies)
                   Padding(
                     padding: const EdgeInsets.only(top: 6),
@@ -1573,11 +1573,11 @@ Attach this archive to a support issue only after reviewing it for personal info
       final file = File('${directory.path}${Platform.pathSeparator}${info.assetName}');
       await file.writeAsBytes(bytes, flush: true);
       if (!mounted) return;
-      setState(() => _updateStatus = AppLocalizations.of(context)!.updateStatusVerified(file.path));
+      setState(() => _updateStatus = AppLocalizations.of(context).updateStatusVerified(file.path));
       _addEvent('Release indirildi ve SHA-256 doğrulandı');
     } catch (error) {
       if (mounted) {
-        setState(() => _updateStatus = AppLocalizations.of(context)!.updateStatusVerificationFailed('$error'));
+        setState(() => _updateStatus = AppLocalizations.of(context).updateStatusVerificationFailed('$error'));
         _addEvent('Release indirme/doğrulama başarısız');
       }
     } finally {
@@ -1789,7 +1789,7 @@ Attach this archive to a support issue only after reviewing it for personal info
                             ? () async {
                                 try {
                                   await _piperTts.speak(
-                                    text: AppLocalizations.of(context)!.dashboardSpeechSummary(
+                                    text: AppLocalizations.of(context).dashboardSpeechSummary(
                                       _cpuTemperature.toStringAsFixed(1),
                                       _cpuUsage.toStringAsFixed(0),
                                       _gpuUsage.toStringAsFixed(0),
@@ -1975,7 +1975,6 @@ Attach this archive to a support issue only after reviewing it for personal info
     } finally {
       if (mounted) setState(() => _isSending = false);
     }
-    return true;
   }
 
   Future<void> _playGameModeSound(bool enabled) async {
@@ -2572,7 +2571,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           children: [
             Icon(available ? Icons.system_update_alt : Icons.verified_user_outlined, color: color),
             const SizedBox(width: 12),
-            Expanded(child: Text(available ? AppLocalizations.of(context)!.updateReleaseReady(_updateInfo!.tag) : (_updateStatus.isEmpty ? _tr('updateStatusNotChecked') : _updateStatus), style: TextStyle(color: color, fontWeight: FontWeight.w600))),
+            Expanded(child: Text(available ? AppLocalizations.of(context).updateReleaseReady(_updateInfo!.tag) : (_updateStatus.isEmpty ? _tr('updateStatusNotChecked') : _updateStatus), style: TextStyle(color: color, fontWeight: FontWeight.w600))),
             if (available) TextButton.icon(onPressed: _openUpdate, icon: const Icon(Icons.download, size: 17), label: Text(_tr('releaseOpen'))),
             IconButton(tooltip: _tr('checkForUpdates'), onPressed: _isCheckingUpdate ? null : _checkForUpdate, icon: const Icon(Icons.refresh)),
           ],
@@ -2643,13 +2642,13 @@ Attach this archive to a support issue only after reviewing it for personal info
           Row(
             children: [
               Expanded(child: _sectionTitle(_tr('telemetryHistory'), _tr('samplingInterval'))),
-              Text(AppLocalizations.of(context)!.maxCpuTemperature(maximum), style: const TextStyle(color: Color(0xFFFFB454), fontSize: 12, fontWeight: FontWeight.w700)),
+              Text(AppLocalizations.of(context).maxCpuTemperature(maximum), style: const TextStyle(color: Color(0xFFFFB454), fontSize: 12, fontWeight: FontWeight.w700)),
               const SizedBox(width: 8),
               IconButton(tooltip: _tr('exportCsv'), onPressed: _history.isEmpty ? null : _exportTelemetryHistory, icon: const Icon(Icons.download_outlined, size: 18)),
             ],
           ),
           const SizedBox(height: 8),
-          Text(AppLocalizations.of(context)!.thermalStatus(_thermalStatus), style: TextStyle(fontSize: 11, color: _thermalAlertActive ? const Color(0xFFFFB454) : Theme.of(context).colorScheme.onSurface.withAlpha(140))),
+          Text(AppLocalizations.of(context).thermalStatus(_thermalStatus), style: TextStyle(fontSize: 11, color: _thermalAlertActive ? const Color(0xFFFFB454) : Theme.of(context).colorScheme.onSurface.withAlpha(140))),
           const SizedBox(height: 14),
           if (_history.isEmpty)
             SizedBox(height: 130, child: Center(child: Text(_tr('bridgeMetricsWaiting'), style: TextStyle(color: Colors.white54, fontSize: 12))))
@@ -2794,7 +2793,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           if (_aiModelDownloading) ...[
             LinearProgressIndicator(value: _aiModelProgress),
             const SizedBox(height: 8),
-            Text(AppLocalizations.of(context)!.modelDownloading((_aiModelProgress * 100).round()), style: const TextStyle(fontSize: 11)),
+            Text(AppLocalizations.of(context).modelDownloading((_aiModelProgress * 100).round()), style: const TextStyle(fontSize: 11)),
             const SizedBox(height: 12),
           ],
           if (_aiModelError != null) ...[
@@ -2907,11 +2906,11 @@ Attach this archive to a support issue only after reviewing it for personal info
             spacing: 18,
             runSpacing: 8,
             children: [
-              Text(AppLocalizations.of(context)!.freeSpace(bytes(free)),  style: const TextStyle(fontSize: 11)),
-              Text(AppLocalizations.of(context)!.readSpeed(rate(read)),  style: const TextStyle(fontSize: 11)),
-              Text(AppLocalizations.of(context)!.writeSpeed(rate(write)),  style: const TextStyle(fontSize: 11)),
-              Text(AppLocalizations.of(context)!.health(healthText),  style: const TextStyle(fontSize: 11)),
-              if (fs != null && fs.isNotEmpty) Text(AppLocalizations.of(context)!.fileSystem(fs),  style: const TextStyle(fontSize: 11)),
+              Text(AppLocalizations.of(context).freeSpace(bytes(free)),  style: const TextStyle(fontSize: 11)),
+              Text(AppLocalizations.of(context).readSpeed(rate(read)),  style: const TextStyle(fontSize: 11)),
+              Text(AppLocalizations.of(context).writeSpeed(rate(write)),  style: const TextStyle(fontSize: 11)),
+              Text(AppLocalizations.of(context).health(healthText),  style: const TextStyle(fontSize: 11)),
+              if (fs != null && fs.isNotEmpty) Text(AppLocalizations.of(context).fileSystem(fs),  style: const TextStyle(fontSize: 11)),
             ],
           ),
           if (health == null && healthReason.isNotEmpty) ...[
@@ -2949,7 +2948,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             children: [
               Icon(Icons.verified_outlined, size: 16, color: detected ? const Color(0xFF64D8CB) : const Color(0xFFFFB454)),
               const SizedBox(width: 8),
-              Text(AppLocalizations.of(context)!.diagnosticPrivacy(_hardwareDetectionStatus), style: const TextStyle(fontSize: 11)),
+              Text(AppLocalizations.of(context).diagnosticPrivacy(_hardwareDetectionStatus), style: const TextStyle(fontSize: 11)),
             ],
           ),
         ],
@@ -2999,7 +2998,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             _sectionTitle(_tr('gameMode'), _tr('gameModeDescription')),
             const SizedBox(height: 8),
-            Text(_gameDetected ? AppLocalizations.of(context)!.detectedGame(_gameProcessName.isEmpty ? _tr('unknown') : _gameProcessName) : (_gameModeEnabled ? _tr('gameModeWaiting') : _tr('gameModeOff')), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(170))),
+            Text(_gameDetected ? AppLocalizations.of(context).detectedGame(_gameProcessName.isEmpty ? _tr('unknown') : _gameProcessName) : (_gameModeEnabled ? _tr('gameModeWaiting') : _tr('gameModeOff')), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(170))),
             const SizedBox(height: 4),
             Text(active ? _tr('activeGameProcess') : _tr('hardwareControlMonitorOnly'), style: TextStyle(fontSize: 11, color: active ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withAlpha(130))),
           ])),
@@ -3135,7 +3134,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           _statusRow('Bridge', _isConnected ? _tr('online') : _tr('offline'), _isConnected),
           _statusRow(_tr('securityLabel'), _sharedKey.isEmpty ? _tr('securityKeyWaiting') : 'HMAC-SHA-256', _sharedKey.isNotEmpty),
           _statusRow(_tr('modelDigestLabel'), _modelDigest == 'unavailable' ? _tr('digestNotFound') : (_modelDigest.length > 12 ? '${_modelDigest.substring(0, 12)}...' : _modelDigest), _modelDigest != 'unavailable' && _modelDigest != 'Kontrol edilmedi'),
-          _statusRow('CPU', _cpuCoreCount > 0 ? AppLocalizations.of(context)!.cpuCoreSummary(_cpuCoreCount, _cpuFrequencyMHz) : _tr('unknown'), _cpuCoreCount > 0),
+          _statusRow('CPU', _cpuCoreCount > 0 ? AppLocalizations.of(context).cpuCoreSummary(_cpuCoreCount, _cpuFrequencyMHz) : _tr('unknown'), _cpuCoreCount > 0),
           _statusRow(_tr('gpuAdapter'), _gpuVendor, _gpuVendor != 'Bilinmiyor'),
           _statusRow(_tr('sensor'), _sensorSource, _sensorSource != 'Kontrol edilmedi'),
           _statusRow(_tr('fanControlLabel'), _fanControlSupported ? _fanControlBackend : _tr('monitoringOnly'), _fanControlSupported),
