@@ -316,6 +316,8 @@ func validateCommand(cmd Command) error {
 		return nil
 	case "Set Power Mode AC", "Set Power Mode DC":
 		return validatePowerModeRequest(action, cmd.Value)
+	case "Set Power Profile":
+		return validatePowerModeRequest("Set Power Mode AC", cmd.Value)
 	case "Get Power Mode":
 		if cmd.Value != 0 {
 			return fmt.Errorf("read-only command value must be zero")
@@ -396,6 +398,16 @@ func executeHardwareCommand(cmd Command) error {
 			supply = "DC"
 		}
 		_, err := setPlatformPowerMode(supply, cmd.Value)
+		return err
+
+	case "Set Power Profile":
+		if panicModeActive() {
+			return fmt.Errorf("hardware control blocked: security panic mode active")
+		}
+		if err := validatePowerModeRequest("Set Power Mode AC", cmd.Value); err != nil {
+			return err
+		}
+		_, err := setPlatformPowerMode("SYSTEM", cmd.Value)
 		return err
 	default:
 		return fmt.Errorf("action cannot be executed: %s", cmd.Action)
