@@ -65,6 +65,45 @@ is
       return Allow;
    end Validate_Raw_Fan_Command;
 
+   function Validate_Hardware_Identity
+     (Schema_Valid    : Boolean;
+      Payload_Bounded : Boolean;
+      Counts_Valid    : Boolean;
+      Status_Valid    : Boolean) return Security_Decision
+   is
+   begin
+      if not Schema_Valid
+        or else not Payload_Bounded
+        or else not Counts_Valid
+        or else not Status_Valid
+      then
+         return Deny;
+      end if;
+
+      return Allow;
+   end Validate_Hardware_Identity;
+
+   function Validate_Hardware_Identity_C
+     (Schema_Valid    : Interfaces.C.unsigned_char;
+      Payload_Bounded : Interfaces.C.unsigned_char;
+      Counts_Valid    : Interfaces.C.unsigned_char;
+      Status_Valid    : Interfaces.C.unsigned_char)
+      return Interfaces.C.unsigned_char
+   is
+      Decision : constant Security_Decision :=
+        Validate_Hardware_Identity
+          (Schema_Valid = 1,
+           Payload_Bounded = 1,
+           Counts_Valid = 1,
+           Status_Valid = 1);
+   begin
+      if Decision = Allow then
+         return 1;
+      else
+         return 0;
+      end if;
+   end Validate_Hardware_Identity_C;
+
    function Validate_Raw_Fan_Command_C
      (Fan_Percent_Value : Interfaces.C.int;
       Telemetry_Valid   : Interfaces.C.unsigned_char;
