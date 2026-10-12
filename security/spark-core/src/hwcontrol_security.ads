@@ -66,6 +66,35 @@ is
           then Validate_Raw_Fan_Command'Result = Deny
           else Validate_Raw_Fan_Command'Result = Allow);
 
+   function Validate_Hardware_Identity
+     (Schema_Valid   : Boolean;
+      Payload_Bounded : Boolean;
+      Counts_Valid   : Boolean;
+      Status_Valid   : Boolean) return Security_Decision
+     with
+       Global => null,
+       Post =>
+         (if not Schema_Valid
+             or else not Payload_Bounded
+             or else not Counts_Valid
+             or else not Status_Valid
+          then Validate_Hardware_Identity'Result = Deny
+          else Validate_Hardware_Identity'Result = Allow);
+
+   -- Narrow C ABI for callers that link the compiled SPARK core. Flags must
+   -- be exactly 1; malformed/unknown flag values fail closed.
+   function Validate_Hardware_Identity_C
+     (Schema_Valid    : Interfaces.C.unsigned_char;
+      Payload_Bounded : Interfaces.C.unsigned_char;
+      Counts_Valid    : Interfaces.C.unsigned_char;
+      Status_Valid    : Interfaces.C.unsigned_char)
+      return Interfaces.C.unsigned_char
+     with
+       Global => null,
+       Export,
+       Convention => C,
+       External_Name => "hwcontrol_security_validate_hardware_identity";
+
    -- C ABI boundary for the Rust support layer. The policy remains in SPARK;
    -- the exported function only exposes the already-formally-specified gate.
    function Validate_Raw_Fan_Command_C
