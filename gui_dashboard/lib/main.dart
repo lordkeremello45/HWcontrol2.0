@@ -284,6 +284,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _sensorSource = 'Kontrol edilmedi';
   String _modelDigest = 'Kontrol edilmedi';
   bool _fanControlSupported = false;
+  bool _batteryPresent = false;
+  bool _batteryDataAvailable = false;
+  String _batteryStatus = 'unknown';
+  double _batteryDesignCapacity = 0;
+  double _batteryFullChargeCapacity = 0;
+  String _batteryCapacityUnit = '';
+  double _batteryHealthPercent = 0;
+  int? _batteryCycleCount;
   String _fanControlBackend = 'monitor-only';
   String _systemManufacturer = 'Bilinmiyor';
   String _systemModel = 'Bilinmiyor';
@@ -1498,6 +1506,10 @@ Attach this archive to a support issue only after reviewing it for personal info
     if (!mounted || data == null) return;
     final temperature = (data['cpuTemperature'] as num?)?.toDouble() ?? 0;
     final thresholdExceeded = _notificationsEnabled && temperature >= _temperatureLimit;
+    final rawBattery = data['battery'];
+    final batteryData = rawBattery is Map
+        ? Map<String, dynamic>.from(rawBattery)
+        : const <String, dynamic>{};
     setState(() {
       _cpuUsage = (data['cpuUsage'] as num?)?.toDouble() ?? 0;
       _cpuCoreCount = (data['cpuCoreCount'] as num?)?.toInt() ?? 0;
@@ -1521,6 +1533,14 @@ Attach this archive to a support issue only after reviewing it for personal info
       _gpuVendor = data['gpuVendor'] as String? ?? 'Bilinmiyor';
       _sensorSource = data['sensorSource'] as String? ?? 'Bilinmiyor';
       _fanControlSupported = data['fanControlSupported'] as bool? ?? false;
+      _batteryPresent = batteryData['present'] as bool? ?? false;
+      _batteryDataAvailable = batteryData['dataAvailable'] as bool? ?? false;
+      _batteryStatus = batteryData['status'] as String? ?? 'unknown';
+      _batteryDesignCapacity = (batteryData['designCapacity'] as num?)?.toDouble() ?? 0;
+      _batteryFullChargeCapacity = (batteryData['fullChargeCapacity'] as num?)?.toDouble() ?? 0;
+      _batteryCapacityUnit = batteryData['capacityUnit'] as String? ?? '';
+      _batteryHealthPercent = (batteryData['healthPercent'] as num?)?.toDouble() ?? 0;
+      _batteryCycleCount = (batteryData['cycleCount'] as num?)?.toInt();
       _fanControlBackend = data['fanControlBackend'] as String? ?? 'monitor-only';
       _systemManufacturer = data['systemManufacturer'] as String? ?? 'Bilinmiyor';
       _systemModel = data['systemModel'] as String? ?? 'Bilinmiyor';
@@ -2271,6 +2291,8 @@ Attach this archive to a support issue only after reviewing it for personal info
                       const SizedBox(height: 18),
                       _buildOverview(compact),
                       const SizedBox(height: 18),
+                      _buildBatteryHealthCard(),
+                      const SizedBox(height: 18),
                       _buildHistoryCard(),
                       const SizedBox(height: 18),
                       _buildAdvancedTelemetryCard(),
@@ -2736,6 +2758,76 @@ Attach this archive to a support issue only after reviewing it for personal info
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBatteryHealthCard() {
+    final health = _batteryHealthPercent;
+    final healthKnown = _batteryPresent && _batteryDataAvailable && health.isFinite && health > 0;
+    final healthColor = !healthKnown
+        ? Theme.of(context).colorScheme.onSurface.withAlpha(120)
+        : health >= 80
+            ? const Color(0xFF64D8CB)
+            : health >= 60
+                ? const Color(0xFFFFB454)
+                : const Color(0xFFFF6B6B);
+    final wear = _batteryDesignCapacity > 0 && _batteryFullChargeCapacity > 0
+        ? (_batteryDesignCapacity - _batteryFullChargeCapacity).clamp(0, double.infinity).toDouble()
+        : 0.0;
+    final statusLabel = switch (_batteryStatus.toLowerCase()) {
+      'charging' || 'charging-high' || 'charging-low' || 'charging-critical' => _tr('batteryCharging'),
+      'discharging' => _tr('batteryDischarging'),
+      'full' => _tr('batteryFull'),
+      'ac-connected' => _tr('batteryConnected'),
+      'unavailable' || 'unsupported' => _tr('batteryDataUnavailable'),
+      _ => _tr('batteryUnknownStatus'),
+    };
+    return _Panel(
+      padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.battery_5_bar, color: healthColor, size: 25),
+              const SizedBox(width: 10),
+              Expanded(child: _sectionTitle(_tr('batteryHealth'), _tr('batteryHealthDescription'))),
+              Text(healthKnown ? '${health.toStringAsFixed(0)}%' : 'N/A',
+                style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: healthColor)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (!_batteryPresent)
+            Text(_tr('batteryNotDetected'), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(170)))
+          else if (!_batteryDataAvailable)
+            Text(_tr('batteryDataUnavailable'), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(170)))
+          else ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: LinearProgressIndicator(value: (health / 100).clamp(0, 1), minHeight: 8, color: healthColor),
+            ),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                _telemetryChip(_tr('batteryDesignCapacity'), '${_batteryDesignCapacity.toStringAsFixed(0)} $_batteryCapacityUnit'),
+                _telemetryChip(_tr('batteryFullChargeCapacity'), '${_batteryFullChargeCapacity.toStringAsFixed(0)} $_batteryCapacityUnit'),
+                _telemetryChip(_tr('batteryCapacityWear'), '${wear.toStringAsFixed(0)} $_batteryCapacityUnit'),
+                _telemetryChip(_tr('batteryCycleCount'), _batteryCycleCount == null ? 'N/A' : '$_batteryCycleCount'),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              '${_tr('batteryStatusLabel')}: $statusLabel',
+              style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(170)),
+            ),
+          ],
+          const SizedBox(height: 8),
+          Text(_tr('batteryHealthCaveat'),
+            style: TextStyle(fontSize: 11, height: 1.4, color: Theme.of(context).colorScheme.onSurface.withAlpha(130))),
         ],
       ),
     );
