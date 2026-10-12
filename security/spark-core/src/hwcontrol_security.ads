@@ -66,6 +66,8 @@ is
           then Validate_Raw_Fan_Command'Result = Deny
           else Validate_Raw_Fan_Command'Result = Allow);
 
+   -- Metadata admission only: this does not attest that the OS-reported
+   -- hardware model is truthful and never grants hardware-control authority.
    function Validate_Hardware_Identity
      (Schema_Valid   : Boolean;
       Payload_Bounded : Boolean;
