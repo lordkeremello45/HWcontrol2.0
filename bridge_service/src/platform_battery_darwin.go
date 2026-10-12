@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-var ioregBatteryValue = regexp.MustCompile(\`"([^"]+)"\s*=\s*("[^"]*"|[0-9]+)\`)
+var ioregBatteryValue = regexp.MustCompile(`"([^"]+)"\s*=\s*("[^"]*"|[0-9]+)`)
 
 func mergeBatteryMetrics(metrics *HardwareMetrics) {
 	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
