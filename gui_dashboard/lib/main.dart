@@ -1965,8 +1965,8 @@ Attach this archive to a support issue only after reviewing it for personal info
 
   Future<void> _playGameModeSound(bool enabled) async {
     // Short, locally synthesized gamer-style UI sound. No external audio
-    // asset or network request is required, and it only runs after a
-    // successful Game Mode toggle.
+    // asset or network request is required; mode changes still work silently
+    // if the platform audio backend is unavailable.
     final sampleRate = 11025;
     final durationMs = enabled ? 220 : 180;
     final sampleCount = (sampleRate * durationMs / 1000).round();
@@ -2202,7 +2202,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         FilledButton.icon(
-          onPressed: _togglePerformanceMode,
+          onPressed: _isSending ? null : _togglePerformanceMode,
           icon: Icon(_performanceModeEnabled ? Icons.bolt : Icons.speed),
           label: Text(_performanceModeEnabled
               ? 'Performance Mode: ON'
