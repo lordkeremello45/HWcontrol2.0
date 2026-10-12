@@ -1,1 +1,11 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
+contact_links:
+  - name: General questions and support
+    url: https://github.com/lordkeremello45/HWcontrol2.0/blob/main/SUPPORT.md
+    about: Check troubleshooting guidance before opening an issue.
+  - name: Security vulnerability (private reporting)
+    url: https://github.com/lordkeremello45/HWcontrol2.0/security/advisories/new
+    about: Do not publish exploitable security details in a public issue.
+  - name: Privacy policy
+    url: https://github.com/lordkeremello45/HWcontrol2.0/blob/main/PRIVACY.md
+    about: Learn what stays local and what is shared only after an explicit action.
