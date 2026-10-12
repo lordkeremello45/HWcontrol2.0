@@ -3,9 +3,11 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 type windowsHardwareIdentity struct {
@@ -38,7 +40,9 @@ const windowsHardwareIdentityScript = "$ErrorActionPreference='SilentlyContinue'
 func collectHardwareIdentityWithPowerShell() HardwareIdentity {
 	id := emptyHardwareIdentity()
 	id.DetectionSource = "Windows CIM/WMI"
-	output, err := exec.Command("powershell.exe", "-NoProfile", "-NonInteractive", "-Command", windowsHardwareIdentityScript).Output()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	output, err := exec.CommandContext(ctx, "powershell.exe", "-NoProfile", "-NonInteractive", "-Command", windowsHardwareIdentityScript).Output()
 	if err != nil || strings.TrimSpace(string(output)) == "" {
 		id.DetectionStatus = "unavailable"
 		return id
