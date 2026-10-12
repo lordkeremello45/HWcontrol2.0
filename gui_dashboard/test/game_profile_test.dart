@@ -5,7 +5,7 @@ void main() {
   group('normalizeGameProcessName', () {
     test('normalizes case, whitespace, and Windows paths', () {
       expect(
-        normalizeGameProcessName(r'  C:\\Games\\MY-GAME.EXE  '),
+        normalizeGameProcessName(r'  C:\Games\MY-GAME.EXE  '),
         'my-game.exe',
       );
     });
