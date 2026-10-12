@@ -44,6 +44,6 @@ The normal invocation emits JSON to stdout. Diagnostics are limited to stderr/JS
 
 ## Security boundary and validation status
 
-The Go adapter validates the helper's data contract but does not treat model strings as authorization decisions. Ada/SPARK remains responsible for its separate, formally specified fan-command safety policy; it is not claimed to prove the correctness of WMI identity data.
+The Go adapter enforces the fail-closed hardware-identity contract after parsing the helper's data; model strings never authorize hardware control. The Ada/SPARK package now formally specifies the corresponding schema-valid, payload-bounded, counts-valid, and status-valid decision and exports `hwcontrol_security_validate_hardware_identity`. The Windows Go binary does not yet dynamically link or invoke that exported Ada symbol; its runtime enforcement is a matching Go implementation, not a live Go-to-SPARK call. Ada/SPARK remains responsible for its separate, formally specified fan-command safety policy; it is not claimed to prove the correctness of WMI identity data.
 
 CI can validate compilation, offline catalog tests, JSON-boundary tests, and packaged helper self-tests. Those checks do not prove that every OEM's WMI provider reports correct model data. Physical-device coverage and confirmation that the published release artifact contains the helper remain required before claiming full hardware validation.
