@@ -9,6 +9,7 @@ import 'package:hwcontrol_dashboard/l10n/app_localizations_map.dart';
 import 'package:hwcontrol_dashboard/services/localization_style_service.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   test('ARB catalogs cover supported locales and preserve ICU placeholders', () {
     final directory = Directory('lib/l10n');
     final files = directory
@@ -198,15 +199,14 @@ void main() {
       contains('template-arb-file: app_en_US.arb'),
       reason: 'The canonical localization template must be ARB',
     );
-    for (final root in runtimeRoots) {
-      for (final entity in root.listSync(recursive: true, followLinks: false)) {
-        if (entity is! File || !entity.path.endsWith('.dart')) continue;
-        final sourceText = entity.readAsStringSync();
-        expect(sourceText.contains(legacyAssetName), isFalse,
-            reason: 'Legacy localization asset reference remains in ${entity.path}');
-        expect(sourceText.contains(legacyAssetPath), isFalse,
-            reason: 'Legacy localization asset path remains in ${entity.path}');
-      }
+    for (final entity in Directory('lib')
+        .listSync(recursive: true, followLinks: false)) {
+      if (entity is! File || !entity.path.endsWith('.dart')) continue;
+      final sourceText = entity.readAsStringSync();
+      expect(sourceText.contains(legacyAssetName), isFalse,
+          reason: 'Legacy localization asset reference remains in ${entity.path}');
+      expect(sourceText.contains(legacyAssetPath), isFalse,
+          reason: 'Legacy localization asset path remains in ${entity.path}');
     }
   });
   test('literary Turkish overlay preserves canonical keys and placeholders', () async {

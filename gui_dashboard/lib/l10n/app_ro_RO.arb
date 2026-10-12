@@ -236,7 +236,7 @@
       }
     }
   },
-  "iterations": "{value, plural, =0{Fără iterații} one{# iterație} few{# iterații} other{# de iterații}}",
+  "iterations": "{value, plural, =0{Fără iterații} one{{value} iterație} few{{value} iterații} other{{value} de iterații}}",
   "@iterations": {
     "description": "Number of benchmark iterations, using locale-specific ICU plural rules.",
     "placeholders": {
@@ -390,7 +390,7 @@
   "motherboardLabel": "Placă de bază",
   "gpuDriverLabel": "Driver GPU",
   "last20Events": "Ultimele 20 de evenimente",
-  "anomalyCount": "{count, plural, =0{Fără anomalii} one{# anomalie} few{# de anomalii} other{# de anomalii}}",
+  "anomalyCount": "{count, plural, =0{Fără anomalii} one{{count} anomalie} few{{count} de anomalii} other{{count} de anomalii}}",
   "@anomalyCount": {
     "description": "Number of detected hardware anomalies. Uses locale-specific ICU plural rules.",
     "placeholders": {

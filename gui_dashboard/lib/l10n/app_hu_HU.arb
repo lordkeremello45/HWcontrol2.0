@@ -236,7 +236,7 @@
       }
     }
   },
-  "iterations": "{value, plural, =0{Nincs iteráció} =1{1 iteráció} other{# iteráció}}",
+  "iterations": "{value, plural, =0{Nincs iteráció} =1{1 iteráció} other{{value} iteráció}}",
   "@iterations": {
     "description": "Number of benchmark iterations, using locale-specific ICU plural rules.",
     "placeholders": {
@@ -390,7 +390,7 @@
   "motherboardLabel": "Alaplap",
   "gpuDriverLabel": "GPU-illesztőprogram",
   "last20Events": "Az utolsó 20 esemény",
-  "anomalyCount": "{count, plural, =0{Nincs rendellenesség} =1{1 rendellenesség} other{# rendellenesség}}",
+  "anomalyCount": "{count, plural, =0{Nincs rendellenesség} =1{1 rendellenesség} other{{count} rendellenesség}}",
   "@anomalyCount": {
     "description": "Number of detected hardware anomalies. Uses locale-specific ICU plural rules.",
     "placeholders": {

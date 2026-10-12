@@ -236,7 +236,7 @@
       }
     }
   },
-  "iterations": "{value, plural, =0{Aucune itération} =1{1 itération} other{# itérations}}",
+  "iterations": "{value, plural, =0{Aucune itération} =1{1 itération} other{{value} itérations}}",
   "@iterations": {
     "description": "Number of benchmark iterations, using locale-specific ICU plural rules.",
     "placeholders": {
@@ -390,7 +390,7 @@
   "motherboardLabel": "Carte mère",
   "gpuDriverLabel": "Pilote GPU",
   "last20Events": "20 derniers événements",
-  "anomalyCount": "{count, plural, =0{Aucune anomalie} =1{1 anomalie} other{# anomalies}}",
+  "anomalyCount": "{count, plural, =0{Aucune anomalie} =1{1 anomalie} other{{count} anomalies}}",
   "@anomalyCount": {
     "description": "Number of detected hardware anomalies. Uses locale-specific ICU plural rules.",
     "placeholders": {

@@ -236,7 +236,7 @@
       }
     }
   },
-  "iterations": "{value, plural, =0{Nema iteracija} one{# iteracija} few{# iteracije} other{# iteracija}}",
+  "iterations": "{value, plural, =0{Nema iteracija} one{{value} iteracija} few{{value} iteracije} other{{value} iteracija}}",
   "@iterations": {
     "description": "Number of benchmark iterations, using locale-specific ICU plural rules.",
     "placeholders": {
@@ -390,7 +390,7 @@
   "motherboardLabel": "Matična ploča",
   "gpuDriverLabel": "Upravljački program za GPU",
   "last20Events": "Posljednjih 20 događaja",
-  "anomalyCount": "{count, plural, =0{Nema anomalija} one{# anomalija} few{# anomalije} other{# anomalija}}",
+  "anomalyCount": "{count, plural, =0{Nema anomalija} one{{count} anomalija} few{{count} anomalije} other{{count} anomalija}}",
   "@anomalyCount": {
     "description": "Number of detected hardware anomalies. Uses locale-specific ICU plural rules.",
     "placeholders": {

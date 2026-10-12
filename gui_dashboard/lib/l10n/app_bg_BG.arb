@@ -236,7 +236,7 @@
       }
     }
   },
-  "iterations": "{value, plural, =0{Няма итерации} =1{1 итерация} other{# итерации}}",
+  "iterations": "{value, plural, =0{Няма итерации} =1{1 итерация} other{{value} итерации}}",
   "@iterations": {
     "description": "Number of benchmark iterations, using locale-specific ICU plural rules.",
     "placeholders": {
@@ -390,7 +390,7 @@
   "motherboardLabel": "Дънна платка",
   "gpuDriverLabel": "Драйвер за GPU",
   "last20Events": "Последните 20 събития",
-  "anomalyCount": "{count, plural, =0{Няма аномалии} =1{1 аномалия} other{# аномалии}}",
+  "anomalyCount": "{count, plural, =0{Няма аномалии} =1{1 аномалия} other{{count} аномалии}}",
   "@anomalyCount": {
     "description": "Number of detected hardware anomalies. Uses locale-specific ICU plural rules.",
     "placeholders": {

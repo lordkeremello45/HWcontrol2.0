@@ -236,7 +236,7 @@
       }
     }
   },
-  "iterations": "{value, plural, =0{Žádné iterace} one{# iterace} few{# iterace} other{# iterací}}",
+  "iterations": "{value, plural, =0{Žádné iterace} one{{value} iterace} few{{value} iterace} other{{value} iterací}}",
   "@iterations": {
     "description": "Number of benchmark iterations, using locale-specific ICU plural rules.",
     "placeholders": {
@@ -390,7 +390,7 @@
   "motherboardLabel": "Základní deska",
   "gpuDriverLabel": "Ovladač GPU",
   "last20Events": "Posledních 20 událostí",
-  "anomalyCount": "{count, plural, =0{Žádné anomálie} one{# anomálie} few{# anomálie} other{# anomálií}}",
+  "anomalyCount": "{count, plural, =0{Žádné anomálie} one{{count} anomálie} few{{count} anomálie} other{{count} anomálií}}",
   "@anomalyCount": {
     "description": "Number of detected hardware anomalies. Uses locale-specific ICU plural rules.",
     "placeholders": {

@@ -236,7 +236,7 @@
       }
     }
   },
-  "iterations": "{value, plural, =0{Không có vòng lặp} other{# vòng lặp}}",
+  "iterations": "{value, plural, =0{Không có vòng lặp} other{{value} vòng lặp}}",
   "@iterations": {
     "description": "Number of benchmark iterations, using locale-specific ICU plural rules.",
     "placeholders": {
@@ -390,7 +390,7 @@
   "motherboardLabel": "Bo mạch chủ",
   "gpuDriverLabel": "Trình điều khiển GPU",
   "last20Events": "20 sự kiện gần nhất",
-  "anomalyCount": "{count, plural, =0{Không có bất thường} other{# bất thường}}",
+  "anomalyCount": "{count, plural, =0{Không có bất thường} other{{count} bất thường}}",
   "@anomalyCount": {
     "description": "Number of detected hardware anomalies. Uses locale-specific ICU plural rules.",
     "placeholders": {

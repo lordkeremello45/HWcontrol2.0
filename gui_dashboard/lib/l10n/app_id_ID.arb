@@ -236,7 +236,7 @@
       }
     }
   },
-  "iterations": "{value, plural, =0{Tidak ada iterasi} other{# iterasi}}",
+  "iterations": "{value, plural, =0{Tidak ada iterasi} other{{value} iterasi}}",
   "@iterations": {
     "description": "Number of benchmark iterations, using locale-specific ICU plural rules.",
     "placeholders": {
@@ -390,7 +390,7 @@
   "motherboardLabel": "Papan induk",
   "gpuDriverLabel": "Driver GPU",
   "last20Events": "20 peristiwa terakhir",
-  "anomalyCount": "{count, plural, =0{Tidak ada anomali} other{# anomali}}",
+  "anomalyCount": "{count, plural, =0{Tidak ada anomali} other{{count} anomali}}",
   "@anomalyCount": {
     "description": "Number of detected hardware anomalies. Uses locale-specific ICU plural rules.",
     "placeholders": {
