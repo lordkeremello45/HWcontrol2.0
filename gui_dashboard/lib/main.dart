@@ -296,6 +296,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _gpuDriver = 'Bilinmiyor';
   String _hardwareDetectionStatus = 'Kontrol edilmedi';
   bool _gameModeEnabled = false;
+  bool _performanceModeEnabled = false;
+  bool _performanceLabOpen = false;
+  double _prePerformanceFanValue = 50;
+  double _prePerformanceAiValue = 80;
   bool _gameDetected = false;
   String _gameProcessName = '';
   final List<_MetricSample> _history = <_MetricSample>[];
@@ -2021,6 +2025,39 @@ Attach this archive to a support issue only after reviewing it for personal info
     }
   }
 
+  Future<void> _togglePerformanceMode() async {
+    final enabling = !_performanceModeEnabled;
+    if (enabling) {
+      _prePerformanceFanValue = _fanValue;
+      _prePerformanceAiValue = _aiValue;
+    }
+    setState(() {
+      _performanceModeEnabled = enabling;
+      _performanceLabOpen = enabling;
+      _fanValue = enabling ? 85 : _prePerformanceFanValue;
+      _aiValue = enabling ? 100 : _prePerformanceAiValue;
+      _lastAction = enabling
+          ? 'Performance Mode: application preset selected; OS capabilities unchanged'
+          : 'Performance Mode disabled; previous application targets restored';
+    });
+
+    // This applies only the app's existing preset and supported fan command.
+    // It does not claim to overclock or alter OS power settings.
+    if (!_isSending) {
+      if (enabling) {
+        await _applyPreset('Performance', 'performance', 85, 100);
+      } else if (_fanControlSupported) {
+        await _sendCommand('Fan Hızı', _prePerformanceFanValue);
+      }
+    }
+    await _playGameModeSound(enabling);
+    if (mounted) {
+      _addEvent(enabling
+          ? 'Performance Mode etkinleştirildi'
+          : 'Performance Mode devre dışı bırakıldı');
+    }
+  }
+
   Future<void> _applyPreset(String name, String legacyProfileName, double fan, double ai) async {
     if (_isSending) return;
     setState(() {
@@ -2071,7 +2108,24 @@ Attach this archive to a support issue only after reviewing it for personal info
       textDirection: HWControlLanguageService.isRightToLeft(_locale)
           ? TextDirection.rtl
           : TextDirection.ltr,
-      child: Scaffold(
+      child: AnimatedTheme(
+        data: Theme.of(context).copyWith(
+          colorScheme: Theme.of(context).colorScheme.copyWith(
+            primary: _performanceModeEnabled
+                ? const Color(0xFFFF334F)
+                : const Color(0xFF4F8CFF),
+            secondary: _performanceModeEnabled
+                ? const Color(0xFFFF7954)
+                : const Color(0xFF75B7FF),
+          ),
+        ),
+        duration: widget.animationsEnabled
+            ? const Duration(milliseconds: 900)
+            : Duration.zero,
+        child: Scaffold(
+          backgroundColor: _performanceModeEnabled
+              ? const Color(0xFF130B10)
+              : null,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -2085,6 +2139,12 @@ Attach this archive to a support issue only after reviewing it for personal info
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildHeader(),
+                      const SizedBox(height: 14),
+                      _buildPerformanceModeActions(),
+                      if (_performanceLabOpen) ...[
+                        const SizedBox(height: 18),
+                        _buildPerformanceLab(),
+                      ],
                       const SizedBox(height: 28),
                       _buildUpdateCard(),
                       const SizedBox(height: 18),
@@ -2127,7 +2187,165 @@ Attach this archive to a support issue only after reviewing it for personal info
           },
         ),
       ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildPerformanceModeActions() {
+    final activeColor = _performanceModeEnabled
+        ? const Color(0xFFFF334F)
+        : const Color(0xFF4F8CFF);
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        FilledButton.icon(
+          onPressed: _togglePerformanceMode,
+          icon: Icon(_performanceModeEnabled ? Icons.bolt : Icons.speed),
+          label: Text(_performanceModeEnabled
+              ? 'Performance Mode: ON'
+              : 'Enable Performance Mode'),
+          style: FilledButton.styleFrom(
+            backgroundColor: activeColor,
+            foregroundColor: Colors.white,
+          ),
+        ),
+        if (_performanceModeEnabled)
+          OutlinedButton.icon(
+            onPressed: () => setState(() => _performanceLabOpen = !_performanceLabOpen),
+            icon: Icon(_performanceLabOpen ? Icons.keyboard_arrow_up : Icons.tune),
+            label: Text(_performanceLabOpen ? 'Hide Performance Lab' : 'Open Performance Lab'),
+          ),
+        Text(
+          _performanceModeEnabled
+              ? 'App preset active • OS / overclock controls not applied'
+              : 'Application-level preset; hardware support is capability-gated',
+          style: TextStyle(
+            fontSize: 11,
+            color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPerformanceLab() {
+    final accent = Theme.of(context).colorScheme.primary;
+    return _Panel(
+      padding: const EdgeInsets.all(22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.memory, color: accent, size: 26),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Performance Lab', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                    SizedBox(height: 3),
+                    Text('Advanced controls • capability-gated', style: TextStyle(fontSize: 12)),
+                  ],
+                ),
+              ),
+              IconButton(
+                tooltip: 'Close Performance Lab',
+                onPressed: () => setState(() => _performanceLabOpen = false),
+                icon: const Icon(Icons.close),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: accent.withAlpha(18),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: accent.withAlpha(70)),
+            ),
+            child: const Text(
+              'Performance Mode currently selects HWcontrol’s app-level Performance preset. It does not unlock extra CPU/GPU power by itself. Firmware limits, thermal protection, OS policy, and hardware capabilities remain authoritative.',
+              style: TextStyle(fontSize: 12, height: 1.5),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _performanceCapabilityTile(
+            icon: Icons.sports_esports,
+            title: 'Prioritize the active game',
+            status: 'NOT IMPLEMENTED',
+            description: 'Per-process priority and background-process policy need a verified native adapter. No process priority is changed yet.',
+          ),
+          const Divider(height: 24),
+          _performanceCapabilityTile(
+            icon: Icons.memory,
+            title: 'Per-application RAM budget (GiB)',
+            status: 'NOT IMPLEMENTED',
+            description: 'A desktop app cannot safely reserve arbitrary RAM for unrelated apps through a generic cross-platform API. A future implementation must define supported process/job limits and show the effective limit instead of pretending RAM was allocated.',
+          ),
+          const Divider(height: 24),
+          _performanceCapabilityTile(
+            icon: Icons.speed,
+            title: 'CPU/GPU overclocking and power limits',
+            status: 'NOT IMPLEMENTED',
+            description: 'No generic cross-platform overclock is safe or reliable. Any future adapter must be vendor/device-specific, opt-in, bounded, read back the applied values, and never disable thermal protection.',
+          ),
+          const Divider(height: 24),
+          _performanceCapabilityTile(
+            icon: Icons.electric_bolt,
+            title: 'Operating-system power mode',
+            status: 'NOT IMPLEMENTED',
+            description: 'Windows 11, Linux power-profile services, and macOS have different capabilities. This toggle does not change OS power settings until a platform adapter is implemented and verified.',
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Available now: the app preset and fan target only when the bridge reports fan-control support. Actual performance gains remain unverified.',
+            style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurface.withAlpha(150)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _performanceCapabilityTile({
+    required IconData icon,
+    required String title,
+    required String status,
+    required String description,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 22, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.w700))),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.onSurface.withAlpha(10),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(status, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(description, style: TextStyle(fontSize: 12, height: 1.45, color: Theme.of(context).colorScheme.onSurface.withAlpha(185))),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
