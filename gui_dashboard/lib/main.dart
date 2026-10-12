@@ -298,6 +298,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _gameModeEnabled = false;
   bool _performanceModeEnabled = false;
   bool _performanceLabOpen = false;
+  String _osPowerModeStatus = 'Not checked';
   double _prePerformanceFanValue = 50;
   double _prePerformanceAiValue = 80;
   bool _gameDetected = false;
@@ -1949,10 +1950,24 @@ Attach this archive to a support issue only after reviewing it for personal info
       }
       final response = jsonDecode(responses.current) as Map<String, dynamic>;
       if (!mounted) return false;
+      final responseStatus = response['status'] as String? ?? 'ERROR';
+      final responseData = response['data'];
       setState(() {
         _status = response['message'] as String? ?? 'Yanıt alındı';
         _lastAction = '$action  •  %${value.round()}';
+        if ((action == 'Get Power Mode' ||
+                action == 'Set Power Mode AC' ||
+                action == 'Set Power Mode DC') &&
+            responseData is Map) {
+          final supported = responseData['supported'] == true;
+          final ac = responseData['ac']?.toString() ?? 'Unknown';
+          final dc = responseData['dc']?.toString() ?? 'Unknown';
+          _osPowerModeStatus = supported
+              ? 'AC: $ac  •  Battery: $dc'
+              : (responseData['message']?.toString() ?? 'OS power mode unsupported');
+        }
       });
+      return responseStatus == 'SUCCESS';
     } catch (_) {
       if (!mounted) return false;
       setState(() => _status = 'Bridge yanıt vermedi');
@@ -2301,7 +2316,71 @@ Attach this archive to a support issue only after reviewing it for personal info
             status: 'NOT IMPLEMENTED',
             description: 'Windows 11, Linux power-profile services, and macOS have different capabilities. This toggle does not change OS power settings until a platform adapter is implemented and verified.',
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 18),
+          const Text('Windows 11 OS power mode', style: TextStyle(fontWeight: FontWeight.w800)),
+          const SizedBox(height: 5),
+          Text(
+            Platform.isWindows
+                ? _osPowerModeStatus
+                : 'This adapter is Windows 11 desktop-only. Other platforms remain unsupported.',
+            style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(175)),
+          ),
+          if (Platform.isWindows) ...[
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: _isSending ? null : () => _sendCommand('Get Power Mode', 0),
+              icon: const Icon(Icons.refresh, size: 16),
+              label: const Text('Read current OS power modes'),
+            ),
+            const SizedBox(height: 10),
+            const Text('Plugged in (AC)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton(
+                  onPressed: _isSending ? null : () => _sendCommand('Set Power Mode AC', 0),
+                  child: const Text('Balanced'),
+                ),
+                OutlinedButton(
+                  onPressed: _isSending ? null : () => _sendCommand('Set Power Mode AC', 50),
+                  child: const Text('Efficiency'),
+                ),
+                FilledButton.tonal(
+                  onPressed: _isSending ? null : () => _sendCommand('Set Power Mode AC', 100),
+                  child: const Text('Performance'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Text('On battery (DC)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton(
+                  onPressed: _isSending ? null : () => _sendCommand('Set Power Mode DC', 0),
+                  child: const Text('Balanced'),
+                ),
+                OutlinedButton(
+                  onPressed: _isSending ? null : () => _sendCommand('Set Power Mode DC', 50),
+                  child: const Text('Efficiency'),
+                ),
+                FilledButton.tonal(
+                  onPressed: _isSending ? null : () => _sendCommand('Set Power Mode DC', 100),
+                  child: const Text('Performance'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Each action changes only the selected power-source setting. Windows may override effective performance; selecting Performance does not overclock the CPU/GPU.',
+              style: TextStyle(fontSize: 11, height: 1.4, color: Theme.of(context).colorScheme.onSurface.withAlpha(150)),
+            ),
+          ],
+          const SizedBox(height: 14),
           Text(
             'Available now: the app preset and fan target only when the bridge reports fan-control support. Actual performance gains remain unverified.',
             style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurface.withAlpha(150)),
