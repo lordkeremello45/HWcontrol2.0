@@ -48,6 +48,17 @@ func TestParseCSharpHardwareInventoryRejectsInvalidInput(t *testing.T) {
 	}
 }
 
+func TestValidPCIDeviceToken(t *testing.T) {
+	if !validPCIDeviceToken("VEN_10DE&DEV_2684") {
+		t.Fatal("valid PCI vendor/device token was rejected")
+	}
+	for _, token := range []string{"VEN_10DE&DEV_268", "VEN_ZZZZ&DEV_2684", "VEN_10DE_DEV_2684"} {
+		if validPCIDeviceToken(token) {
+			t.Fatalf("invalid PCI token accepted: %q", token)
+		}
+	}
+}
+
 func TestLimitedHardwareOutput(t *testing.T) {
 	var output limitedHardwareOutput
 	output.limit = 4
