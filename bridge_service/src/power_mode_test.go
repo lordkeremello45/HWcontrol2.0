@@ -48,6 +48,10 @@ func TestValidateCommandAcceptsPowerModeActions(t *testing.T) {
 		valid  bool
 	}{
 		{"Get Power Mode", 0, true},
+		{"Set Power Profile", 0, true},
+		{"Set Power Profile", 50, true},
+		{"Set Power Profile", 100, true},
+		{"Set Power Profile", 75, false},
 		{"Get Power Mode", 1, false},
 		{"Set Power Mode AC", 0, true},
 		{"Set Power Mode AC", 50, true},
