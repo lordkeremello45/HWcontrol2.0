@@ -1,6 +1,6 @@
 # Performance Mode — Research and Implementation Plan
 
-**Status: RESEARCH COMPLETE; PLATFORM POWER CONTROL NOT IMPLEMENTED**
+**Status: PHASE 1 UI IMPLEMENTED; PLATFORM POWER CONTROL NOT IMPLEMENTED**
 
 This document separates HWcontrol2.0's in-app presets from operating-system power modes and hardware fan control. A GUI preset must not be presented as a system-wide performance change unless the relevant platform backend confirms that the OS setting was changed.
 
@@ -70,6 +70,14 @@ Each capability reports one of: supported, applied, unsupported, or failed. Neve
 3. **Phase 3 — Linux adapter:** integrate with a detected power-profile service and its advertised capabilities; never require root for the initial implementation.
 4. **Phase 4 — macOS:** only implement automated changes after confirming a supported public API for the target OS/model matrix.
 5. **Phase 5 — optional vendor adapters:** per-GPU/per-app integrations, opt-in and separately tested.
+
+## Current UI state
+
+- Performance Mode toggle is available in the dashboard. Activating it plays the existing locally synthesized mode sound, opens the Performance Lab panel, and animates the dashboard accent from blue to red.
+- The toggle selects the existing app-level Performance preset (fan target 85%, AI target 100%). A physical fan command is sent only when the bridge reports fan-control support; this does not imply that an OS power mode or overclock was applied.
+- Performance Lab explicitly labels game-process prioritization, per-application RAM budgets, CPU/GPU overclocking, and OS power-mode changes as **NOT IMPLEMENTED**. These are informational capability rows, not active controls.
+- Generic “allocate N GiB to any application” is not a valid cross-platform promise. A future implementation must define whether it limits a managed process or configures an OS-specific mechanism, report the effective value, and avoid pretending that memory was reserved.
+- No voltage, clock, power-limit, process-priority, or OS power-mode setting is changed by the current Performance Mode toggle.
 
 ## Current HWcontrol2.0 status
 
