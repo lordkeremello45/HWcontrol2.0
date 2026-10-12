@@ -196,7 +196,7 @@ func validateHardwareIdentityPolicy(inventory csharpHardwareInventory) error {
 	}
 	for _, gpu := range inventory.Gpus {
 		if len(gpu.Manufacturer) > 512 || len(gpu.Model) > 512 || len(gpu.DriverProvider) > 512 ||
-			len(gpu.DriverVersion) > 128 || len(gpu.PciDeviceID) > 16 || len(gpu.VendorFamily) > 128 {
+			len(gpu.DriverVersion) > 128 || len(gpu.PciDeviceID) > 17 || len(gpu.VendorFamily) > 128 {
 			return errors.New("GPU identity text field exceeds limit")
 		}
 		if gpu.PciDeviceID != "" && !validPCIDeviceToken(gpu.PciDeviceID) {
