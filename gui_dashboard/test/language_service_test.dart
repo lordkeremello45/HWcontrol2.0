@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import '../lib/services/language_service.dart';
+import 'package:hwcontrol_dashboard/services/language_service.dart';
 
 void main() {
   test('keeps an explicitly selected supported locale', () {
