@@ -1,4 +1,64 @@
 {
   "@@locale": "tr",
-  "localeDisplayName": "Türkçe"
+  "localeDisplayName": "Türkçe",
+  "batteryHealth": "Pil sağlığı",
+  "@batteryHealth": {
+    "description": "Battery health calculated from full-charge capacity divided by design capacity."
+  },
+  "batteryHealthDescription": "Tasarım kapasitesine kıyasla tahmini kalan kapasite",
+  "@batteryHealthDescription": {
+    "description": "Explain the battery health metric; it is an estimate, not a guaranteed lifetime."
+  },
+  "batteryNotDetected": "Desteklenen bir pil algılanmadı. Masaüstü bilgisayarlarda bu normaldir.",
+  "@batteryNotDetected": {
+    "description": "Shown when no battery is detected."
+  },
+  "batteryDataUnavailable": "Pil algılandı ancak tasarım veya tam şarj kapasitesi bilgisi bu cihazdan okunamıyor.",
+  "@batteryDataUnavailable": {
+    "description": "Shown when a battery exists but capacity telemetry cannot be read."
+  },
+  "batteryDesignCapacity": "Tasarım kapasitesi",
+  "@batteryDesignCapacity": {
+    "description": "Original rated battery capacity."
+  },
+  "batteryFullChargeCapacity": "Güncel tam şarj kapasitesi",
+  "@batteryFullChargeCapacity": {
+    "description": "Current learned full-charge capacity reported by the battery controller."
+  },
+  "batteryCapacityWear": "Tahmini kapasite kaybı",
+  "@batteryCapacityWear": {
+    "description": "Difference between design capacity and reported full-charge capacity; never negative."
+  },
+  "batteryCycleCount": "Şarj döngüsü",
+  "@batteryCycleCount": {
+    "description": "Battery cycle count, if the platform exposes it."
+  },
+  "batteryStatusLabel": "Pil durumu",
+  "@batteryStatusLabel": {
+    "description": "Label for current battery charging status."
+  },
+  "batteryCharging": "Şarj oluyor",
+  "@batteryCharging": {
+    "description": "Battery is charging."
+  },
+  "batteryDischarging": "Pilden çalışıyor",
+  "@batteryDischarging": {
+    "description": "Battery is discharging."
+  },
+  "batteryFull": "Tam dolu",
+  "@batteryFull": {
+    "description": "Battery is fully charged."
+  },
+  "batteryConnected": "Harici güç bağlı",
+  "@batteryConnected": {
+    "description": "External power is connected."
+  },
+  "batteryUnknownStatus": "Bilinmiyor",
+  "@batteryUnknownStatus": {
+    "description": "Battery status could not be determined."
+  },
+  "batteryHealthCaveat": "Sağlık değeri bildirilen kapasiteden hesaplanan bir tahmindir; kalan kullanım süresini göstermez. Ölçümler ve döngü sayısı donanım yazılımına ve platform desteğine bağlıdır; eşikler yalnızca yol göstericidir.",
+  "@batteryHealthCaveat": {
+    "description": "Important caveat for battery health interpretation."
+  }
 }
