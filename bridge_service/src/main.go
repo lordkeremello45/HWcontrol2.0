@@ -140,6 +140,7 @@ type HardwareMetrics struct {
 	FanControlBackend      string    `json:"fanControlBackend"`
 	HardwareControlMode    string    `json:"hardwareControlMode"`
 	ThermalSafetyAvailable bool      `json:"thermalSafetyAvailable"`
+	Battery                BatteryMetrics `json:"battery"`
 }
 
 var errRequestTooLarge = errors.New("request too large")
@@ -216,6 +217,7 @@ func collectMetrics() HardwareMetrics {
 		}
 	}
 	mergePlatformMetrics(&metrics)
+	mergeBatteryMetrics(&metrics)
 	fanControl := detectFanControl()
 	metrics.FanControlSupported = fanControl.Supported
 	metrics.FanControlBackend = fanControl.Backend
