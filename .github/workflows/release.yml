@@ -94,6 +94,15 @@ jobs:
           $packageDir = "package/HWControl-${{ env.RELEASE_TAG }}-Windows-x64"
           Remove-Item package -Recurse -Force -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Force -Path $packageDir | Out-Null
+          $helperStage = Join-Path $packageDir '.hardware-helper-stage'
+          dotnet publish lib/hardware-identification/HWControl.HardwareIdentification.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false --output $helperStage
+          if ($LASTEXITCODE -ne 0) { throw 'Publishing the C# hardware identification helper failed' }
+          $helper = Join-Path $helperStage 'hwcontrol-hardware-identification.exe'
+          if (-not (Test-Path $helper)) { throw 'Published C# hardware identification helper is missing' }
+          Copy-Item $helper "$packageDir/hwcontrol-hardware-identification.exe"
+          Remove-Item $helperStage -Recurse -Force
+          & "$packageDir/hwcontrol-hardware-identification.exe" --self-test
+          if ($LASTEXITCODE -ne 0) { throw 'Packaged C# hardware identification self-test failed' }
           Copy-Item build-windows/ai_core/Release/ai_engine.exe "$packageDir/ai_engine.exe"
           Copy-Item -Recurse gui_dashboard/build/windows/x64/runner/Release "$packageDir/dashboard"
           Copy-Item gui_dashboard/build/windows/x64/runner/Release/hwcontrol_dashboard.exe "$packageDir/HWControl.exe"
@@ -103,7 +112,7 @@ jobs:
           Copy-Item security/fetch-status/bridger.key "$packageDir/security/fetch-status/bridger.key"
           Copy-Item README.md, SECURITY.md, THIRD_PARTY_NOTICES $packageDir
           Copy-Item -Recurse deploy/windows "$packageDir/deploy"
-          foreach ($required in @('HWControl.exe','bridge-service.exe','security-guardian.exe','ai_engine.exe','security/fetch-status/bridger.key')) {
+          foreach ($required in @('HWControl.exe','bridge-service.exe','security-guardian.exe','hwcontrol-hardware-identification.exe','ai_engine.exe','security/fetch-status/bridger.key')) {
             if (-not (Test-Path "$packageDir/$required")) { throw "$required missing from Windows package" }
           }
 
@@ -134,6 +143,9 @@ jobs:
           if (-not (Test-Path "$env:ProgramFiles\HWControl\HWControl.exe")) { throw 'HWControl.exe was not installed' }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\bridge-service.exe")) { throw 'bridge-service.exe was not installed' }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\security-guardian.exe")) { throw 'security-guardian.exe was not installed' }
+          if (-not (Test-Path "$env:ProgramFiles\HWControl\hwcontrol-hardware-identification.exe")) { throw 'C# hardware identification helper was not installed' }
+          & "$env:ProgramFiles\HWControl\hwcontrol-hardware-identification.exe" --self-test
+          if ($LASTEXITCODE -ne 0) { throw 'Installed C# hardware identification self-test failed' }
           if (-not (Test-Path "$env:ProgramData\HWControl\security\canary\bridger.key")) { throw 'bridger.key canary was not installed' }
           $service = Get-Service -Name HWControlBridge -ErrorAction Stop
           if ($service.Status -ne 'Running') { throw "HWControlBridge is not running: $($service.Status)" }
@@ -167,6 +179,7 @@ jobs:
           if (-not (Test-Path "verify-zip/bridge-service.exe")) { throw 'bridge-service.exe missing from ZIP' }
           if (-not (Test-Path "verify-zip/ai_engine.exe")) { throw 'ai_engine.exe missing from ZIP' }
           if (-not (Test-Path "verify-zip/security-guardian.exe")) { throw 'security-guardian.exe missing from ZIP' }
+          if (-not (Test-Path "verify-zip/hwcontrol-hardware-identification.exe")) { throw 'C# hardware identification helper missing from ZIP' }
           if (-not (Test-Path "verify-zip/security/fetch-status/bridger.key")) { throw 'bridger.key missing from ZIP' }
 
       - name: Generate checksums
