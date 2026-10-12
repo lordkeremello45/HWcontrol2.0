@@ -35,7 +35,7 @@ const windowsHardwareIdentityScript = "$ErrorActionPreference='SilentlyContinue'
 	"$gpu=Get-CimInstance Win32_VideoController | Where-Object {$_.Name} | Select-Object -First 1\n" +
 	"[pscustomobject]@{ systemManufacturer=[string]$cs.Manufacturer; systemModel=[string]$cs.Model; systemVersion=[string]$cs.SystemFamily; biosVendor=[string]$bios.Manufacturer; biosVersion=[string]$bios.SMBIOSBIOSVersion; motherboardVendor=[string]$board.Manufacturer; motherboardModel=[string]$board.Product; motherboardVersion=[string]$board.Version; cpuManufacturer=[string]$cpu.Manufacturer; cpuModel=[string]$cpu.Name; cpuPhysicalCores=[int]$cpu.NumberOfCores; cpuThreads=[int]$cpu.NumberOfLogicalProcessors; gpuVendor=[string]$gpu.AdapterCompatibility; gpuModel=[string]$gpu.Name; gpuDriver=[string]$gpu.DriverProviderName; gpuDriverVersion=[string]$gpu.DriverVersion } | ConvertTo-Json -Compress"
 
-func collectHardwareIdentity() HardwareIdentity {
+func collectHardwareIdentityWithPowerShell() HardwareIdentity {
 	id := emptyHardwareIdentity()
 	id.DetectionSource = "Windows CIM/WMI"
 	output, err := exec.Command("powershell.exe", "-NoProfile", "-NonInteractive", "-Command", windowsHardwareIdentityScript).Output()
