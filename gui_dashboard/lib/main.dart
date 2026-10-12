@@ -309,6 +309,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final FanCurveController _fanCurveController = FanCurveController();
   bool _gameProfileApplied = false;
   double _preGameFanValue = 50;
+  String _activeGameProfileProcess = '';
+  Map<String, String> _gameProfiles = <String, String>{};
   bool _historyDirty = false;
   int _samplesSinceHistoryPersist = 0;
   static const _historySchema = 1;
@@ -671,6 +673,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final piperExecutable = settings['piperExecutablePath'];
       final piperModel = settings['piperModelPath'];
       final rawRules = settings['automationRules'];
+      final rawGameProfiles = settings['gameProfiles'];
+      final gameProfiles = <String, String>{};
+      if (rawGameProfiles is Map) {
+        for (final entry in rawGameProfiles.entries) {
+          final process = _normalizeGameProcessName(entry.key.toString());
+          final profile = entry.value;
+          if (process.isNotEmpty && profile is String && profile.trim().isNotEmpty) {
+            gameProfiles[process] = profile.trim();
+          }
+        }
+      }
       final rules = rawRules is List ? rawRules.map(HardwareAutomationRule.fromJson).whereType<HardwareAutomationRule>().toList(growable: false) : const <HardwareAutomationRule>[];
       setState(() {
         if (notifications is bool) _notificationsEnabled = notifications;
@@ -681,6 +694,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         if (piperEnabled is bool) _piperTtsEnabled = piperEnabled;
         if (piperExecutable is String) _piperExecutablePath = piperExecutable;
         if (piperModel is String) _piperModelPath = piperModel;
+        _gameProfiles = gameProfiles;
         _automationRules = rules.isEmpty
             ? const <HardwareAutomationRule>[
                 HardwareAutomationRule(name: 'CPU thermal guard', sensor: 'cpuTemperature', threshold: 85, fanPercent: 80),
@@ -704,6 +718,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         'piperTtsEnabled': _piperTtsEnabled,
         'piperExecutablePath': _piperExecutablePath,
         'piperModelPath': _piperModelPath,
+        'gameProfiles': _gameProfiles,
         'automationRules': _automationRules.map((rule) => rule.toJson()).toList(growable: false),
       });
     } catch (_) {
@@ -900,24 +915,118 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  String _normalizeGameProcessName(String name) {
+    final normalized = name.trim().toLowerCase().replaceAll('\\\\', '/');
+    final separator = normalized.lastIndexOf('/');
+    return separator >= 0 ? normalized.substring(separator + 1) : normalized;
+  }
+
+  Future<void> _openGameProfileManager() async {
+    final process = _normalizeGameProcessName(_gameProcessName);
+    if (!_gameDetected || process.isEmpty) {
+      _addEvent('Önce desteklenen bir oyun algılanmalı');
+      return;
+    }
+    final names = _profiles.keys.toList()..sort();
+    if (names.isEmpty) {
+      _addEvent('Önce Kontroller bölümünden en az bir profil kaydedin');
+      return;
+    }
+    var selected = _gameProfiles[process];
+    if (selected != null && !names.contains(selected)) selected = null;
+    final result = await showDialog<String?>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text('Oyun profili'),
+          content: SizedBox(
+            width: 420,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(process),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: selected,
+                  decoration: InputDecoration(labelText: _tr('saveProfile')),
+                  items: [
+                    for (final name in names)
+                      DropdownMenuItem<String>(value: name, child: Text(name)),
+                  ],
+                  onChanged: (value) => setDialogState(() => selected = value),
+                ),
+                const SizedBox(height: 8),
+                const Text('Bu atama yalnızca oyun algılandığında uygulanır. Donanım denetimi desteklenmiyorsa fan ayarı gönderilmez.'),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(_tr('cancel')),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, ''),
+              child: const Text('Atamayı kaldır'),
+            ),
+            FilledButton(
+              onPressed: selected == null ? null : () => Navigator.pop(context, selected),
+              child: Text(_tr('save')),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || result == null) return;
+    setState(() {
+      if (result.isEmpty) {
+        _gameProfiles.remove(process);
+      } else {
+        _gameProfiles[process] = result;
+      }
+    });
+    await _saveSettings();
+    _addEvent(result.isEmpty ? '$process oyun profili ataması kaldırıldı' : '$process için $result profili atandı');
+  }
+
   Future<void> _applyGameModeProfile(Map<String, dynamic> telemetry) async {
-    if (!_gameModeEnabled || !_fanControlSupported || !_isConnected || _isSending) return;
-    final detected = telemetry['gameDetected'] == true;
-    if (detected && !_gameProfileApplied) {
-      _preGameFanValue = _fanValue;
-      final success = await _sendCommand('Fan Hızı', 75);
-      if (success) {
-        _gameProfileApplied = true;
-        if (mounted) setState(() => _fanValue = 75);
-        _addEvent('Game Mode profili otomatik uygulandı');
-      }
-    } else if (!detected && _gameProfileApplied) {
-      final success = await _sendCommand('Fan Hızı', _preGameFanValue.clamp(0, 100).toDouble());
-      if (success) {
-        _gameProfileApplied = false;
-        if (mounted) setState(() => _fanValue = _preGameFanValue);
-        _addEvent('Game Mode profili kapatıldı; önceki fan hedefi geri yüklendi');
-      }
+    if (!_isConnected || _isSending) return;
+    final detected = _gameModeEnabled && telemetry['gameDetected'] == true;
+    final process = _normalizeGameProcessName(
+      telemetry['gameProcessName'] as String? ?? _gameProcessName,
+    );
+    final sameGame = detected && _gameProfileApplied && process == _activeGameProfileProcess;
+    final hadActiveSession = _gameProfileApplied;
+
+    // Restore the pre-game target on disable, game exit, or game switch.
+    if (_gameProfileApplied && !sameGame) {
+      final restore = _preGameFanValue.clamp(0, 100).toDouble();
+      final success = await _sendCommand('Fan Hızı', restore);
+      if (!success) return;
+      _gameProfileApplied = false;
+      _activeGameProfileProcess = '';
+      if (mounted) setState(() => _fanValue = restore);
+      _addEvent('Önceki fan hedefi geri yüklendi');
+    }
+
+    if (!detected || !_fanControlSupported || _gameProfileApplied) return;
+
+    // Keep the original baseline when switching directly between games.
+    if (!hadActiveSession) _preGameFanValue = _fanValue;
+    final assignedName = _gameProfiles[process];
+    final assignedProfile = assignedName == null ? null : _profiles[assignedName];
+    final target = (assignedProfile?['fan'] ?? 75).clamp(0, 100).toDouble();
+    final success = await _sendCommand('Fan Hızı', target);
+    if (success) {
+      _gameProfileApplied = true;
+      _activeGameProfileProcess = process;
+      if (mounted) setState(() => _fanValue = target);
+      _addEvent(
+        assignedName == null
+            ? 'Game Mode varsayılan oyun fan hedefini uyguladı'
+            : '$process için $assignedName profili uygulandı',
+      );
     }
   }
 
@@ -2517,6 +2626,12 @@ Attach this archive to a support issue only after reviewing it for personal info
             const SizedBox(height: 4),
             Text(active ? _tr('activeGameProcess') : _tr('hardwareControlMonitorOnly'), style: TextStyle(fontSize: 11, color: active ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withAlpha(130))),
           ])),
+          if (_gameDetected)
+            IconButton(
+              tooltip: 'Oyun profili ata',
+              onPressed: _isSending ? null : _openGameProfileManager,
+              icon: const Icon(Icons.tune),
+            ),
           Tooltip(message: _tr('gameModeSet'), child: Switch(value: _gameModeEnabled, onChanged: _isSending ? null : (enabled) async {
             final success = await _sendCommand('Set Game Mode', enabled ? 100 : 0);
             if (!mounted) return;
