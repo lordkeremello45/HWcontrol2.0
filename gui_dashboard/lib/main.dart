@@ -2317,7 +2317,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             description: 'Supported Windows 11 and Linux adapters can request and read back an OS power profile. macOS automation remains unavailable. The app-level Performance toggle does not silently change the OS power profile.',
           ),
           const SizedBox(height: 18),
-          const Text('Windows 11 OS power mode', style: TextStyle(fontWeight: FontWeight.w800)),
+          Text(Platform.isLinux ? 'Linux system power profile' : 'Windows 11 OS power mode', style: const TextStyle(fontWeight: FontWeight.w800)),
           const SizedBox(height: 5),
           Text(
             (Platform.isWindows || Platform.isLinux)
