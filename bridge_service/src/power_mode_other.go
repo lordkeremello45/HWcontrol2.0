@@ -1,4 +1,4 @@
-//go:build !windows
+//go:build !windows && !linux
 
 package main
 
@@ -13,7 +13,7 @@ func getPlatformPowerMode() PowerModeState {
 		Platform:  runtime.GOOS,
 		AC:        "Unavailable",
 		DC:        "Unavailable",
-		Message:   "Automated OS power-mode control is currently implemented only for supported Windows 11 desktop systems.",
+		Message:   "Automated OS power-mode control is implemented only for supported Windows 11 and Linux power-profile services.",
 	}
 }
 
