@@ -15,3 +15,7 @@ Presets update the dashboard controls and then attempt to send the corresponding
 ## Important implementation note
 
 The current bridge source returns an error when the hardware-control backend is unavailable. Therefore preset selection does not guarantee that a physical fan or power-control operation occurred on every build or machine.
+
+## Operating-system performance modes
+
+These presets do not currently change the operating system's power mode. Cross-platform OS power-mode integration is researched separately and remains **NOT IMPLEMENTED**. See [Performance Mode Research and Implementation Plan](Features-Performance-Mode) for the platform capability matrix and safe implementation requirements.
