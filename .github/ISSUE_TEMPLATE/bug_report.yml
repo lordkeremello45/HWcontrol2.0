@@ -1,53 +1,116 @@
 name: Bug report
-description: Report a reproducible problem with HWControl
+description: Report a reproducible HWcontrol2.0 problem or incorrect hardware reading
 title: "[Bug]: "
-labels: ["bug"]
+labels: ["bug", "beta-feedback"]
 body:
   - type: markdown
     attributes:
       value: |
-        Please search existing issues first. Remove secrets and private data from logs.
+        Thanks for helping improve HWcontrol2.0. Search existing issues first and report one problem per issue.
+        Never include passwords, access tokens, private keys, bridge secrets, serial numbers, personal paths, or unrelated private data.
+        Diagnostic archives are optional: inspect and redact them before attaching. Nothing is uploaded automatically by the app.
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Impact
+      description: How much does this issue affect your use?
+      options:
+        - "Low — cosmetic or minor inconvenience"
+        - "Medium — feature is impaired but a workaround exists"
+        - "High — a major feature is unusable"
+        - "Critical — crash, data loss, unsafe hardware behavior, or app cannot start"
+    validations:
+      required: true
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: Reproducibility
+      options:
+        - Every time
+        - Frequently
+        - Occasionally
+        - Happened once
+        - Cannot reproduce reliably
+    validations:
+      required: true
   - type: textarea
     id: expected
     attributes:
       label: Expected behavior
       description: What should have happened?
+      placeholder: "Example: the dashboard should show the GPU temperature or clearly report that it is unavailable."
     validations:
       required: true
   - type: textarea
     id: actual
     attributes:
       label: Actual behavior
-      description: What happened instead?
+      description: What happened instead? Include the exact error text if available.
     validations:
       required: true
   - type: textarea
     id: steps
     attributes:
       label: Reproduction steps
-      description: Provide the smallest reliable set of steps.
+      description: List the smallest reliable sequence. Say if the issue occurs after a clean install or only after an upgrade.
+      placeholder: |
+        1. Start HWcontrol2.0...
+        2. Open...
+        3. Observe...
     validations:
       required: true
   - type: input
     id: version
     attributes:
-      label: HWControl version or commit
+      label: HWcontrol2.0 version or commit
+      placeholder: "Example: v0.3.0-beta"
     validations:
       required: true
   - type: input
     id: os
     attributes:
       label: Operating system and architecture
-      placeholder: Windows 11 x64 / Ubuntu 24.04 x64 / macOS 14 arm64
+      placeholder: "Windows 11 24H2 x64 / Ubuntu 24.04 x64 / macOS 14 arm64"
+    validations:
+      required: true
+  - type: dropdown
+    id: package
+    attributes:
+      label: Installation type
+      options:
+        - EXE installer
+        - MSI
+        - MSIX
+        - Portable ZIP/archive
+        - DEB
+        - DMG
+        - PKG
+        - Built from source
+        - Other / not sure
     validations:
       required: true
   - type: textarea
     id: hardware
     attributes:
-      label: Hardware and drivers
-      description: CPU, GPU, motherboard if relevant, and driver versions.
-  - type: textarea
-    id: logs
+      label: Hardware and driver context
+      description: Include only what is relevant; exact model details are optional.
+      placeholder: "CPU / GPU / motherboard, driver version, firmware, permissions, laptop or desktop"
+  - type: dropdown
+    id: capability
     attributes:
-      label: Logs or diagnostics
-      description: Remove keys, tokens, credentials, and personal data before posting.
+      label: Affected area
+      options:
+        - Startup / installation / update
+        - Bridge connection
+        - Hardware detection / telemetry
+        - Fan control / fan curve
+        - Performance profile / Game Mode
+        - Graphs / dashboard / localization
+        - Diagnostics / export
+        - Security / permissions
+        - Other
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Optional logs or diagnostic summary
+      description: Share only the smallest relevant excerpt after reviewing and redacting it. Do not attach full system dumps or secrets.
