@@ -60,3 +60,16 @@ The SPARK package now exports hwcontrol_security_validate_fan_command with a C-c
 The Rust support layer at security/rust-support/ can call this symbol behind its spark-ffi feature. Rust only carries and validates the ALLOW/DENY result and fails closed for unknown decision values.
 
 The live Go/C++ integration remains intentionally gated until the GNAT/SPARK toolchain and native linking are validated on Windows 10/11, Linux x64, and macOS 14+ Apple Silicon.
+
+## Hardware identity data boundary
+
+The C# Windows collector is an untrusted, read-only metadata source. Its JSON is not an authorization token and must never make a fan-control decision. The SPARK contract `Validate_Hardware_Identity` accepts four already-derived validation facts:
+
+- `Schema_Valid`: supported schema version and Windows platform;
+- `Payload_Bounded`: output size and every text field fit configured limits;
+- `Counts_Valid`: CPU/GPU collection sizes and core/device counts are in range;
+- `Status_Valid`: collector status is one of the explicitly supported states.
+
+Any false fact yields `Deny`. The exported C ABI `hwcontrol_security_validate_hardware_identity` additionally requires every flag to be exactly 1; unknown flag values fail closed. These checks validate whether metadata may enter the application data model, not whether the reported hardware identity is true, and they do not authorize hardware control.
+
+The Windows Go adapter currently enforces the same fail-closed contract at runtime after parsing the helper's JSON. **The exported SPARK ABI is specified and tested, but the Go Windows binary does not yet dynamically link or invoke that Ada symbol.** The current Windows GNAT/SPARK toolchain and native linking path are not configured in the release build. Do not describe this as a live Go-to-SPARK call until that link and an end-to-end test are implemented.
