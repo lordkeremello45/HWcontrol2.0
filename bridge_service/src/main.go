@@ -79,6 +79,9 @@ type HardwareMetrics struct {
 	GameModeEnabled        bool      `json:"gameModeEnabled"`
 	GameDetected           bool      `json:"gameDetected"`
 	GameProcessName        string    `json:"gameProcessName"`
+	GameProcessPID          uint32    `json:"gameProcessPid"`
+	GameDetectedAt          string    `json:"gameDetectedAt"`
+	GameSessionDurationSeconds int64 `json:"gameSessionDurationSeconds"`
 	SystemManufacturer     string    `json:"systemManufacturer"`
 	SystemModel            string    `json:"systemModel"`
 	SystemVersion          string    `json:"systemVersion"`
@@ -226,6 +229,9 @@ func collectMetrics() HardwareMetrics {
 	metrics.GameModeEnabled = game.Enabled
 	metrics.GameDetected = game.GameDetected
 	metrics.GameProcessName = game.ProcessName
+	metrics.GameProcessPID = game.PID
+	metrics.GameDetectedAt = game.DetectedAt
+	metrics.GameSessionDurationSeconds = game.SessionDurationSeconds
 	identity := collectHardwareIdentity()
 	metrics.SystemManufacturer = identity.SystemManufacturer
 	metrics.SystemModel = identity.SystemModel
