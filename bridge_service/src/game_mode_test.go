@@ -32,12 +32,18 @@ func TestGameSessionDetectionTimeIsStable(t *testing.T) {
 	if want := start.Format(time.RFC3339); got != want {
 		t.Fatalf("session detection time changed on poll: got %q, want %q", got, want)
 	}
+	if got := gameSessionDurationSeconds(nextPoll); got != 15 {
+		t.Fatalf("session duration = %d, want 15 seconds", got)
+	}
 	got = gameSessionDetectedAt("cs2.exe", 5678, true, nextPoll)
 	if want := nextPoll.Format(time.RFC3339); got != want {
 		t.Fatalf("new PID detection = %q, want %q", got, want)
 	}
 	if got = gameSessionDetectedAt("", 0, false, nextPoll.Add(time.Second)); got != "" {
 		t.Fatalf("session should clear after game exits, got %q", got)
+	}
+	if got := gameSessionDurationSeconds(nextPoll.Add(time.Second)); got != 0 {
+		t.Fatalf("cleared session duration = %d, want 0", got)
 	}
 	got = gameSessionDetectedAt("cs2.exe", 1234, true, nextPoll.Add(2*time.Second))
 	if want := nextPoll.Add(2 * time.Second).Format(time.RFC3339); got != want {
