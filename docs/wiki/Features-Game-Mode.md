@@ -12,6 +12,7 @@ Game Mode provides a conservative game-session detection and monitoring layer.
 - Starts a new session when the detected PID changes and clears the timestamp when no allow-listed game is found.
 - Includes Game Mode state in diagnostics.
 - Does not change clocks, voltage, power limits, process priority, or terminate background processes.
+- Process-priority control is not implemented. The security prerequisites and staged acceptance criteria are documented in [Game Process Priority Engineering Plan](Engineering-Game-Process-Priority.md).
 - Hardware actions remain disabled unless a platform backend has been validated and explicitly reports support.
 
 ## Per-game profile assignment
