@@ -22,6 +22,7 @@ import 'benchmark.dart';
 import 'automation_rules.dart';
 import 'model_manager.dart';
 import 'user_data_store.dart';
+import 'game_profile.dart';
 import 'l10n/app_localizations.dart';
 import 'l10n/app_localizations_map.dart';
 import 'welcome_screen.dart';
@@ -915,11 +916,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  String _normalizeGameProcessName(String name) {
-    final normalized = name.trim().toLowerCase().replaceAll('\\', '/');
-    final separator = normalized.lastIndexOf('/');
-    return separator >= 0 ? normalized.substring(separator + 1) : normalized;
-  }
+  String _normalizeGameProcessName(String name) =>
+      normalizeGameProcessName(name);
 
   Future<void> _openGameProfileManager() async {
     final process = _normalizeGameProcessName(_gameProcessName);
@@ -1014,9 +1012,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     // Keep the original baseline when switching directly between games.
     if (!hadActiveSession) _preGameFanValue = _fanValue;
-    final assignedName = _gameProfiles[process];
-    final assignedProfile = assignedName == null ? null : _profiles[assignedName];
-    final target = (assignedProfile?['fan'] ?? 75).clamp(0, 100).toDouble();
+    final assignedName = assignedGameProfileName(
+      processName: process,
+      assignments: _gameProfiles,
+    );
+    final target = resolveGameProfileFanTarget(
+      processName: process,
+      assignments: _gameProfiles,
+      profiles: _profiles,
+    );
     final success = await _sendCommand('Fan Hızı', target);
     if (success) {
       _gameProfileApplied = true;
