@@ -2664,18 +2664,19 @@ Attach this archive to a support issue only after reviewing it for personal info
   }
 
   Widget _buildUpdateCard() {
-    final available = _updateInfo != null;
+    final updateInfo = _updateInfo;
+    final available = updateInfo != null;
     final color = available ? const Color(0xFFFFB454) : const Color(0xFF64D8CB);
     return AnimatedSwitcher(
       duration: widget.animationsEnabled ? const Duration(milliseconds: 220) : Duration.zero,
       child: _Panel(
-        key: ValueKey('$_updateStatus-${_updateInfo?.tag}'),
+        key: ValueKey('$_updateStatus-${updateInfo?.tag}'),
         padding: const EdgeInsets.fromLTRB(18, 14, 14, 14),
         child: Row(
           children: [
             Icon(available ? Icons.system_update_alt : Icons.verified_user_outlined, color: color),
             const SizedBox(width: 12),
-            Expanded(child: Text(available ? AppLocalizations.of(context).updateReleaseReady(_updateInfo.tag) : (_updateStatus.isEmpty ? _tr('updateStatusNotChecked') : _updateStatus), style: TextStyle(color: color, fontWeight: FontWeight.w600))),
+            Expanded(child: Text(available ? AppLocalizations.of(context).updateReleaseReady(updateInfo.tag) : (_updateStatus.isEmpty ? _tr('updateStatusNotChecked') : _updateStatus), style: TextStyle(color: color, fontWeight: FontWeight.w600))),
             if (available) TextButton.icon(onPressed: _openUpdate, icon: const Icon(Icons.download, size: 17), label: Text(_tr('releaseOpen'))),
             IconButton(tooltip: _tr('checkForUpdates'), onPressed: _isCheckingUpdate ? null : _checkForUpdate, icon: const Icon(Icons.refresh)),
           ],
