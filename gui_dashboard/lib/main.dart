@@ -916,7 +916,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   String _normalizeGameProcessName(String name) {
-    final normalized = name.trim().toLowerCase().replaceAll('\\\\', '/');
+    final normalized = name.trim().toLowerCase().replaceAll('\\', '/');
     final separator = normalized.lastIndexOf('/');
     return separator >= 0 ? normalized.substring(separator + 1) : normalized;
   }
