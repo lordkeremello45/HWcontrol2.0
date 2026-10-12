@@ -938,7 +938,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: Text('Oyun profili'),
+          title: Text(_tr('gameMode')),
           content: SizedBox(
             width: 420,
             child: Column(
@@ -957,7 +957,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   onChanged: (value) => setDialogState(() => selected = value),
                 ),
                 const SizedBox(height: 8),
-                const Text('Bu atama yalnızca oyun algılandığında uygulanır. Donanım denetimi desteklenmiyorsa fan ayarı gönderilmez.'),
+                Text(_tr('gameModeDescription')),
               ],
             ),
           ),
@@ -968,7 +968,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, ''),
-              child: const Text('Atamayı kaldır'),
+              child: Text(_tr('reset')),
             ),
             FilledButton(
               onPressed: selected == null ? null : () => Navigator.pop(context, selected),
@@ -2628,7 +2628,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           ])),
           if (_gameDetected)
             IconButton(
-              tooltip: 'Oyun profili ata',
+              tooltip: _tr('gameMode'),
               onPressed: _isSending ? null : _openGameProfileManager,
               icon: const Icon(Icons.tune),
             ),
