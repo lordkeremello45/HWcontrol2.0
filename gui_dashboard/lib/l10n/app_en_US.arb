@@ -499,5 +499,65 @@
         "type": "String"
       }
     }
+  },
+  "batteryHealth": "Battery health",
+  "@batteryHealth": {
+    "description": "Battery health calculated from full-charge capacity divided by design capacity."
+  },
+  "batteryHealthDescription": "Estimated remaining capacity compared with the battery's original design",
+  "@batteryHealthDescription": {
+    "description": "Explain the battery health metric; it is an estimate, not a guaranteed lifetime."
+  },
+  "batteryNotDetected": "No supported battery was detected. This is normal on desktop PCs.",
+  "@batteryNotDetected": {
+    "description": "Shown when no battery is detected."
+  },
+  "batteryDataUnavailable": "Battery detected, but design/full-charge capacity data is unavailable from this device or platform.",
+  "@batteryDataUnavailable": {
+    "description": "Shown when a battery exists but capacity telemetry cannot be read."
+  },
+  "batteryDesignCapacity": "Design capacity",
+  "@batteryDesignCapacity": {
+    "description": "Original rated battery capacity."
+  },
+  "batteryFullChargeCapacity": "Current full-charge capacity",
+  "@batteryFullChargeCapacity": {
+    "description": "Current learned full-charge capacity reported by the battery controller."
+  },
+  "batteryCapacityWear": "Estimated capacity loss",
+  "@batteryCapacityWear": {
+    "description": "Difference between design capacity and reported full-charge capacity; never negative."
+  },
+  "batteryCycleCount": "Charge cycles",
+  "@batteryCycleCount": {
+    "description": "Battery cycle count, if the platform exposes it."
+  },
+  "batteryStatusLabel": "Battery status",
+  "@batteryStatusLabel": {
+    "description": "Label for current battery charging status."
+  },
+  "batteryCharging": "Charging",
+  "@batteryCharging": {
+    "description": "Battery is charging."
+  },
+  "batteryDischarging": "Discharging",
+  "@batteryDischarging": {
+    "description": "Battery is discharging."
+  },
+  "batteryFull": "Fully charged",
+  "@batteryFull": {
+    "description": "Battery is fully charged."
+  },
+  "batteryConnected": "External power connected",
+  "@batteryConnected": {
+    "description": "External power is connected."
+  },
+  "batteryUnknownStatus": "Unknown",
+  "@batteryUnknownStatus": {
+    "description": "Battery status could not be determined."
+  },
+  "batteryHealthCaveat": "Health is an estimate based on reported capacity, not a prediction of remaining runtime. Readings and cycle counts depend on firmware and platform support; thresholds are indicative only.",
+  "@batteryHealthCaveat": {
+    "description": "Important caveat for battery health interpretation."
   }
 }
