@@ -94,6 +94,7 @@ See:
 - [Fan Curve Editor](Features-Fan-Curve-Editor)
 - [Real-time Hardware Graphs](Features-Real-time-Hardware-Graphs)
 - [Performance / Balanced / Quiet](Features-Performance-Balanced-Quiet)
+- [Performance Mode Research and Implementation Plan](Features-Performance-Mode)
 - [Game Mode](Features-Game-Mode)
 
 ### 🏗️ Architecture
