@@ -27,14 +27,14 @@ void main() {
       catalogs[locale] = catalog;
       expect(catalog['localeDisplayName'], isA<String>());
       expect((catalog['localeDisplayName'] as String).trim(), isNotEmpty);
-      expect(file.uri.pathSegments.last, 'app_${locale}.arb');
+      expect(file.uri.pathSegments.last, 'app_$locale.arb');
     }
 
     final languageCodes = catalogs.keys
         .map((locale) => locale.split('_').first)
         .toSet();
     for (final languageCode in languageCodes) {
-      final fallbackFile = File('lib/l10n/app_${languageCode}.arb');
+      final fallbackFile = File('lib/l10n/app_$languageCode.arb');
       expect(
         fallbackFile.existsSync(),
         isTrue,
@@ -175,7 +175,7 @@ void main() {
 
     final legacyAssetName = 'language.json';
     final legacyAssetPath = 'assets/localization/';
-    final legacyAssetFile = File('${legacyAssetPath}${legacyAssetName}');
+    final legacyAssetFile = File('$legacyAssetPath$legacyAssetName');
     expect(legacyAssetFile.existsSync(), isFalse,
         reason: 'The old runtime localization asset must remain removed');
     expect(
