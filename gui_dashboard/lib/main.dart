@@ -2571,7 +2571,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           children: [
             Icon(available ? Icons.system_update_alt : Icons.verified_user_outlined, color: color),
             const SizedBox(width: 12),
-            Expanded(child: Text(available ? AppLocalizations.of(context).updateReleaseReady(_updateInfo!.tag) : (_updateStatus.isEmpty ? _tr('updateStatusNotChecked') : _updateStatus), style: TextStyle(color: color, fontWeight: FontWeight.w600))),
+            Expanded(child: Text(available ? AppLocalizations.of(context).updateReleaseReady(_updateInfo.tag) : (_updateStatus.isEmpty ? _tr('updateStatusNotChecked') : _updateStatus), style: TextStyle(color: color, fontWeight: FontWeight.w600))),
             if (available) TextButton.icon(onPressed: _openUpdate, icon: const Icon(Icons.download, size: 17), label: Text(_tr('releaseOpen'))),
             IconButton(tooltip: _tr('checkForUpdates'), onPressed: _isCheckingUpdate ? null : _checkForUpdate, icon: const Icon(Icons.refresh)),
           ],
