@@ -30,6 +30,10 @@ func TestParseCSharpHardwareInventoryRejectsInvalidInput(t *testing.T) {
 		{name: "negative core count", input: `{"schemaVersion":1,"platform":"windows","status":"ok","cpus":[{"physicalCores":-1}]}`},
 		{name: "trailing value", input: `{"schemaVersion":1,"platform":"windows","status":"ok"} {}`},
 		{name: "malformed JSON", input: `{"schemaVersion":`},
+		{name: "unknown field", input: `{"schemaVersion":1,"platform":"windows","status":"ok","unexpectedSecret":"x"}`},
+		{name: "oversized model", input: `{"schemaVersion":1,"platform":"windows","status":"partial","systemModel":"` + strings.Repeat("x", 513) + `"}\`},
+\t\t{name: "physical cores exceed logical", input: \`{"schemaVersion":1,"platform":"windows","status":"ok","cpus":[{"physicalCores":16,"logicalProcessors":8}]}\`},
+\t\t{name: "invalid PCI token", input: \`{"schemaVersion":1,"platform":"windows","status":"partial","gpus":[{"pciDeviceId":"VEN_BAD&DEV_1234"}]}\`},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
