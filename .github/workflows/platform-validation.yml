@@ -84,6 +84,13 @@ jobs:
           cmake -S . -B build-windows -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
           cmake --build build-windows --config Release --parallel 2
           ctest --test-dir build-windows -C Release --output-on-failure
+      - name: Build and test C# hardware identification library
+        shell: pwsh
+        run: |
+          dotnet --info
+          dotnet restore lib/hardware-identification/HWControl.HardwareIdentification.csproj
+          dotnet build lib/hardware-identification/HWControl.HardwareIdentification.csproj --configuration Release --no-restore
+          dotnet run --project lib/hardware-identification/HWControl.HardwareIdentification.csproj --configuration Release --no-build -- --self-test
       - name: Test and build bridge
         working-directory: bridge_service
         shell: pwsh
@@ -161,4 +168,3 @@ jobs:
         run: |
           python3 --version
           python3 -m unittest discover -s tools/telemetry -p 'test_*.py'
-
