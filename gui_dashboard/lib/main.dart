@@ -1941,6 +1941,9 @@ Attach this archive to a support issue only after reviewing it for personal info
             TextButton(onPressed: () => Navigator.pop(context), child: Text(_tr('cancel'))),
             FilledButton(
               onPressed: () async {
+                // Capture the dialog navigator before awaiting; BuildContext must not
+                // be reused across this asynchronous localization-style operation.
+                final dialogNavigator = Navigator.of(context);
                 final nextLocale = HWControlLanguageService.resolveLocale(
                   savedLocale: selectedLocale,
                   supportedCodes: AppLocalizations.supportedLocales.map(localeTag),
@@ -1953,7 +1956,7 @@ Attach this archive to a support issue only after reviewing it for personal info
                   style: selectedLanguageStyle,
                   translations: baseTranslations,
                 );
-                if (!mounted) return;
+                if (!mounted || !dialogNavigator.mounted) return;
                 setState(() {
                   _notificationsEnabled = notificationsEnabled;
                   _temperatureLimit = temperatureLimit;
@@ -1967,7 +1970,7 @@ Attach this archive to a support issue only after reviewing it for personal info
                 });
                 widget.onLocaleChanged(_locale);
                 unawaited(_saveSettings());
-                Navigator.pop(context);
+                dialogNavigator.pop();
               },
               child: Text(_tr('save')),
             ),
