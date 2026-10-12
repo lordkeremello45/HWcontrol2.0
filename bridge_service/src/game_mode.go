@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -57,10 +59,32 @@ func gameModeEnabled() bool {
 	return gameModeState.enabled
 }
 
+func normalizeGameProcessName(name string) string {
+	normalized := strings.TrimSpace(strings.ToLower(name))
+	normalized = strings.ReplaceAll(normalized, "\\", "/")
+	if slash := strings.LastIndex(normalized, "/"); slash >= 0 {
+		normalized = normalized[slash+1:]
+	}
+	return filepath.Base(normalized)
+}
+
 func isKnownGameProcess(name string) bool {
-	normalized := strings.ToLower(strings.TrimSpace(name))
-	_, ok := knownGameProcesses[normalized]
-	return ok
+	normalized := normalizeGameProcessName(name)
+	if normalized == "" {
+		return false
+	}
+	if _, ok := knownGameProcesses[normalized]; ok {
+		return true
+	}
+
+	// Optional user-defined executable allow-list. This keeps unknown games
+	// opt-in and avoids broad matches such as javaw.exe or generic launchers.
+	for _, configured := range strings.Split(os.Getenv("HWCONTROL_GAME_PROCESSES"), ",") {
+		if candidate := normalizeGameProcessName(configured); candidate != "" && candidate == normalized {
+			return true
+		}
+	}
+	return false
 }
 
 // gameSessionDetectedAt preserves the first detection time for the same process
