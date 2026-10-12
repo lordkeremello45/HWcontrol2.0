@@ -1,6 +1,6 @@
 # Performance Mode — Research and Implementation Plan
 
-**Status: PHASE 2 WINDOWS ADAPTER IMPLEMENTED; RUNTIME VALIDATION PENDING**
+**Status: PHASE 3 WINDOWS + LINUX ADAPTERS IMPLEMENTED; RUNTIME VALIDATION PENDING**
 
 This document separates HWcontrol2.0's in-app presets from operating-system power modes and hardware fan control. A GUI preset must not be presented as a system-wide performance change unless the relevant platform backend confirms that the OS setting was changed.
 
@@ -32,10 +32,12 @@ Each capability reports one of: supported, applied, unsupported, or failed. Neve
 
 ### Linux
 
-- Prefer an integration with the system's existing power-profile service (for example, power-profiles-daemon through its D-Bus API) when installed and when it advertises the requested profile.
+- **Implemented adapter:** the Go bridge queries the system D-Bus property `net.hadess.PowerProfiles.ActiveProfile` using `busctl`, and supports the standard `power-saver`, `balanced`, and `performance` profiles exposed by power-profiles-daemon.
+- The adapter reads the active profile before writing, sets only the requested system profile, then reads it back. If readback fails or disagrees, it attempts rollback only while the active profile still equals the value HWcontrol requested, avoiding overwriting an intervening user/system change.
+- The adapter has no shell interpolation, does not write CPUFreq sysfs directly, and uses short command timeouts. If `busctl`, the service, or policy authorization is unavailable, the operation fails explicitly instead of reporting success.
+- Linux power-profiles-daemon exposes one active system profile; the adapter does not claim independent AC and battery profiles. Service/polkit policy can deny writes on some systems.
 - Do not directly write CPUFreq sysfs knobs as a universal solution. The Linux kernel documents that the performance governor requests the highest frequency within a policy's allowed limit, not an unconditional hardware maximum. Driver, firmware, thermal, and policy constraints still apply.
-- If no supported profile service exists, keep OS power control unavailable; do not require root access or silently modify system files.
-- Source: https://docs.kernel.org/admin-guide/pm/cpufreq.html
+- Sources: https://freedesktop.org/software/power-profiles-daemon/ and https://docs.kernel.org/admin-guide/pm/cpufreq.html
 
 ### macOS
 
