@@ -15,6 +15,7 @@ type GameModeState struct {
 	ProcessName      string `json:"processName"`
 	PID              uint32 `json:"pid"`
 	DetectedAt       string `json:"detectedAt"`
+	SessionDurationSeconds int64 `json:"sessionDurationSeconds"`
 	OptimizationMode string `json:"optimizationMode"`
 }
 
@@ -83,6 +84,15 @@ func gameSessionDetectedAt(name string, pid uint32, detected bool, now time.Time
 	return gameSession.detectedAt.Format(time.RFC3339)
 }
 
+func gameSessionDurationSeconds(now time.Time) int64 {
+	gameSession.Lock()
+	defer gameSession.Unlock()
+	if gameSession.detectedAt.IsZero() || now.Before(gameSession.detectedAt) {
+		return 0
+	}
+	return int64(now.Sub(gameSession.detectedAt).Seconds())
+}
+
 func detectGameProcess() (string, uint32, bool) {
 	procs, err := process.Processes()
 	if err != nil {
@@ -107,9 +117,11 @@ func collectGameModeState() GameModeState {
 	} else if enabled {
 		optimization = "game-mode-armed"
 	}
+	now := time.Now()
+	detectedAt := gameSessionDetectedAt(name, pid, detected, now)
 	return GameModeState{
 		Enabled: enabled, AutoDetection: true, GameDetected: detected,
-		ProcessName: name, PID: pid, DetectedAt: gameSessionDetectedAt(name, pid, detected, time.Now()),
-		OptimizationMode: optimization,
+		ProcessName: name, PID: pid, DetectedAt: detectedAt,
+		SessionDurationSeconds: gameSessionDurationSeconds(now), OptimizationMode: optimization,
 	}
 }
