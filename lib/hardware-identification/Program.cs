@@ -16,11 +16,11 @@ if (!OperatingSystem.IsWindows())
 }
 
 var warnings = new List<string>();
-var computers = Query("Win32_ComputerSystem", warnings);
-var bios = Query("Win32_BIOS", warnings);
-var boards = Query("Win32_BaseBoard", warnings);
-var processors = Query("Win32_Processor", warnings);
-var videoControllers = Query("Win32_VideoController", warnings);
+var computers = Query("Win32_ComputerSystem", "Manufacturer,Model,SystemFamily", warnings);
+var bios = Query("Win32_BIOS", "Manufacturer,SMBIOSBIOSVersion", warnings);
+var boards = Query("Win32_BaseBoard", "Manufacturer,Product,Version", warnings);
+var processors = Query("Win32_Processor", "Manufacturer,Name,NumberOfCores,NumberOfLogicalProcessors", warnings);
+var videoControllers = Query("Win32_VideoController", "AdapterCompatibility,Name,DriverProviderName,DriverVersion,PNPDeviceID", warnings);
 
 var computer = computers.FirstOrDefault();
 var biosItem = bios.FirstOrDefault();
@@ -83,11 +83,13 @@ var inventory = new HardwareInventory
 
 Console.Out.WriteLine(System.Text.Json.JsonSerializer.Serialize(inventory, HardwareJson.Options));
 
-static List<ManagementBaseObject> Query(string className, List<string> warnings)
+static List<ManagementBaseObject> Query(string className, string selectedProperties, List<string> warnings)
 {
+    // Never use SELECT *: explicit projections avoid querying serial-number fields.
+    var query = $"SELECT {selectedProperties} FROM {className}";
     try
     {
-        using var searcher = new ManagementObjectSearcher($"SELECT * FROM {className}");
+        using var searcher = new ManagementObjectSearcher(query);
         using var results = searcher.Get();
         return results.Cast<ManagementBaseObject>().ToList();
     }
