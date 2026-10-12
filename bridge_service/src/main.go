@@ -531,10 +531,18 @@ func diagnosticsSnapshot() map[string]any {
 		"fetchStatus":              fetchStatusSnapshot(),
 		"diagnosticService":        diagnosticServiceSnapshot(),
 		"panicMode":                panicModeActive(),
-		"gameMode": map[string]any{
-			"enabled":       metrics.GameModeEnabled,
-			"gameDetected":  metrics.GameDetected,
-		},
+		"gameMode": func() map[string]any {
+			state := collectGameModeState()
+			return map[string]any{
+				"enabled": state.Enabled,
+				"gameDetected": state.GameDetected,
+				"processName": state.ProcessName,
+				"pid": state.PID,
+				"detectedAt": state.DetectedAt,
+				"sessionDurationSeconds": state.SessionDurationSeconds,
+				"optimizationMode": state.OptimizationMode,
+			}
+		}(),
 
 		"hardwareIdentity": map[string]any{
 			"systemManufacturer": metrics.SystemManufacturer,
