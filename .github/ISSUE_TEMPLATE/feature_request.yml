@@ -1,24 +1,56 @@
 name: Feature request
-description: Suggest an improvement or new capability
+description: Suggest an improvement grounded in a real user need
 title: "[Feature]: "
-labels: ["enhancement"]
+labels: ["enhancement", "beta-feedback"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Explain the user problem first. Requests are evaluated against safety, cross-platform feasibility, hardware support, and maintenance cost. A visible UI control does not imply that every device or OS supports the underlying capability.
   - type: textarea
     id: problem
     attributes:
-      label: Problem
-      description: What user problem would this feature solve?
+      label: What problem are you trying to solve?
+      description: Describe the situation and who is affected.
+      placeholder: "When I..., it is difficult to..."
     validations:
       required: true
   - type: textarea
     id: proposal
     attributes:
-      label: Proposed behavior
-      description: Describe the desired behavior and user experience.
+      label: What should HWcontrol2.0 do?
+      description: Describe the desired behavior and how you would know it worked.
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform scope
+      options:
+        - Windows
+        - Linux
+        - macOS
+        - Cross-platform
+        - Not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Importance to you
+      options:
+        - Nice to have
+        - Would improve my workflow
+        - I need this for a core use case
     validations:
       required: true
   - type: textarea
-    id: platform
+    id: context
     attributes:
-      label: Platform and hardware considerations
-      description: Include relevant Windows/Linux/macOS, driver, firmware, or hardware constraints.
+      label: Hardware, workflow, or constraints
+      description: Include relevant hardware, driver, accessibility, localization, or safety constraints. Avoid personal or sensitive information.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Current workaround or alternatives
+      description: How do you solve this today? What limitations remain?
