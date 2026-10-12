@@ -61,6 +61,9 @@ func gameModeEnabled() bool {
 
 func normalizeGameProcessName(name string) string {
 	normalized := strings.TrimSpace(strings.ToLower(name))
+	if normalized == "" {
+		return ""
+	}
 	normalized = strings.ReplaceAll(normalized, "\\", "/")
 	if slash := strings.LastIndex(normalized, "/"); slash >= 0 {
 		normalized = normalized[slash+1:]
