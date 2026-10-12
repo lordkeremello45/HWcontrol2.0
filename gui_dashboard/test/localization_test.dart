@@ -4,9 +4,9 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/widgets.dart';
 
-import '../lib/l10n/app_localizations.dart';
-import '../lib/l10n/app_localizations_map.dart';
-import '../lib/services/localization_style_service.dart';
+import 'package:hwcontrol_dashboard/l10n/app_localizations.dart';
+import 'package:hwcontrol_dashboard/l10n/app_localizations_map.dart';
+import 'package:hwcontrol_dashboard/services/localization_style_service.dart';
 
 void main() {
   test('ARB catalogs cover supported locales and preserve ICU placeholders', () {
@@ -173,8 +173,8 @@ void main() {
       reason: 'A key-based UI call has no ARB-generated message mapping',
     );
 
-    final legacyAssetName = 'language' + '.json';
-    final legacyAssetPath = 'assets/' + 'localization/';
+    final legacyAssetName = 'language.json';
+    final legacyAssetPath = 'assets/localization/';
     final legacyAssetFile = File('${legacyAssetPath}${legacyAssetName}');
     expect(legacyAssetFile.existsSync(), isFalse,
         reason: 'The old runtime localization asset must remain removed');
