@@ -6,7 +6,7 @@ void expectOneOf(WidgetTester tester, List<String> labels) {
   expect(
     labels.any((label) => find.text(label).evaluate().isNotEmpty),
     isTrue,
-    reason: 'Expected one localized label from: ' + labels.join(', '),
+    reason: 'Expected one localized label from: ${labels.join(', ')}',
   );
 }
 
