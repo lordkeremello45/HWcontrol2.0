@@ -463,7 +463,7 @@
     "placeholders": {
       "count": {
         "type": "num",
-        "example": 2
+        "example": "2"
       }
     }
   },
