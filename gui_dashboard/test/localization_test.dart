@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/widgets.dart';
 
 import '../lib/l10n/app_localizations.dart';
+import '../lib/l10n/app_localizations_map.dart';
 import '../lib/services/localization_style_service.dart';
 
 void main() {
