@@ -2313,8 +2313,8 @@ Attach this archive to a support issue only after reviewing it for personal info
           _performanceCapabilityTile(
             icon: Icons.electric_bolt,
             title: 'Operating-system power mode',
-            status: 'NOT IMPLEMENTED',
-            description: 'Windows 11, Linux power-profile services, and macOS have different capabilities. This toggle does not change OS power settings until a platform adapter is implemented and verified.',
+            status: Platform.isWindows ? 'WINDOWS 11 ADAPTER' : (Platform.isLinux ? 'LINUX ADAPTER' : 'NOT IMPLEMENTED'),
+            description: 'Supported Windows 11 and Linux adapters can request and read back an OS power profile. macOS automation remains unavailable. The app-level Performance toggle does not silently change the OS power profile.',
           ),
           const SizedBox(height: 18),
           const Text('Windows 11 OS power mode', style: TextStyle(fontWeight: FontWeight.w800)),
@@ -2325,6 +2325,40 @@ Attach this archive to a support issue only after reviewing it for personal info
                 : 'This adapter is Windows 11 desktop-only. Other platforms remain unsupported.',
             style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(175)),
           ),
+          if (Platform.isLinux) ...[
+            const SizedBox(height: 12),
+            const Text('Linux system power profile', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 6),
+            Text(
+              'Uses power-profiles-daemon when installed. Linux has one active system profile; this does not independently configure AC and battery.',
+              style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurface.withAlpha(160)),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: _isSending ? null : () => _sendCommand('Get Power Mode', 0),
+              icon: const Icon(Icons.refresh, size: 16),
+              label: const Text('Read current Linux profile'),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton(
+                  onPressed: _isSending ? null : () => _sendCommand('Set Power Profile', 50),
+                  child: const Text('Power Saver'),
+                ),
+                OutlinedButton(
+                  onPressed: _isSending ? null : () => _sendCommand('Set Power Profile', 0),
+                  child: const Text('Balanced'),
+                ),
+                FilledButton.tonal(
+                  onPressed: _isSending ? null : () => _sendCommand('Set Power Profile', 100),
+                  child: const Text('Performance'),
+                ),
+              ],
+            ),
+          ],
           if (Platform.isWindows) ...[
             const SizedBox(height: 10),
             OutlinedButton.icon(
