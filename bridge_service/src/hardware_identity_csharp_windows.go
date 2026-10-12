@@ -41,6 +41,8 @@ type csharpHardwareInventory struct {
 type csharpCPU struct {
 	Manufacturer      string `json:"manufacturer"`
 	Model             string `json:"model"`
+	Architecture      string `json:"architecture"`
+	VendorFamily      string `json:"vendorFamily"`
 	PhysicalCores     *int   `json:"physicalCores"`
 	LogicalProcessors *int   `json:"logicalProcessors"`
 }
@@ -48,6 +50,8 @@ type csharpCPU struct {
 type csharpGPU struct {
 	Manufacturer   string `json:"manufacturer"`
 	Model          string `json:"model"`
+	PciDeviceID    string `json:"pciDeviceId"`
+	VendorFamily   string `json:"vendorFamily"`
 	DriverProvider string `json:"driverProvider"`
 	DriverVersion  string `json:"driverVersion"`
 }
