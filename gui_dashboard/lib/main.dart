@@ -2313,16 +2313,29 @@ Attach this archive to a support issue only after reviewing it for personal info
           _performanceCapabilityTile(
             icon: Icons.electric_bolt,
             title: 'Operating-system power mode',
-            status: Platform.isWindows ? 'WINDOWS 11 ADAPTER' : (Platform.isLinux ? 'LINUX ADAPTER' : 'NOT IMPLEMENTED'),
-            description: 'Supported Windows 11 and Linux adapters can request and read back an OS power profile. macOS automation remains unavailable. The app-level Performance toggle does not silently change the OS power profile.',
+            status: Platform.isWindows
+                ? 'WINDOWS 11 ADAPTER'
+                : (Platform.isLinux
+                    ? 'LINUX ADAPTER'
+                    : (Platform.isMacOS ? 'MANUAL • MODEL-DEPENDENT' : 'NOT IMPLEMENTED')),
+            description: Platform.isMacOS
+                ? 'Apple power modes depend on the exact Mac model, chip, macOS version, and power source. HWcontrol does not invoke undocumented controls; use Apple’s supported System Settings interface.'
+                : 'Supported Windows 11 and Linux adapters can request and read back an OS power profile. The app-level Performance toggle does not silently change the OS power profile.',
           ),
           const SizedBox(height: 18),
-          Text(Platform.isLinux ? 'Linux system power profile' : 'Windows 11 OS power mode', style: const TextStyle(fontWeight: FontWeight.w800)),
+          Text(
+            Platform.isMacOS
+                ? 'macOS power mode'
+                : (Platform.isLinux ? 'Linux system power profile' : 'Windows 11 OS power mode'),
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
           const SizedBox(height: 5),
           Text(
             (Platform.isWindows || Platform.isLinux)
                 ? _osPowerModeStatus
-                : 'Automated OS power-mode control is unavailable on this platform.',
+                : (Platform.isMacOS
+                    ? 'Automatic switching is not implemented. Availability is controlled by Apple and varies by Mac model and macOS release.'
+                    : 'Automated OS power-mode control is unavailable on this platform.'),
             style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(175)),
           ),
           if (Platform.isLinux) ...[
@@ -2357,6 +2370,24 @@ Attach this archive to a support issue only after reviewing it for personal info
                   child: const Text('Performance'),
                 ),
               ],
+            ),
+          ],
+          if (Platform.isMacOS) ...[
+            const SizedBox(height: 12),
+            const Text(
+              'Apple-supported power modes',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Open Apple’s official guide to check whether Low Power Mode or High Power Mode is supported by this Mac. HWcontrol will not change hidden or undocumented power settings.',
+              style: TextStyle(fontSize: 11, height: 1.45),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: _openMacPowerModeGuide,
+              icon: const Icon(Icons.open_in_new, size: 16),
+              label: const Text('Open Apple power-mode guide'),
             ),
           ],
           if (Platform.isWindows) ...[
@@ -2422,6 +2453,11 @@ Attach this archive to a support issue only after reviewing it for personal info
         ],
       ),
     );
+  }
+
+  Future<void> _openMacPowerModeGuide() async {
+    final uri = Uri.parse('https://support.apple.com/en-us/101613');
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   Widget _performanceCapabilityTile({
