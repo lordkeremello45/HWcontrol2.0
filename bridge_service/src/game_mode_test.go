@@ -63,3 +63,17 @@ func TestKnownGameProcessAllowListAvoidsGenericJavaProcess(t *testing.T) {
 		}
 	}
 }
+
+func TestCustomGameProcessAllowListIsOptInAndNormalized(t *testing.T) {
+	t.Setenv("HWCONTROL_GAME_PROCESSES", "my-game.exe, /opt/games/indie-game")
+	for _, name := range []string{"MY-GAME.EXE", "indie-game", "/opt/games/indie-game"} {
+		if !isKnownGameProcess(name) {
+			t.Errorf("expected configured game process %q to be recognized", name)
+		}
+	}
+	for _, name := range []string{"javaw.exe", "unknown.exe"} {
+		if isKnownGameProcess(name) {
+			t.Errorf("unconfigured process %q must not be recognized", name)
+		}
+	}
+}
