@@ -314,6 +314,13 @@ func validateCommand(cmd Command) error {
 	switch action {
 	case "Fan Hızı", "AI İşlem Gücü", "Set Game Mode":
 		return nil
+	case "Set Power Mode AC", "Set Power Mode DC":
+		return validatePowerModeRequest(action, cmd.Value)
+	case "Get Power Mode":
+		if cmd.Value != 0 {
+			return fmt.Errorf("read-only command value must be zero")
+		}
+		return nil
 	case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Fetch Status":
 		if cmd.Value != 0 {
 			return fmt.Errorf("read-only command value must be zero")
@@ -377,6 +384,19 @@ func executeHardwareCommand(cmd Command) error {
 		}
 		setGameModeEnabled(cmd.Value >= 50)
 		return nil
+	case "Set Power Mode AC", "Set Power Mode DC":
+		if panicModeActive() {
+			return fmt.Errorf("hardware control blocked: security panic mode active")
+		}
+		if err := validatePowerModeRequest(cmd.Action, cmd.Value); err != nil {
+			return err
+		}
+		supply := "AC"
+		if cmd.Action == "Set Power Mode DC" {
+			supply = "DC"
+		}
+		_, err := setPlatformPowerMode(supply, cmd.Value)
+		return err
 	default:
 		return fmt.Errorf("action cannot be executed: %s", cmd.Action)
 	}
@@ -693,7 +713,7 @@ func handleConnection(conn net.Conn, secret string) {
 		authFailures = 0
 		if panicModeActive() {
 			switch cmd.Action {
-			case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Fetch Status":
+			case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Fetch Status", "Get Power Mode":
 				// Read-only diagnostics remain available so the user can see why the system entered panic mode.
 			default:
 				_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
@@ -730,6 +750,14 @@ func handleConnection(conn net.Conn, secret string) {
 		if cmd.Action == "Get Status" {
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
 			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Metrikler alındı", Data: collectMetrics()}); err != nil {
+				return
+			}
+			continue
+		}
+		if cmd.Action == "Get Power Mode" {
+			state := getPlatformPowerMode()
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			if err := encoder.Encode(Response{Status: "SUCCESS", Message: state.Message, Data: state}); err != nil {
 				return
 			}
 			continue
@@ -774,6 +802,21 @@ func handleConnection(conn net.Conn, secret string) {
 			if err := encoder.Encode(Response{Status: "ERROR", Message: err.Error()}); err != nil {
 				return
 			}
+			continue
+		}
+		// Every accepted command must receive a response. Previously successful
+		// control commands could leave the GUI waiting until its timeout.
+		if cmd.Action == "Set Power Mode AC" || cmd.Action == "Set Power Mode DC" {
+			state := getPlatformPowerMode()
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			if err := encoder.Encode(Response{Status: "SUCCESS", Message: state.Message, Data: state}); err != nil {
+				return
+			}
+			continue
+		}
+		_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+		if err := encoder.Encode(Response{Status: "SUCCESS", Message: cmd.Action + " applied", Data: map[string]any{"action": cmd.Action, "value": cmd.Value}}); err != nil {
+			return
 		}
 	}
 }
