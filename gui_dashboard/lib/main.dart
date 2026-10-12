@@ -1260,6 +1260,110 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return '${number.toStringAsFixed(unit == '%' || unit == '°C' ? 1 : 0)} $unit';
   }
 
+  String _feedbackText(String turkish, String english) =>
+      Localizations.localeOf(context).languageCode == 'tr' ? turkish : english;
+
+  Future<void> _openFeedbackDestination(String url) async {
+    try {
+      final opened = await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      );
+      if (!opened && mounted) {
+        setState(() => _status = _feedbackText(
+          'Geri bildirim bağlantısı açılamadı',
+          'Could not open the feedback link',
+        ));
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _status = _feedbackText(
+          'Geri bildirim bağlantısı açılamadı',
+          'Could not open the feedback link',
+        ));
+      }
+    }
+  }
+
+  Future<void> _showFeedbackOptions() async {
+    const bugUrl =
+        'https://github.com/lordkeremello45/HWcontrol2.0/issues/new?template=bug_report.yml';
+    const featureUrl =
+        'https://github.com/lordkeremello45/HWcontrol2.0/issues/new?template=feature_request.yml';
+    const generalUrl =
+        'https://github.com/lordkeremello45/HWcontrol2.0/issues/new/choose';
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(_feedbackText('HWcontrol2.0 geri bildirimi', 'HWcontrol2.0 feedback')),
+        content: SizedBox(
+          width: 460,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_feedbackText(
+                'Hangi konuda yardımcı olmak istiyorsun? Bağlantı GitHub üzerinde açılır; gönder tuşuna basmadan önce içeriği inceleyebilirsin.',
+                'What would you like to share? This opens GitHub; review the content before submitting it.',
+              )),
+              const SizedBox(height: 12),
+              ListTile(
+                leading: const Icon(Icons.bug_report_outlined),
+                title: Text(_feedbackText('Hata bildir', 'Report a bug')),
+                subtitle: Text(_feedbackText(
+                  'Beklenen davranışı, gerçek sonucu ve tekrar adımlarını ekle.',
+                  'Include expected behavior, actual behavior, and reproduction steps.',
+                )),
+                onTap: () {
+                  Navigator.of(dialogContext).pop();
+                  unawaited(_openFeedbackDestination(bugUrl));
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.lightbulb_outline),
+                title: Text(_feedbackText('Özellik veya deneyim öner', 'Suggest a feature or UX improvement')),
+                subtitle: Text(_feedbackText(
+                  'Önce çözmek istediğin kullanıcı sorununu anlat.',
+                  'Start with the user problem you want to solve.',
+                )),
+                onTap: () {
+                  Navigator.of(dialogContext).pop();
+                  unawaited(_openFeedbackDestination(featureUrl));
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.forum_outlined),
+                title: Text(_feedbackText('Diğer geri bildirimler', 'Other feedback')),
+                subtitle: Text(_feedbackText(
+                  'Mevcut konuları kontrol et veya uygun şablonu seç.',
+                  'Check existing reports or choose the appropriate template.',
+                )),
+                onTap: () {
+                  Navigator.of(dialogContext).pop();
+                  unawaited(_openFeedbackDestination(generalUrl));
+                },
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _feedbackText(
+                  'Gizlilik: Tanılama dosyaları otomatik gönderilmez. Ek dosya paylaşmadan önce sırları ve kişisel bilgileri kaldır.',
+                  'Privacy: diagnostic files are never submitted automatically. Remove secrets and personal information before sharing attachments.',
+                ),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(_tr('close')),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _exportDiagnosticReport() async {
     if (!_isConnected) {
       if (mounted) setState(() => _status = 'Tanılama raporu için bridge bağlantısı gerekli');
@@ -3163,6 +3267,7 @@ Attach this archive to a support issue only after reviewing it for personal info
               OutlinedButton.icon(onPressed: _isConnected ? null : _connectToBridge, icon: const Icon(Icons.refresh, size: 17), label: Text(_tr('reconnect'))),
               OutlinedButton.icon(onPressed: _updateInfo == null || _updateInfo!.digest.isEmpty || _isCheckingUpdate ? null : _downloadVerifiedUpdate, icon: const Icon(Icons.download_outlined, size: 17), label: Text(_tr('downloadVerifiedUpdate'))),
               OutlinedButton.icon(onPressed: _isConnected ? _exportDiagnosticReport : null, icon: const Icon(Icons.archive_outlined, size: 17), label: Text(_tr('createErrorReport'))),
+              OutlinedButton.icon(onPressed: _showFeedbackOptions, icon: const Icon(Icons.feedback_outlined, size: 17), label: Text(_feedbackText('Geri bildirim', 'Feedback'))),
               OutlinedButton.icon(onPressed: _isConnected ? _openHealthCenter : null, icon: const Icon(Icons.health_and_safety_outlined, size: 17), label: Text(_tr('hardwareHealthCenter'))),
             ],
           ),
