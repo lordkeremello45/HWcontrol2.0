@@ -19,8 +19,8 @@ func (i FanControlInfo) asError() error {
 }
 
 func validateFanPercent(percent float64) error {
-	if percent < 0 || percent > 100 {
-		return fmt.Errorf("fan percent must be between 0 and 100")
+	if !isFiniteNonNegative(percent) || percent <= 0 || percent > 100 {
+		return fmt.Errorf("fan percent must be greater than 0 and at most 100; zero can stop the fan")
 	}
 	return nil
 }
