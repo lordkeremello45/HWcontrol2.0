@@ -37,5 +37,5 @@ double resolveGameProfileFanTarget({
       ? savedTarget
       : defaultFanTarget;
   final safeTarget = target.isFinite ? target : 75;
-  return safeTarget.clamp(0, 100).toDouble();
+  return safeTarget.clamp(1, 100).toDouble();
 }
