@@ -18,16 +18,19 @@ type linuxFanTarget struct {
 
 func linuxFanTargets() []linuxFanTarget {
 	configured := strings.TrimSpace(os.Getenv("HWCONTROL_HWMON_PWM"))
+	var entries []string
 	if configured != "" {
-		if info, err := os.Stat(configured); err == nil && !info.IsDir() {
-			return []linuxFanTarget{{pwmPath: configured, fanInput: "", name: "configured"}}
+		configured = filepath.Clean(configured)
+		if !strings.HasPrefix(configured, "/sys/class/hwmon/") {
+			return nil
 		}
-		return nil
-	}
-
-	entries, err := filepath.Glob("/sys/class/hwmon/hwmon*/pwm[0-9]*")
-	if err != nil {
-		return nil
+		entries = []string{configured}
+	} else {
+		var err error
+		entries, err = filepath.Glob("/sys/class/hwmon/hwmon*/pwm[0-9]*")
+		if err != nil {
+			return nil
+		}
 	}
 	var targets []linuxFanTarget
 	for _, pwmPath := range entries {
@@ -50,7 +53,7 @@ func linuxFanTargets() []linuxFanTarget {
 			continue
 		}
 		enable, err := strconv.Atoi(strings.TrimSpace(string(data)))
-		if err != nil || (enable != 1 && enable != 2) {
+		if err != nil || enable != 1 {
 			continue
 		}
 		probe, err := os.OpenFile(pwmPath, os.O_WRONLY, 0)
