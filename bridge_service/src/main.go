@@ -104,7 +104,10 @@ type HardwareMetrics struct {
 	CPUCoreCount           int       `json:"cpuCoreCount"`
 	CPUFrequencyMHz        float64   `json:"cpuFrequencyMHz"`
 	CPUTemperature         float64   `json:"cpuTemperature"`
+	CPUTemperatureSource   string    `json:"cpuTemperatureSource,omitempty"`
 	GPUTemperature         float64   `json:"gpuTemperature"`
+	GPUTemperatureSource   string    `json:"gpuTemperatureSource,omitempty"`
+	MetricsCollectedAt     string    `json:"metricsCollectedAt"`
 	GPUUsage               float64   `json:"gpuUsage"`
 	GPUMemoryUsage         float64   `json:"gpuMemoryUsage"`
 	GPUPowerLimitWatts     float64   `json:"gpuPowerLimitWatts"`
@@ -183,7 +186,10 @@ func collectMetrics() HardwareMetrics {
 		for _, sensor := range temperatures {
 			key := strings.ToLower(sensor.SensorKey)
 			if strings.Contains(key, "cpu") || strings.Contains(key, "package") || strings.Contains(key, "core") {
-				metrics.CPUTemperature = sensor.Temperature
+				if isValidTemperature(sensor.Temperature) && sensor.Temperature > 0 {
+					metrics.CPUTemperature = sensor.Temperature
+					metrics.CPUTemperatureSource = "gopsutil-host-sensors:" + sensor.SensorKey
+				}
 				break
 			}
 		}
@@ -195,7 +201,10 @@ func collectMetrics() HardwareMetrics {
 			if len(parts) >= 16 {
 				metrics.GPUName = strings.TrimSpace(parts[0])
 				metrics.GPUDriver = strings.TrimSpace(parts[1])
-				metrics.GPUTemperature, _ = strconv.ParseFloat(strings.TrimSpace(parts[2]), 64)
+				if value, parseErr := strconv.ParseFloat(strings.TrimSpace(parts[2]), 64); parseErr == nil && isValidTemperature(value) && value > 0 {
+					metrics.GPUTemperature = value
+					metrics.GPUTemperatureSource = "nvidia-smi"
+				}
 				metrics.GPUUsage, _ = strconv.ParseFloat(strings.TrimSpace(parts[3]), 64)
 				metrics.GPUMemoryUsage, _ = strconv.ParseFloat(strings.TrimSpace(parts[4]), 64)
 				metrics.FanPercent, _ = strconv.ParseFloat(strings.TrimSpace(parts[5]), 64)
@@ -226,7 +235,9 @@ func collectMetrics() HardwareMetrics {
 	} else {
 		metrics.HardwareControlMode = "monitor-only"
 	}
-	metrics.ThermalSafetyAvailable = metrics.CPUTemperature > 0 || metrics.GPUTemperature > 0
+	metrics.ThermalSafetyAvailable =
+		(metrics.CPUTemperatureSource != "" && isValidTemperature(metrics.CPUTemperature) && metrics.CPUTemperature > 0) ||
+		(metrics.GPUTemperatureSource != "" && isValidTemperature(metrics.GPUTemperature) && metrics.GPUTemperature > 0)
 	game := collectGameModeState()
 	metrics.GameModeEnabled = game.Enabled
 	metrics.GameDetected = game.GameDetected
@@ -255,6 +266,14 @@ func collectMetrics() HardwareMetrics {
 	mergeDriverInfo(&metrics)
 	applyCompatibilityPolicy(&metrics)
 	metrics.Platform = runtime.GOOS
+	if metrics.SensorSource == "" {
+		if metrics.CPUTemperatureSource != "" {
+			metrics.SensorSource = "gopsutil-host-sensors"
+		} else if metrics.GPUTemperatureSource != "" {
+			metrics.SensorSource = metrics.GPUTemperatureSource
+		}
+	}
+	metrics.MetricsCollectedAt = time.Now().UTC().Format(time.RFC3339Nano)
 	return metrics
 }
 
