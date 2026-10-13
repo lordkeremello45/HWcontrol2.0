@@ -49,11 +49,13 @@ func mergePlatformMetrics(metrics *HardwareMetrics) {
 	if json.Unmarshal(output, &sensors) != nil {
 		return
 	}
-	if sensors.CPUTemperature > 0 {
+	if sensors.CPUTemperature > 0 && isValidTemperature(sensors.CPUTemperature) {
 		metrics.CPUTemperature = sensors.CPUTemperature
+		metrics.CPUTemperatureSource = sensors.SensorSource
 	}
-	if sensors.GPUTemperature > 0 {
+	if sensors.GPUTemperature > 0 && isValidTemperature(sensors.GPUTemperature) {
 		metrics.GPUTemperature = sensors.GPUTemperature
+		metrics.GPUTemperatureSource = sensors.SensorSource
 	}
 	if sensors.GPUUsage > 0 {
 		metrics.GPUUsage = sensors.GPUUsage
