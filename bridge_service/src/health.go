@@ -75,6 +75,10 @@ func evaluateHardwareHealth(metrics HardwareMetrics) HardwareHealthEvaluation {
 		"fanPercent":       capability(metrics.FanPercent >= 0 && metrics.FanPercent <= 100 && metrics.FanControlSupported, metrics.FanControlBackend, "Fan target/readback unavailable or control backend unsupported"),
 		"batteryHealth":    capability(metrics.Battery.Present && metrics.Battery.DataAvailable && isFinitePositive(metrics.Battery.HealthPercent), "platform-battery-api", "Battery health requires valid design and full-charge capacity readings"),
 		"thermalSafety":    capability(metrics.ThermalSafetyAvailable && ((metrics.CPUTemperature > 0 && isValidTemperature(metrics.CPUTemperature)) || (metrics.GPUTemperature > 0 && isValidTemperature(metrics.GPUTemperature))), metrics.SensorSource, "No valid CPU/GPU temperature source is available"),
+		"fanCurveAutomation": capability(metrics.FanControlSupported && metrics.FanControlBackend != "" && metrics.FanControlBackend != "monitor-only" && metrics.ThermalSafetyAvailable, metrics.FanControlBackend, "Automatic fan control requires both valid thermal telemetry and a supported control backend"),
+		"gpuPowerLimitControl": capability(false, "not-implemented", "GPU power-limit telemetry may be readable, but a validated write backend is not implemented"),
+		"cpuOverclockControl": capability(false, "not-implemented", "CPU clock/voltage overclocking is not implemented"),
+		"batteryChargeLimitControl": capability(false, "not-implemented", "Battery health is read-only; charging thresholds are not changed"),
 	}
 
 	anomalies := make([]HardwareAnomaly, 0, 6)
