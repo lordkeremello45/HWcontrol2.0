@@ -68,6 +68,13 @@ func evaluateHardwareHealth(metrics HardwareMetrics) HardwareHealthEvaluation {
 		"gpuMemory":        capability(metrics.GPUMemoryTotalBytes > 0, metrics.SensorSource, "GPU memory capacity unavailable"),
 		"hardwareIdentity": capability(strings.TrimSpace(metrics.DetectionStatus) != "" && metrics.DetectionStatus != "unavailable", metrics.DetectionSource, "Hardware identity unavailable"),
 		"storage":          capability(len(metrics.StorageVolumes) > 0, "gopsutil", "No mounted storage volume could be enumerated"),
+		"cpuUtilization":   capability(isFiniteNonNegative(metrics.CPUUsage) && metrics.CPUUsage <= 100, "gopsutil", "CPU utilization telemetry unavailable or invalid"),
+		"memory":           capability(metrics.MemoryTotalBytes > 0 && isFiniteNonNegative(metrics.MemoryUsage) && metrics.MemoryUsage <= 100, "gopsutil", "System memory telemetry unavailable or invalid"),
+		"diskUsage":        capability(metrics.DiskTotalBytes > 0 && isFiniteNonNegative(metrics.DiskUsage) && metrics.DiskUsage <= 100, "gopsutil", "Root-volume usage telemetry unavailable or invalid"),
+		"gpuUtilization":   capability(isFiniteNonNegative(metrics.GPUUsage) && metrics.GPUUsage <= 100 && metrics.GPUVendor != "", metrics.SensorSource, "GPU utilization telemetry unavailable or invalid"),
+		"fanPercent":       capability(metrics.FanPercent >= 0 && metrics.FanPercent <= 100 && metrics.FanControlSupported, metrics.FanControlBackend, "Fan target/readback unavailable or control backend unsupported"),
+		"batteryHealth":    capability(metrics.Battery.Present && metrics.Battery.DataAvailable && isFinitePositive(metrics.Battery.HealthPercent), "platform-battery-api", "Battery health requires valid design and full-charge capacity readings"),
+		"thermalSafety":    capability(metrics.ThermalSafetyAvailable && ((metrics.CPUTemperature > 0 && isValidTemperature(metrics.CPUTemperature)) || (metrics.GPUTemperature > 0 && isValidTemperature(metrics.GPUTemperature))), metrics.SensorSource, "No valid CPU/GPU temperature source is available"),
 	}
 
 	anomalies := make([]HardwareAnomaly, 0, 6)
@@ -92,6 +99,15 @@ func evaluateHardwareHealth(metrics HardwareMetrics) HardwareHealthEvaluation {
 	}
 	if !metrics.ThermalSafetyAvailable {
 		anomalies = append(anomalies, HardwareAnomaly{"thermal-sensor-missing", "warning", "No valid thermal sensor is available; hardware control must remain fail-closed"})
+	}
+	if metrics.Battery.Present && metrics.Battery.DataAvailable && metrics.Battery.HealthPercent > 0 && metrics.Battery.HealthPercent < 60 {
+		anomalies = append(anomalies, HardwareAnomaly{"battery-capacity-degraded", "warning", fmt.Sprintf("Reported battery full-charge capacity is %.1f%% of design capacity", metrics.Battery.HealthPercent)})
+	}
+	if !isFiniteNonNegative(metrics.CPUUsage) || metrics.CPUUsage > 100 {
+		anomalies = append(anomalies, HardwareAnomaly{"cpu-utilization-invalid", "warning", "CPU utilization reading is invalid and must not be interpreted as a real percentage"})
+	}
+	if !isFiniteNonNegative(metrics.MemoryUsage) || metrics.MemoryUsage > 100 {
+		anomalies = append(anomalies, HardwareAnomaly{"memory-utilization-invalid", "warning", "Memory utilization reading is invalid and must not be interpreted as a real percentage"})
 	}
 	for _, volume := range metrics.StorageVolumes {
 		if volume.UsagePercent >= 95 {
@@ -133,6 +149,10 @@ func evaluateHardwareHealth(metrics HardwareMetrics) HardwareHealthEvaluation {
 
 func isFinitePositive(value float64) bool {
 	return !math.IsNaN(value) && !math.IsInf(value, 0) && value > 0
+}
+
+func isFiniteNonNegative(value float64) bool {
+	return !math.IsNaN(value) && !math.IsInf(value, 0) && value >= 0
 }
 
 func isValidTemperature(value float64) bool {
