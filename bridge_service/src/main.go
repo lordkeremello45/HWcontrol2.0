@@ -280,6 +280,7 @@ func collectMetrics() HardwareMetrics {
 		}
 	}
 	metrics.MetricsCollectedAt = time.Now().UTC().Format(time.RFC3339Nano)
+	recordSensorHistory(metrics)
 	return metrics
 }
 
@@ -350,7 +351,7 @@ func validateCommand(cmd Command) error {
 			return fmt.Errorf("read-only command value must be zero")
 		}
 		return nil
-	case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Fetch Status":
+	case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Sensor History", "Get Fetch Status":
 		if cmd.Value != 0 {
 			return fmt.Errorf("read-only command value must be zero")
 		}
@@ -761,7 +762,7 @@ func handleConnection(conn net.Conn, secret string) {
 		authFailures = 0
 		if panicModeActive() {
 			switch cmd.Action {
-			case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Fetch Status", "Get Power Mode":
+			case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Sensor History", "Get Fetch Status", "Get Power Mode":
 				// Read-only diagnostics remain available so the user can see why the system entered panic mode.
 			default:
 				_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
@@ -787,6 +788,11 @@ func handleConnection(conn net.Conn, secret string) {
 		if cmd.Action == "Get Sensor Health" {
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
 			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "SensorHealth durumu alındı", Data: sensorHealthSnapshot()}); err != nil { return }
+			continue
+		}
+		if cmd.Action == "Get Sensor History" {
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Yerel sensör geçmişi alındı", Data: sensorHistorySnapshot()}); err != nil { return }
 			continue
 		}
 		if cmd.Action == "Get Fetch Status" {
