@@ -115,7 +115,9 @@ type HardwareMetrics struct {
 	GPUEncoderUsage        float64   `json:"gpuEncoderUsage"`
 	GPUDecoderUsage        float64   `json:"gpuDecoderUsage"`
 	FanPercent             float64   `json:"fanPercent"`
+	FanPercentSource       string    `json:"fanPercentSource,omitempty"`
 	FanRPM                 float64   `json:"fanRpm"`
+	FanRPMSource           string    `json:"fanRpmSource,omitempty"`
 	MemoryUsage            float64   `json:"memoryUsage"`
 	MemoryTotalBytes       uint64    `json:"memoryTotalBytes"`
 	DiskUsage              float64   `json:"diskUsage"`
@@ -207,7 +209,10 @@ func collectMetrics() HardwareMetrics {
 				}
 				metrics.GPUUsage, _ = strconv.ParseFloat(strings.TrimSpace(parts[3]), 64)
 				metrics.GPUMemoryUsage, _ = strconv.ParseFloat(strings.TrimSpace(parts[4]), 64)
-				metrics.FanPercent, _ = strconv.ParseFloat(strings.TrimSpace(parts[5]), 64)
+				if value, parseErr := strconv.ParseFloat(strings.TrimSpace(parts[5]), 64); parseErr == nil && isFiniteNonNegative(value) && value <= 100 {
+					metrics.FanPercent = value
+					metrics.FanPercentSource = "nvidia-smi"
+				}
 				metrics.PowerWatts, _ = strconv.ParseFloat(strings.TrimSpace(parts[6]), 64)
 				metrics.GPUPowerLimitWatts, _ = strconv.ParseFloat(strings.TrimSpace(parts[7]), 64)
 				metrics.Voltage, _ = strconv.ParseFloat(strings.TrimSpace(parts[8]), 64)
