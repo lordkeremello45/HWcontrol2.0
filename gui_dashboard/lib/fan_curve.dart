@@ -70,6 +70,7 @@ class FanCurveController {
     this.minimumChangePercent = 3,
     this.minimumCommandInterval = const Duration(seconds: 2),
     this.smoothingSamples = 3,
+    this.hysteresisCelsius = 2,
   });
 
   final double minFanPercent;
@@ -77,13 +78,19 @@ class FanCurveController {
   final double minimumChangePercent;
   final Duration minimumCommandInterval;
   final int smoothingSamples;
+  /// Temperature must move this far from the last accepted control point before
+  /// another target is considered. This suppresses fan-speed chatter around a
+  /// curve breakpoint without delaying an upward safety response indefinitely.
+  final double hysteresisCelsius;
   final List<double> _temperatures = <double>[];
   double? _lastTarget;
+  double? _lastAcceptedTemperature;
   DateTime? _lastCommandAt;
 
   void reset() {
     _temperatures.clear();
     _lastTarget = null;
+    _lastAcceptedTemperature = null;
     _lastCommandAt = null;
   }
 
@@ -103,10 +110,15 @@ class FanCurveController {
       _temperatures.removeAt(0);
     }
     final smoothed = _temperatures.reduce((a, b) => a + b) / _temperatures.length;
+    if (_lastAcceptedTemperature != null &&
+        (smoothed - _lastAcceptedTemperature!).abs() < hysteresisCelsius) {
+      return null;
+    }
     final target = curve.evaluate(smoothed).clamp(minFanPercent, maxFanPercent).toDouble();
     if (_lastTarget != null && (target - _lastTarget!).abs() < minimumChangePercent) return null;
     if (_lastCommandAt != null && now.difference(_lastCommandAt!) < minimumCommandInterval) return null;
     _lastTarget = target;
+    _lastAcceptedTemperature = smoothed;
     _lastCommandAt = now;
     return target;
   }
