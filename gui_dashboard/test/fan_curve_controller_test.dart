@@ -56,3 +56,29 @@ void main() {
     ), isNull);
   });
 }
+
+test('controller hysteresis suppresses small temperature oscillations', () {
+    final controller = FanCurveController(
+      smoothingSamples: 1,
+      hysteresisCelsius: 2,
+      minimumChangePercent: 1,
+      minimumCommandInterval: Duration.zero,
+    );
+    const curve = FanCurve([
+      FanCurvePoint(40, 20),
+      FanCurvePoint(80, 100),
+    ]);
+    final start = DateTime(2026, 1, 1);
+    double? target(double temperature, int seconds) => controller.nextTarget(
+      curve: curve,
+      temperature: temperature,
+      now: start.add(Duration(seconds: seconds)),
+      sensorValid: true,
+      hardwareControlSupported: true,
+    );
+
+    expect(target(50, 0), isNotNull);
+    expect(target(51, 1), isNull);
+    expect(target(51.8, 2), isNull);
+    expect(target(53, 3), isNotNull);
+  });
