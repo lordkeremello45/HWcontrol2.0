@@ -62,7 +62,7 @@ func evaluateHardwareHealth(metrics HardwareMetrics) HardwareHealthEvaluation {
 	capabilities := map[string]HardwareCapability{
 		"cpuTemperature":   capability(metrics.CPUTemperatureSource != "" && metrics.CPUTemperature > 0 && isValidTemperature(metrics.CPUTemperature), metrics.CPUTemperatureSource, "CPU thermal telemetry unavailable or source unknown"),
 		"gpuTemperature":   capability(metrics.GPUTemperatureSource != "" && metrics.GPUTemperature > 0 && isValidTemperature(metrics.GPUTemperature), metrics.GPUTemperatureSource, "GPU thermal telemetry unavailable or source unknown"),
-		"fanRpm":           capability(metrics.FanRPM >= 0 && (metrics.FanRPM > 0 || metrics.FanControlSupported), metrics.SensorSource, "Fan RPM telemetry unavailable"),
+		"fanRpm":           capability(isFinitePositive(metrics.FanRPM) && metrics.FanRPMSource != "", metrics.FanRPMSource, "Fan RPM telemetry unavailable or source unknown"),
 		"fanControl":       capability(metrics.FanControlSupported && metrics.FanControlBackend != "" && metrics.FanControlBackend != "monitor-only", metrics.FanControlBackend, "No validated hardware-control backend"),
 		"voltage":          capability(isFinitePositive(metrics.Voltage), metrics.SensorSource, "Voltage telemetry unavailable"),
 		"power":            capability(isFinitePositive(metrics.PowerWatts), metrics.SensorSource, "Power telemetry unavailable"),
@@ -75,7 +75,7 @@ func evaluateHardwareHealth(metrics HardwareMetrics) HardwareHealthEvaluation {
 		"memory":           capability(metrics.MemoryTotalBytes > 0 && isFiniteNonNegative(metrics.MemoryUsage) && metrics.MemoryUsage <= 100, "gopsutil", "System memory telemetry unavailable or invalid"),
 		"diskUsage":        capability(metrics.DiskTotalBytes > 0 && isFiniteNonNegative(metrics.DiskUsage) && metrics.DiskUsage <= 100, "gopsutil", "Root-volume usage telemetry unavailable or invalid"),
 		"gpuUtilization":   capability(isFiniteNonNegative(metrics.GPUUsage) && metrics.GPUUsage <= 100 && metrics.GPUVendor != "", metrics.SensorSource, "GPU utilization telemetry unavailable or invalid"),
-		"fanPercent":       capability(metrics.FanPercent >= 0 && metrics.FanPercent <= 100 && metrics.FanControlSupported, metrics.FanControlBackend, "Fan target/readback unavailable or control backend unsupported"),
+		"fanPercent":       capability(isFiniteNonNegative(metrics.FanPercent) && metrics.FanPercent > 0 && metrics.FanPercent <= 100 && metrics.FanPercentSource != "", metrics.FanPercentSource, "Fan percentage telemetry unavailable or source unknown"),
 		"batteryHealth":    capability(metrics.Battery.Present && metrics.Battery.DataAvailable && isFinitePositive(metrics.Battery.HealthPercent), "platform-battery-api", "Battery health requires valid design and full-charge capacity readings"),
 		"thermalSafety":    capability(metrics.ThermalSafetyAvailable && ((metrics.CPUTemperature > 0 && isValidTemperature(metrics.CPUTemperature)) || (metrics.GPUTemperature > 0 && isValidTemperature(metrics.GPUTemperature))), metrics.SensorSource, "No valid CPU/GPU temperature source is available"),
 		"fanCurveAutomation": capability(metrics.FanControlSupported && metrics.FanControlBackend != "" && metrics.FanControlBackend != "monitor-only" && metrics.ThermalSafetyAvailable, metrics.FanControlBackend, "Automatic fan control requires both valid thermal telemetry and a supported control backend"),
