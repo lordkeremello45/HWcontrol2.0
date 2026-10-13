@@ -9,7 +9,11 @@ This page describes the current implementation, not the long-term feature target
 - Invalid CPU or memory utilization values are reported as anomalies instead of being interpreted as legitimate percentages.
 - Battery capacity health is reported only when design and full-charge capacities are both available and valid. A reported capacity below 60% of design capacity raises a warning; it is a heuristic notification, not a battery replacement diagnosis.
 - Thermal warnings and critical states are based on observed sensor values. Missing thermal data is not treated as a safe temperature.
-- Smart fan control uses smoothing, a minimum command interval, a minimum target change, and temperature hysteresis to reduce fan-speed chatter. Invalid sensor data or an unsupported backend produces no automatic target.
+- Smart fan control uses smoothing, a minimum command interval, a minimum target change, and temperature hysteresis to reduce fan-speed chatter. The dashboard uses the hottest valid CPU/GPU reading; invalid or missing telemetry and unsupported backends do not produce an automatic target.
+- The bridge rejects zero-percent fan commands because that may stop cooling. On Linux, writable PWM discovery is restricted to hwmon paths and requires a reported manual PWM mode; this is still not proof that every motherboard fan responds correctly.
+- Thermal sensor values include source metadata and a collection timestamp. A value without a known source is not advertised as verified CPU/GPU temperature capability.
+- The bridge offers a bounded in-memory sensor-history IPC response (up to 300 samples). It is local and non-persistent; the dashboard separately maintains its existing local telemetry history.
+- The benchmark is a repeatable CPU microbenchmark, not a game FPS benchmark and not a before/after hardware-profile comparison. It does not change clocks, voltage, power limits, or fan settings.
 - Existing dashboard thermal-throttling analysis is explicitly a suspicion heuristic based on temperature, utilization and observed clock drops. It is not equivalent to a hardware-reported throttle flag.
 
 ## Explicitly unavailable until a validated backend exists
@@ -28,7 +32,7 @@ The current fan-curve controller fails closed when thermal telemetry is invalid 
 
 ## Validation required before production claims
 
-- Unit tests for capability reporting, invalid readings, thermal anomalies, hysteresis and fail-closed paths.
+- Unit tests for capability reporting, sensor provenance, bounded history, invalid readings, thermal anomalies, hysteresis and fail-closed paths.
 - CI builds and tests for each supported OS.
 - Physical testing on each claimed hardware/firmware combination.
 - Verification that manual and automatic commands cannot bypass the capability matrix.
