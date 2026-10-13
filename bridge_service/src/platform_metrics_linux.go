@@ -61,7 +61,11 @@ func mergePlatformMetrics(metrics *HardwareMetrics) {
 		hwmons, _ := filepath.Glob(filepath.Join(device, "hwmon", "hwmon*"))
 		for _, hwmon := range hwmons {
 			if value, ok := readFloatFile(filepath.Join(hwmon, "temp1_input")); ok {
-				metrics.GPUTemperature = value / 1000
+				temperature := value / 1000
+				if isValidTemperature(temperature) && temperature > 0 {
+					metrics.GPUTemperature = temperature
+					metrics.GPUTemperatureSource = "Linux amdgpu sysfs"
+				}
 			}
 			if value, ok := readFloatFile(filepath.Join(hwmon, "fan1_input")); ok {
 				metrics.FanRPM = value
