@@ -1215,6 +1215,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _openHealthCenter() async {
     final health = await _requestBridgeData('Get Health');
     final status = await _requestBridgeData('Get Status');
+    final sensorHistory = await _requestBridgeData('Get Sensor History');
     if (!mounted) return;
     if (health == null) {
       setState(() => _status = 'Health Center için bridge bağlantısı gerekli');
@@ -1223,6 +1224,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final metrics = status ?? const <String, dynamic>{};
     final anomalies = (health['anomalies'] as List?)?.whereType<Map>().toList(growable: false) ?? const <Map>[];
     final warnings = (health['warnings'] as List?)?.map((value) => value.toString()).toList(growable: false) ?? const <String>[];
+    final sensorSamples = (sensorHistory?['samples'] as List?)?.whereType<Map>().toList(growable: false) ?? const <Map>[];
+    final recentSensorSamples = sensorSamples.length > 10 ? sensorSamples.sublist(sensorSamples.length - 10) : sensorSamples;
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
@@ -1241,6 +1244,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text('${_tr('gpuTemperatureLabel')}: ${_formatHealthMetric(metrics['gpuTemperature'], '°C')} • ${_formatHealthMetric(metrics['gpuUsage'], '%')}'),
                 Text('${_tr('fanSpeed')}: ${_formatHealthMetric(metrics['fanRpm'], 'RPM')} • ${_formatHealthMetric(metrics['fanPercent'], '%')}'),
                 Text('${_tr('power')}: ${_formatHealthMetric(metrics['powerWatts'], 'W')} • ${_tr('voltage')}: ${_formatHealthMetric(metrics['voltage'], 'V')}'),
+                Text('${_feedbackText('CPU sensör kaynağı', 'CPU sensor source')}: ${health['cpuTemperatureSource'] ?? metrics['cpuTemperatureSource'] ?? 'N/A'}'),
+                Text('${_feedbackText('GPU sensör kaynağı', 'GPU sensor source')}: ${health['gpuTemperatureSource'] ?? metrics['gpuTemperatureSource'] ?? 'N/A'}'),
+                Text('${_feedbackText('Son örnek zamanı', 'Latest sample time')}: ${health['metricsCollectedAt'] ?? metrics['metricsCollectedAt'] ?? 'N/A'}'),
+                const SizedBox(height: 8),
+                Text('${_feedbackText('Yerel sensör geçmişi', 'Local sensor history')} (${sensorHistory?['sampleCount'] ?? 0})', style: const TextStyle(fontWeight: FontWeight.w700)),
+                if (recentSensorSamples.isEmpty)
+                  Text(_feedbackText('Henüz sensör geçmişi örneği yok.', 'No sensor history samples yet.')),
+                for (final sample in recentSensorSamples.reversed)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      '${sample['timestamp'] ?? 'N/A'} • CPU ${_formatHealthMetric(sample['cpuTemperature'], '°C')} • GPU ${_formatHealthMetric(sample['gpuTemperature'], '°C')} • Fan ${_formatHealthMetric(sample['fanRpm'], 'RPM')}',
+                    ),
+                  ),
                 const SizedBox(height: 8),
                 if (warnings.isNotEmpty) ...[
                   Text(_tr('warnings'), style: const TextStyle(fontWeight: FontWeight.w700)),
