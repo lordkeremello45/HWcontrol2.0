@@ -67,6 +67,24 @@ void main() {
       'updateStatusVerified',
       'updateStatusVerificationFailed',
       'updateReleaseReady',
+      // Battery health was added after the older locale catalogs. Until each
+      // locale receives reviewed translations, Flutter intentionally falls
+      // back to the English template for these labels.
+      'batteryHealth',
+      'batteryHealthDescription',
+      'batteryNotDetected',
+      'batteryDataUnavailable',
+      'batteryDesignCapacity',
+      'batteryFullChargeCapacity',
+      'batteryCapacityWear',
+      'batteryCycleCount',
+      'batteryStatusLabel',
+      'batteryCharging',
+      'batteryDischarging',
+      'batteryFull',
+      'batteryConnected',
+      'batteryUnknownStatus',
+      'batteryHealthCaveat',
     };
 
     for (final locale in catalogs.entries) {
