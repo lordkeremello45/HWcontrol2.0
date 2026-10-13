@@ -82,3 +82,39 @@ test('controller hysteresis suppresses small temperature oscillations', () {
     expect(target(51.8, 2), isNull);
     expect(target(53, 3), isNotNull);
   });
+
+test('controller refuses targets when hardware control is unavailable', () {
+    final controller = FanCurveController();
+    const curve = FanCurve([
+      FanCurvePoint(40, 20),
+      FanCurvePoint(80, 100),
+    ]);
+    expect(controller.nextTarget(
+      curve: curve,
+      temperature: 75,
+      now: DateTime(2026, 1, 1),
+      sensorValid: true,
+      hardwareControlSupported: false,
+    ), isNull);
+  });
+
+  test('invalid telemetry resets previous hysteresis state', () {
+    final controller = FanCurveController(smoothingSamples: 1);
+    const curve = FanCurve([
+      FanCurvePoint(40, 20),
+      FanCurvePoint(80, 100),
+    ]);
+    final start = DateTime(2026, 1, 1);
+    expect(controller.nextTarget(
+      curve: curve, temperature: 50, now: start,
+      sensorValid: true, hardwareControlSupported: true,
+    ), isNotNull);
+    expect(controller.nextTarget(
+      curve: curve, temperature: double.nan, now: start.add(const Duration(seconds: 1)),
+      sensorValid: false, hardwareControlSupported: true,
+    ), isNull);
+    expect(controller.nextTarget(
+      curve: curve, temperature: 75, now: start.add(const Duration(seconds: 2)),
+      sensorValid: true, hardwareControlSupported: true,
+    ), isNotNull);
+  });
