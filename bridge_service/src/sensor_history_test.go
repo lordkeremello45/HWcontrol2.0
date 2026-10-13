@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 	"time"
 )
@@ -59,5 +58,4 @@ func TestSensorHistoryAgeRejectsInvalidOrFutureTimestamp(t *testing.T) {
 	if !ok || age != 5*time.Second {
 		t.Fatalf("age = %v, valid = %v; want 5s, true", age, ok)
 	}
-	_ = fmt.Sprintf("%v", age)
 }
