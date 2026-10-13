@@ -55,9 +55,8 @@ void main() {
       hardwareControlSupported: true,
     ), isNull);
   });
-}
 
-test('controller hysteresis suppresses small temperature oscillations', () {
+  test('controller hysteresis suppresses small temperature oscillations', () {
     final controller = FanCurveController(
       smoothingSamples: 1,
       hysteresisCelsius: 2,
@@ -83,7 +82,7 @@ test('controller hysteresis suppresses small temperature oscillations', () {
     expect(target(53, 3), isNotNull);
   });
 
-test('controller refuses targets when hardware control is unavailable', () {
+  test('controller refuses targets when hardware control is unavailable', () {
     final controller = FanCurveController();
     const curve = FanCurve([
       FanCurvePoint(40, 20),
@@ -118,3 +117,4 @@ test('controller refuses targets when hardware control is unavailable', () {
       sensorValid: true, hardwareControlSupported: true,
     ), isNotNull);
   });
+}
