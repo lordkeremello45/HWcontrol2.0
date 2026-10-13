@@ -5,7 +5,7 @@ import "testing"
 func TestEvaluateHardwareHealthCapabilityMatrix(t *testing.T) {
 	bridgeIntegrityState.Store(true)
 	metrics := HardwareMetrics{
-		CPUTemperature: 55, CPUTemperatureSource: "test-cpu", GPUTemperature: 60, GPUTemperatureSource: "test-gpu", FanRPM: 1200, FanControlSupported: true,
+		CPUTemperature: 55, CPUTemperatureSource: "test-cpu", GPUTemperature: 60, GPUTemperatureSource: "test-gpu", FanRPM: 1200, FanRPMSource: "test-fan", FanControlSupported: true,
 		FanControlBackend: "test-backend", ThermalSafetyAvailable: true, SensorSource: "test",
 		Voltage: 1.1, PowerWatts: 65, GPUCoreClockMHz: 1500, GPUMemoryClockMHz: 7000,
 		GPUMemoryTotalBytes: 8 * 1024 * 1024 * 1024, DetectionStatus: "ok", DetectionSource: "test",
@@ -84,7 +84,7 @@ func TestEvaluateHardwareHealthExposesBatteryAndSystemCapabilities(t *testing.T)
 		CPUUsage: 35, MemoryUsage: 42, MemoryTotalBytes: 16 * 1024 * 1024 * 1024,
 		DiskUsage: 55, DiskTotalBytes: 512 * 1024 * 1024 * 1024,
 		GPUUsage: 60, GPUVendor: "NVIDIA", SensorSource: "test",
-		FanPercent: 45, FanControlSupported: true, FanControlBackend: "test-backend",
+		FanPercent: 45, FanPercentSource: "test-gpu-fan", FanControlSupported: true, FanControlBackend: "test-backend",
 		ThermalSafetyAvailable: true, CPUTemperature: 55, CPUTemperatureSource: "test-cpu",
 		Battery: BatteryMetrics{Present: true, DataAvailable: true, HealthPercent: 82},
 	}
