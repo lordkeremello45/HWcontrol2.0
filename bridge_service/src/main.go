@@ -366,6 +366,15 @@ const (
 )
 
 func hardwareControlSafetyError(metrics HardwareMetrics) error {
+	if !metrics.ThermalSafetyAvailable {
+		return fmt.Errorf("hardware control blocked: no valid thermal telemetry available")
+	}
+	if metrics.CPUTemperature != 0 && !isValidTemperature(metrics.CPUTemperature) {
+		return fmt.Errorf("hardware control blocked: CPU temperature telemetry is invalid")
+	}
+	if metrics.GPUTemperature != 0 && !isValidTemperature(metrics.GPUTemperature) {
+		return fmt.Errorf("hardware control blocked: GPU temperature telemetry is invalid")
+	}
 	if metrics.CPUTemperature >= criticalCPUTemperature || metrics.GPUTemperature >= criticalGPUTemperature {
 		return fmt.Errorf("hardware control blocked: critical temperature detected")
 	}
