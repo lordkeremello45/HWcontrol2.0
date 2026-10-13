@@ -67,8 +67,9 @@ func mergePlatformMetrics(metrics *HardwareMetrics) {
 					metrics.GPUTemperatureSource = "Linux amdgpu sysfs"
 				}
 			}
-			if value, ok := readFloatFile(filepath.Join(hwmon, "fan1_input")); ok {
+			if value, ok := readFloatFile(filepath.Join(hwmon, "fan1_input")); ok && isFinitePositive(value) {
 				metrics.FanRPM = value
+				metrics.FanRPMSource = "Linux amdgpu sysfs"
 			}
 		}
 
