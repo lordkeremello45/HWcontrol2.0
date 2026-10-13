@@ -1051,15 +1051,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (!_smartFanEnabled || !_fanControlSupported || !_isConnected || _isSending) return;
     final cpu = (telemetry['cpuTemperature'] as num?)?.toDouble() ?? double.nan;
     final gpu = (telemetry['gpuTemperature'] as num?)?.toDouble() ?? double.nan;
-    if (cpu >= 95 || (gpu.isFinite && gpu >= 95)) {
+    final cpuValid = cpu.isFinite && cpu > 0 && cpu <= 125;
+    final gpuValid = gpu.isFinite && gpu > 0 && gpu <= 125;
+    // Use the hottest valid source so GPU-only systems still get a curve target.
+    // Do not interpret absent, non-finite, or out-of-range readings as live data.
+    if ((cpuValid && cpu >= 95) || (gpuValid && gpu >= 95)) {
       _fanCurveController.reset();
       return;
     }
+    final controlTemperature = cpuValid && gpuValid
+        ? math.max(cpu, gpu).toDouble()
+        : cpuValid
+            ? cpu
+            : gpuValid
+                ? gpu
+                : double.nan;
     final curveTarget = _fanCurveController.nextTarget(
       curve: _fanCurve,
-      temperature: cpu,
+      temperature: controlTemperature,
       now: DateTime.now(),
-      sensorValid: cpu.isFinite && cpu > 0,
+      sensorValid: controlTemperature.isFinite,
       hardwareControlSupported: _fanControlSupported,
     );
     final ruleTarget = HardwareAutomationEngine(_automationRules).evaluate(<String, dynamic>{
