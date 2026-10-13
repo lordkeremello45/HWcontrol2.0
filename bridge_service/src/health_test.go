@@ -160,3 +160,20 @@ func TestEvaluateHardwareHealthDoesNotAdvertiseTemperatureWithoutSource(t *testi
 		t.Fatal("temperature without a known source must not be advertised as verified telemetry")
 	}
 }
+
+func TestEvaluateHardwareHealthDoesNotConfuseFanControlWithFanTelemetry(t *testing.T) {
+	bridgeIntegrityState.Store(true)
+	evaluation := evaluateHardwareHealth(HardwareMetrics{
+		FanControlSupported: true,
+		FanControlBackend: "linux-hwmon",
+		FanRPM: 0,
+		FanPercent: 0,
+		ThermalSafetyAvailable: true,
+	})
+	if !evaluation.Capabilities["fanControl"].Available {
+		t.Fatal("writable fan control should be reported independently")
+	}
+	if evaluation.Capabilities["fanRpm"].Available || evaluation.Capabilities["fanPercent"].Available {
+		t.Fatal("fan control support must not imply readable fan telemetry")
+	}
+}
