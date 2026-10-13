@@ -51,7 +51,9 @@ public static partial class HardwareCatalog
 
     public static string? IdentifyCpuFamily(string? manufacturer, string? model)
     {
-        var text = $"{manufacturer} {model}".ToLowerInvariant();
+        var text = $"{manufacturer} {model}".ToLowerInvariant()
+            .Replace("(r)", string.Empty, StringComparison.Ordinal)
+            .Replace("(tm)", string.Empty, StringComparison.Ordinal);
         if (ContainsAny(text, "intel core ultra"))
             return "Intel Core Ultra";
         if (ContainsAny(text, "intel core i9", "core i9"))
