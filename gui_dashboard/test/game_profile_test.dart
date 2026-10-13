@@ -90,7 +90,7 @@ void main() {
           assignments: assignments,
           profiles: const {'Performance': {'fan': -5.0}},
         ),
-        0,
+        1,
       );
     });
 
