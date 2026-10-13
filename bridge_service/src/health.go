@@ -41,6 +41,9 @@ type HealthSnapshot struct {
 	LocalOnly         bool                          `json:"localOnly"`
 	HardwareControl   string                        `json:"hardwareControl"`
 	SensorSource      string                        `json:"sensorSource"`
+	CPUTemperatureSource string                     `json:"cpuTemperatureSource,omitempty"`
+	GPUTemperatureSource string                     `json:"gpuTemperatureSource,omitempty"`
+	MetricsCollectedAt string                       `json:"metricsCollectedAt,omitempty"`
 	DetectionStatus   string                        `json:"detectionStatus"`
 	IdentityAvailable bool                          `json:"identityAvailable"`
 	Storage           []StorageVolume               `json:"storage"`
@@ -57,8 +60,8 @@ func capability(available bool, backend, reason string) HardwareCapability {
 
 func evaluateHardwareHealth(metrics HardwareMetrics) HardwareHealthEvaluation {
 	capabilities := map[string]HardwareCapability{
-		"cpuTemperature":   capability(metrics.CPUTemperature > 0 && isValidTemperature(metrics.CPUTemperature), metrics.SensorSource, "CPU thermal telemetry unavailable"),
-		"gpuTemperature":   capability(metrics.GPUTemperature > 0 && isValidTemperature(metrics.GPUTemperature), metrics.SensorSource, "GPU thermal telemetry unavailable"),
+		"cpuTemperature":   capability(metrics.CPUTemperatureSource != "" && metrics.CPUTemperature > 0 && isValidTemperature(metrics.CPUTemperature), metrics.CPUTemperatureSource, "CPU thermal telemetry unavailable or source unknown"),
+		"gpuTemperature":   capability(metrics.GPUTemperatureSource != "" && metrics.GPUTemperature > 0 && isValidTemperature(metrics.GPUTemperature), metrics.GPUTemperatureSource, "GPU thermal telemetry unavailable or source unknown"),
 		"fanRpm":           capability(metrics.FanRPM >= 0 && (metrics.FanRPM > 0 || metrics.FanControlSupported), metrics.SensorSource, "Fan RPM telemetry unavailable"),
 		"fanControl":       capability(metrics.FanControlSupported && metrics.FanControlBackend != "" && metrics.FanControlBackend != "monitor-only", metrics.FanControlBackend, "No validated hardware-control backend"),
 		"voltage":          capability(isFinitePositive(metrics.Voltage), metrics.SensorSource, "Voltage telemetry unavailable"),
@@ -192,7 +195,9 @@ func healthSnapshot() HealthSnapshot {
 		Status: evaluation.Status, SafetyState: evaluation.SafetyState, RecoveryAction: evaluation.RecoveryAction,
 		Checks: checks, Warnings: warnings, Anomalies: evaluation.Anomalies, Capabilities: evaluation.Capabilities,
 		BridgeVersion: bridgeVersion, Platform: runtime.GOOS, Architecture: runtime.GOARCH, LocalOnly: true,
-		HardwareControl: metrics.HardwareControlMode, SensorSource: metrics.SensorSource, DetectionStatus: metrics.DetectionStatus,
+		HardwareControl: metrics.HardwareControlMode, SensorSource: metrics.SensorSource,
+		CPUTemperatureSource: metrics.CPUTemperatureSource, GPUTemperatureSource: metrics.GPUTemperatureSource,
+		MetricsCollectedAt: metrics.MetricsCollectedAt, DetectionStatus: metrics.DetectionStatus,
 		IdentityAvailable: evaluation.Capabilities["hardwareIdentity"].Available,
 		Storage:           metrics.StorageVolumes,
 	}
