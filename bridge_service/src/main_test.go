@@ -277,3 +277,29 @@ func TestBridgeKeyLifecycleUsesAtomicFile(t *testing.T) {
 		t.Fatalf("reloaded secret changed: got %q, want %q", reloaded, secret)
 	}
 }
+
+func TestHardwareControlSafetyGateRejectsInvalidSensorValues(t *testing.T) {
+	base := HardwareMetrics{
+		ThermalSafetyAvailable: true,
+		CPUTemperature: 60,
+		GPUTemperature: 65,
+	}
+	for _, test := range []struct {
+		name string
+		mutate func(*HardwareMetrics)
+	}{
+		{"CPU over sensor range", func(m *HardwareMetrics) { m.CPUTemperature = 150 }},
+		{"GPU below sensor range", func(m *HardwareMetrics) { m.GPUTemperature = -50 }},
+		{"CPU NaN", func(m *HardwareMetrics) { m.CPUTemperature = math.NaN() }},
+		{"GPU positive infinity", func(m *HardwareMetrics) { m.GPUTemperature = math.Inf(1) }},
+		{"no valid thermal source", func(m *HardwareMetrics) { m.ThermalSafetyAvailable = false }},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			metrics := base
+			test.mutate(&metrics)
+			if err := hardwareControlSafetyError(metrics); err == nil {
+				t.Fatal("expected invalid thermal telemetry to block hardware control")
+			}
+		})
+	}
+}
