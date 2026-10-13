@@ -77,3 +77,54 @@ func TestEvaluateHardwareHealthFlagsNearlyFullStorage(t *testing.T) {
 		t.Fatal("expected storage-near-full anomaly")
 	}
 }
+
+func TestEvaluateHardwareHealthExposesBatteryAndSystemCapabilities(t *testing.T) {
+	bridgeIntegrityState.Store(true)
+	metrics := HardwareMetrics{
+		CPUUsage: 35, MemoryUsage: 42, MemoryTotalBytes: 16 * 1024 * 1024 * 1024,
+		DiskUsage: 55, DiskTotalBytes: 512 * 1024 * 1024 * 1024,
+		GPUUsage: 60, GPUVendor: "NVIDIA", SensorSource: "test",
+		FanPercent: 45, FanControlSupported: true, FanControlBackend: "test-backend",
+		ThermalSafetyAvailable: true, CPUTemperature: 55,
+		Battery: BatteryMetrics{Present: true, DataAvailable: true, HealthPercent: 82},
+	}
+	evaluation := evaluateHardwareHealth(metrics)
+	for _, key := range []string{"cpuUtilization", "memory", "diskUsage", "gpuUtilization", "fanPercent", "batteryHealth", "thermalSafety"} {
+		if !evaluation.Capabilities[key].Available {
+			t.Errorf("capability %q unexpectedly unavailable: %#v", key, evaluation.Capabilities[key])
+		}
+	}
+}
+
+func TestEvaluateHardwareHealthWarnsOnDegradedBatteryCapacity(t *testing.T) {
+	bridgeIntegrityState.Store(true)
+	evaluation := evaluateHardwareHealth(HardwareMetrics{
+		ThermalSafetyAvailable: true,
+		Battery: BatteryMetrics{Present: true, DataAvailable: true, HealthPercent: 45},
+	})
+	found := false
+	for _, anomaly := range evaluation.Anomalies {
+		if anomaly.Code == "battery-capacity-degraded" && anomaly.Severity == "warning" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("expected degraded-battery-capacity warning")
+	}
+}
+
+func TestEvaluateHardwareHealthMarksInvalidUtilization(t *testing.T) {
+	bridgeIntegrityState.Store(true)
+	evaluation := evaluateHardwareHealth(HardwareMetrics{
+		CPUUsage: 140, MemoryUsage: 50, ThermalSafetyAvailable: true,
+	})
+	found := false
+	for _, anomaly := range evaluation.Anomalies {
+		if anomaly.Code == "cpu-utilization-invalid" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("expected invalid CPU utilization anomaly")
+	}
+}
