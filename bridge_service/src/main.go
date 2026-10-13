@@ -235,6 +235,12 @@ func collectMetrics() HardwareMetrics {
 	} else {
 		metrics.HardwareControlMode = "monitor-only"
 	}
+	if metrics.CPUTemperatureSource == "" && metrics.CPUTemperature > 0 && isValidTemperature(metrics.CPUTemperature) && metrics.SensorSource != "" {
+		metrics.CPUTemperatureSource = metrics.SensorSource
+	}
+	if metrics.GPUTemperatureSource == "" && metrics.GPUTemperature > 0 && isValidTemperature(metrics.GPUTemperature) && metrics.SensorSource != "" {
+		metrics.GPUTemperatureSource = metrics.SensorSource
+	}
 	metrics.ThermalSafetyAvailable =
 		(metrics.CPUTemperatureSource != "" && isValidTemperature(metrics.CPUTemperature) && metrics.CPUTemperature > 0) ||
 		(metrics.GPUTemperatureSource != "" && isValidTemperature(metrics.GPUTemperature) && metrics.GPUTemperature > 0)
