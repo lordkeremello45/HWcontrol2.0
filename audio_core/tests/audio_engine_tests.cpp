@@ -1,4 +1,5 @@
 #include "hwcontrol_audio/audio_engine.hpp"
+#include "hwcontrol_audio/audio_analyzer.hpp"
 
 #include <array>
 #include <cmath>
@@ -98,6 +99,30 @@ void testCompressorReducesAboveThresholdLevel() {
           "compressor did not reduce a signal above threshold");
 }
 
+void testSpectrumAnalyzerFindsTone() {
+  hwcontrol::audio::AudioAnalyzer analyzer;
+  hwcontrol::audio::SpectrumFrame spectrum;
+  std::array<float, hwcontrol::audio::kFftSize * 2> samples{};
+  constexpr double sampleRate = 48000.0;
+  constexpr double frequency = 1500.0;
+  for (std::size_t frame = 0; frame < hwcontrol::audio::kFftSize; ++frame) {
+    const float value = 0.25F * std::sin(static_cast<float>(
+        2.0 * 3.14159265358979323846 * frequency *
+        static_cast<double>(frame) / sampleRate));
+    samples[frame * 2] = value;
+    samples[frame * 2 + 1] = value;
+  }
+  require(analyzer.analyze(samples.data(), hwcontrol::audio::kFftSize,
+                           sampleRate, spectrum),
+          "valid FFT frame rejected");
+  require(std::abs(spectrum.peakFrequencyHz - 1500.0F) < 1.0F,
+          "FFT peak frequency incorrect");
+  require(spectrum.magnitude[32] > 0.2F, "FFT peak magnitude too small");
+  require(spectrum.rms > 0.15F && spectrum.rms < 0.2F, "FFT RMS incorrect");
+  require(!analyzer.analyze(samples.data(), 64, sampleRate, spectrum),
+          "wrong FFT frame size accepted");
+}
+
 void testInvalidSampleRateFallsBack() {
   hwcontrol::audio::AudioEngine engine;
   hwcontrol::audio::ProcessorConfig config;
@@ -114,6 +139,7 @@ int main() {
   testNonFiniteSamplesAreContained();
   testEqualizerBoostsConfiguredBand();
   testCompressorReducesAboveThresholdLevel();
+  testSpectrumAnalyzerFindsTone();
   testInvalidSampleRateFallsBack();
   std::cout << "Audio core tests passed\n";
   return 0;
