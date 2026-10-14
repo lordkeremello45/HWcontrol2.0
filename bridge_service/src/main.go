@@ -298,6 +298,68 @@ func collectMetrics() HardwareMetrics {
 	return metrics
 }
 
+// collectHardwareControlSafetyMetrics intentionally avoids the one-second
+// CPU-utilization sampling used by collectMetrics. A multi-channel write must
+// revalidate thermal safety on every command without multiplying that delay by
+// the number of fans.
+func collectHardwareControlSafetyMetrics() HardwareMetrics {
+	metrics := HardwareMetrics{}
+	if temperatures, err := host.SensorsTemperatures(); err == nil {
+		for _, sensor := range temperatures {
+			key := strings.ToLower(sensor.SensorKey)
+			if strings.Contains(key, "cpu") || strings.Contains(key, "package") || strings.Contains(key, "core") {
+				if isValidTemperature(sensor.Temperature) && sensor.Temperature > 0 {
+					metrics.CPUTemperature = sensor.Temperature
+					metrics.CPUTemperatureSource = "gopsutil-host-sensors:" + sensor.SensorKey
+				}
+			}
+			if strings.Contains(key, "gpu") || strings.Contains(key, "graphics") {
+				if isValidTemperature(sensor.Temperature) && sensor.Temperature > 0 {
+					metrics.GPUTemperature = sensor.Temperature
+					metrics.GPUTemperatureSource = "gopsutil-host-sensors:" + sensor.SensorKey
+				}
+			}
+		}
+	}
+
+	if output, err := nvidiaSMIOutput(); err == nil {
+		lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+		if len(lines) > 0 && strings.TrimSpace(lines[0]) != "" {
+			parts := strings.Split(lines[0], ",")
+			if len(parts) >= 3 {
+				if value, parseErr := strconv.ParseFloat(strings.TrimSpace(parts[2]), 64); parseErr == nil && isValidTemperature(value) && value > 0 {
+					metrics.GPUTemperature = value
+					metrics.GPUTemperatureSource = "nvidia-smi"
+					metrics.SensorSource = "nvidia-smi"
+				}
+			}
+		}
+	}
+
+	mergePlatformMetrics(&metrics)
+	if metrics.CPUTemperatureSource == "" && metrics.CPUTemperature > 0 && isValidTemperature(metrics.CPUTemperature) && metrics.SensorSource != "" {
+		metrics.CPUTemperatureSource = metrics.SensorSource
+	}
+	if metrics.GPUTemperatureSource == "" && metrics.GPUTemperature > 0 && isValidTemperature(metrics.GPUTemperature) && metrics.SensorSource != "" {
+		metrics.GPUTemperatureSource = metrics.SensorSource
+	}
+	if metrics.SensorSource == "" {
+		if metrics.CPUTemperatureSource != "" {
+			metrics.SensorSource = "gopsutil-host-sensors"
+		} else if metrics.GPUTemperatureSource != "" {
+			metrics.SensorSource = metrics.GPUTemperatureSource
+		}
+	}
+	metrics.ThermalSafetyAvailable =
+		(metrics.CPUTemperatureSource != "" && isValidTemperature(metrics.CPUTemperature) && metrics.CPUTemperature > 0) ||
+			(metrics.GPUTemperatureSource != "" && isValidTemperature(metrics.GPUTemperature) && metrics.GPUTemperature > 0)
+	metrics.FanChannels = listFanChannels()
+	fanControl := detectFanControl()
+	metrics.FanControlSupported = fanControl.Supported
+	metrics.FanControlBackend = fanControl.Backend
+	return metrics
+}
+
 func nvidiaSMIOutput() ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), nvidiaSMITimeout)
 	defer cancel()
@@ -488,7 +550,17 @@ func executeHardwareCommand(cmd Command) error {
 		if panicModeActive() {
 			return fmt.Errorf("hardware control blocked: security panic mode active")
 		}
-		metrics := collectMetrics()
+		channelPresent := false
+		for _, channel := range listFanChannels() {
+			if channel.ID == cmd.Target && channel.Supported {
+				channelPresent = true
+				break
+			}
+		}
+		if !channelPresent {
+			return fmt.Errorf("fan channel was not detected or is monitor-only")
+		}
+		metrics := collectHardwareControlSafetyMetrics()
 		if err := validateFanChannelControlRequest(cmd, metrics); err != nil {
 			return err
 		}
