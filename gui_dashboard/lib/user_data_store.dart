@@ -26,7 +26,7 @@ class HWControlUserDataStore {
   Future<Directory> get rootDirectory async {
     final base = _supportDirectoryProvider == null
         ? await getApplicationSupportDirectory()
-        : await _supportDirectoryProvider!();
+        : await _supportDirectoryProvider();
     final dir = Directory(
       '${base.path}${Platform.pathSeparator}HWControl',
     );
@@ -149,7 +149,6 @@ class HWControlUserDataStore {
       'profiles': profiles,
     });
   }
-
 
   /// Reads the typed, schema-versioned profile collection.
   ///
