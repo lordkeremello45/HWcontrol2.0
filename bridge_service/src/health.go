@@ -13,6 +13,19 @@ type HardwareCapability struct {
 	Reason    string `json:"reason,omitempty"`
 }
 
+type HardwareFeatureCapability struct {
+	SchemaVersion int            `json:"schemaVersion"`
+	ID            string         `json:"id"`
+	Domain        string         `json:"domain"`
+	State         string         `json:"state"`
+	Platform      string         `json:"platform"`
+	Backend       string         `json:"backend"`
+	Evidence      string         `json:"evidence,omitempty"`
+	ObservedAt    string         `json:"observedAt,omitempty"`
+	Reason        string         `json:"reason,omitempty"`
+	Constraints   map[string]any `json:"constraints,omitempty"`
+}
+
 type HardwareAnomaly struct {
 	Code     string `json:"code"`
 	Severity string `json:"severity"`
@@ -24,6 +37,7 @@ type HardwareHealthEvaluation struct {
 	SafetyState    string                        `json:"safetyState"`
 	RecoveryAction string                        `json:"recoveryAction"`
 	Capabilities   map[string]HardwareCapability `json:"capabilities"`
+	FeatureCapabilities []HardwareFeatureCapability `json:"featureCapabilities"`
 	Anomalies      []HardwareAnomaly             `json:"anomalies,omitempty"`
 }
 
@@ -35,6 +49,7 @@ type HealthSnapshot struct {
 	Warnings          []string                      `json:"warnings,omitempty"`
 	Anomalies         []HardwareAnomaly             `json:"anomalies,omitempty"`
 	Capabilities      map[string]HardwareCapability `json:"capabilities"`
+	FeatureCapabilities []HardwareFeatureCapability `json:"featureCapabilities"`
 	BridgeVersion     string                        `json:"bridgeVersion"`
 	Platform          string                        `json:"platform"`
 	Architecture      string                        `json:"architecture"`
@@ -85,6 +100,71 @@ func resolvedFanControlBackend(metrics HardwareMetrics) string {
 		return metrics.FanControlBackend
 	}
 	return "monitor-only"
+}
+
+
+// buildFeatureCapabilities provides a versioned, additive capability contract.
+// The legacy map remains available for existing clients. Writable features are
+// advertised only when a validated adapter currently reports support.
+func buildFeatureCapabilities(metrics HardwareMetrics, legacy map[string]HardwareCapability) []HardwareFeatureCapability {
+	platform := runtime.GOOS
+	observedAt := strings.TrimSpace(metrics.MetricsCollectedAt)
+	makeCapability := func(id, domain, legacyID string, readOnly bool) HardwareFeatureCapability {
+		legacyCapability, exists := legacy[legacyID]
+		state := "unavailable"
+		reason := "Capability evidence is unavailable"
+		backend := "none"
+		evidence := ""
+		if exists {
+			backend = strings.TrimSpace(legacyCapability.Backend)
+			reason = strings.TrimSpace(legacyCapability.Reason)
+			if legacyCapability.Available {
+				if readOnly {
+					state = "read-only"
+				} else {
+					state = "supported"
+				}
+				evidence = backend
+				reason = ""
+			}
+		}
+		if backend == "" {
+			backend = "none"
+		}
+		if reason == "" && state == "unavailable" {
+			reason = "No validated adapter is available"
+		}
+		return HardwareFeatureCapability{
+			SchemaVersion: 1, ID: id, Domain: domain, State: state,
+			Platform: platform, Backend: backend, Evidence: evidence,
+			ObservedAt: observedAt, Reason: reason,
+		}
+	}
+
+	capabilities := []HardwareFeatureCapability{
+		makeCapability("telemetry.cpu-temperature", "telemetry", "cpuTemperature", true),
+		makeCapability("telemetry.gpu-temperature", "telemetry", "gpuTemperature", true),
+		makeCapability("cooling.fan-control", "cooling", "fanControl", false),
+		{
+			SchemaVersion: 1, ID: "lighting.rgb", Domain: "lighting",
+			State: "unavailable", Platform: platform, Backend: "none",
+			ObservedAt: observedAt,
+			Reason: "No validated RGB/ARGB discovery or control adapter is implemented",
+		},
+		{
+			SchemaVersion: 1, ID: "mouse.rgb", Domain: "mouse",
+			State: "unavailable", Platform: platform, Backend: "none",
+			ObservedAt: observedAt,
+			Reason: "No validated mouse RGB adapter is implemented; device-specific support is not yet known",
+		},
+		{
+			SchemaVersion: 1, ID: "keyboard.rgb", Domain: "keyboard",
+			State: "unavailable", Platform: platform, Backend: "none",
+			ObservedAt: observedAt,
+			Reason: "No validated keyboard RGB adapter is implemented; device-specific support is not yet known",
+		},
+	}
+	return capabilities
 }
 
 func evaluateHardwareHealth(metrics HardwareMetrics) HardwareHealthEvaluation {
@@ -185,7 +265,7 @@ func evaluateHardwareHealth(metrics HardwareMetrics) HardwareHealthEvaluation {
 	if safetyState == "FAIL_SAFE" {
 		status = "unsafe"
 	}
-	return HardwareHealthEvaluation{Status: status, SafetyState: safetyState, RecoveryAction: recoveryAction, Capabilities: capabilities, Anomalies: anomalies}
+	return HardwareHealthEvaluation{Status: status, SafetyState: safetyState, RecoveryAction: recoveryAction, Capabilities: capabilities, FeatureCapabilities: buildFeatureCapabilities(metrics, capabilities), Anomalies: anomalies}
 }
 
 func isFinitePositive(value float64) bool {
@@ -227,7 +307,7 @@ func healthSnapshot() HealthSnapshot {
 	}
 	return HealthSnapshot{
 		Status: evaluation.Status, SafetyState: evaluation.SafetyState, RecoveryAction: evaluation.RecoveryAction,
-		Checks: checks, Warnings: warnings, Anomalies: evaluation.Anomalies, Capabilities: evaluation.Capabilities,
+		Checks: checks, Warnings: warnings, Anomalies: evaluation.Anomalies, Capabilities: evaluation.Capabilities, FeatureCapabilities: evaluation.FeatureCapabilities,
 		BridgeVersion: bridgeVersion, Platform: runtime.GOOS, Architecture: runtime.GOARCH, LocalOnly: true,
 		HardwareControl: metrics.HardwareControlMode, SensorSource: metrics.SensorSource,
 		CPUTemperatureSource: metrics.CPUTemperatureSource, GPUTemperatureSource: metrics.GPUTemperatureSource,
