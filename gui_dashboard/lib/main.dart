@@ -1767,10 +1767,51 @@ Attach this archive to a support issue only after reviewing it for personal info
     required int timestamp,
     required String nonce,
     String? target,
+    String? payloadJson,
   }) {
     var payload = '$action\n${value.toStringAsFixed(6)}\n$timestamp\n$nonce';
     if (target != null && target.isNotEmpty) payload = '$payload\n$target';
+    if (payloadJson != null) payload = '$payload\n$payloadJson';
     return Hmac(sha256, utf8.encode(_sharedKey)).convert(utf8.encode(payload)).toString();
+  }
+
+
+  Future<Map<String, dynamic>?> _requestAudioProfile(Map<String, dynamic> profile) async {
+    final socket = _socket;
+    if (!_isConnected || socket == null || _sharedKey.isEmpty || _isSending) return null;
+    _isSending = true;
+    try {
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final nonce = _commandNonce();
+      final payloadJson = jsonEncode(profile);
+      final auth = _commandAuth(
+        action: 'Get Audio Profile',
+        value: 0.0,
+        timestamp: timestamp,
+        nonce: nonce,
+        payloadJson: payloadJson,
+      );
+      socket.write('${jsonEncode({
+        'action': 'Get Audio Profile',
+        'value': 0.0,
+        'timestamp': timestamp,
+        'nonce': nonce,
+        'auth': auth,
+        'payload': profile,
+      })}\n');
+      final responses = _responses;
+      if (responses == null || !await responses.moveNext().timeout(const Duration(seconds: 95))) return null;
+      final response = jsonDecode(responses.current) as Map<String, dynamic>;
+      if (response['status'] != 'SUCCESS') {
+        throw StateError(response['message']?.toString() ?? 'Audio advisor failed');
+      }
+      return response['data'] as Map<String, dynamic>?;
+    } catch (error) {
+      if (mounted) setState(() => _status = 'Gemma ses önerisi alınamadı: $error');
+      return null;
+    } finally {
+      _isSending = false;
+    }
   }
 
   Future<Map<String, dynamic>?> _requestBridgeData(String action) async {
@@ -3001,7 +3042,7 @@ Attach this archive to a support issue only after reviewing it for personal info
   Future<void> _openAudioControllerStudio() async {
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
-        builder: (_) => const AudioControllerStudioScreen(),
+        builder: (_) => AudioControllerStudioScreen(onRecommend: _requestAudioProfile),
       ),
     );
   }
