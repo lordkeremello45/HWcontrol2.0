@@ -39,6 +39,7 @@ const hwcontrol::audio::AudioDeviceInfo* findDefault(
   return it == devices.end() ? (devices.empty() ? nullptr : &devices.front()) : &*it;
 }
 }
+ 
 int main(int argc, char** argv) {
   using hwcontrol::audio::AudioDeviceHost;
   using hwcontrol::audio::DeviceDirection;
