@@ -210,6 +210,47 @@ class _FanCurveEditorState extends State<FanCurveEditor> {
 
   void _sort() => _points.sort((a, b) => a.temperature.compareTo(b.temperature));
 
+  Future<void> _editPointTemperature(int index) async {
+    final temperature = TextEditingController(
+      text: _points[index].temperature.toStringAsFixed(1),
+    );
+    final result = await showDialog<double>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(_tr('temperature')),
+        content: TextField(
+          controller: temperature,
+          autofocus: true,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: InputDecoration(labelText: '${_tr('temperature')} (°C)'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(_tr('cancel')),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = double.tryParse(temperature.text);
+              if (value != null && value.isFinite) {
+                Navigator.pop(context, value.clamp(20, 110).toDouble());
+              }
+            },
+            child: Text(_tr('save')),
+          ),
+        ],
+      ),
+    );
+    temperature.dispose();
+    if (result == null || !mounted) return;
+    setState(() {
+      final current = _points[index];
+      _points[index] = FanCurvePoint(result, current.fanPercent);
+      _sort();
+      _points = FanCurve(_points).safetyNormalizedPoints.toList();
+    });
+  }
+
   Future<void> _addPoint() async {
     final temperature = TextEditingController(text: '70');
     final fan = TextEditingController(text: '60');
@@ -261,7 +302,18 @@ class _FanCurveEditorState extends State<FanCurveEditor> {
               for (var i = 0; i < _points.length; i++)
                 Row(
                   children: [
-                    Expanded(child: Text('${_points[i].temperature.toStringAsFixed(0)} °C')),
+                    Expanded(
+                      child: TextButton.icon(
+                        onPressed: () => _editPointTemperature(i),
+                        icon: const Icon(Icons.edit_outlined, size: 13),
+                        label: Text('${_points[i].temperature.toStringAsFixed(0)} °C'),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          alignment: Alignment.centerLeft,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      ),
+                    ),
                     Expanded(
                       flex: 2,
                       child: Slider(
