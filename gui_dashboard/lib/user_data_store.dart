@@ -13,10 +13,16 @@ import 'package:path_provider/path_provider.dart';
 /// migrated into the new config/data layout. Security-sensitive bridge keys
 /// remain under the platform service locations and are not copied here.
 class HWControlUserDataStore {
+  HWControlUserDataStore({
+    Future<Directory> Function()? supportDirectoryProvider,
+  }) : _supportDirectoryProvider = supportDirectoryProvider ?? getApplicationSupportDirectory;
+
+  final Future<Directory> Function() _supportDirectoryProvider;
+
   static const int currentSchema = 2;
 
   Future<Directory> get rootDirectory async {
-    final base = await getApplicationSupportDirectory();
+    final base = await _supportDirectoryProvider();
     final dir = Directory(
       '${base.path}${Platform.pathSeparator}HWControl',
     );
