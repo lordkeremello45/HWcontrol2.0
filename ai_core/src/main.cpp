@@ -65,6 +65,18 @@ static int runStdioMode(const std::filesystem::path& modelPath) {
         if (line.empty()) {
             continue;
         }
+        if (line.rfind("AUDIO ", 0) == 0) {
+            AudioProfileRequest request;
+            if (!parseAudioProfileProtocolLine(line, request)) {
+                std::cout << "AUDIO_ERROR|invalid-profile" << std::endl;
+            } else {
+                const std::string response = ai.recommendAudioProfile(request);
+                std::cout << "AUDIO_OK|" << response << std::endl;
+            }
+            std::cout.flush();
+            continue;
+        }
+
         HardwareTelemetry telemetry;
         if (!parseTelemetryProtocolLine(line, telemetry)) {
             std::cout << "ERROR|invalid-telemetry" << std::endl;
