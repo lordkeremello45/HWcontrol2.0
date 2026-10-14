@@ -128,6 +128,32 @@ class FanChannelProfile {
       };
 }
 
+FanCurve fanCurvePreset(String preset) {
+  switch (preset) {
+    case 'quiet':
+      return const FanCurve(<FanCurvePoint>[
+        FanCurvePoint(40, 20),
+        FanCurvePoint(55, 20),
+        FanCurvePoint(65, 30),
+        FanCurvePoint(75, 45),
+        FanCurvePoint(85, 70),
+        FanCurvePoint(92, 100),
+      ]);
+    case 'performance':
+      return const FanCurve(<FanCurvePoint>[
+        FanCurvePoint(30, 35),
+        FanCurvePoint(45, 50),
+        FanCurvePoint(55, 65),
+        FanCurvePoint(65, 80),
+        FanCurvePoint(75, 95),
+        FanCurvePoint(85, 100),
+      ]);
+    case 'balanced':
+    default:
+      return FanCurve.balanced;
+  }
+}
+
 bool isUsableFanTemperature(double? temperature) =>
     temperature != null &&
     temperature.isFinite &&
