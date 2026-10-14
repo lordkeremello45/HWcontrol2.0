@@ -1285,7 +1285,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         );
         final controller = _fanChannelControllers.putIfAbsent(
           channel.id,
-          FanCurveController.new,
+          () => FanCurveController(),
         );
         final curveTarget = controller.nextTarget(
           curve: profile.curve,
