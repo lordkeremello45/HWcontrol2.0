@@ -30,6 +30,15 @@ class _HWControlPersonalizationScreenState extends State<HWControlPersonalizatio
   void initState() {
     super.initState();
     _p = Map<String, dynamic>.from(widget.initialPreferences)..['personalizationSchema'] = _schema;
+    const defaults = <String, dynamic>{
+      'themeMode': 'dark', 'accentPreset': 'teal', 'customAccent': '#64D8CB',
+      'cornerStyle': 'rounded', 'reduceMotion': false, 'temperatureUnit': 'celsius',
+      'density': 'comfortable', 'fontScale': 1.0, 'uiSoundsEnabled': true,
+      'animationSpeed': 1.0, 'startupPage': 'dashboard', 'graphRange': '5m',
+      'uiProfiles': <String, dynamic>{},
+    };
+    for (final entry in defaults.entries) { _p.putIfAbsent(entry.key, () => entry.value); }
+    for (final key in _items.keys) { _p.putIfAbsent('widget.' + key, () => true); }
     final raw = _p['dashboardOrder'];
     _order = raw is List ? raw.whereType<String>().where(_items.containsKey).toSet().toList() : _items.keys.toList();
     for (final k in _items.keys) { if (!_order.contains(k)) _order.add(k); }
