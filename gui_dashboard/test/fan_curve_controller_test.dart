@@ -28,6 +28,22 @@ void main() {
     expect((saved[1]['fan']!), lessThanOrEqualTo(saved[2]['fan']!));
   });
 
+  test('duplicate temperature breakpoints collapse to the strongest target', () {
+    const curve = FanCurve([
+      FanCurvePoint(40, 25),
+      FanCurvePoint(60, 45),
+      FanCurvePoint(60, 80),
+      FanCurvePoint(80, 70),
+    ]);
+
+    final normalized = curve.safetyNormalizedPoints;
+    expect(normalized.map((point) => point.temperature).toSet().length,
+        normalized.length);
+    expect(curve.evaluate(60), 80);
+    expect(curve.evaluate(70), 80);
+    expect(curve.evaluate(80), 80);
+  });
+
   test('fan curves enforce a nonzero cooling floor', () {
     const curve = FanCurve([
       FanCurvePoint(40, 0),
