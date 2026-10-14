@@ -26,6 +26,14 @@ endfunction()
 
 hwcontrol_harden_native_target(ai_engine)
 
+# Keep editable Gemma instructions beside the native executable for packaged/runtime use.
+add_custom_command(TARGET ai_engine POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_CURRENT_SOURCE_DIR}/instructions"
+            "$<TARGET_FILE_DIR:ai_engine>/instructions"
+    VERBATIM
+)
+
 include(CTest)
 if(BUILD_TESTING)
     add_executable(ai_core_tests
@@ -44,6 +52,13 @@ if(BUILD_TESTING)
     )
     target_include_directories(ai_telemetry_tests PRIVATE include)
     hwcontrol_harden_native_target(ai_telemetry_tests)
+
+    add_custom_command(TARGET ai_telemetry_tests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${CMAKE_CURRENT_SOURCE_DIR}/instructions"
+                "$<TARGET_FILE_DIR:ai_telemetry_tests>/instructions"
+        VERBATIM
+    )
 
     add_test(NAME ai_core_tests COMMAND $<TARGET_FILE:ai_core_tests>)
     add_test(NAME ai_telemetry_tests COMMAND $<TARGET_FILE:ai_telemetry_tests>)
