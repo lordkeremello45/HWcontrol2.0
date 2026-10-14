@@ -366,17 +366,17 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
     icon: Icons.route_outlined,
     child: Column(
       children: const [
-        _capabilityRow('Microphone capture', 'NOT IMPLEMENTED', Icons.mic_none),
+        _CapabilityRow('Microphone capture', 'NOT IMPLEMENTED', Icons.mic_none),
         Divider(),
-        _capabilityRow('System audio capture', 'NOT IMPLEMENTED', Icons.speaker_group_outlined),
+        _CapabilityRow('System audio capture', 'NOT IMPLEMENTED', Icons.speaker_group_outlined),
         Divider(),
-        _capabilityRow('Per-application routing', 'NOT IMPLEMENTED', Icons.alt_route),
+        _CapabilityRow('Per-application routing', 'NOT IMPLEMENTED', Icons.alt_route),
         Divider(),
-        _capabilityRow('Virtual microphone / output', 'NOT IMPLEMENTED', Icons.settings_input_component),
+        _CapabilityRow('Virtual microphone / output', 'NOT IMPLEMENTED', Icons.settings_input_component),
         Divider(),
-        _capabilityRow('Noise reduction / echo cancellation', 'PLANNED', Icons.spatial_audio_off),
+        _CapabilityRow('Noise reduction / echo cancellation', 'PLANNED', Icons.spatial_audio_off),
         Divider(),
-        _capabilityRow('Spatial audio / HRTF', 'PLANNED', Icons.surround_sound),
+        _CapabilityRow('Spatial audio / HRTF', 'PLANNED', Icons.surround_sound),
       ],
     ),
   );
@@ -408,8 +408,8 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
   );
 }
 
-class _capabilityRow extends StatelessWidget {
-  const _capabilityRow(this.label, this.status, this.icon);
+class _CapabilityRow extends StatelessWidget {
+  const _CapabilityRow(this.label, this.status, this.icon);
   final String label;
   final String status;
   final IconData icon;
