@@ -1,10 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"bufio"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"math"
 	"net"
 	"os"
