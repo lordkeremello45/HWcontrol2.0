@@ -18,7 +18,7 @@ public:
     std::string processData(float temp, float load);
 
     // Full hardware analysis path used by the richer telemetry pipeline.
-    std::string processTelemetry(const HardwareTelemetry& telemetry);
+    std::string processTelemetry(const HardwareTelemetry& telemetry);\n\n    // Local Gemma recommendation only; output must be validated and approved before use.\n    std::string recommendAudioProfile(const AudioProfileRequest& request);
 
 private:
     void release();
