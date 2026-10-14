@@ -1786,6 +1786,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       '$executableDir${Platform.pathSeparator}$binaryName',
       '${Directory(executableDir).parent.path}${Platform.pathSeparator}$binaryName',
       '${Directory(Directory(executableDir).parent.path).parent.path}${Platform.pathSeparator}$binaryName',
+      '${Directory(Directory(Directory(executableDir).parent.path).parent.path).parent.path}${Platform.pathSeparator}$binaryName',
       '${Directory.current.path}${Platform.pathSeparator}$binaryName',
       '${Directory.current.path}${Platform.pathSeparator}audio_core${Platform.pathSeparator}$binaryName',
     ];
