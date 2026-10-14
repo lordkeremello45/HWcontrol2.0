@@ -16,7 +16,7 @@ class FanCurvePoint {
     final fan = (value['fan'] as num?)?.toDouble();
     if (temperature == null || fan == null) return null;
     if (!temperature.isFinite || !fan.isFinite) return null;
-    return FanCurvePoint(temperature.clamp(20, 110).toDouble(), fan.clamp(0, 100).toDouble());
+    return FanCurvePoint(temperature.clamp(20, 110).toDouble(), fan.clamp(20, 100).toDouble());
   }
 }
 
@@ -33,9 +33,36 @@ class FanCurve {
     FanCurvePoint(92, 100),
   ]);
 
+  /// Returns a sorted, safe curve. Fan demand must not fall as temperature
+  /// rises; otherwise a malformed or edited curve could reduce cooling at a
+  /// hotter reading. HWcontrol also refuses zero-percent hardware commands.
+  List<FanCurvePoint> get safetyNormalizedPoints {
+    final sorted = points
+        .where((point) => point.temperature.isFinite && point.fanPercent.isFinite)
+        .map((point) => FanCurvePoint(
+              point.temperature.clamp(20, 110).toDouble(),
+              point.fanPercent.clamp(20, 100).toDouble(),
+            ))
+        .toList()
+      ..sort((a, b) => a.temperature.compareTo(b.temperature));
+
+    final safe = <FanCurvePoint>[];
+    var previousFanPercent = 20.0;
+    for (final point in sorted) {
+      final fanPercent = point.fanPercent < previousFanPercent
+          ? previousFanPercent
+          : point.fanPercent;
+      safe.add(FanCurvePoint(point.temperature, fanPercent));
+      previousFanPercent = fanPercent;
+    }
+    return List<FanCurvePoint>.unmodifiable(safe);
+  }
+
+  FanCurve normalized() => FanCurve(safetyNormalizedPoints);
+
   double evaluate(double temperature) {
-    if (points.isEmpty) return 0;
-    final sorted = [...points]..sort((a, b) => a.temperature.compareTo(b.temperature));
+    final sorted = safetyNormalizedPoints;
+    if (sorted.isEmpty) return 20;
     if (temperature <= sorted.first.temperature) return sorted.first.fanPercent;
     if (temperature >= sorted.last.temperature) return sorted.last.fanPercent;
     for (var i = 1; i < sorted.length; i++) {
@@ -45,21 +72,23 @@ class FanCurve {
         final span = right.temperature - left.temperature;
         if (span <= 0) return right.fanPercent;
         final ratio = (temperature - left.temperature) / span;
-        return (left.fanPercent + (right.fanPercent - left.fanPercent) * ratio).clamp(0, 100).toDouble();
+        return (left.fanPercent + (right.fanPercent - left.fanPercent) * ratio)
+            .clamp(20, 100)
+            .toDouble();
       }
     }
     return sorted.last.fanPercent;
   }
 
   List<Map<String, double>> toJson() =>
-      points.map((point) => point.toJson()).toList(growable: false);
+      safetyNormalizedPoints.map((point) => point.toJson()).toList(growable: false);
 
   static FanCurve fromJson(dynamic value) {
     if (value is! List) return FanCurve.balanced;
     final points = value.map(FanCurvePoint.fromJson).whereType<FanCurvePoint>().toList();
     if (points.length < 2) return FanCurve.balanced;
-    points.sort((a, b) => a.temperature.compareTo(b.temperature));
-    return FanCurve(points);
+    final normalized = FanCurve(points).normalized();
+    return normalized.points.length < 2 ? FanCurve.balanced : normalized;
   }
 }
 
@@ -140,7 +169,7 @@ class _FanCurveEditorState extends State<FanCurveEditor> {
   @override
   void initState() {
     super.initState();
-    _points = [...widget.initialCurve.points];
+    _points = [...widget.initialCurve.safetyNormalizedPoints];
   }
 
   String _tr(String key) => widget.translations[key] ?? key;
@@ -178,8 +207,9 @@ class _FanCurveEditorState extends State<FanCurveEditor> {
     fan.dispose();
     if (result == null || !mounted) return;
     setState(() {
-      _points.add(FanCurvePoint(result[0].clamp(20, 110).toDouble(), result[1].clamp(0, 100).toDouble()));
+      _points.add(FanCurvePoint(result[0].clamp(20, 110).toDouble(), result[1].clamp(20, 100).toDouble()));
       _sort();
+      _points = FanCurve(_points).safetyNormalizedPoints.toList();
     });
   }
 
@@ -202,11 +232,18 @@ class _FanCurveEditorState extends State<FanCurveEditor> {
                       flex: 2,
                       child: Slider(
                         value: _points[i].fanPercent,
-                        min: 0,
+                        min: 20,
                         max: 100,
-                        divisions: 20,
+                        divisions: 16,
                         label: '${_points[i].fanPercent.round()}%',
-                        onChanged: (value) => setState(() => _points[i] = FanCurvePoint(_points[i].temperature, value)),
+                        onChanged: (value) => setState(() {
+                          _points[i] = FanCurvePoint(
+                            _points[i].temperature,
+                            value.clamp(20, 100).toDouble(),
+                          );
+                          _points = FanCurve(_points).safetyNormalizedPoints.toList();
+                          _sort();
+                        }),
                       ),
                     ),
                     SizedBox(width: 50, child: Text('${_points[i].fanPercent.round()}%')),
@@ -233,7 +270,8 @@ class _FanCurveEditorState extends State<FanCurveEditor> {
         FilledButton(
           onPressed: _points.length < 2 ? null : () {
             _sort();
-            widget.onSave(FanCurve(List<FanCurvePoint>.unmodifiable(_points)));
+            final curve = FanCurve(List<FanCurvePoint>.unmodifiable(_points)).normalized();
+            widget.onSave(curve);
             Navigator.pop(context);
           },
           child: Text(_tr('save')),
