@@ -37,6 +37,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
   double _inputGain = 0;
   double _gateThreshold = -48;
   double _compressorThreshold = -12;
+  double _compressorRatio = 2;
   double _compressorAttack = 10;
   double _compressorRelease = 100;
   double _compressorKnee = 6;
@@ -75,6 +76,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
           _inputGain = _number(raw['inputGain'], 0).clamp(-24, 12).toDouble();
           _gateThreshold = _number(raw['gateThreshold'], -48).clamp(-90, 0).toDouble();
           _compressorThreshold = _number(raw['compressorThreshold'], -12).clamp(-60, 0).toDouble();
+          _compressorRatio = _number(raw['compressorRatio'], 2).clamp(1, 4).toDouble();
           _compressorAttack = _number(raw['compressorAttack'], 10).clamp(0.1, 200).toDouble();
           _compressorRelease = _number(raw['compressorRelease'], 100).clamp(1, 2000).toDouble();
           _compressorKnee = _number(raw['compressorKnee'], 6).clamp(0, 24).toDouble();
@@ -117,6 +119,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
     'inputGain': _inputGain,
     'gateThreshold': _gateThreshold,
     'compressorThreshold': _compressorThreshold,
+    'compressorRatio': _compressorRatio,
     'compressorAttack': _compressorAttack,
     'compressorRelease': _compressorRelease,
     'compressorKnee': _compressorKnee,
@@ -573,6 +576,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
       _gateThreshold = (value['noiseGateThresholdDb'] as num).toDouble();
       _gateEnabled = value['noiseGateEnabled'] as bool;
       _compressorEnabled = value['compressorEnabled'] as bool;
+      _compressorRatio = (value['compressorRatio'] as num).toDouble();
       _limiterEnabled = value['limiterEnabled'] as bool;
       _limiterCeiling = (value['limiterCeilingDb'] as num).toDouble();
       final bands = value['eqBands'] as List;
@@ -693,6 +697,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
         SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('High-pass filter'), subtitle: const Text('Reduces low-frequency rumble.'), value: _highPassEnabled, onChanged: (v) => setState(() { _highPassEnabled = v; _preset = 'Custom'; })),
         const Divider(),
         _slider('Compressor threshold', _compressorThreshold, -60, 0, (v) => setState(() { _compressorThreshold = v; _preset = 'Custom'; }), suffix: 'dB'),
+        _slider('Compressor ratio', _compressorRatio, 1, 4, (v) => setState(() { _compressorRatio = v; _preset = 'Custom'; }), suffix: ':1'),
         _slider('Attack', _compressorAttack, 0.1, 200, (v) => setState(() { _compressorAttack = v; _preset = 'Custom'; }), suffix: 'ms'),
         _slider('Release', _compressorRelease, 1, 2000, (v) => setState(() { _compressorRelease = v; _preset = 'Custom'; }), suffix: 'ms'),
         _slider('Soft-knee width', _compressorKnee, 0, 24, (v) => setState(() { _compressorKnee = v; _preset = 'Custom'; }), suffix: 'dB'),
