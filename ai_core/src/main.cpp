@@ -53,6 +53,28 @@ static std::filesystem::path defaultModelPath() {
     return std::filesystem::path("ai_core/models/gemma-3-1b-it-Q5_K_M.gguf");
 }
 
+static void configureInstructionDirectory(const char* executablePath) {
+    if (environmentValue("HWCONTROL_INSTRUCTIONS_DIR") || executablePath == nullptr || *executablePath == '\0') {
+        return;
+    }
+
+    std::error_code error;
+    const auto absoluteExecutable = std::filesystem::absolute(executablePath, error);
+    if (error) {
+        return;
+    }
+    const auto adjacentInstructions = absoluteExecutable.parent_path() / "instructions";
+    if (!std::filesystem::is_directory(adjacentInstructions, error) || error) {
+        return;
+    }
+
+#ifdef _WIN32
+    (void)_putenv_s("HWCONTROL_INSTRUCTIONS_DIR", adjacentInstructions.string().c_str());
+#else
+    (void)setenv("HWCONTROL_INSTRUCTIONS_DIR", adjacentInstructions.string().c_str(), 0);
+#endif
+}
+
 static int runStdioMode(const std::filesystem::path& modelPath) {
     AIEngine ai;
     if (!ai.init(modelPath.string().c_str())) {
@@ -79,6 +101,7 @@ static int runStdioMode(const std::filesystem::path& modelPath) {
 }
 
 int main(int argc, char* argv[]) {
+    configureInstructionDirectory(argc > 0 ? argv[0] : nullptr);
     const bool stdioMode = argc > 1 && std::string(argv[1]) == "--stdio";
     const std::filesystem::path modelPath = (argc > 1 && !stdioMode)
         ? std::filesystem::path(argv[1])
