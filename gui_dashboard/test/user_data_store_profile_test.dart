@@ -70,14 +70,27 @@ void main() {
     expect((await store.readValidatedProfiles()).profiles.single.id, 'balanced-1');
   });
 
-  test('does not silently discard an invalid typed document', () async {
+  test('does not silently discard an unsupported typed document', () async {
     final file = await store.configFile('profiles.v1.json');
-    await file.writeAsString('{"schemaVersion":999,"profiles":[]}');
+    const source = '{"schemaVersion":999,"profiles":[]}';
+    await file.writeAsString(source);
 
     await expectLater(
       store.readValidatedProfiles(),
       throwsFormatException,
     );
-    expect(await file.readAsString(), '{"schemaVersion":999,"profiles":[]}');
+    expect(await file.readAsString(), source);
+  });
+
+  test('does not treat malformed JSON as an empty profile collection', () async {
+    final file = await store.configFile('profiles.v1.json');
+    const source = '{"schemaVersion":1,"profiles":';
+    await file.writeAsString(source);
+
+    await expectLater(
+      store.readValidatedProfiles(),
+      throwsFormatException,
+    );
+    expect(await file.readAsString(), source);
   });
 }
