@@ -49,7 +49,7 @@ class _HWAimTrainerScreenState extends State<HWAimTrainerScreen> {
   @override
   void initState() {
     super.initState();
-    _remainingSeconds = widget.sessionSeconds.clamp(5, 120);
+    _remainingSeconds = widget.sessionSeconds.clamp(5, 120).toInt();
     _loadHistory();
   }
 
@@ -108,7 +108,7 @@ class _HWAimTrainerScreenState extends State<HWAimTrainerScreen> {
     setState(() {
       _hits = 0;
       _misses = 0;
-      _remainingSeconds = widget.sessionSeconds.clamp(5, 120);
+      _remainingSeconds = widget.sessionSeconds.clamp(5, 120).toInt();
       _running = true;
       _finished = false;
       _placeTarget();
