@@ -28,15 +28,17 @@ The current gate is a basic threshold gate, not AI noise reduction. The compress
 ## Device-aware local Gemma advisor
 
 - The AI core exposes a validated audio-profile request and a local Gemma prompt builder for microphone, speaker, headphone, and headset profiles.
-- The stdio protocol accepts bounded `AUDIO type=... usage=... rate=... channels=... model_hex=... manufacturer_hex=... verified=...` requests and returns advisory text as `AUDIO_OK|...`. Text labels are hex-encoded at the protocol boundary to prevent delimiter injection.
-- Device type and usage are allow-listed; model/manufacturer labels and numeric capabilities are length/range checked. The prompt explicitly treats labels as untrusted data, forbids invented measurements, and bounds suggested DSP values.
-- **Integration status: PARTIAL.** The C++ Gemma API/protocol is implemented in source, but Flutter/Go do not yet call this protocol; device enumeration does not yet populate the UI, and returned JSON is not yet schema-validated by a UI-side approval flow. No suggestion is automatically applied.
+- The C++ stdio protocol accepts bounded `AUDIO type=... usage=... rate=... channels=... model_hex=... manufacturer_hex=... verified=...` requests and returns advisory text as `AUDIO_OK|...`. Text labels are hex-encoded at the protocol boundary to prevent delimiter injection.
+- The authenticated Go bridge exposes `Get Audio Devices` by invoking the sibling `hwcontrol_audio_probe --json` binary, and `Get Audio Profile` by invoking the sibling `ai_engine --stdio` binary. The payload is HMAC-authenticated; existing commands without payload retain their previous signature format.
+- Flutter can refresh local input/output endpoint names, select an endpoint, supply a use case and reported sample-rate/channel count, request local Gemma advice, validate the returned JSON schema/ranges, and explicitly apply validated values to the profile editor.
+- Device endpoint enumeration reports endpoint name/default status only; it does not yet prove frequency response or expose all hardware-supported formats. Sample rate/channel values are user-reported, and the UI's verified-specification checkbox must be selected only after checking the OS/device settings.
+- **Integration status: PARTIAL.** The request path is implemented in source, but packaged sibling binaries/model discovery and end-to-end runtime behavior still require CI/package and real-machine verification. No suggestion is automatically applied.
 
 ## Required next stages
 
 1. Validate this core in CI with CMake/CTest on Windows, Linux, and macOS.
 2. Add smoothed parameters, attack/release envelopes, soft-knee compression, true-peak/look-ahead limiting, de-esser, expander, and a well-tested filter library.
-3. Connect the native device host to the app through a stable C ABI or authenticated bridge control API; test hot-plug, device loss, sample-rate changes, and long-running streams.
+3. Verify the packaged `hwcontrol_audio_probe` and `ai_engine` binaries are installed beside the bridge on each OS; test authenticated device enumeration and local Gemma requests, then handle hot-plug/device loss and sample-rate changes.
 4. Add platform-specific system-audio capture and output routing/virtual-device strategy. Do not claim system-wide effects from loopback capture alone.
 5. Connect the current FFT analyzer to real input/output taps; then add spectrogram history, validated LUFS/true-peak and channel/phase analysis.
 6. Add the Flutter Studio UI, visual effect graph, profile automation, presets, recording/export, and localization.
