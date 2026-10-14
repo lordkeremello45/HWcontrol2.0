@@ -3457,7 +3457,245 @@ Attach this archive to a support issue only after reviewing it for personal info
       ),
     );
   }
+  Future<void> _openFanChannelCurveEditor(FanChannelTelemetry channel) async {
+    final profile = _profileForFanChannel(channel);
+    await showDialog<void>(
+      context: context,
+      builder: (context) => FanCurveEditor(
+        translations: _translations,
+        initialCurve: profile.curve,
+        onSave: (curve) {
+          _updateFanChannelProfile(channel.id, profile.copyWith(curve: curve));
+          _addEvent('${channel.name}: fan eğrisi kaydedildi');
+        },
+      ),
+    );
+  }
+
+  Future<void> _applyFanChannelManualTarget(
+    FanChannelTelemetry channel,
+    double target,
+  ) async {
+    final safeTarget = target.clamp(20, 100).toDouble();
+    final success = await _sendCommand(
+      'Set Fan Channel',
+      safeTarget,
+      target: channel.id,
+    );
+    if (!success) return;
+
+    final profile = _profileForFanChannel(channel);
+    _updateFanChannelProfile(
+      channel.id,
+      profile.copyWith(
+        manualPercent: safeTarget,
+        automaticEnabled: false,
+      ),
+    );
+    _addEvent('${channel.name}: manuel fan hedefi ${safeTarget.round()}% uygulandı');
+  }
+
+  Widget _buildFanChannelsPanel() {
+    if (_fanChannels.isEmpty) return const SizedBox.shrink();
+    final controllableCount = _fanChannels.where((channel) => channel.supported).length;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                _feedbackText('Bağımsız fan kanalları', 'Independent fan channels'),
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+            Text(
+              '$controllableCount / ${_fanChannels.length}',
+              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Text(
+          _feedbackText(
+            'Her kanalın eğrisi ve sıcaklık kaynağı ayrı ayarlanabilir. Kontrol yalnızca köprünün desteklediği kanallarda açılır.',
+            'Each channel has its own curve and temperature source. Control is enabled only for channels the bridge reports as supported.',
+          ),
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: 12),
+        for (final channel in _fanChannels) ...[
+          Card(
+            margin: const EdgeInsets.only(bottom: 10),
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.toys_outlined, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          channel.name,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                      Icon(
+                        channel.supported ? Icons.check_circle_outline : Icons.visibility_outlined,
+                        color: channel.supported
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).disabledColor,
+                        size: 18,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '${channel.rpmAvailable ? '${channel.fanRpm.round()} RPM' : _feedbackText('RPM verisi yok', 'RPM unavailable')}'
+                    '  •  '
+                    '${channel.percentAvailable ? '${channel.fanPercent.round()}%' : _feedbackText('Hedef bilinmiyor', 'Duty unknown')}'
+                    '  •  ${channel.backend}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  if (!channel.supported) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      channel.reason.isEmpty
+                          ? _feedbackText('Bu kanal yalnızca izlenebilir.', 'This channel is monitor-only.')
+                          : channel.reason,
+                      style: TextStyle(color: Theme.of(context).colorScheme.error),
+                    ),
+                  ] else ...[
+                    const SizedBox(height: 12),
+                    finalFanChannelSettings(channel),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget finalFanChannelSettings(FanChannelTelemetry channel) {
+    final profile = _profileForFanChannel(channel);
+    final cpuValid = isUsableFanTemperature(_cpuTemperature);
+    final gpuValid = isUsableFanTemperature(_history.isEmpty ? double.nan : _history.last.gpuTemperature);
+    final selectedSensorAvailable = switch (profile.sensorSource) {
+      'cpuTemperature' => cpuValid,
+      'gpuTemperature' => gpuValid,
+      _ => cpuValid || gpuValid,
+    };
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DropdownButtonFormField<String>(
+          initialValue: profile.sensorSource,
+          isExpanded: true,
+          decoration: InputDecoration(
+            labelText: _feedbackText('Sıcaklık kaynağı', 'Temperature source'),
+            isDense: true,
+          ),
+          items: [
+            DropdownMenuItem(
+              value: 'hottest',
+              child: Text(_feedbackText('En sıcak CPU/GPU', 'Hottest CPU/GPU')),
+            ),
+            DropdownMenuItem(
+              value: 'cpuTemperature',
+              child: Text(_tr('cpuTemperatureLabel')),
+            ),
+            DropdownMenuItem(
+              value: 'gpuTemperature',
+              child: Text(_tr('gpuTemperatureLabel')),
+            ),
+          ],
+          onChanged: (sensor) {
+            if (sensor == null) return;
+            _updateFanChannelProfile(
+              channel.id,
+              profile.copyWith(sensorSource: sensor),
+            );
+          },
+        ),
+        if (!selectedSensorAvailable) ...[
+          const SizedBox(height: 6),
+          Text(
+            _feedbackText(
+              'Seçili sensör verisi yok; bu fanın otomatik eğrisi beklemede.',
+              'The selected sensor is unavailable; this fan curve is paused.',
+            ),
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+        ],
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          dense: true,
+          title: Text(_feedbackText('Otomatik fan eğrisi', 'Automatic fan curve')),
+          subtitle: Text(
+            _smartFanEnabled
+                ? _feedbackText('Ana Smart Fan ayarı açık.', 'The Smart Fan master switch is enabled.')
+                : _feedbackText('Önce genel Smart Fan anahtarını açın.', 'Enable the Smart Fan master switch to automate channels.'),
+          ),
+          value: profile.automaticEnabled,
+          onChanged: (enabled) => _updateFanChannelProfile(
+            channel.id,
+            profile.copyWith(automaticEnabled: enabled),
+          ),
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: Text(_feedbackText('Manuel fan hedefi', 'Manual fan target')),
+            ),
+            Text('${profile.manualPercent.round()}%'),
+          ],
+        ),
+        Slider(
+          value: profile.manualPercent,
+          min: 20,
+          max: 100,
+          divisions: 16,
+          label: '${profile.manualPercent.round()}%',
+          onChanged: (value) {
+            setState(() {
+              final current = _profileForFanChannel(channel);
+              _fanChannelProfiles[channel.id] =
+                  current.copyWith(manualPercent: value);
+            });
+          },
+        ),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            FilledButton.tonalIcon(
+              onPressed: _isSending
+                  ? null
+                  : () => _applyFanChannelManualTarget(
+                        channel,
+                        _profileForFanChannel(channel).manualPercent,
+                      ),
+              icon: const Icon(Icons.check, size: 16),
+              label: Text(_feedbackText('Manuel uygula', 'Apply manually')),
+            ),
+            OutlinedButton.icon(
+              onPressed: () => _openFanChannelCurveEditor(channel),
+              icon: const Icon(Icons.show_chart, size: 16),
+              label: Text(_feedbackText('Bu fanın eğrisi', 'Edit fan curve')),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildControls() {
+    final controllableChannels =
+        _fanChannels.where((channel) => channel.supported).length;
     return _Panel(
       padding: const EdgeInsets.fromLTRB(22, 20, 22, 16),
       child: Column(
@@ -3465,11 +3703,28 @@ Attach this archive to a support issue only after reviewing it for personal info
         children: [
           _sectionTitle(_tr('controls'), _tr('safeUserSettings')),
           const SizedBox(height: 6),
-          Text(_tr('extensionApiStatus'), style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurface.withAlpha(110))),
+          Text(
+            _tr('extensionApiStatus'),
+            style: TextStyle(
+              fontSize: 10,
+              color: Theme.of(context).colorScheme.onSurface.withAlpha(110),
+            ),
+          ),
           const SizedBox(height: 20),
-          _buildPresetRow(),
-          const SizedBox(height: 14),
-          _buildSliderControl(_tr('fanSpeed'), Icons.air, _fanValue, (value) => setState(() => _fanValue = value), const Color(0xFF64D8CB), command: 'Fan Hızı'),
+          if (controllableChannels == 0) ...[
+            _buildPresetRow(),
+            const SizedBox(height: 14),
+            _buildSliderControl(
+              _tr('fanSpeed'),
+              Icons.air,
+              _fanValue.clamp(1, 100).toDouble(),
+              (value) => setState(() => _fanValue = value),
+              const Color(0xFF64D8CB),
+              command: 'Fan Hızı',
+            ),
+          ] else ...[
+            _buildFanChannelsPanel(),
+          ],
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -3481,13 +3736,26 @@ Attach this archive to a support issue only after reviewing it for personal info
                 label: Text(_tr('smartFanCurve')),
               ),
               OutlinedButton.icon(
-                onPressed: !_fanControlSupported ? null : () {
-                  setState(() => _smartFanEnabled = !_smartFanEnabled);
-                  unawaited(_saveSettings());
-                  _addEvent(_smartFanEnabled ? 'Smart Fan etkinleştirildi' : 'Smart Fan devre dışı bırakıldı');
-                },
-                icon: Icon(_smartFanEnabled ? Icons.auto_awesome : Icons.auto_awesome_outlined, size: 16),
-                label: Text(_smartFanEnabled ? _tr('smartFanEnabled') : _tr('smartFanDisabled')),
+                onPressed: (!_fanControlSupported && controllableChannels == 0)
+                    ? null
+                    : () {
+                        setState(() => _smartFanEnabled = !_smartFanEnabled);
+                        unawaited(_saveSettings());
+                        _addEvent(_smartFanEnabled
+                            ? 'Smart Fan etkinleştirildi'
+                            : 'Smart Fan devre dışı bırakıldı');
+                      },
+                icon: Icon(
+                  _smartFanEnabled
+                      ? Icons.auto_awesome
+                      : Icons.auto_awesome_outlined,
+                  size: 16,
+                ),
+                label: Text(
+                  _smartFanEnabled
+                      ? _tr('smartFanEnabled')
+                      : _tr('smartFanDisabled'),
+                ),
               ),
               OutlinedButton.icon(
                 onPressed: _openAutomationRules,
@@ -3501,8 +3769,18 @@ Attach this archive to a support issue only after reviewing it for personal info
               ),
             ],
           ),
-          Divider(color: Theme.of(context).colorScheme.onSurface.withAlpha(20), height: 30),
-          _buildSliderControl(_tr('aiProcessingPower'), Icons.auto_awesome, _aiValue, (value) => setState(() => _aiValue = value), const Color(0xFF8FA7FF), command: 'AI İşlem Gücü'),
+          Divider(
+            color: Theme.of(context).colorScheme.onSurface.withAlpha(20),
+            height: 30,
+          ),
+          _buildSliderControl(
+            _tr('aiProcessingPower'),
+            Icons.auto_awesome,
+            _aiValue,
+            (value) => setState(() => _aiValue = value),
+            const Color(0xFF8FA7FF),
+            command: 'AI İşlem Gücü',
+          ),
         ],
       ),
     );
