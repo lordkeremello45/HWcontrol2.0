@@ -9,7 +9,7 @@ Audio Controller Studio is HWcontrol2.0's planned cross-platform microphone and 
 - C++17 DSP foundation: three peaking-EQ bands, gain, threshold gate, high-pass filter, compressor, limiter, RMS/peak metrics, and a fixed-size FFT analyzer.
 - Native miniaudio device host prototype for capture/playback endpoint enumeration and local capture processing. Monitoring is opt-in.
 - `hwcontrol_audio_probe --json` exposes input/output endpoint names, indices, and default status. It does not prove acoustic frequency response or enumerate every supported format.
-- The authenticated Go bridge exposes `Get Audio Devices` and `Get Audio Profile`. Audio-profile payloads are HMAC-bound; device labels are hex-encoded when sent to the local AI process.
+- Flutter launches the packaged probe in the interactive user session to enumerate that user's input/output endpoints, then sends bounded, hex-encoded device metadata to the already-running local Gemma process. Audio samples never enter this request path.
 - Local Gemma receives device type, endpoint/model label, use case, reported sample rate/channel count, and whether the user verified those specifications.
 - Flutter validates Gemma's JSON output against numeric and structural bounds. Recommendations are not applied automatically; the user must explicitly apply the validated settings and save the profile.
 
