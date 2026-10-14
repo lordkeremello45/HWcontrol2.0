@@ -58,12 +58,28 @@ func capability(available bool, backend, reason string) HardwareCapability {
 	return HardwareCapability{Available: available, Backend: backend, Reason: reason}
 }
 
+func resolvedFanControlBackend(metrics HardwareMetrics) string {
+	if metrics.FanControlSupported && metrics.FanControlBackend != "" {
+		return metrics.FanControlBackend
+	}
+	for _, channel := range metrics.FanChannels {
+		if channel.Supported && channel.Backend != "" && channel.Backend != "monitor-only" {
+			return channel.Backend
+		}
+	}
+	if metrics.FanControlBackend != "" {
+		return metrics.FanControlBackend
+	}
+	return "monitor-only"
+}
+
 func evaluateHardwareHealth(metrics HardwareMetrics) HardwareHealthEvaluation {
 	capabilities := map[string]HardwareCapability{
 		"cpuTemperature":   capability(metrics.CPUTemperatureSource != "" && metrics.CPUTemperature > 0 && isValidTemperature(metrics.CPUTemperature), metrics.CPUTemperatureSource, "CPU thermal telemetry unavailable or source unknown"),
 		"gpuTemperature":   capability(metrics.GPUTemperatureSource != "" && metrics.GPUTemperature > 0 && isValidTemperature(metrics.GPUTemperature), metrics.GPUTemperatureSource, "GPU thermal telemetry unavailable or source unknown"),
 		"fanRpm":           capability(isFinitePositive(metrics.FanRPM) && metrics.FanRPMSource != "", metrics.FanRPMSource, "Fan RPM telemetry unavailable or source unknown"),
-		"fanControl":       capability(metrics.FanControlSupported && metrics.FanControlBackend != "" && metrics.FanControlBackend != "monitor-only", metrics.FanControlBackend, "No validated hardware-control backend"),
+		"fanControl":       capability(metrics.FanControlSupported || anyControllableFanChannel(metrics.FanChannels), resolvedFanControlBackend(metrics), "No validated hardware-control backend"),
+		"fanChannels":      capability(len(metrics.FanChannels) > 0, "platform-fan-discovery", "No fan/PWM channels were enumerated"),
 		"voltage":          capability(isFinitePositive(metrics.Voltage), metrics.SensorSource, "Voltage telemetry unavailable"),
 		"power":            capability(isFinitePositive(metrics.PowerWatts), metrics.SensorSource, "Power telemetry unavailable"),
 		"gpuCoreClock":     capability(isFinitePositive(metrics.GPUCoreClockMHz), metrics.SensorSource, "GPU core clock telemetry unavailable"),
