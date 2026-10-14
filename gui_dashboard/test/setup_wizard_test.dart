@@ -66,5 +66,36 @@ void main() {
     expect(result?['preferredProfile'], 'performance');
     expect(result?['startWithSystem'], isTrue);
     expect(result?['automaticFanControlRequested'], isFalse);
+    expect(result?['securityScannerRequested'], isFalse);
   });
 }
+
+
+  testWidgets('optional security scanner choice is saved only when opted in', (tester) async {
+    Map<String, dynamic>? result;
+    await tester.pumpWidget(MaterialApp(
+      home: HWControlSetupWizard(
+        onComplete: (value) => result = value,
+        onCancel: () {},
+      ),
+    ));
+
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Request optional HWcontrol Security scanning'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(
+      'I understand that hardware control is enabled only when the backend confirms support.',
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Finish'));
+    await tester.pumpAndSettle();
+
+    expect(result?['securityScannerRequested'], isTrue);
+  });

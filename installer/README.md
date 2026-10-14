@@ -66,3 +66,19 @@ A release is considered installer-complete when it publishes, as applicable:
 - Linux: `.deb`, `.tar.zst`, `.tar.gz`, and `.sha256`
 
 The Linux build/package workflow itself remains unchanged; this installer only consumes the existing Linux release assets and selects the appropriate format at installation time.
+
+
+## Optional HWcontrol Security scanner preference
+
+The first-run HWcontrol2.0 setup wizard includes an opt-in preference named
+`securityScannerRequested`. It defaults to off and is saved with the other
+user settings. The preference is a request, **not proof that the scanner is
+installed or active**.
+
+The standalone HWcontrol-Security scanner is currently a read-only prototype
+that detects the EICAR test pattern and exact SHA-256 matches from an explicitly
+provided denylist. It does not yet provide an authenticated production feed,
+real-time protection, or full antivirus functionality. Until the scanner is
+built from a pinned, verified source revision, included in each platform's
+installer as a genuinely optional component, and covered by install/uninstall
+tests, the wizard must not claim that opting in installed or enabled it.

@@ -27,6 +27,7 @@ class _HWControlSetupWizardState extends State<HWControlSetupWizard> {
   late String _profile = widget.initialProfile;
   late bool _startWithSystem = widget.initialStartWithSystem;
   bool _enableAutomaticFan = false;
+  bool _securityScannerRequested = false;
   bool _acknowledgedSafety = false;
 
   static const int _lastStep = 3;
@@ -47,6 +48,7 @@ class _HWControlSetupWizardState extends State<HWControlSetupWizard> {
       'preferredProfile': _profile,
       'startWithSystem': _startWithSystem,
       'automaticFanControlRequested': _enableAutomaticFan,
+      'securityScannerRequested': _securityScannerRequested,
       'fanSafetyAcknowledged': _acknowledgedSafety,
     });
   }
@@ -173,6 +175,20 @@ class _HWControlSetupWizardState extends State<HWControlSetupWizard> {
             const Divider(),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
+              value: _securityScannerRequested,
+              onChanged: (value) => setState(() => _securityScannerRequested = value),
+              title: Text(_t(
+                'wizardSecurityScanner',
+                'Request optional HWcontrol Security scanning',
+              )),
+              subtitle: Text(_t(
+                'wizardSecurityScannerDescription',
+                'Opt in to the read-only scanner. This records your choice; the scanner is not activated unless a verified package provides it.',
+              )),
+            ),
+            const Divider(),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
               value: _enableAutomaticFan,
               onChanged: (value) => setState(() => _enableAutomaticFan = value),
               title: Text(_t('wizardRequestAutoFan', 'Request automatic fan curves')),
@@ -227,6 +243,16 @@ class _HWControlSetupWizardState extends State<HWControlSetupWizard> {
               subtitle: Text(_startWithSystem
                   ? _t('enabled', 'Enabled')
                   : _t('disabled', 'Disabled')),
+            ),
+            ListTile(
+              leading: const Icon(Icons.shield_outlined),
+              title: Text(_t(
+                'wizardSecurityScanner',
+                'Request optional HWcontrol Security scanning',
+              )),
+              subtitle: Text(_securityScannerRequested
+                  ? _t('wizardSecurityRequested', 'Requested; package availability and integrity must be verified')
+                  : _t('wizardSecurityNotRequested', 'Not requested')),
             ),
             ListTile(
               leading: const Icon(Icons.air),
