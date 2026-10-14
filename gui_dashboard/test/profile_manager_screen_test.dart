@@ -47,7 +47,7 @@ void main() {
     expect(stored.profiles.single.mode, 'balanced');
   });
 
-  testWidgets('renames a profile and rejects duplicate names safely', (tester) async {
+  testWidgets('renames a profile and persists the new name', (tester) async {
     await openScreen(tester);
     await tester.tap(find.text('Create profile'));
     await tester.pumpAndSettle();
@@ -65,6 +65,31 @@ void main() {
 
     expect(find.text('Custom desk'), findsOneWidget);
     expect((await store.readValidatedProfiles()).profiles.single.name, 'Custom desk');
+  });
+
+  testWidgets('duplicates a profile with a unique identity', (tester) async {
+    await openScreen(tester);
+    await tester.tap(find.text('Create profile'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'Balanced');
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(PopupMenuButton<String>).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Duplicate').last);
+    await tester.pumpAndSettle();
+    expect(find.byType(TextField), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+
+    final stored = await store.readValidatedProfiles();
+    expect(stored.profiles, hasLength(2));
+    expect(stored.profiles.map((profile) => profile.id).toSet(), hasLength(2));
+    expect(stored.profiles.map((profile) => profile.name).toSet(), {
+      'Balanced',
+      'Balanced copy',
+    });
   });
 
   testWidgets('shows recovery guidance for a malformed saved document', (tester) async {
