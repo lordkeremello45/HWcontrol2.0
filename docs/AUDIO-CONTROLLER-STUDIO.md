@@ -1,6 +1,6 @@
 # Audio Controller Studio
 
-**Status: PARTIAL / foundation in progress.** The initial native DSP core and a Flutter profile-editor screen are present on the feature branch. The UI currently saves profile settings locally; it is not connected to live DSP. Device capture, virtual routing, and platform audio backends remain unimplemented.
+**Status: PARTIAL / foundation in progress.** The native DSP core, a miniaudio-based capture/playback device-host prototype, and a Flutter profile-editor screen are present on the feature branch. The native host can enumerate and open a selected microphone and playback device, process captured samples, expose atomic metrics, and optionally monitor processed audio. The Flutter UI is not connected to this host yet. System-audio loopback, virtual microphone/output routing, and application-level routing remain unimplemented.
 
 ## Product goals
 
@@ -11,7 +11,7 @@ A cross-platform audio workstation inside HWcontrol2.0 for microphone processing
 - **Flutter/Dart:** initial profile editor and presets exist; live meters, visual routing graph, and native control integration remain future work. Capability status must remain explicit.
 - **Authenticated Go bridge:** control plane only; device selection, configuration, status, and permissions. Audio buffers must not traverse HTTP/JSON or the bridge.
 - **C++17 DSP core:** bounded, allocation-free processing per audio block; float32 samples; interleaved stereo in the first iteration.
-- **Platform adapters:** Windows WASAPI, Linux PipeWire (PulseAudio/ALSA fallback as justified), and macOS Core Audio. Capture, processing, and rerouting are separate capabilities and must be reported independently.
+- **Platform adapters:** the current device host uses miniaudio's platform backends (WASAPI on Windows, ALSA-compatible devices on Linux, Core Audio on macOS). Capture and playback are implemented as a native prototype; system loopback capture, virtual-device creation, and per-application routing are separate unimplemented capabilities.
 - **Safety boundary:** output limiter and finite-sample sanitation; no hidden recording or transmission.
 
 ## Initial DSP capabilities
@@ -20,6 +20,7 @@ A cross-platform audio workstation inside HWcontrol2.0 for microphone processing
 - Input gain, simple noise gate, static-ratio compressor, and peak limiter.
 - Input/output peak and RMS meters, clipped-sample count, processed-frame count.
 - Fixed-size 1024-point Hann-window FFT spectrum analysis on a worker/analysis thread (not the device callback), with peak-frequency and RMS output.
+- Native capture/playback device enumeration and duplex stream lifecycle via pinned miniaudio 0.11.22; monitoring is opt-in to avoid accidental acoustic feedback. Device metrics are published via atomics.
 - Unit tests for limiter bounds, gain, gate behavior, EQ response, compression, FFT peak-frequency detection, non-finite sample sanitation, and invalid sample-rate fallback.
 
 The current gate is a basic threshold gate, not AI noise reduction. The compressor is a simple static curve, not a complete studio compressor with attack/release, knee, and sidechain. The limiter is a hard sample-peak clamp, not a look-ahead true-peak limiter. These distinctions are intentional.
@@ -28,7 +29,7 @@ The current gate is a basic threshold gate, not AI noise reduction. The compress
 
 1. Validate this core in CI with CMake/CTest on Windows, Linux, and macOS.
 2. Add smoothed parameters, attack/release envelopes, soft-knee compression, true-peak/look-ahead limiting, de-esser, expander, and a well-tested filter library.
-3. Add device lifecycle and capture/playback adapters; test hot-plug, device loss, sample-rate changes, and long-running streams.
+3. Connect the native device host to the app through a stable C ABI or authenticated bridge control API; test hot-plug, device loss, sample-rate changes, and long-running streams.
 4. Add platform-specific system-audio capture and output routing/virtual-device strategy. Do not claim system-wide effects from loopback capture alone.
 5. Connect the current FFT analyzer to real input/output taps; then add spectrogram history, validated LUFS/true-peak and channel/phase analysis.
 6. Add the Flutter Studio UI, visual effect graph, profile automation, presets, recording/export, and localization.
@@ -38,6 +39,7 @@ The current gate is a basic threshold gate, not AI noise reduction. The compress
 ## Current branch deliverables
 
 - Dashboard shortcut to Audio Controller Studio.
+- Native miniaudio device-host prototype for microphone capture and playback device selection. The host is not yet connected to the Flutter screen.
 - Locally persisted profile editor with Neutral, Voice, Gaming, and Broadcast starting presets.
 - UI tests that assert the live-audio limitation is disclosed and preset selection works.
 - Native CTest coverage for limiter bounds, gain, gate, EQ, compressor, non-finite sample sanitation, and invalid sample-rate fallback.
