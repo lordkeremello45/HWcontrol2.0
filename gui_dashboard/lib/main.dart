@@ -1308,7 +1308,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         // A game-specific fan request is a floor, not permission to defeat a
         // stronger per-channel thermal curve.
         if (_gameProfileApplied) {
-          target = math.max(target, currentFanPercent).clamp(20, 100).toDouble();
+          target = math.max(
+            math.max(target, currentFanPercent),
+            _activeGameFanTarget,
+          ).clamp(20, 100).toDouble();
         }
         final success = await _sendCommand(
           'Set Fan Channel',
@@ -1343,7 +1346,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
     if (automaticTarget == null || !automaticTarget.isFinite) return;
     final target = (_gameProfileApplied
-            ? math.max(_fanValue, automaticTarget)
+            ? math.max(
+                math.max(_fanValue, automaticTarget),
+                _activeGameFanTarget,
+              )
             : automaticTarget)
         .clamp(20, 100)
         .toDouble();
