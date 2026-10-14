@@ -24,6 +24,7 @@ import 'benchmark.dart';
 import 'automation_rules.dart';
 import 'model_manager.dart';
 import 'user_data_store.dart';
+import 'profile_manager_screen.dart';
 import 'game_profile.dart';
 import 'l10n/app_localizations.dart';
 import 'l10n/app_localizations_map.dart';
@@ -1508,6 +1509,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } catch (_) {
       // Persistence is best-effort; telemetry collection must continue.
     }
+  }
+
+  Future<void> _openProfileManager() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => HWControlProfileManagerScreen(store: _userData),
+      ),
+    );
   }
 
   Future<void> _saveProfile(String name) async {
@@ -3997,6 +4006,7 @@ Attach this archive to a support issue only after reviewing it for personal info
         _presetButton('manual', 'Manuel', Icons.edit_outlined, _fanValue, _aiValue, const Color(0xFF8FA7FF)),
         TextButton.icon(onPressed: _isSending || !_fanControlSupported ? null : _resetControls, icon: const Icon(Icons.restart_alt, size: 16), label: Text(_tr('reset'))),
         TextButton.icon(onPressed: () => _saveProfile(_tr('manual')), icon: const Icon(Icons.save_outlined, size: 16), label: Text(_tr('saveProfile'))),
+        TextButton.icon(onPressed: _openProfileManager, icon: const Icon(Icons.manage_accounts_outlined, size: 16), label: const Text('Manage profiles')),
       ],
     );
   }
