@@ -251,19 +251,27 @@ func writeLinuxFanTarget(target linuxFanTarget, percent float64) error {
 	return nil
 }
 
-func setFanControlChannel(id string, percent float64) error {
+func setLinuxFanControlChannel(targets []linuxFanTarget, id string, percent float64) error {
 	if err := validateFanPercent(percent); err != nil {
 		return err
 	}
 	if !validFanChannelID(id) {
 		return fmt.Errorf("invalid fan-channel identifier")
 	}
-	for _, target := range linuxFanTargets() {
-		if target.id == id {
-			return writeLinuxFanTarget(target, percent)
+	for _, target := range targets {
+		if target.id != id {
+			continue
 		}
+		if !target.supported {
+			return fmt.Errorf("fan channel is monitor-only: %s", target.reason)
+		}
+		return writeLinuxFanTarget(target, percent)
 	}
 	return fmt.Errorf("fan channel is not currently supported or its hardware mapping changed")
+}
+
+func setFanControlChannel(id string, percent float64) error {
+	return setLinuxFanControlChannel(linuxFanTargets(), id, percent)
 }
 
 func setFanControl(percent float64) error {
