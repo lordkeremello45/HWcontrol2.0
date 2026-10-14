@@ -500,3 +500,20 @@ func TestHardwareControlSafetyGateRejectsInvalidSensorValues(t *testing.T) {
 		})
 	}
 }
+
+func TestAudioProfilePayloadIsAuthenticated(t *testing.T) {
+	cmd := testCommand("Get Audio Profile", 0)
+	cmd.Payload = json.RawMessage(`{"deviceType":"microphone","model":"USB Mic","usage":"voice","sampleRateHz":48000,"channels":1}`)
+	const secret = "unit-test-bridge-secret"
+	cmd.Auth = signCommand(cmd, secret)
+	if err := validateCommand(cmd); err != nil {
+		t.Fatalf("valid signed audio profile command rejected: %v", err)
+	}
+	if !authenticateCommand(cmd, secret) {
+		t.Fatal("valid audio profile signature rejected")
+	}
+	cmd.Payload = json.RawMessage(`{"deviceType":"microphone","model":"Different Mic","usage":"voice","sampleRateHz":48000,"channels":1}`)
+	if authenticateCommand(cmd, secret) {
+		t.Fatal("modified audio profile payload accepted with stale signature")
+	}
+}
