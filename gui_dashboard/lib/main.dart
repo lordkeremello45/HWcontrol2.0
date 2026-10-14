@@ -321,6 +321,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _smartFanEnabled = false;
   List<HardwareAutomationRule> _automationRules = <HardwareAutomationRule>[];
   final FanCurveController _fanCurveController = FanCurveController();
+  bool _emergencyCoolingActive = false;
   bool _gameProfileApplied = false;
   double _preGameFanValue = 50;
   String _activeGameProfileProcess = '';
@@ -1053,12 +1054,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final gpu = (telemetry['gpuTemperature'] as num?)?.toDouble() ?? double.nan;
     final cpuValid = cpu.isFinite && cpu > 0 && cpu <= 125;
     final gpuValid = gpu.isFinite && gpu > 0 && gpu <= 125;
-    // Use the hottest valid source so GPU-only systems still get a curve target.
-    // Do not interpret absent, non-finite, or out-of-range readings as live data.
-    if ((cpuValid && cpu >= 95) || (gpuValid && gpu >= 95)) {
+    // A critical reading must not disable cooling automation. Request the
+    // maximum supported fan target, then keep it latched until all available
+    // CPU/GPU readings fall below the 92 °C release threshold.
+    final criticalThermal = (cpuValid && cpu >= 95) || (gpuValid && gpu >= 95);
+    final anyValidThermal = cpuValid || gpuValid;
+    final emergencyReleaseReached = anyValidThermal &&
+        (!cpuValid || cpu < 92) &&
+        (!gpuValid || gpu < 92);
+
+    if (_emergencyCoolingActive && !emergencyReleaseReached) {
       _fanCurveController.reset();
+      // Reassert the emergency target if the user changes the pending slider
+      // while the critical-cooling latch is active.
+      if (_fanValue < 100 && !_isSending) {
+        final success = await _sendCommand('Fan Hızı', 100);
+        if (success) {
+          if (mounted) setState(() => _fanValue = 100);
+          _addEvent('Acil soğutma hedefi %100 olarak korundu');
+        }
+      }
       return;
     }
+    if (_emergencyCoolingActive && emergencyReleaseReached) {
+      _emergencyCoolingActive = false;
+      _fanCurveController.reset();
+    }
+    if (criticalThermal) {
+      _fanCurveController.reset();
+      if (_isSending) return;
+      final success = await _sendCommand('Fan Hızı', 100);
+      if (success) {
+        _emergencyCoolingActive = true;
+        if (mounted) setState(() => _fanValue = 100);
+        _addEvent('Kritik sıcaklık algılandı; acil soğutma hedefi %100 uygulandı');
+      }
+      return;
+    }
+
     final controlTemperature = cpuValid && gpuValid
         ? math.max(cpu, gpu).toDouble()
         : cpuValid
