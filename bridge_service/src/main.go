@@ -535,7 +535,7 @@ func validateFanControlRequest(cmd Command, metrics HardwareMetrics) error {
 		return fmt.Errorf("hardware fan control is unavailable")
 	}
 	if hasCriticalThermalState(metrics) && cmd.Value < 100 {
-		return fmt.Errorf("critical temperature detected; only the 100% emergency cooling target is allowed")
+		return errors.New("critical temperature detected; only the 100% emergency cooling target is allowed")
 	}
 	return nil
 }
@@ -569,7 +569,7 @@ func validateFanChannelControlRequest(cmd Command, metrics HardwareMetrics) erro
 		return fmt.Errorf("fan channel was not detected; refresh hardware capabilities and try again")
 	}
 	if hasCriticalThermalState(metrics) && cmd.Value < 100 {
-		return fmt.Errorf("critical temperature detected; only the 100% emergency cooling target is allowed")
+		return errors.New("critical temperature detected; only the 100% emergency cooling target is allowed")
 	}
 	return nil
 }

@@ -128,31 +128,33 @@ class _HWControlSetupWizardState extends State<HWControlSetupWizard> {
   Widget _buildStep(BuildContext context) {
     switch (_step) {
       case 0:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Text(_t(
-              'wizardProfileDescription',
-              'Choose a starting preference. This does not overclock your hardware or guarantee a performance increase.',
-            )),
-            const SizedBox(height: 16),
-            for (final option in <(String, String, String)>[
-              ('quiet', 'Quiet', 'Prioritise lower fan noise where supported.'),
-              ('balanced', 'Balanced', 'Use a general-purpose starting preference.'),
-              ('performance', 'Performance', 'Prefer cooling response; this is not an overclock.'),
-            ])
-              Card(
-                child: RadioListTile<String>(
-                  value: option.$1,
-                  groupValue: _profile,
-                  onChanged: (value) {
-                    if (value != null) setState(() => _profile = value);
-                  },
-                  title: Text(_t('wizardProfile_${option.$1}', option.$2)),
-                  subtitle: Text(_t('wizardProfileDescription_${option.$1}', option.$3)),
+        return RadioGroup<String>(
+          groupValue: _profile,
+          onChanged: (value) {
+            if (value != null) setState(() => _profile = value);
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Text(_t(
+                'wizardProfileDescription',
+                'Choose a starting preference. This does not overclock your hardware or guarantee a performance increase.',
+              )),
+              const SizedBox(height: 16),
+              for (final option in <(String, String, String)>[
+                ('quiet', 'Quiet', 'Prioritise lower fan noise where supported.'),
+                ('balanced', 'Balanced', 'Use a general-purpose starting preference.'),
+                ('performance', 'Performance', 'Prefer cooling response; this is not an overclock.'),
+              ])
+                Card(
+                  child: RadioListTile<String>(
+                    value: option.$1,
+                    title: Text(_t('wizardProfile_${option.$1}', option.$2)),
+                    subtitle: Text(_t('wizardProfileDescription_${option.$1}', option.$3)),
+                  ),
                 ),
-              ),
-          ],
+            ],
+          ),
         );
       case 1:
         return Column(

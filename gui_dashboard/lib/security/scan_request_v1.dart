@@ -70,13 +70,18 @@ class ScanRequestV1 {
     if (secret.isEmpty || auth.length != 64 || !RegExp(r'^[0-9a-fA-F]{64}$').hasMatch(auth)) {
       return false;
     }
-    final expected = sign(secret);
-    // Compare fixed-length ASCII tags without an early-exit character loop.
-    var difference = 0;
-    final supplied = auth.toLowerCase();
-    for (var i = 0; i < expected.length; i++) {
-      difference |= expected.codeUnitAt(i) ^ supplied.codeUnitAt(i);
+    try {
+      final expected = sign(secret);
+      // Compare fixed-length ASCII tags without an early-exit character loop.
+      var difference = 0;
+      final supplied = auth.toLowerCase();
+      for (var i = 0; i < expected.length; i++) {
+        difference |= expected.codeUnitAt(i) ^ supplied.codeUnitAt(i);
+      }
+      return difference == 0;
+    } on FormatException {
+      // Malformed requests are untrusted input and must fail verification.
+      return false;
     }
-    return difference == 0;
   }
 }

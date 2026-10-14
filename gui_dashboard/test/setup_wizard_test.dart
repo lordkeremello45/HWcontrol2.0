@@ -57,6 +57,7 @@ void main() {
     await tester.tap(find.text(
       'I understand that hardware control is enabled only when the backend confirms support.',
     ));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Next'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Finish'));
