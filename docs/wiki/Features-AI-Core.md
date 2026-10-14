@@ -8,6 +8,14 @@ The AI model is optional and is not required to complete the base installation. 
 
 The model manager uses HTTPS, verifies the exact expected byte count and SHA-256 digest while streaming, writes through a .part file, and only exposes a verified model as the final filename. Failed model downloads do not block the bridge or hardware monitoring. If the cached model is missing or fails its size/SHA-256 validation, the same verified download path is retried and the invalid cache is replaced only after the new file is fully verified. Obsolete Gemma 2B cache files are removed only after the new model is verified.
 
+## Product context supplied to Gemma
+
+The telemetry-analysis prompt includes a compact, versioned `HWCONTROL_PRODUCT_CONTEXT` block (currently `v2026-10`). It summarizes the current feature set and, importantly, the limits that must not be presented as implemented: Game Mode does not change process priority; the Performance Mode toggle is not overclocking; generic per-application RAM reservation and universal voltage/clock/power-limit writes are unavailable; macOS power-mode automation is unavailable. It also describes capability-gated fan control, battery-health caveats, and the bridge's authority over hardware capabilities.
+
+This is deliberately embedded in the native prompt, so it works offline and does not depend on the model manager, a network request, or an external context file being packaged. Prompt tests assert that key features and non-implemented boundaries remain present. When product behavior changes, update this context and its tests alongside the relevant feature documentation.
+
+This is a compact product brief for telemetry explanations, **not** repository-wide retrieval or a general-purpose feature Q&A interface. It does not make the model an authority for controls, and it does not prove the described features work on every device.
+
 ## Safety architecture
 
 The LLM is not the hardware safety authority. A deterministic risk layer classifies supplied telemetry as normal, izleme, yuksek, kritik or veri-yetersiz before inference. The LLM only explains measured conditions and is prohibited from directing fan-speed, voltage, clock or power-limit changes.
