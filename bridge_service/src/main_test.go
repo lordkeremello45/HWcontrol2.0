@@ -50,6 +50,88 @@ func TestValidateCommand(t *testing.T) {
 	}
 }
 
+func TestFanChannelCommandRequiresValidatedTarget(t *testing.T) {
+	for _, test := range []struct {
+		name  string
+		target string
+		valid bool
+	}{
+		{name: "missing target", target: "", valid: false},
+		{name: "path is not a channel id", target: "/sys/class/hwmon/hwmon0/pwm1", valid: false},
+		{name: "valid opaque id", target: "0123456789abcdef", valid: true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			cmd := testCommand("Set Fan Channel", 55)
+			cmd.Target = test.target
+			if got := validateCommand(cmd) == nil; got != test.valid {
+				t.Fatalf("validateCommand() validity = %v, want %v", got, test.valid)
+			}
+		})
+	}
+
+	legacy := testCommand("Get Status", 0)
+	legacy.Target = "0123456789abcdef"
+	if err := validateCommand(legacy); err == nil {
+		t.Fatal("target must be rejected for non-targeted actions")
+	}
+}
+
+func TestTargetedCommandAuthenticatesFanChannelID(t *testing.T) {
+	cmd := testCommand("Set Fan Channel", 60)
+	cmd.Target = "0123456789abcdef"
+	cmd.Auth = signCommand(cmd, "test-secret")
+	if !authenticateCommand(cmd, "test-secret") {
+		t.Fatal("expected signed channel command to authenticate")
+	}
+	cmd.Target = "fedcba9876543210"
+	if authenticateCommand(cmd, "test-secret") {
+		t.Fatal("changing target must invalidate command authentication")
+	}
+}
+
+func TestFanChannelSafetyGate(t *testing.T) {
+	const channelID = "0123456789abcdef"
+	base := HardwareMetrics{
+		ThermalSafetyAvailable: true,
+		CPUTemperature:         60,
+		GPUTemperature:         65,
+		FanChannels: []FanChannel{{
+			ID: channelID, Name: "Test PWM 1", Backend: "test-hwmon", Supported: true,
+		}},
+	}
+	cmd := testCommand("Set Fan Channel", 70)
+	cmd.Target = channelID
+	if err := validateFanChannelControlRequest(cmd, base); err != nil {
+		t.Fatalf("expected a supported channel to pass safety gate: %v", err)
+	}
+
+	unsupported := base
+	unsupported.FanChannels = []FanChannel{{
+		ID: channelID, Name: "Test PWM 1", Backend: "monitor-only", Supported: false,
+		Reason: "manual mode is not available",
+	}}
+	if err := validateFanChannelControlRequest(cmd, unsupported); err == nil {
+		t.Fatal("unsupported channel must remain monitor-only")
+	}
+
+	noThermal := base
+	noThermal.ThermalSafetyAvailable = false
+	if err := validateFanChannelControlRequest(cmd, noThermal); err == nil {
+		t.Fatal("channel control must fail closed without valid thermal telemetry")
+	}
+
+	critical := base
+	critical.CPUTemperature = criticalCPUTemperature
+	cmd.Value = 99
+	if err := validateFanChannelControlRequest(cmd, critical); err == nil {
+		t.Fatal("critical thermal state must reject a sub-100% fan target")
+	}
+	cmd.Value = 100
+	if err := validateFanChannelControlRequest(cmd, critical); err != nil {
+		t.Fatalf("100%% emergency target should pass for a supported channel: %v", err)
+	}
+}
+
 func TestCommandPayloadIsStable(t *testing.T) {
 	command := Command{Action: "Fan Hızı", Value: 42.5, Timestamp: 1710000000123, Nonce: "0123456789abcdef0123456789abcdef"}
 	want := "Fan Hızı\n42.500000\n1710000000123\n0123456789abcdef0123456789abcdef"
