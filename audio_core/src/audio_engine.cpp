@@ -134,7 +134,6 @@ void AudioEngine::process(float* samples, std::size_t frameCount) noexcept {
   std::uint64_t clipped = 0;
   const float gain = dbToLinear(config_.inputGainDb);
   const float gate = dbToLinear(config_.gateThresholdDb);
-  const float compressorThreshold = dbToLinear(config_.compressorThresholdDb);
   const float limiterCeiling = dbToLinear(config_.limiterCeilingDb);
 
   for (std::size_t frame = 0; frame < frameCount; ++frame) {
