@@ -26,6 +26,20 @@ type linuxFanTarget struct {
 	percentAvailable  bool
 }
 
+func canonicalLinuxHwmonDevicePath(devicePath string) string {
+	resolved := filepath.Clean(devicePath)
+	hwmonName := filepath.Base(resolved)
+	if strings.HasPrefix(hwmonName, "hwmon") {
+		if _, err := strconv.Atoi(strings.TrimPrefix(hwmonName, "hwmon")); err == nil &&
+			filepath.Base(filepath.Dir(resolved)) == "hwmon" {
+			// Drop the enumeration-dependent hwmonX suffix when a resolved
+			// sysfs link contains it, so profiles survive ordinary reordering.
+			return filepath.Dir(filepath.Dir(resolved))
+		}
+	}
+	return resolved
+}
+
 func stableLinuxFanChannelID(devicePath string, pwmNumber int) string {
 	sum := sha256.Sum256([]byte(filepath.Clean(devicePath) + "#pwm" + strconv.Itoa(pwmNumber)))
 	return hex.EncodeToString(sum[:8])
@@ -96,6 +110,7 @@ func discoverLinuxFanTargets(root string, configured []string) []linuxFanTarget 
 
 	targets := make([]linuxFanTarget, 0, len(entries))
 	seenPaths := make(map[string]struct{}, len(entries))
+	seenIDs := make(map[string]struct{}, len(entries))
 	for _, entry := range entries {
 		pwmPath := filepath.Clean(entry)
 		if !pathWithinRoot(root, pwmPath) {
@@ -116,7 +131,6 @@ func discoverLinuxFanTargets(root string, configured []string) []linuxFanTarget 
 			idPath = deviceDir
 		}
 		target := linuxFanTarget{
-			id:       stableLinuxFanChannelID(idPath, number),
 			pwmPath:  pwmPath,
 			fanInput: filepath.Join(deviceDir, fmt.Sprintf("fan%d_input", number)),
 			name:     "hwmon",
@@ -126,8 +140,14 @@ func discoverLinuxFanTargets(root string, configured []string) []linuxFanTarget 
 				target.name = value
 			}
 		}
-		displayName := fmt.Sprintf("%s PWM %d", target.name, number)
-		_ = displayName
+		identityPath := canonicalLinuxHwmonDevicePath(idPath) + "#" + target.name
+		target.id = stableLinuxFanChannelID(identityPath, number)
+		if _, exists := seenIDs[target.id]; exists {
+			// Rare drivers may expose two hwmon interfaces for one parent device;
+			// retain unique command identities rather than crossing the channels.
+			target.id = stableLinuxFanChannelID(idPath+"#"+target.name, number)
+		}
+		seenIDs[target.id] = struct{}{}
 
 		if _, err := os.Stat(target.fanInput); err != nil {
 			target.reason = fmt.Sprintf("matching fan%d_input RPM sensor is unavailable", number)
