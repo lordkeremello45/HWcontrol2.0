@@ -328,6 +328,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _emergencyCoolingActive = false;
   bool _gameProfileApplied = false;
   double _preGameFanValue = 50;
+  double _activeGameFanTarget = 50;
+  final Map<String, double> _preGameFanChannelValues = <String, double>{};
   String _activeGameProfileProcess = '';
   Map<String, String> _gameProfiles = <String, String>{};
   bool _historyDirty = false;
@@ -1051,28 +1053,80 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _applyGameModeProfile(Map<String, dynamic> telemetry) async {
     if (!_isConnected || _isSending) return;
+    final supportedChannels = _fanChannels
+        .where((channel) => channel.supported && channel.id.isNotEmpty)
+        .toList(growable: false);
     final detected = _gameModeEnabled && telemetry['gameDetected'] == true;
     final process = _normalizeGameProcessName(
       telemetry['gameProcessName'] as String? ?? _gameProcessName,
     );
-    final sameGame = detected && _gameProfileApplied && process == _activeGameProfileProcess;
+    final sameGame = detected &&
+        _gameProfileApplied &&
+        process == _activeGameProfileProcess;
     final hadActiveSession = _gameProfileApplied;
 
-    // Restore the pre-game target on disable, game exit, or game switch.
+    // Restore the pre-game targets on disable, exit, or game switch. Channel
+    // profiles use an independent baseline for each currently detected fan.
     if (_gameProfileApplied && !sameGame) {
-      final restore = _preGameFanValue.clamp(0, 100).toDouble();
-      final success = await _sendCommand('Fan Hızı', restore);
-      if (!success) return;
+      var restored = true;
+      if (supportedChannels.isNotEmpty) {
+        for (final channel in supportedChannels) {
+          final baseline = (_preGameFanChannelValues[channel.id] ??
+                  _profileForFanChannel(channel).manualPercent)
+              .clamp(20, 100)
+              .toDouble();
+          final success = await _sendCommand(
+            'Set Fan Channel',
+            baseline,
+            target: channel.id,
+          );
+          if (!success) restored = false;
+        }
+      } else if (_fanControlSupported) {
+        restored = await _sendCommand(
+          'Fan Hızı',
+          _preGameFanValue.clamp(1, 100).toDouble(),
+        );
+      }
+
+      if (!restored) {
+        _addEvent('Game Mode önceki fan hedeflerini geri yükleyemedi');
+        return;
+      }
       _gameProfileApplied = false;
       _activeGameProfileProcess = '';
-      if (mounted) setState(() => _fanValue = restore);
-      _addEvent('Önceki fan hedefi geri yüklendi');
+      _activeGameFanTarget = 50;
+      if (!detected) _preGameFanChannelValues.clear();
+      if (mounted) {
+        setState(() {
+          _fanValue = _preGameFanValue.clamp(1, 100).toDouble();
+        });
+      }
+      _addEvent('Game Mode önceki fan hedeflerini geri yükledi');
     }
 
-    if (!detected || !_fanControlSupported || _gameProfileApplied) return;
+    if (!detected ||
+        (!_fanControlSupported && supportedChannels.isEmpty) ||
+        _gameProfileApplied) {
+      return;
+    }
 
     // Keep the original baseline when switching directly between games.
-    if (!hadActiveSession) _preGameFanValue = _fanValue;
+    if (!hadActiveSession) {
+      _preGameFanValue = _fanValue.clamp(1, 100).toDouble();
+      _preGameFanChannelValues
+        ..clear()
+        ..addEntries(supportedChannels.map((channel) {
+          final baseline = channel.percentAvailable
+              ? channel.fanPercent
+              : _profileForFanChannel(channel).manualPercent;
+          return MapEntry(
+            channel.id,
+            baseline.clamp(20, 100).toDouble(),
+          );
+        }));
+    }
+
     final assignedName = assignedGameProfileName(
       processName: process,
       assignments: _gameProfiles,
@@ -1082,16 +1136,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
       assignments: _gameProfiles,
       profiles: _profiles,
     );
-    final success = await _sendCommand('Fan Hızı', target);
+    final selectedTarget = supportedChannels.isEmpty
+        ? target.clamp(1, 100).toDouble()
+        : target.clamp(20, 100).toDouble();
+
+    var success = true;
+    if (supportedChannels.isNotEmpty) {
+      for (final channel in supportedChannels) {
+        final applied = await _sendCommand(
+          'Set Fan Channel',
+          selectedTarget,
+          target: channel.id,
+        );
+        if (!applied) {
+          success = false;
+          break;
+        }
+      }
+      if (!success) {
+        // Best-effort rollback if a multi-channel preset only partially
+        // applied. Do not report Game Mode as active after a partial write.
+        for (final channel in supportedChannels) {
+          final baseline = _preGameFanChannelValues[channel.id];
+          if (baseline == null) continue;
+          await _sendCommand(
+            'Set Fan Channel',
+            baseline.clamp(20, 100).toDouble(),
+            target: channel.id,
+          );
+        }
+      }
+    } else {
+      success = await _sendCommand('Fan Hızı', selectedTarget);
+    }
+
     if (success) {
       _gameProfileApplied = true;
       _activeGameProfileProcess = process;
-      if (mounted) setState(() => _fanValue = target);
+      _activeGameFanTarget = selectedTarget;
+      if (mounted) setState(() => _fanValue = selectedTarget);
       _addEvent(
         assignedName == null
-            ? 'Game Mode varsayılan oyun fan hedefini uyguladı'
-            : '$process için $assignedName profili uygulandı',
+            ? 'Game Mode oyun fan hedefini kanallara uyguladı'
+            : '$process için $assignedName fan hedefi uygulandı',
       );
+    } else {
+      _addEvent('Game Mode fan hedefi tüm kanallara uygulanamadı');
     }
   }
 
