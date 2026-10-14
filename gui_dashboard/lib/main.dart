@@ -748,11 +748,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _loadFanCurve() async {
     try {
       final curves = await _userData.readFanCurves();
-      final saved = curves['default'];
-      if (mounted) setState(() => _fanCurve = FanCurve.fromJson(saved));
+      final defaultCurve = FanCurve.fromJson(curves['default']);
+      final rawProfiles = curves['channelProfiles'];
+      final profiles = <String, FanChannelProfile>{};
+      if (rawProfiles is Map) {
+        for (final entry in rawProfiles.entries) {
+          final id = entry.key.toString();
+          if (id.isEmpty) continue;
+          profiles[id] = FanChannelProfile.fromJson(
+            entry.value,
+            fallbackCurve: defaultCurve,
+          );
+        }
+      }
+      if (!mounted) return;
+      setState(() {
+        _fanCurve = defaultCurve;
+        _fanChannelProfiles = profiles;
+      });
     } catch (_) {
       _addEvent('Fan eğrisi okunamadı; güvenli varsayılan kullanılıyor');
     }
+  }
+
+  Future<void> _persistFanCurves() async {
+    try {
+      final curves = await _userData.readFanCurves();
+      curves['default'] = _fanCurve.toJson();
+      curves['channelProfiles'] = _fanChannelProfiles.map(
+        (id, profile) => MapEntry(id, profile.toJson()),
+      );
+      await _userData.writeFanCurves(curves);
+    } catch (_) {
+      _addEvent('Fan profilleri kaydedilemedi');
+    }
+  }
+
+  FanChannelProfile _profileForFanChannel(FanChannelTelemetry channel) =>
+      _fanChannelProfiles[channel.id] ??
+      FanChannelProfile(curve: _fanCurve);
+
+  void _updateFanChannelProfile(
+    String channelId,
+    FanChannelProfile profile, {
+    bool resetController = true,
+  }) {
+    setState(() => _fanChannelProfiles[channelId] = profile);
+    if (resetController) _fanChannelControllers.remove(channelId)?.reset();
+    unawaited(_persistFanCurves());
   }
 
   Future<void> _openFanCurveEditor() async {
@@ -763,7 +806,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         initialCurve: _fanCurve,
         onSave: (curve) {
           _fanCurve = curve;
-          unawaited(_userData.writeFanCurves(<String, dynamic>{'default': curve.toJson()}));
+          unawaited(_persistFanCurves());
           if (mounted) {
             setState(() {});
             _addEvent('Smart Fan eğrisi kaydedildi');
@@ -1584,6 +1627,11 @@ Attach this archive to a support issue only after reviewing it for personal info
     final batteryData = rawBattery is Map
         ? Map<String, dynamic>.from(rawBattery)
         : const <String, dynamic>{};
+    final rawFanChannels = (data['fanChannels'] as List?) ?? const <dynamic>[];
+    final fanChannels = rawFanChannels
+        .whereType<Map>()
+        .map((entry) => FanChannelTelemetry.fromJson(Map<String, dynamic>.from(entry)))
+        .toList(growable: false);
     setState(() {
       _cpuUsage = (data['cpuUsage'] as num?)?.toDouble() ?? 0;
       _cpuCoreCount = (data['cpuCoreCount'] as num?)?.toInt() ?? 0;
@@ -1607,6 +1655,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       _gpuVendor = data['gpuVendor'] as String? ?? 'Bilinmiyor';
       _sensorSource = data['sensorSource'] as String? ?? 'Bilinmiyor';
       _fanControlSupported = data['fanControlSupported'] as bool? ?? false;
+      _fanChannels = fanChannels;
       _batteryPresent = batteryData['present'] as bool? ?? false;
       _batteryDataAvailable = batteryData['dataAvailable'] as bool? ?? false;
       _batteryStatus = batteryData['status'] as String? ?? 'unknown';
