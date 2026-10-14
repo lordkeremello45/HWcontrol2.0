@@ -443,6 +443,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       '$executableDir${Platform.pathSeparator}$binaryName',
       '${Directory(executableDir).parent.path}${Platform.pathSeparator}$binaryName',
       '${Directory(Directory(executableDir).parent.path).parent.path}${Platform.pathSeparator}$binaryName',
+      '${Directory(Directory(Directory(executableDir).parent.path).parent.path).parent.path}${Platform.pathSeparator}$binaryName',
       '${Directory.current.path}${Platform.pathSeparator}$binaryName',
       '${Directory.current.path}${Platform.pathSeparator}ai_core${Platform.pathSeparator}$binaryName',
     ];
@@ -1812,12 +1813,22 @@ Attach this archive to a support issue only after reviewing it for personal info
     if (probePath == null) {
       throw StateError('Native audio device probe was not found beside the application.');
     }
-    final result = await Process.run(probePath, const ['--json'], runInShell: false)
-        .timeout(const Duration(seconds: 6));
-    if (result.exitCode != 0 || result.stdout is! String || (result.stdout as String).length > 65536) {
+    final process = await Process.start(probePath, const ['--json'], runInShell: false);
+    final stdoutFuture = process.stdout.transform(utf8.decoder).join();
+    final stderrDrain = process.stderr.drain<void>();
+    final exitCode = await process.exitCode.timeout(
+      const Duration(seconds: 6),
+      onTimeout: () {
+        process.kill();
+        throw TimeoutException('Native audio endpoint enumeration timed out.');
+      },
+    );
+    final stdout = await stdoutFuture;
+    await stderrDrain;
+    if (exitCode != 0 || stdout.length > 65536) {
       throw StateError('Native audio endpoint enumeration failed.');
     }
-    final decoded = jsonDecode(result.stdout as String);
+    final decoded = jsonDecode(stdout);
     if (decoded is! Map<String, dynamic>) throw const FormatException('Invalid device probe response.');
     List<Map<String, dynamic>> parse(Object? raw) {
       if (raw is! List) throw const FormatException('Invalid device list.');
