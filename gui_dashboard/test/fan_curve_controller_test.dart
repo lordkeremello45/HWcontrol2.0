@@ -10,6 +10,35 @@ void main() {
     expect(curve.evaluate(60), 50);
   });
 
+  test('fan curve normalization never lowers fan demand as temperature rises', () {
+    const curve = FanCurve([
+      FanCurvePoint(40, 60),
+      FanCurvePoint(60, 35),
+      FanCurvePoint(80, 75),
+    ]);
+
+    expect(curve.evaluate(40), 60);
+    expect(curve.evaluate(50), 60);
+    expect(curve.evaluate(60), 60);
+    expect(curve.evaluate(70), 67.5);
+    expect(curve.evaluate(80), 75);
+
+    final saved = curve.toJson();
+    expect((saved[0]['fan']!), lessThanOrEqualTo(saved[1]['fan']!));
+    expect((saved[1]['fan']!), lessThanOrEqualTo(saved[2]['fan']!));
+  });
+
+  test('fan curves enforce a nonzero cooling floor', () {
+    const curve = FanCurve([
+      FanCurvePoint(40, 0),
+      FanCurvePoint(80, 10),
+    ]);
+
+    expect(curve.evaluate(40), 20);
+    expect(curve.evaluate(80), 20);
+    expect(FanCurve.fromJson(curve.toJson()).evaluate(60), 20);
+  });
+
   test('controller smooths, rate-limits and clamps fan target', () {
     final controller = FanCurveController(
       minimumChangePercent: 2,
