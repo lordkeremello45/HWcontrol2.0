@@ -7,17 +7,17 @@ import (
 
 func TestDetailedCapabilityRecordsDistinguishReadOnlyAndWritable(t *testing.T) {
 	metrics := HardwareMetrics{
-		CPUTemperature: 58,
+		CPUTemperature:       58,
 		CPUTemperatureSource: "test-cpu-sensor",
-		MetricsCollectedAt: "2026-10-14T12:00:00Z",
-		FanControlSupported: true,
-		FanControlBackend: "test-fan-backend",
+		MetricsCollectedAt:   "2026-10-14T12:00:00Z",
+		FanControlSupported:  true,
+		FanControlBackend:    "test-fan-backend",
 		ThermalSafetyAvailable: true,
 	}
 	records := detailedCapabilityRecords(map[string]HardwareCapability{
-		"cpuTemperature": {Available: true, Backend: "test-cpu-sensor"},
-		"fanControl": {Available: true, Backend: "test-fan-backend"},
-		"gpuPowerLimitControl": {Available: false, Backend: "not-implemented", Reason: "not implemented"},
+		"cpuTemperature":        {Available: true, Backend: "test-cpu-sensor"},
+		"fanControl":            {Available: true, Backend: "test-fan-backend"},
+		"gpuPowerLimitControl":  {Available: false, Backend: "not-implemented", Reason: "not implemented"},
 	}, metrics, "linux", true)
 
 	got := map[string]CapabilityRecord{}
@@ -43,7 +43,7 @@ func TestDetailedCapabilityRecordsDistinguishReadOnlyAndWritable(t *testing.T) {
 
 func TestDetailedCapabilityRecordsBlockWritesWhenIntegrityFails(t *testing.T) {
 	records := detailedCapabilityRecords(map[string]HardwareCapability{
-		"fanControl": {Available: true, Backend: "test-backend"},
+		"fanControl":     {Available: true, Backend: "test-backend"},
 		"cpuTemperature": {Available: true, Backend: "test-sensor"},
 	}, HardwareMetrics{}, "linux", false)
 
