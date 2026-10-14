@@ -9,3 +9,10 @@ func detectFanControl() FanControlInfo {
 func setFanControl(percent float64) error {
 	return fanControlUnavailable("macOS fan-control backend is not available").asError()
 }
+func listFanChannels() []FanChannel {
+	return nil
+}
+
+func setFanControlChannel(id string, percent float64) error {
+	return fanControlUnavailable("per-channel fan control backend is not validated on this platform").asError()
+}
