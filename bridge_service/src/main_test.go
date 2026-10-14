@@ -483,4 +483,3 @@ func TestHardwareControlSafetyGateRejectsInvalidSensorValues(t *testing.T) {
 		})
 	}
 }
-
