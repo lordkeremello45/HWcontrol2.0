@@ -22,6 +22,7 @@ import 'fan_curve.dart';
 import 'fan_channels.dart';
 import 'benchmark.dart';
 import 'automation_rules.dart';
+import 'audio_controller_studio.dart';
 import 'model_manager.dart';
 import 'user_data_store.dart';
 import 'game_profile.dart';
@@ -2997,6 +2998,14 @@ Attach this archive to a support issue only after reviewing it for personal info
     );
   }
 
+  Future<void> _openAudioControllerStudio() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => const AudioControllerStudioScreen(),
+      ),
+    );
+  }
+
   Widget _buildHeader() {
     return Row(
       children: [
@@ -3028,6 +3037,11 @@ Attach this archive to a support issue only after reviewing it for personal info
           tooltip: widget.animationsEnabled ? _tr('animationsOn') : _tr('animationsOff'),
           onPressed: () => widget.onAnimationsChanged(!widget.animationsEnabled),
           icon: Icon(widget.animationsEnabled ? Icons.animation : Icons.animation_outlined),
+        ),
+        IconButton(
+          tooltip: 'Audio Controller Studio',
+          onPressed: _openAudioControllerStudio,
+          icon: const Icon(Icons.graphic_eq),
         ),
         IconButton(tooltip: _tr('menu'), onPressed: _openSettingsMenu, icon: const Icon(Icons.menu)),
         _buildConnectionBadge(),
