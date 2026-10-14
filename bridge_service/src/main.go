@@ -32,6 +32,7 @@ import (
 type Command struct {
 	Action    string  `json:"action"`
 	Value     float64 `json:"value"`
+	Target    string  `json:"target,omitempty"`
 	Timestamp int64   `json:"timestamp"`
 	Nonce     string  `json:"nonce"`
 	Auth      string  `json:"auth"`
@@ -44,10 +45,16 @@ const (
 )
 
 func commandPayload(cmd Command) string {
-	return cmd.Action + "\n" +
+	payload := cmd.Action + "\n" +
 		strconv.FormatFloat(cmd.Value, 'f', 6, 64) + "\n" +
 		strconv.FormatInt(cmd.Timestamp, 10) + "\n" +
 		cmd.Nonce
+	// Keep existing untargeted command signatures compatible while including
+	// the channel identifier in the authenticated payload for targeted writes.
+	if cmd.Target != "" {
+		payload += "\n" + cmd.Target
+	}
+	return payload
 }
 
 func signCommand(cmd Command, secret string) string {
@@ -143,6 +150,7 @@ type HardwareMetrics struct {
 	SensorSource           string    `json:"sensorSource"`
 	FanControlSupported    bool      `json:"fanControlSupported"`
 	FanControlBackend      string    `json:"fanControlBackend"`
+	FanChannels            []FanChannel `json:"fanChannels"`
 	HardwareControlMode    string    `json:"hardwareControlMode"`
 	ThermalSafetyAvailable bool      `json:"thermalSafetyAvailable"`
 	Battery                BatteryMetrics `json:"battery"`
@@ -232,10 +240,11 @@ func collectMetrics() HardwareMetrics {
 	}
 	mergePlatformMetrics(&metrics)
 	mergeBatteryMetrics(&metrics)
+	metrics.FanChannels = listFanChannels()
 	fanControl := detectFanControl()
 	metrics.FanControlSupported = fanControl.Supported
 	metrics.FanControlBackend = fanControl.Backend
-	if fanControl.Supported {
+	if fanControl.Supported || anyControllableFanChannel(metrics.FanChannels) {
 		metrics.HardwareControlMode = "hardware-control"
 	} else {
 		metrics.HardwareControlMode = "monitor-only"
