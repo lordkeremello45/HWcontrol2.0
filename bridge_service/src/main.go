@@ -302,6 +302,30 @@ func collectMetrics() HardwareMetrics {
 // CPU-utilization sampling used by collectMetrics. A multi-channel write must
 // revalidate thermal safety on every command without multiplying that delay by
 // the number of fans.
+const nvidiaSafetyTemperatureTimeout = 1200 * time.Millisecond
+
+func nvidiaSMITemperatureOutput() ([]byte, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), nvidiaSafetyTemperatureTimeout)
+	defer cancel()
+	return exec.CommandContext(ctx, "nvidia-smi", "--query-gpu=temperature.gpu", "--format=csv,noheader,nounits").Output()
+}
+
+func maxNvidiaGPUTemperature(output []byte) (float64, bool) {
+	var highest float64
+	found := false
+	for _, line := range strings.Split(string(output), "\n") {
+		value, err := strconv.ParseFloat(strings.TrimSpace(line), 64)
+		if err != nil || !isValidTemperature(value) || value <= 0 {
+			continue
+		}
+		if !found || value > highest {
+			highest = value
+			found = true
+		}
+	}
+	return highest, found
+}
+
 func collectHardwareControlSafetyMetrics() HardwareMetrics {
 	metrics := HardwareMetrics{}
 	if temperatures, err := host.SensorsTemperatures(); err == nil {
@@ -322,17 +346,11 @@ func collectHardwareControlSafetyMetrics() HardwareMetrics {
 		}
 	}
 
-	if output, err := nvidiaSMIOutput(); err == nil {
-		lines := strings.Split(strings.TrimSpace(string(output)), "\n")
-		if len(lines) > 0 && strings.TrimSpace(lines[0]) != "" {
-			parts := strings.Split(lines[0], ",")
-			if len(parts) >= 3 {
-				if value, parseErr := strconv.ParseFloat(strings.TrimSpace(parts[2]), 64); parseErr == nil && isValidTemperature(value) && value > 0 {
-					metrics.GPUTemperature = value
-					metrics.GPUTemperatureSource = "nvidia-smi"
-					metrics.SensorSource = "nvidia-smi"
-				}
-			}
+	if output, err := nvidiaSMITemperatureOutput(); err == nil {
+		if value, available := maxNvidiaGPUTemperature(output); available {
+			metrics.GPUTemperature = value
+			metrics.GPUTemperatureSource = "nvidia-smi:max-gpu-temperature"
+			metrics.SensorSource = "nvidia-smi"
 		}
 	}
 
