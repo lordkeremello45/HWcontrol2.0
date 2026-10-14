@@ -761,7 +761,7 @@ func diagnosticsSnapshot() map[string]any {
 		"gpuVendor":              metrics.GPUVendor,
 		"gpuDriver":              metrics.GPUDriver,
 		"gpuDriverStatus":        metrics.GPUDriverStatus,
-		"hardwareControl":        metrics.FanControlSupported,
+		"hardwareControl":        hasValidatedFanControl(metrics),
 		"fanControlBackend":      metrics.FanControlBackend,
 		"hardwareControlMode":    metrics.HardwareControlMode,
 		"fanChannels":             metrics.FanChannels,
