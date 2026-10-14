@@ -361,7 +361,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
             Text('Device intelligence', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
           ]),
           const SizedBox(height: 6),
-          const Text('Gemma runs locally through the authenticated bridge. Enter the endpoint name and capabilities reported by your operating system; do not guess specifications. Suggestions are advisory and are never applied automatically.'),
+          const Text('Gemma runs locally in the app's existing AI process. Enter the endpoint name and capabilities reported by your operating system; do not guess specifications. Suggestions are advisory and are never applied automatically.'),
           const SizedBox(height: 14),
           Row(children: [
             Expanded(child: Text(_deviceDetectionMessage ?? 'Detecting audio endpoints…')),
@@ -528,6 +528,12 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
       final decoded = jsonDecode(raw);
       if (decoded is! Map<String, dynamic> || !_isSafeRecommendation(decoded)) {
         throw const FormatException('Gemma output did not match the allowed audio-profile schema.');
+      }
+      if (!_specificationsVerified) {
+        final warnings = List<String>.from(decoded['warnings'] as List);
+        const reminder = 'Sample rate and channel count are unverified; confirm them in system/device settings.';
+        if (!warnings.contains(reminder)) warnings.insert(0, reminder);
+        decoded['warnings'] = warnings.take(8).toList(growable: false);
       }
       if (!mounted) return;
       setState(() => _advisorRecommendation = decoded);
