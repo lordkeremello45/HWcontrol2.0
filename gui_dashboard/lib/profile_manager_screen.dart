@@ -8,7 +8,7 @@ import 'user_data_store.dart';
 /// Profiles are stored as user preferences only. This screen deliberately does
 /// not send commands to the hardware bridge or apply a profile to a device.
 class HWControlProfileManagerScreen extends StatefulWidget {
-  const HWControlProfileManagerScreen({
+  HWControlProfileManagerScreen({
     super.key,
     HWControlUserDataStore? store,
   }) : store = store ?? _defaultStore;
