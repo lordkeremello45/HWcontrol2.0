@@ -8,7 +8,7 @@ on:
       - 'bridge_service/security_guardian/**'
       - '.github/workflows/security-services.yml'
   pull_request:
-    branches: [main]
+    branches: ['**']
     paths:
       - 'bridge_service/src/**'
       - 'bridge_service/security_guardian/**'
