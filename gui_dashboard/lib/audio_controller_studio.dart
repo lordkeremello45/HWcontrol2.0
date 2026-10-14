@@ -8,7 +8,9 @@ import 'user_data_store.dart';
 /// claim live capture, system-wide processing, or device routing until the
 /// native device adapters and bridge contract are implemented.
 class AudioControllerStudioScreen extends StatefulWidget {
-  const AudioControllerStudioScreen({super.key});
+  const AudioControllerStudioScreen({super.key, this.onRecommend});
+
+  final Future<Map<String, dynamic>?> Function(Map<String, dynamic> profile)? onRecommend;
 
   @override
   State<AudioControllerStudioScreen> createState() => _AudioControllerStudioScreenState();
@@ -16,6 +18,16 @@ class AudioControllerStudioScreen extends StatefulWidget {
 
 class _AudioControllerStudioScreenState extends State<AudioControllerStudioScreen> {
   final HWControlUserDataStore _store = HWControlUserDataStore();
+  final TextEditingController _deviceModelController = TextEditingController();
+  final TextEditingController _manufacturerController = TextEditingController();
+  String _deviceType = 'microphone';
+  String _usage = 'voice';
+  int _sampleRateHz = 48000;
+  int _channels = 1;
+  bool _specificationsVerified = false;
+  bool _advisorLoading = false;
+  String? _advisorError;
+  Map<String, dynamic>? _advisorRecommendation;
   double _inputGain = 0;
   double _gateThreshold = -48;
   double _compressorThreshold = -12;
@@ -33,6 +45,13 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
   bool _loading = true;
   bool _saving = false;
   String _preset = 'Neutral';
+
+  @override
+  void dispose() {
+    _deviceModelController.dispose();
+    _manufacturerController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -233,6 +252,8 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
                           const SizedBox(height: 16),
                           _buildAnalysisPanel(),
                           const SizedBox(height: 16),
+                          _buildDeviceIntelligencePanel(),
+                          const SizedBox(height: 16),
                           _buildRoutingPanel(),
                           const SizedBox(height: 18),
                           Align(
@@ -251,6 +272,219 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
               },
             ),
     );
+  }
+
+
+  Widget _buildDeviceIntelligencePanel() => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(children: [
+            Icon(Icons.auto_awesome),
+            SizedBox(width: 8),
+            Text('Device intelligence', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+          ]),
+          const SizedBox(height: 6),
+          const Text('Gemma runs locally through the authenticated bridge. Enter the endpoint name and capabilities reported by your operating system; do not guess specifications. Suggestions are advisory and are never applied automatically.'),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _deviceModelController,
+            maxLength: 120,
+            decoration: const InputDecoration(labelText: 'Device model / endpoint name', hintText: 'e.g. USB Audio Device'),
+          ),
+          TextField(
+            controller: _manufacturerController,
+            maxLength: 80,
+            decoration: const InputDecoration(labelText: 'Manufacturer (optional)'),
+          ),
+          const SizedBox(height: 8),
+          Wrap(spacing: 12, runSpacing: 8, children: [
+            SizedBox(width: 220, child: DropdownButtonFormField<String>(
+              value: _deviceType,
+              decoration: const InputDecoration(labelText: 'Device type'),
+              items: const [
+                DropdownMenuItem(value: 'microphone', child: Text('Microphone')),
+                DropdownMenuItem(value: 'speaker', child: Text('Speaker')),
+                DropdownMenuItem(value: 'headphones', child: Text('Headphones')),
+                DropdownMenuItem(value: 'headset', child: Text('Headset')),
+              ],
+              onChanged: (value) => setState(() { if (value != null) _deviceType = value; }),
+            )),
+            SizedBox(width: 220, child: DropdownButtonFormField<String>(
+              value: _usage,
+              decoration: const InputDecoration(labelText: 'Use case'),
+              items: const [
+                DropdownMenuItem(value: 'voice', child: Text('Voice / calls')),
+                DropdownMenuItem(value: 'gaming', child: Text('Gaming')),
+                DropdownMenuItem(value: 'music', child: Text('Music')),
+                DropdownMenuItem(value: 'movie', child: Text('Movies')),
+                DropdownMenuItem(value: 'meeting', child: Text('Meetings')),
+                DropdownMenuItem(value: 'streaming', child: Text('Streaming')),
+              ],
+              onChanged: (value) => setState(() { if (value != null) _usage = value; }),
+            )),
+            SizedBox(width: 180, child: DropdownButtonFormField<int>(
+              value: _sampleRateHz,
+              decoration: const InputDecoration(labelText: 'Sample rate'),
+              items: const [
+                DropdownMenuItem(value: 16000, child: Text('16 kHz')),
+                DropdownMenuItem(value: 44100, child: Text('44.1 kHz')),
+                DropdownMenuItem(value: 48000, child: Text('48 kHz')),
+                DropdownMenuItem(value: 96000, child: Text('96 kHz')),
+                DropdownMenuItem(value: 192000, child: Text('192 kHz')),
+              ],
+              onChanged: (value) => setState(() { if (value != null) _sampleRateHz = value; }),
+            )),
+            SizedBox(width: 160, child: DropdownButtonFormField<int>(
+              value: _channels,
+              decoration: const InputDecoration(labelText: 'Channels'),
+              items: const [
+                DropdownMenuItem(value: 1, child: Text('Mono (1)')),
+                DropdownMenuItem(value: 2, child: Text('Stereo (2)')),
+                DropdownMenuItem(value: 4, child: Text('4 channels')),
+                DropdownMenuItem(value: 6, child: Text('5.1 (6)')),
+                DropdownMenuItem(value: 8, child: Text('7.1 (8)')),
+              ],
+              onChanged: (value) => setState(() { if (value != null) _channels = value; }),
+            )),
+          ]),
+          CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            value: _specificationsVerified,
+            onChanged: (value) => setState(() => _specificationsVerified = value ?? false),
+            title: const Text('I verified these capabilities in system/device settings'),
+            subtitle: const Text('If unchecked, Gemma must treat the supplied specifications as unverified.'),
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FilledButton.icon(
+              onPressed: _advisorLoading || widget.onRecommend == null ? null : _requestDeviceRecommendation,
+              icon: _advisorLoading
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.auto_awesome),
+              label: const Text('Ask local Gemma'),
+            ),
+          ),
+          if (widget.onRecommend == null) const Padding(
+            padding: EdgeInsets.only(top: 8),
+            child: Text('The local bridge callback is not available in this context.'),
+          ),
+          if (_advisorError != null) Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Text(_advisorError!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          ),
+          if (_advisorRecommendation != null) ...[
+            const Divider(height: 24),
+            Text((_advisorRecommendation!['summary'] as String?) ?? 'Gemma recommendation', style: const TextStyle(fontWeight: FontWeight.w700)),
+            if (_advisorRecommendation!['warnings'] is List)
+              for (final warning in (_advisorRecommendation!['warnings'] as List).whereType<String>())
+                Padding(padding: const EdgeInsets.only(top: 4), child: Text('• $warning')),
+            const SizedBox(height: 10),
+            FilledButton.tonalIcon(
+              onPressed: _applyAdvisorRecommendation,
+              icon: const Icon(Icons.tune),
+              label: const Text('Apply validated settings'),
+            ),
+            const SizedBox(height: 6),
+            const Text('Settings change only after you approve them; save the profile separately.'),
+          ],
+        ],
+      ),
+    ),
+  );
+
+  Future<void> _requestDeviceRecommendation() async {
+    final model = _deviceModelController.text.trim();
+    if (model.isEmpty || widget.onRecommend == null) {
+      setState(() => _advisorError = 'Enter the device model or endpoint name first.');
+      return;
+    }
+    setState(() {
+      _advisorLoading = true;
+      _advisorError = null;
+      _advisorRecommendation = null;
+    });
+    try {
+      final result = await widget.onRecommend!({
+        'deviceType': _deviceType,
+        'model': model,
+        'manufacturer': _manufacturerController.text.trim(),
+        'usage': _usage,
+        'sampleRateHz': _sampleRateHz,
+        'channels': _channels,
+        'specificationsVerified': _specificationsVerified,
+      });
+      final raw = result?['recommendation'];
+      if (raw is! String) throw const FormatException('Gemma returned no recommendation.');
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map<String, dynamic> || !_isSafeRecommendation(decoded)) {
+        throw const FormatException('Gemma output did not match the allowed audio-profile schema.');
+      }
+      if (!mounted) return;
+      setState(() => _advisorRecommendation = decoded);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _advisorError = 'Recommendation rejected: $error');
+    } finally {
+      if (mounted) setState(() => _advisorLoading = false);
+    }
+  }
+
+  bool _isSafeRecommendation(Map<String, dynamic> value) {
+    bool numberIn(String key, double min, double max) {
+      final v = value[key];
+      return v is num && v.isFinite && v >= min && v <= max;
+    }
+    if (value['summary'] is! String || (value['summary'] as String).length > 500) return false;
+    if (!numberIn('inputGainDb', -12, 6) ||
+        !numberIn('highPassHz', 20, 300) ||
+        !numberIn('noiseGateThresholdDb', -90, -20) ||
+        !numberIn('compressorRatio', 1, 4) ||
+        !numberIn('limiterCeilingDb', -6, -0.5)) return false;
+    for (final key in ['highPassEnabled', 'noiseGateEnabled', 'compressorEnabled', 'limiterEnabled']) {
+      if (value[key] is! bool) return false;
+    }
+    final bands = value['eqBands'];
+    if (bands is! List || bands.length > 3) return false;
+    for (final band in bands) {
+      if (band is! Map || band['frequencyHz'] is! num || band['gainDb'] is! num) return false;
+      final frequency = (band['frequencyHz'] as num).toDouble();
+      final gain = (band['gainDb'] as num).toDouble();
+      if (!frequency.isFinite || frequency < 20 || frequency > 18000 || !gain.isFinite || gain < -6 || gain > 6) return false;
+    }
+    final warnings = value['warnings'];
+    if (warnings is! List || warnings.length > 8 || warnings.any((item) => item is! String || item.length > 240)) return false;
+    return true;
+  }
+
+  void _applyAdvisorRecommendation() {
+    final value = _advisorRecommendation;
+    if (value == null || !_isSafeRecommendation(value)) return;
+    setState(() {
+      _inputGain = (value['inputGainDb'] as num).toDouble();
+      _highPassFrequency = (value['highPassHz'] as num).toDouble();
+      _highPassEnabled = value['highPassEnabled'] as bool;
+      _gateThreshold = (value['noiseGateThresholdDb'] as num).toDouble();
+      _gateEnabled = value['noiseGateEnabled'] as bool;
+      _compressorEnabled = value['compressorEnabled'] as bool;
+      _limiterEnabled = value['limiterEnabled'] as bool;
+      _limiterCeiling = (value['limiterCeilingDb'] as num).toDouble();
+      final bands = value['eqBands'] as List;
+      for (var i = 0; i < 3; i++) {
+        if (i < bands.length) {
+          final band = bands[i] as Map;
+          _eqFrequency[i] = (band['frequencyHz'] as num).toDouble();
+          _eqGain[i] = (band['gainDb'] as num).toDouble();
+        } else {
+          _eqGain[i] = 0;
+        }
+      }
+      _preset = 'Gemma';
+    });
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Validated Gemma settings applied to the editor. Save the profile to keep them.')));
   }
 
   Widget _statusBanner(ColorScheme scheme) => Container(
