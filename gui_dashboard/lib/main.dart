@@ -26,6 +26,7 @@ import 'model_manager.dart';
 import 'user_data_store.dart';
 import 'profile_manager_screen.dart';
 import 'personalization_settings.dart';
+import 'aim_trainer_screen.dart';
 import 'game_profile.dart';
 import 'l10n/app_localizations.dart';
 import 'l10n/app_localizations_map.dart';
@@ -1578,6 +1579,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  Future<void> _openAimTrainer() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => HWAimTrainerScreen(store: _userData),
+      ),
+    );
+  }
+
   Future<void> _openPersonalization() async {
     final preferences = await _userData.readUiPreferences();
     if (!mounted) return;
@@ -3113,6 +3122,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           onPressed: () => widget.onAnimationsChanged(!widget.animationsEnabled),
           icon: Icon(widget.animationsEnabled ? Icons.animation : Icons.animation_outlined),
         ),
+        IconButton(tooltip: 'Aim Trainer', onPressed: _openAimTrainer, icon: const Icon(Icons.gps_fixed)),
         IconButton(tooltip: 'Personalization', onPressed: _openPersonalization, icon: const Icon(Icons.palette_outlined)),
         IconButton(tooltip: _tr('menu'), onPressed: _openSettingsMenu, icon: const Icon(Icons.menu)),
         _buildConnectionBadge(),
