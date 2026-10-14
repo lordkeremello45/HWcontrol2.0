@@ -19,9 +19,13 @@ HWControl provides a point-based Smart Fan Curve editor in the dashboard.
 
 The GUI does not imply hardware support. The bridge exposes fanControlSupported and fanControlBackend from the native/platform backend.
 
-Linux currently has a conservative hwmon backend. Automatic discovery is enabled only when exactly one writable PWM target has a matching fan input; ambiguous systems must explicitly set HWCONTROL_HWMON_PWM.
+Linux exposes independently enumerated hwmon PWM channels. Each channel is reported separately with its backend, RPM feedback, current PWM percentage, writable/manual-mode status and a reason when it remains monitor-only. The bridge only permits per-channel writes when the channel has a matching fanN_input RPM sensor, is writable, and pwmN_enable already reports manual mode (1); the application does not switch a controller out of firmware automatic mode automatically.
 
-Windows and macOS remain monitor-only until a validated vendor/EC backend is available for the target hardware matrix.
+When multiple channels are available, the legacy global fan slider remains disabled and users control channels individually. Each channel can save its own curve, select CPU temperature, GPU temperature or the hottest valid CPU/GPU reading, enable/disable automatic curve evaluation, and save a manual target. Channel controls remain subject to the same thermal, authentication and fail-closed checks.
+
+Optional Linux target selection: HWCONTROL_HWMON_PWM restricts discovery to one absolute path under /sys/class/hwmon; HWCONTROL_HWMON_PWMS accepts a comma-separated list of such paths. These settings only select candidates; they do not bypass the RPM, writability or manual-mode checks.
+
+Windows and macOS remain monitor-only until validated vendor/EC per-channel adapters are available for the target hardware matrix.
 
 ## Safety boundary
 
