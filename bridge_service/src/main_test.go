@@ -25,7 +25,6 @@ func testCommand(action string, value float64) Command {
 	return cmd
 }
 
-
 func TestValidateCommand(t *testing.T) {
 	tests := []struct {
 		name    string
