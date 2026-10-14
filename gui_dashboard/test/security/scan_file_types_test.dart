@@ -70,15 +70,15 @@ void main() {
       expect(ScanFileTypeCatalog.requiresContentInspection(path), isTrue);
     });
 
-    test('never treats a known extension as evidence of safety', () {
-      expect(
-        ScanFileTypeCatalog.requiresContentInspection('/tmp/clean-looking.exe'),
-        isTrue,
-      );
-      expect(
-        ScanFileTypeCatalog.requiresContentInspection('/tmp/archive.zip'),
-        isTrue,
-      );
+    test('requires content and signature detection for every file', () {
+      for (final path in [
+        '/tmp/clean-looking.exe',
+        '/tmp/archive.zip',
+        '/tmp/no-extension',
+      ]) {
+        expect(ScanFileTypeCatalog.requiresContentInspection(path), isTrue);
+        expect(ScanFileTypeCatalog.requiresSignatureDetection(path), isTrue);
+      }
     });
 
     test('matches paths case-insensitively and supports Windows separators', () {
