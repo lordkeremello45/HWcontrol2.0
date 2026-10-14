@@ -1,6 +1,6 @@
 package main
 
-import (
+import (\n\t"encoding/json"\n\t"testing"
 	"bufio"
 	"crypto/sha256"
 	"encoding/hex"
@@ -23,6 +23,22 @@ func testCommand(action string, value float64) Command {
 	}
 	cmd.Auth = strings.Repeat("0", sha256.Size*2)
 	return cmd
+}
+
+
+func TestAudioProfilePayloadValidation(t *testing.T) {
+	valid := json.RawMessage(`{"deviceType":"microphone","model":"USB Mic","manufacturer":"Example","usage":"voice","sampleRateHz":48000,"channels":1,"specificationsVerified":true}`)
+	if err := validateAudioProfilePayload(valid); err != nil { t.Fatalf("valid audio payload rejected: %v", err) }
+	invalid := []string{
+		`{"deviceType":"unknown","model":"Mic","usage":"voice","sampleRateHz":48000,"channels":1}`,
+		`{"deviceType":"microphone","model":"Mic","usage":"unknown","sampleRateHz":48000,"channels":1}`,
+		`{"deviceType":"microphone","model":"Mic","usage":"voice","sampleRateHz":384000,"channels":1}`,
+		`{"deviceType":"microphone","model":"Mic","usage":"voice","sampleRateHz":48000,"channels":9}`,
+		`{"deviceType":"microphone","model":"Mic","usage":"voice","sampleRateHz":48000,"channels":1,"extra":"nope"}`,
+	}
+	for _, value := range invalid {
+		if err := validateAudioProfilePayload(json.RawMessage(value)); err == nil { t.Errorf("invalid payload accepted: %s", value) }
+	}
 }
 
 func TestValidateCommand(t *testing.T) {
