@@ -10,7 +10,9 @@ HWControl provides a point-based Smart Fan Curve editor in the dashboard.
 - automatic control is capability-gated and remains disabled when the bridge reports monitor-only hardware;
 - the controller applies smoothing, a minimum fan floor, a minimum target delta and a minimum command interval;
 - invalid or missing thermal telemetry resets the controller and fails closed;
-- critical temperatures (95 °C and above) block automatic fan commands.
+- at critical temperatures (95 °C and above), automatic control requests a 100% emergency fan target instead of following the normal curve; the bridge rejects lower fan targets during that state;
+- emergency cooling remains latched until every available valid CPU/GPU temperature is below 92 °C;
+- missing/invalid thermal telemetry and unsupported backends still fail closed.
 
 ## Backend support
 
