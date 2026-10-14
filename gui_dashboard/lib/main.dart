@@ -1830,7 +1830,7 @@ Attach this archive to a support issue only after reviewing it for personal info
         'auth': auth,
       })}\n');
       final responses = _responses;
-      if (responses == null || !await responses.moveNext().timeout(const Duration(seconds: 4))) return null;
+      if (responses == null || !await responses.moveNext().timeout(const Duration(seconds: 8))) return null;
       final response = jsonDecode(responses.current) as Map<String, dynamic>;
       return response['data'] as Map<String, dynamic>?;
     } catch (_) {
