@@ -90,6 +90,17 @@ std::string AIEngine::processTelemetry(const HardwareTelemetry& telemetry) {
     return runInference(prompt);
 }
 
+std::string AIEngine::recommendAudioProfile(const AudioProfileRequest& request) {
+    const std::string prompt = buildAudioProfilePrompt(request);
+    if (prompt.empty()) {
+        return "Ses profili girdisi gecersiz";
+    }
+    if (!model || !ctx || !sampler) {
+        return "AI motoru hazir degil";
+    }
+    return runInference(prompt);
+}
+
 std::string AIEngine::runInference(const std::string& prompt) {
     const llama_vocab* vocab = llama_model_get_vocab(model);
     if (!vocab) {
