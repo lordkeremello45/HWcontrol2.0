@@ -124,6 +124,14 @@ func criticalIntegrityPaths() []string {
 		if _, err := os.Lstat(aiPath); err == nil {
 			paths = append(paths, aiPath)
 		}
+		probeName := "hwcontrol_audio_probe"
+		if runtime.GOOS == "windows" {
+			probeName += ".exe"
+		}
+		probePath := filepath.Join(base, probeName)
+		if _, err := os.Lstat(probePath); err == nil {
+			paths = append(paths, probePath)
+		}
 	}
 
 	if configured := strings.TrimSpace(os.Getenv("HWCONTROL_INTEGRITY_FILES")); configured != "" {
