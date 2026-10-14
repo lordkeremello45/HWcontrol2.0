@@ -19,11 +19,16 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
   double _inputGain = 0;
   double _gateThreshold = -48;
   double _compressorThreshold = -12;
+  double _compressorAttack = 10;
+  double _compressorRelease = 100;
+  double _compressorKnee = 6;
+  double _highPassFrequency = 80;
   double _limiterCeiling = -1;
   final List<double> _eqGain = <double>[0, 0, 0];
   final List<double> _eqFrequency = <double>[100, 1000, 8000];
   bool _gateEnabled = false;
   bool _compressorEnabled = false;
+  bool _highPassEnabled = false;
   bool _limiterEnabled = true;
   bool _loading = true;
   bool _saving = false;
@@ -44,9 +49,14 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
           _inputGain = _number(raw['inputGain'], 0).clamp(-24, 12).toDouble();
           _gateThreshold = _number(raw['gateThreshold'], -48).clamp(-90, 0).toDouble();
           _compressorThreshold = _number(raw['compressorThreshold'], -12).clamp(-60, 0).toDouble();
+          _compressorAttack = _number(raw['compressorAttack'], 10).clamp(0.1, 200).toDouble();
+          _compressorRelease = _number(raw['compressorRelease'], 100).clamp(1, 2000).toDouble();
+          _compressorKnee = _number(raw['compressorKnee'], 6).clamp(0, 24).toDouble();
+          _highPassFrequency = _number(raw['highPassFrequency'], 80).clamp(20, 18000).toDouble();
           _limiterCeiling = _number(raw['limiterCeiling'], -1).clamp(-24, 0).toDouble();
           _gateEnabled = raw['gateEnabled'] == true;
           _compressorEnabled = raw['compressorEnabled'] == true;
+          _highPassEnabled = raw['highPassEnabled'] == true;
           _limiterEnabled = raw['limiterEnabled'] != false;
           _preset = raw['preset'] is String ? raw['preset'] as String : 'Custom';
           final gains = raw['eqGain'];
@@ -81,6 +91,11 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
     'inputGain': _inputGain,
     'gateThreshold': _gateThreshold,
     'compressorThreshold': _compressorThreshold,
+    'compressorAttack': _compressorAttack,
+    'compressorRelease': _compressorRelease,
+    'compressorKnee': _compressorKnee,
+    'highPassFrequency': _highPassFrequency,
+    'highPassEnabled': _highPassEnabled,
     'limiterCeiling': _limiterCeiling,
     'gateEnabled': _gateEnabled,
     'compressorEnabled': _compressorEnabled,
@@ -122,6 +137,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
           _eqGain[2] = 1;
           _gateEnabled = true;
           _compressorEnabled = true;
+          _highPassEnabled = true;
           _limiterEnabled = true;
           break;
         case 'Gaming':
@@ -131,6 +147,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
           _eqGain[2] = 2;
           _gateEnabled = false;
           _compressorEnabled = false;
+          _highPassEnabled = false;
           _limiterEnabled = true;
           break;
         case 'Broadcast':
@@ -149,6 +166,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
           }
           _gateEnabled = false;
           _compressorEnabled = false;
+          _highPassEnabled = false;
           _limiterEnabled = true;
       }
     });
@@ -333,7 +351,13 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
         _slider('Noise gate threshold', _gateThreshold, -90, 0, (v) => setState(() { _gateThreshold = v; _preset = 'Custom'; }), suffix: 'dB'),
         SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('Noise gate'), subtitle: const Text('Basic threshold gate; not AI noise removal.'), value: _gateEnabled, onChanged: (v) => setState(() { _gateEnabled = v; _preset = 'Custom'; })),
         const Divider(),
+        _slider('High-pass frequency', _highPassFrequency, 20, 1000, (v) => setState(() { _highPassFrequency = v; _preset = 'Custom'; }), suffix: 'Hz'),
+        SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('High-pass filter'), subtitle: const Text('Reduces low-frequency rumble.'), value: _highPassEnabled, onChanged: (v) => setState(() { _highPassEnabled = v; _preset = 'Custom'; })),
+        const Divider(),
         _slider('Compressor threshold', _compressorThreshold, -60, 0, (v) => setState(() { _compressorThreshold = v; _preset = 'Custom'; }), suffix: 'dB'),
+        _slider('Attack', _compressorAttack, 0.1, 200, (v) => setState(() { _compressorAttack = v; _preset = 'Custom'; }), suffix: 'ms'),
+        _slider('Release', _compressorRelease, 1, 500, (v) => setState(() { _compressorRelease = v; _preset = 'Custom'; }), suffix: 'ms'),
+        _slider('Soft-knee width', _compressorKnee, 0, 24, (v) => setState(() { _compressorKnee = v; _preset = 'Custom'; }), suffix: 'dB'),
         SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('Compressor'), value: _compressorEnabled, onChanged: (v) => setState(() { _compressorEnabled = v; _preset = 'Custom'; })),
         const Divider(),
         _slider('Limiter ceiling', _limiterCeiling, -24, 0, (v) => setState(() { _limiterCeiling = v; _preset = 'Custom'; }), suffix: 'dBFS'),
