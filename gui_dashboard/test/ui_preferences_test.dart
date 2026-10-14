@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gui_dashboard/ui_preferences.dart';
+import 'package:hwcontrol_dashboard/ui_preferences.dart';
 
 void main() {
   group('HWControlUiPreferences', () {
