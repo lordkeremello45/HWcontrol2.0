@@ -75,6 +75,18 @@ class _HWControlPersonalizationScreenState extends State<HWControlPersonalizatio
       if (accent is! String || (accent != 'custom' && !_colours.containsKey(accent))) throw const FormatException('Invalid accent preset.');
       final order = p['dashboardOrder'];
       if (order is! List || order.any((v) => v is! String || !_items.containsKey(v))) throw const FormatException('Invalid dashboard layout.');
+      if (p['themeMode'] is! String || !const ['system', 'dark', 'light'].contains(p['themeMode'])) throw const FormatException('Invalid theme mode.');
+      if (p['cornerStyle'] is! String || !const ['rounded', 'standard', 'sharp'].contains(p['cornerStyle'])) throw const FormatException('Invalid corner style.');
+      if (p['temperatureUnit'] is! String || !const ['celsius', 'fahrenheit'].contains(p['temperatureUnit'])) throw const FormatException('Invalid temperature unit.');
+      if (p['density'] is! String || !const ['compact', 'comfortable'].contains(p['density'])) throw const FormatException('Invalid density.');
+      if (p['startupPage'] is! String || !const ['dashboard', 'controls', 'graphs'].contains(p['startupPage'])) throw const FormatException('Invalid startup page.');
+      if (p['graphRange'] is! String || !const ['1m', '5m', '15m', '1h'].contains(p['graphRange'])) throw const FormatException('Invalid graph range.');
+      final scale = p['fontScale'];
+      final speed = p['animationSpeed'];
+      if (scale is! num || !scale.isFinite || scale < 0.8 || scale > 1.5) throw const FormatException('Invalid text scale.');
+      if (speed is! num || !speed.isFinite || speed < 0 || speed > 2) throw const FormatException('Invalid animation speed.');
+      if (p['reduceMotion'] is! bool || p['uiSoundsEnabled'] is! bool) throw const FormatException('Invalid accessibility preferences.');
+      for (final k in _items.keys) { if (p.containsKey('widget.' + k) && p['widget.' + k] is! bool) throw const FormatException('Invalid widget visibility preference.'); }
       setState(() {
         _p = p; _order = order.cast<String>().toSet().toList();
         for (final k in _items.keys) { if (!_order.contains(k)) _order.add(k); }
