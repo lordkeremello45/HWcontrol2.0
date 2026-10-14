@@ -185,7 +185,7 @@ void main() {
     test('enforces the document size limit before parsing', () {
       expect(
         () => HWControlProfileCollection.decode(
-          ' ' * (HWControlProfile.maxDocumentBytes + 1),
+          List<String>.filled(HWControlProfile.maxDocumentBytes + 1, ' ').join(),
         ),
         throwsFormatException,
       );
