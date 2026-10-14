@@ -292,7 +292,7 @@ class _HWAimTrainerScreenState extends State<HWAimTrainerScreen> {
                                     key: const ValueKey('aim-start'),
                                     onPressed: _start,
                                     icon: const Icon(Icons.play_arrow),
-                                    label: Text(_finished ? 'Train again' : 'Start 30-second session'),
+                                    label: Text(_finished ? 'Train again' : 'Start ${widget.sessionSeconds.clamp(5, 120).toInt()}-second session'),
                                   ),
                                 ],
                               ),
