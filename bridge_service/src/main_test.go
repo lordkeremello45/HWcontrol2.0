@@ -50,6 +50,24 @@ func TestValidateCommand(t *testing.T) {
 	}
 }
 
+func TestMaxNvidiaGPUTemperatureSelectsHottestValidGPU(t *testing.T) {
+	value, ok := maxNvidiaGPUTemperature([]byte("52\n87\ninvalid\n0\n128\n"))
+	if !ok {
+		t.Fatal("expected a valid GPU temperature")
+	}
+	if value != 87 {
+		t.Fatalf("maximum GPU temperature = %v, want 87", value)
+	}
+}
+
+func TestMaxNvidiaGPUTemperatureRejectsMissingOrInvalidSamples(t *testing.T) {
+	for _, input := range []string{"", "N/A\n", "0\n", "-1\n", "150\n", "NaN\n", "+Inf\n"} {
+		if value, ok := maxNvidiaGPUTemperature([]byte(input)); ok {
+			t.Fatalf("input %q returned unsafe GPU temperature %v", input, value)
+		}
+	}
+}
+
 func TestFanChannelCommandRequiresValidatedTarget(t *testing.T) {
 	for _, test := range []struct {
 		name  string
