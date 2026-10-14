@@ -25,6 +25,13 @@ A cross-platform audio workstation inside HWcontrol2.0 for microphone processing
 
 The current gate is a basic threshold gate, not AI noise reduction. The compressor is a simple static curve, not a complete studio compressor with attack/release, knee, and sidechain. The limiter is a hard sample-peak clamp, not a look-ahead true-peak limiter. These distinctions are intentional.
 
+## Device-aware local Gemma advisor
+
+- The AI core exposes a validated audio-profile request and a local Gemma prompt builder for microphone, speaker, headphone, and headset profiles.
+- The stdio protocol accepts bounded `AUDIO type=... usage=... rate=... channels=... model_hex=... manufacturer_hex=... verified=...` requests and returns advisory text as `AUDIO_OK|...`. Text labels are hex-encoded at the protocol boundary to prevent delimiter injection.
+- Device type and usage are allow-listed; model/manufacturer labels and numeric capabilities are length/range checked. The prompt explicitly treats labels as untrusted data, forbids invented measurements, and bounds suggested DSP values.
+- **Integration status: PARTIAL.** The C++ Gemma API/protocol is implemented in source, but Flutter/Go do not yet call this protocol; device enumeration does not yet populate the UI, and returned JSON is not yet schema-validated by a UI-side approval flow. No suggestion is automatically applied.
+
 ## Required next stages
 
 1. Validate this core in CI with CMake/CTest on Windows, Linux, and macOS.
@@ -34,7 +41,7 @@ The current gate is a basic threshold gate, not AI noise reduction. The compress
 5. Connect the current FFT analyzer to real input/output taps; then add spectrogram history, validated LUFS/true-peak and channel/phase analysis.
 6. Add the Flutter Studio UI, visual effect graph, profile automation, presets, recording/export, and localization.
 7. Add offline/opt-in microphone calibration and privacy-preserving local assistance.
-8. Validate package install, launch, runtime, and cleanup on actual supported OS versions and hardware.
+8. Connect the authenticated Go bridge to the bounded audio-profile protocol and expose detected device capabilities to Flutter; validate model output against a strict schema before presenting it for explicit approval.\n9. Validate package install, launch, runtime, and cleanup on actual supported OS versions and hardware.
 
 ## Current branch deliverables
 
