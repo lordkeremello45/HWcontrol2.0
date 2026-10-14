@@ -241,6 +241,10 @@ func validateAudioProfilePayload(raw json.RawMessage) error {
 	if err := decoder.Decode(&request); err != nil {
 		return fmt.Errorf("invalid audio profile payload")
 	}
+	var trailing any
+	if err := decoder.Decode(&trailing); err != io.EOF {
+		return fmt.Errorf("audio profile payload contains trailing data")
+	}
 	if len(strings.TrimSpace(request.Model)) == 0 || len(request.Model) > 120 || len(request.Manufacturer) > 80 {
 		return fmt.Errorf("device model/manufacturer length is invalid")
 	}
@@ -296,8 +300,12 @@ func runLocalAudioProfileAdvisor(request AudioProfileRequest) (string, error) {
 	manufacturerHex := hex.EncodeToString([]byte(request.Manufacturer))
 	verified := "0"
 	if request.SpecificationsVerified { verified = "1" }
-	line := fmt.Sprintf("AUDIO type=%s usage=%s rate=%d channels=%d model_hex=%s manufacturer_hex=%s verified=%s\n",
-		request.DeviceType, request.Usage, request.SampleRateHz, request.Channels, modelHex, manufacturerHex, verified)
+	line := fmt.Sprintf("AUDIO type=%s usage=%s rate=%d channels=%d model_hex=%s",
+		request.DeviceType, request.Usage, request.SampleRateHz, request.Channels, modelHex)
+	if manufacturerHex != "" {
+		line += " manufacturer_hex=" + manufacturerHex
+	}
+	line += " verified=" + verified + "\n"
 	if _, err := io.WriteString(stdin, line); err != nil {
 		_ = cmd.Process.Kill()
 		_ = cmd.Wait()
