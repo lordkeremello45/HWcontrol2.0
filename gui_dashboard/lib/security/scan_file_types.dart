@@ -54,10 +54,9 @@ class ScanFileTypeCatalog {
   /// Every file, including a recognized extension, requires content inspection.
   static bool requiresContentInspection(String path) => true;
 
-  /// Files without a recognized suffix must still be inspected by file
-  /// signature/content; extensionless executables are intentionally supported.
-  static bool requiresSignatureDetection(String path) =>
-      !hasKnownExtension(path);
+  /// Signature/type detection is mandatory for every file, including paths
+  /// with recognized suffixes. An extension is never evidence of file format.
+  static bool requiresSignatureDetection(String path) => true;
 
   static String _basename(String path) {
     final normalized = path.replaceAll(String.fromCharCode(92), '/');
