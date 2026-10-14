@@ -22,8 +22,13 @@ struct ProcessorConfig {
   float gateThresholdDb = -72.0F;
   float compressorThresholdDb = -12.0F;
   float compressorRatio = 2.0F;
+  float compressorAttackMs = 10.0F;
+  float compressorReleaseMs = 100.0F;
+  float compressorKneeDb = 6.0F;
+  float highPassFrequencyHz = 80.0F;
   float limiterCeilingDb = -1.0F;
   bool noiseGateEnabled = false;
+  bool highPassEnabled = false;
   bool compressorEnabled = false;
   bool limiterEnabled = true;
   std::array<EqBand, kEqBandCount> eq{{
@@ -75,13 +80,18 @@ class AudioEngine final {
 
     void setPeaking(float frequencyHz, float gainDb, float q,
                     double sampleRateHz) noexcept;
+    void setHighPass(float frequencyHz, double sampleRateHz) noexcept;
     float tick(float input, std::size_t channel) noexcept;
     void clear() noexcept;
   };
 
   ProcessorConfig config_{};
   std::array<Biquad, kEqBandCount> filters_{};
+  Biquad highPassFilter_{};
+  std::array<float, kChannelCount> compressorEnvelope_{{0.0F, 0.0F}};
   double sampleRateHz_ = 48000.0;
+  float compressorAttackCoefficient_ = 0.0F;
+  float compressorReleaseCoefficient_ = 0.0F;
   AudioMetrics metrics_{};
 };
 
