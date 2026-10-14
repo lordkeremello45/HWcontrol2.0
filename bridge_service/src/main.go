@@ -156,8 +156,6 @@ type HardwareMetrics struct {
 	Battery                BatteryMetrics `json:"battery"`
 }
 
-
-
 var errRequestTooLarge = errors.New("request too large")
 
 const (
