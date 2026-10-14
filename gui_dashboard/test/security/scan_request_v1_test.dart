@@ -47,6 +47,7 @@ void main() {
     expect(() => ScanRequestV1(action: 'scan', scopeId: 'bad\nscope', mode: 'read_only', timestampMs: 1, nonce: request.nonce, requestId: request.requestId).canonicalPayload(), throwsFormatException);
     expect(() => ScanRequestV1(action: 'scan', scopeId: request.scopeId, mode: 'scan-and-delete', timestampMs: 1, nonce: request.nonce, requestId: request.requestId).canonicalPayload(), throwsFormatException);
     expect(() => request.sign(''), throwsFormatException);
+    expect(request.verify('', rawRequest['auth'] as String), isFalse);
     expect(request.verify(secret, 'bad-tag'), isFalse);
   });
 }
