@@ -3575,8 +3575,8 @@ Attach this archive to a support issue only after reviewing it for personal info
     unawaited(_saveSettings());
     _addEvent(
       _feedbackText(
-        '$_presetNameForFanCurve(presetKey) eğrisi tüm desteklenen fan kanallarına uygulandı',
-        '$_presetNameForFanCurve(presetKey) curve applied to all supported fan channels',
+        '${_presetNameForFanCurve(presetKey)} eğrisi tüm desteklenen fan kanallarına uygulandı',
+        '${_presetNameForFanCurve(presetKey)} curve applied to all supported fan channels',
       ),
     );
   }
