@@ -60,7 +60,7 @@ The states are defensive application states, not replacements for firmware, driv
 
 Recovery is deliberately fail-closed:
 
-- thermal critical: stop hardware-control actions and reduce thermal load;
+- thermal critical: permit only a validated 100% emergency fan target when the fan backend and thermal telemetry are supported; reject lower fan targets, alert the user, and reduce thermal load;
 - missing thermal telemetry: reject fan-control requests;
 - runtime integrity failure: stop sensitive IPC and require trusted repair/reinstallation;
 - no validated hardware backend: remain monitor-only.
