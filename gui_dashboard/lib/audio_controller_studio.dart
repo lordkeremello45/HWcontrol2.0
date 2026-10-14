@@ -430,7 +430,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
             )),
             SizedBox(width: 180, child: DropdownButtonFormField<int>(
               value: _sampleRateHz,
-              decoration: const InputDecoration(labelText: 'Sample rate'),
+              decoration: const InputDecoration(labelText: 'Sample rate (reported)'),
               items: const [
                 DropdownMenuItem(value: 16000, child: Text('16 kHz')),
                 DropdownMenuItem(value: 44100, child: Text('44.1 kHz')),
@@ -442,7 +442,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
             )),
             SizedBox(width: 160, child: DropdownButtonFormField<int>(
               value: _channels,
-              decoration: const InputDecoration(labelText: 'Channels'),
+              decoration: const InputDecoration(labelText: 'Channels (reported)'),
               items: const [
                 DropdownMenuItem(value: 1, child: Text('Mono (1)')),
                 DropdownMenuItem(value: 2, child: Text('Stereo (2)')),
