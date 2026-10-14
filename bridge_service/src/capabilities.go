@@ -3,6 +3,7 @@ package main
 import (
 	"sort"
 	"strings"
+	"unicode/utf8"
 )
 
 const capabilitySchemaVersion = 1
@@ -105,17 +106,17 @@ func detailedCapabilityRecords(
 			if _, telemetry := telemetryCapabilityIDs[id]; telemetry {
 				record.State = capabilityStateReadOnly
 			} else {
-				record.State = capabilityStateSupported
+				// Unknown capability IDs are not assumed writable merely because
+				// a producer reports them as available.
+				record.State = capabilityStateUnavailable
+				record.Reason = "Capability is not classified by the bridge contract"
 			}
 		}
 
 		record.Evidence = capabilityEvidence(id, capability, metrics)
-		if id == "fanControl" || id == "fanCurveAutomation" {
-			record.Constraints = &CapabilityConstraint{
-				Unit: "percent", Minimum: 20, Maximum: 100, Step: 1,
-				RequiredPermissions: []string{"validated-platform-adapter", "valid-thermal-telemetry"},
-			}
-		}
+		// Control constraints must come from a verified adapter. The generic
+		// capability matrix does not contain adapter-specific ranges, so do not
+		// invent a universal fan range here.
 		records = append(records, record)
 	}
 	return records
@@ -168,8 +169,19 @@ func sanitizeCapabilityText(value string, maxLength int) string {
 		}
 		return r
 	}, value)
-	if len(value) > maxLength {
-		value = value[:maxLength]
+	if maxLength <= 0 {
+		return ""
 	}
-	return value
+	if len(value) <= maxLength {
+		return value
+	}
+	var builder strings.Builder
+	builder.Grow(maxLength)
+	for _, r := range value {
+		if builder.Len()+utf8.RuneLen(r) > maxLength {
+			break
+		}
+		builder.WriteRune(r)
+	}
+	return builder.String()
 }
