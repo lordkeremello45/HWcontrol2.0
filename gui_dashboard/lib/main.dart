@@ -164,11 +164,26 @@ class _HWControlAppState extends State<HWControlApp> {
   }
 
   void _saveUiPreferences() {
-    unawaited(_userData.writeUiPreferences(<String, dynamic>{
-      'darkMode': _darkMode,
-      'animationsEnabled': _animationsEnabled,
-      'welcomeSeen': _welcomeSeen,
-    }));
+    unawaited(() async {
+      try {
+        final existing = await _userData.readUiPreferences();
+        await _userData.writeUiPreferences(<String, dynamic>{
+          ...existing,
+          'darkMode': _darkMode,
+          'animationsEnabled': _animationsEnabled,
+          'themeMode': _themeModePreference,
+          'accentPreset': _accentPreset,
+          'customAccent': _customAccent,
+          'fontScale': _fontScale,
+          'cornerStyle': _cornerStyle,
+          'reduceMotion': _reduceMotion,
+          'animationSpeed': _animationSpeed,
+          'welcomeSeen': _welcomeSeen,
+        });
+      } catch (_) {
+        // UI preferences must not prevent startup or normal interaction.
+      }
+    }());
   }
 
   void _completeWelcome(bool dontShowAgain) {
