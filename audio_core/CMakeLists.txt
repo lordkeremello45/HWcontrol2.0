@@ -37,6 +37,13 @@ else()
   target_compile_options(hwcontrol_audio_core PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
 endif()
 
+option(HWCONTROL_BUILD_AUDIO_PROBE "Build the local audio device probe utility" ON)
+if(HWCONTROL_BUILD_AUDIO_PROBE)
+  add_executable(hwcontrol_audio_probe tools/audio_device_probe.cpp)
+  target_link_libraries(hwcontrol_audio_probe PRIVATE HWControl::AudioCore)
+  target_compile_features(hwcontrol_audio_probe PRIVATE cxx_std_17)
+endif()
+
 if(BUILD_TESTING)
   add_executable(hwcontrol_audio_core_tests tests/audio_engine_tests.cpp)
   target_link_libraries(hwcontrol_audio_core_tests PRIVATE HWControl::AudioCore)
