@@ -1806,7 +1806,7 @@ Attach this archive to a support issue only after reviewing it for personal info
     for (var i = 0; i < value.length; i += 2) {
       bytes.add(int.parse(value.substring(i, i + 2), radix: 16));
     }
-    return utf8.decode(bytes, allowMalformed: false);
+    return utf8.decode(bytes, allowMalformed: true);
   }
 
   Future<Map<String, dynamic>?> _detectAudioDevices() async {
