@@ -192,6 +192,67 @@ func TestHardwareControlSafetyGate(t *testing.T) {
 	}
 }
 
+func TestCriticalTemperaturePermitsOnlyEmergencyCoolingTarget(t *testing.T) {
+	base := HardwareMetrics{
+		FanControlSupported:    true,
+		FanControlBackend:      "test-backend",
+		ThermalSafetyAvailable: true,
+		CPUTemperature:         60,
+		GPUTemperature:         65,
+	}
+
+	for _, test := range []struct {
+		name   string
+		mutate func(*HardwareMetrics)
+	}{
+		{"critical CPU", func(m *HardwareMetrics) { m.CPUTemperature = criticalCPUTemperature }},
+		{"critical GPU", func(m *HardwareMetrics) { m.GPUTemperature = criticalGPUTemperature }},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			metrics := base
+			test.mutate(&metrics)
+			if err := validateFanControlRequest(testCommand("Fan Hızı", 100), metrics); err != nil {
+				t.Fatalf("100%% emergency cooling target should be allowed with valid telemetry and backend: %v", err)
+			}
+			if err := validateFanControlRequest(testCommand("Fan Hızı", 99), metrics); err == nil {
+				t.Fatal("critical thermal state must reject a fan target below 100%")
+			}
+		})
+	}
+}
+
+func TestEmergencyCoolingStillRequiresValidTelemetryAndSupportedBackend(t *testing.T) {
+	critical := HardwareMetrics{
+		FanControlSupported:    true,
+		FanControlBackend:      "test-backend",
+		ThermalSafetyAvailable: true,
+		CPUTemperature:         criticalCPUTemperature,
+		GPUTemperature:         65,
+	}
+	if err := validateFanControlRequest(testCommand("Fan Hızı", 100), critical); err != nil {
+		t.Fatalf("expected valid emergency request to be accepted: %v", err)
+	}
+
+	withoutThermal := critical
+	withoutThermal.ThermalSafetyAvailable = false
+	if err := validateFanControlRequest(testCommand("Fan Hızı", 100), withoutThermal); err == nil {
+		t.Fatal("emergency cooling must fail closed when thermal telemetry is unavailable")
+	}
+
+	unsupported := critical
+	unsupported.FanControlSupported = false
+	unsupported.FanControlBackend = "monitor-only"
+	if err := validateFanControlRequest(testCommand("Fan Hızı", 100), unsupported); err == nil {
+		t.Fatal("emergency cooling must not bypass the hardware capability gate")
+	}
+
+	invalid := critical
+	invalid.CPUTemperature = 150
+	if err := validateFanControlRequest(testCommand("Fan Hızı", 100), invalid); err == nil {
+		t.Fatal("emergency cooling must reject invalid thermal telemetry")
+	}
+}
+
 func TestExecuteHardwareCommandFailsClosed(t *testing.T) {
 	for _, action := range []string{"Fan Hızı", "AI İşlem Gücü"} {
 		err := executeHardwareCommand(testCommand(action, 50))
