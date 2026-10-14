@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
 
+import 'profile_document.dart';
+
 /// Persistent per-user application data.
 ///
 /// Layout:
@@ -138,6 +140,37 @@ class HWControlUserDataStore {
       'schema': currentSchema,
       'profiles': profiles,
     });
+  }
+
+
+  /// Reads the typed, schema-versioned profile collection.
+  ///
+  /// This deliberately uses a separate file from legacy `profiles.json`:
+  /// the older profile shape contains arbitrary numeric settings and cannot
+  /// be losslessly converted into a fan-curve profile without user choices.
+  /// Corrupt or unsupported typed documents throw instead of being silently
+  /// replaced, preserving the user's data for recovery.
+  Future<HWControlProfileCollection> readValidatedProfiles() async {
+    final root = await readJsonObject('profiles.v1.json');
+    if (root == null) {
+      return HWControlProfileCollection(const <HWControlProfile>[]);
+    }
+    return HWControlProfileCollection.decode(jsonEncode(root));
+  }
+
+  /// Atomically persists the validated profile collection using the existing
+  /// temporary-file/backup write path. Does not alter legacy profiles.
+  Future<void> writeValidatedProfiles(
+    HWControlProfileCollection collection,
+  ) async {
+    final decoded = jsonDecode(collection.encode());
+    if (decoded is! Map) {
+      throw const FormatException('Profile document must be an object.');
+    }
+    await writeJsonObject(
+      'profiles.v1.json',
+      Map<String, dynamic>.from(decoded),
+    );
   }
 
   Future<Map<String, dynamic>> readSettings() async {
