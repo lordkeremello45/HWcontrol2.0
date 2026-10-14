@@ -22,7 +22,7 @@ public:
 
 private:
     void release();
-    std::string runInference(const std::string& prompt);
+    std::string runInference(const std::string& prompt, int maxTokens = 96);
 
     llama_model* model;
     llama_context* ctx;
