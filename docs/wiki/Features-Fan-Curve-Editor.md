@@ -7,6 +7,7 @@ HWControl provides a point-based Smart Fan Curve editor in the dashboard.
 - temperature/fan points can be added, edited through the point sliders, removed and reset;
 - the curve is persisted locally;
 - linear interpolation is used between points;
+- persisted and edited curves are normalized to remain non-decreasing as temperature rises, and fan targets have a 20% minimum because zero can stop cooling;
 - automatic control is capability-gated and remains disabled when the bridge reports monitor-only hardware;
 - the controller applies smoothing, a minimum fan floor, a minimum target delta and a minimum command interval;
 - invalid or missing thermal telemetry resets the controller and fails closed;
