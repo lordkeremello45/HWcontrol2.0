@@ -353,9 +353,21 @@ func validateCommand(cmd Command) error {
 	if _, err := hex.DecodeString(cmd.Auth); err != nil {
 		return fmt.Errorf("auth must be hexadecimal")
 	}
+	if action == "Set Fan Channel" {
+		if !validFanChannelID(cmd.Target) {
+			return fmt.Errorf("Set Fan Channel requires a valid channel identifier")
+		}
+		if err := validateFanPercent(cmd.Value); err != nil {
+			return err
+		}
+	} else if cmd.Target != "" {
+		return fmt.Errorf("target is only accepted for Set Fan Channel")
+	}
 	switch action {
 	case "Fan Hızı", "AI İşlem Gücü", "Set Game Mode":
 		return nil
+	case "Set Fan Channel":
+		return validateFanPercent(cmd.Value)
 	case "Set Power Mode AC", "Set Power Mode DC":
 		return validatePowerModeRequest(action, cmd.Value)
 	case "Set Power Profile":
@@ -365,7 +377,7 @@ func validateCommand(cmd Command) error {
 			return fmt.Errorf("read-only command value must be zero")
 		}
 		return nil
-	case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Sensor History", "Get Fetch Status":
+	case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Sensor History", "Get Fan Channels", "Get Fetch Status":
 		if cmd.Value != 0 {
 			return fmt.Errorf("read-only command value must be zero")
 		}
@@ -424,6 +436,40 @@ func validateFanControlRequest(cmd Command, metrics HardwareMetrics) error {
 	return nil
 }
 
+func validateFanChannelControlRequest(cmd Command, metrics HardwareMetrics) error {
+	if cmd.Action != "Set Fan Channel" {
+		return nil
+	}
+	if !validFanChannelID(cmd.Target) {
+		return fmt.Errorf("invalid fan-channel identifier")
+	}
+	if err := validateFanPercent(cmd.Value); err != nil {
+		return err
+	}
+	if err := validateThermalTelemetry(metrics); err != nil {
+		return err
+	}
+
+	found := false
+	for _, channel := range metrics.FanChannels {
+		if channel.ID != cmd.Target {
+			continue
+		}
+		found = true
+		if !channel.Supported || channel.Backend == "" || channel.Backend == "monitor-only" {
+			return fmt.Errorf("fan channel is monitor-only: %s", channel.Reason)
+		}
+		break
+	}
+	if !found {
+		return fmt.Errorf("fan channel was not detected; refresh hardware capabilities and try again")
+	}
+	if hasCriticalThermalState(metrics) && cmd.Value < 100 {
+		return fmt.Errorf("critical temperature detected; only the 100% emergency cooling target is allowed")
+	}
+	return nil
+}
+
 func executeHardwareCommand(cmd Command) error {
 	switch cmd.Action {
 	case "Fan Hızı":
@@ -438,6 +484,15 @@ func executeHardwareCommand(cmd Command) error {
 			return err
 		}
 		return nil
+	case "Set Fan Channel":
+		if panicModeActive() {
+			return fmt.Errorf("hardware control blocked: security panic mode active")
+		}
+		metrics := collectMetrics()
+		if err := validateFanChannelControlRequest(cmd, metrics); err != nil {
+			return err
+		}
+		return setFanControlChannel(cmd.Target, cmd.Value)
 	case "AI İşlem Gücü":
 		if panicModeActive() {
 			return fmt.Errorf("hardware control blocked: security panic mode active")
@@ -825,6 +880,20 @@ func handleConnection(conn net.Conn, secret string) {
 			checkDecoyIntegrity()
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
 			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Fetch Status durumu alındı", Data: fetchStatusSnapshot()}); err != nil { return }
+			continue
+		}
+		if cmd.Action == "Get Fan Channels" {
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			if err := encoder.Encode(Response{
+				Status:  "SUCCESS",
+				Message: "Fan channel capabilities retrieved",
+				Data: map[string]any{
+					"channels": listFanChannels(),
+					"localOnly": true,
+				},
+			}); err != nil {
+				return
+			}
 			continue
 		}
 		if cmd.Action == "Get Status" {
