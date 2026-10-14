@@ -16,7 +16,7 @@ Rules are evaluated locally. They only result in hardware commands when the brid
 
 ## Game Mode
 
-Game Mode may apply a predefined fan target when game detection is active, but it is also capability-gated.
+Game Mode applies the selected per-game fan target to every supported fan channel. Each channel's previous target is retained separately and restored when the game session ends or changes. The target remains a floor for thermal automation; critical-temperature emergency cooling takes priority. These writes are still capability-gated.
 
 ## Backend support
 
