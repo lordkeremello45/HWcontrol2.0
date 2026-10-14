@@ -50,6 +50,25 @@ func TestValidateCommand(t *testing.T) {
 	}
 }
 
+func TestMaxNvidiaGPUTemperatureFromMetricsOutputSelectsHottestGPU(t *testing.T) {
+	output := []byte("NVIDIA GPU 0, 560.1, 52, x\nNVIDIA GPU 1, 560.1, 87, x\ninvalid row\n")
+	value, ok := maxNvidiaGPUTemperatureFromMetricsOutput(output)
+	if !ok {
+		t.Fatal("expected a valid GPU temperature")
+	}
+	if value != 87 {
+		t.Fatalf("maximum GPU temperature = %v, want 87", value)
+	}
+}
+
+func TestMaxNvidiaGPUTemperatureFromMetricsOutputFailsClosed(t *testing.T) {
+	for _, input := range []string{"", "invalid row\n", "GPU,driver,N/A\n", "GPU,driver,0\n", "GPU,driver,150\n"} {
+		if value, ok := maxNvidiaGPUTemperatureFromMetricsOutput([]byte(input)); ok {
+			t.Fatalf("input %q returned invalid temperature %v", input, value)
+		}
+	}
+}
+
 func TestMaxNvidiaGPUTemperatureSelectsHottestValidGPU(t *testing.T) {
 	value, ok := maxNvidiaGPUTemperature([]byte("52\n87\ninvalid\n0\n128\n"))
 	if !ok {
