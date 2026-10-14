@@ -66,7 +66,7 @@ void main() {
     final stored = await store.readValidatedProfiles();
     expect(stored.profiles.single.mode, 'performance');
     expect(stored.profiles.single.gameModeEnabled, isTrue);
-    expect(find.textContaining('does not change hardware settings'), findsOneWidget);
+    expect(find.textContaining('Applying them to hardware is not available from this screen.'), findsOneWidget);
   });
 
   testWidgets('renames a profile and persists the new name', (tester) async {
