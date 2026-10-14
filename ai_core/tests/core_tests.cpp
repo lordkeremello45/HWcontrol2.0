@@ -62,6 +62,12 @@ int main() {
         assert(parsed.model == "USB Mic");
         assert(parsed.manufacturer == "Example");
         assert(parsed.specificationsVerified);
+        assert(parseAudioProfileProtocolLine(
+            "AUDIO type=speaker usage=music rate=48000 channels=2 model_hex=537065616b6572 verified=0",
+            parsed));
+        assert(parsed.model == "Speaker");
+        assert(parsed.manufacturer.empty());
+        assert(!parsed.specificationsVerified);
         assert(!parseAudioProfileProtocolLine(
             "AUDIO type=microphone usage=voice rate=384000 channels=1 model_hex=4d6963", parsed));
         assert(!parseAudioProfileProtocolLine(
