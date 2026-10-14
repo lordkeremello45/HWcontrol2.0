@@ -93,11 +93,35 @@ void testCompressorReducesAboveThresholdLevel() {
   config.compressorEnabled = true;
   config.compressorThresholdDb = -12.0F;
   config.compressorRatio = 4.0F;
+  config.compressorAttackMs = 0.1F;
+  config.compressorKneeDb = 0.0F;
   require(engine.configure(config, 48000.0), "compressor configuration rejected");
-  std::array<float, 4> samples{{0.8F, -0.8F, 0.8F, -0.8F}};
-  engine.process(samples.data(), 2);
-  require(std::abs(samples[0]) < 0.5F,
+  std::array<float, 1024> samples{};
+  samples.fill(0.8F);
+  engine.process(samples.data(), samples.size() / 2);
+  require(std::abs(samples[800]) < 0.5F,
           "compressor did not reduce a signal above threshold");
+}
+
+void testHighPassAttenuatesLowFrequencyTone() {
+  hwcontrol::audio::AudioEngine engine;
+  hwcontrol::audio::ProcessorConfig config;
+  config.limiterEnabled = false;
+  config.highPassEnabled = true;
+  config.highPassFrequencyHz = 500.0F;
+  require(engine.configure(config, 48000.0), "high-pass configuration rejected");
+  constexpr std::size_t frames = 4800;
+  std::array<float, frames * 2> samples{};
+  for (std::size_t frame = 0; frame < frames; ++frame) {
+    const float value = 0.25F * std::sin(static_cast<float>(
+        2.0 * 3.14159265358979323846 * 100.0 *
+        static_cast<double>(frame) / 48000.0));
+    samples[frame * 2] = value;
+    samples[frame * 2 + 1] = value;
+  }
+  engine.process(samples.data(), frames);
+  require(engine.metrics().outputRms < engine.metrics().inputRms * 0.25F,
+          "high-pass did not attenuate the low-frequency tone");
 }
 
 void testSpectrumAnalyzerFindsTone() {
@@ -151,6 +175,7 @@ int main() {
   testNonFiniteSamplesAreContained();
   testEqualizerBoostsConfiguredBand();
   testCompressorReducesAboveThresholdLevel();
+  testHighPassAttenuatesLowFrequencyTone();
   testSpectrumAnalyzerFindsTone();
   testAudioDeviceHostLifecycleWithoutAssumingHardware();
   testInvalidSampleRateFallsBack();
