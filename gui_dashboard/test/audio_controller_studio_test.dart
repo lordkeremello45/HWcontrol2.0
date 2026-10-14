@@ -38,7 +38,6 @@ void main() {
     );
     expect(voiceChip.selected, isTrue);
   });
-}
 
   testWidgets('detects endpoints and applies only validated Gemma suggestions', (tester) async {
     await tester.pumpWidget(MaterialApp(
@@ -104,3 +103,4 @@ void main() {
     expect(find.textContaining('Recommendation rejected'), findsOneWidget);
     expect(find.text('Apply validated settings'), findsNothing);
   });
+}
