@@ -32,7 +32,7 @@ import (
 type Command struct {
 	Action    string  `json:"action"`
 	Value     float64 `json:"value"`
-	Target    string          `json:"target,omitempty"`
+	Target    string  `json:"target,omitempty"`
 	Timestamp int64   `json:"timestamp"`
 	Nonce     string  `json:"nonce"`
 	Auth      string  `json:"auth"`
