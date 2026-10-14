@@ -16,53 +16,53 @@ const (
 )
 
 type CapabilityConstraint struct {
-	Unit                string  `json:"unit,omitempty"`
-	Minimum             float64 `json:"minimum,omitempty"`
-	Maximum             float64 `json:"maximum,omitempty"`
-	Step                float64 `json:"step,omitempty"`
+	Unit                string   `json:"unit,omitempty"`
+	Minimum             float64  `json:"minimum,omitempty"`
+	Maximum             float64  `json:"maximum,omitempty"`
+	Step                float64  `json:"step,omitempty"`
 	RequiredPermissions []string `json:"requiredPermissions,omitempty"`
 }
 
 type CapabilityRecord struct {
-	ID             string                `json:"id"`
-	SchemaVersion  int                   `json:"schemaVersion"`
-	Domain         string                `json:"domain"`
-	State          string                `json:"state"`
-	Platform       string                `json:"platform"`
-	Backend        string                `json:"backend,omitempty"`
-	Evidence       string                `json:"evidence,omitempty"`
-	ObservedAt     string                `json:"observedAt,omitempty"`
-	Reason         string                `json:"reason,omitempty"`
-	Constraints    *CapabilityConstraint `json:"constraints,omitempty"`
+	ID            string                `json:"id"`
+	SchemaVersion int                   `json:"schemaVersion"`
+	Domain        string                `json:"domain"`
+	State         string                `json:"state"`
+	Platform      string                `json:"platform"`
+	Backend       string                `json:"backend,omitempty"`
+	Evidence      string                `json:"evidence,omitempty"`
+	ObservedAt    string                `json:"observedAt,omitempty"`
+	Reason        string                `json:"reason,omitempty"`
+	Constraints   *CapabilityConstraint `json:"constraints,omitempty"`
 }
 
 var writableCapabilityIDs = map[string]struct{}{
-	"fanControl": {},
-	"fanCurveAutomation": {},
-	"gpuPowerLimitControl": {},
-	"cpuOverclockControl": {},
+	"fanControl":              {},
+	"fanCurveAutomation":      {},
+	"gpuPowerLimitControl":    {},
+	"cpuOverclockControl":     {},
 	"batteryChargeLimitControl": {},
 }
 
 var telemetryCapabilityIDs = map[string]struct{}{
-	"cpuTemperature": {},
-	"gpuTemperature": {},
-	"fanRpm": {},
-	"fanChannels": {},
-	"voltage": {},
-	"power": {},
-	"gpuCoreClock": {},
-	"gpuMemoryClock": {},
-	"gpuMemory": {},
+	"cpuTemperature":   {},
+	"gpuTemperature":   {},
+	"fanRpm":           {},
+	"fanChannels":      {},
+	"voltage":          {},
+	"power":            {},
+	"gpuCoreClock":     {},
+	"gpuMemoryClock":   {},
+	"gpuMemory":        {},
 	"hardwareIdentity": {},
-	"storage": {},
-	"cpuUtilization": {},
-	"memory": {},
-	"diskUsage": {},
-	"gpuUtilization": {},
-	"fanPercent": {},
-	"batteryHealth": {},
-	"thermalSafety": {},
+	"storage":          {},
+	"cpuUtilization":   {},
+	"memory":           {},
+	"diskUsage":        {},
+	"gpuUtilization":   {},
+	"fanPercent":       {},
+	"batteryHealth":    {},
+	"thermalSafety":    {},
 }
 
 // detailedCapabilityRecords is an additive, versioned representation. It does
