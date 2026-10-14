@@ -1049,7 +1049,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _applyAutomaticFanControl(Map<String, dynamic> telemetry) async {
-    if (!_smartFanEnabled || !_fanControlSupported || !_isConnected || _isSending) return;
+    if (!_fanControlSupported || !_isConnected || _isSending) return;
     final cpu = (telemetry['cpuTemperature'] as num?)?.toDouble() ?? double.nan;
     final gpu = (telemetry['gpuTemperature'] as num?)?.toDouble() ?? double.nan;
     final cpuValid = cpu.isFinite && cpu > 0 && cpu <= 125;
@@ -1091,6 +1091,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
       return;
     }
+
+    // Emergency cooling is independent of the normal Smart Fan toggle.
+    if (!_smartFanEnabled) return;
 
     final controlTemperature = cpuValid && gpuValid
         ? math.max(cpu, gpu).toDouble()
@@ -2108,6 +2111,12 @@ Attach this archive to a support issue only after reviewing it for personal info
   }
 
   Future<bool> _sendCommand(String action, double value) async {
+    if (action == 'Fan Hızı' && _emergencyCoolingActive && value < 100) {
+      if (mounted) {
+        setState(() => _status = 'Acil soğutma etkin; sıcaklıklar 92 °C altına inene kadar fan hedefi düşürülemez');
+      }
+      return false;
+    }
     if ((action == 'Fan Hızı' || action == 'AI İşlem Gücü') && !_fanControlSupported) {
       if (mounted) setState(() => _status = 'Donanım kontrol backend\'i bu platformda kullanılabilir değil');
       return false;
