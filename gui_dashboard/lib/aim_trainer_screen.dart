@@ -33,7 +33,7 @@ class _HWAimTrainerScreenState extends State<HWAimTrainerScreen> {
   int _hits = 0;
   int _misses = 0;
   int _remainingSeconds = 30;
-  int _targetSize = 54;
+  final int _targetSize = 54;
   DateTime? _targetSpawnedAt;
   double _targetX = 0.5;
   double _targetY = 0.5;
@@ -327,7 +327,8 @@ class _HWAimTrainerScreenState extends State<HWAimTrainerScreen> {
               if (_history.isEmpty)
                 const Text('No sessions yet. Complete a practice session to see your results here.')
               else
-                Flexible(
+                SizedBox(
+                  height: math.min(MediaQuery.of(context).size.height * 0.5, 420),
                   child: ListView.separated(
                     shrinkWrap: true,
                     itemCount: _history.length,
