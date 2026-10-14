@@ -49,6 +49,18 @@ class FanCurve {
     final safe = <FanCurvePoint>[];
     var previousFanPercent = 20.0;
     for (final point in sorted) {
+      if (safe.isNotEmpty &&
+          point.temperature == safe.last.temperature) {
+        // Duplicate breakpoints create abrupt interpolation edges. Collapse
+        // them to the strongest requested cooling level at that temperature.
+        final mergedFanPercent = point.fanPercent > safe.last.fanPercent
+            ? point.fanPercent
+            : safe.last.fanPercent;
+        safe[safe.length - 1] =
+            FanCurvePoint(point.temperature, mergedFanPercent);
+        previousFanPercent = mergedFanPercent;
+        continue;
+      }
       final fanPercent = point.fanPercent < previousFanPercent
           ? previousFanPercent
           : point.fanPercent;
