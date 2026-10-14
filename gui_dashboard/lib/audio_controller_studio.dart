@@ -9,9 +9,10 @@ import 'user_data_store.dart';
 /// claim live capture, system-wide processing, or device routing until the
 /// native device adapters and bridge contract are implemented.
 class AudioControllerStudioScreen extends StatefulWidget {
-  const AudioControllerStudioScreen({super.key, this.onRecommend});
+  const AudioControllerStudioScreen({super.key, this.onRecommend, this.onLoadDevices});
 
   final Future<Map<String, dynamic>?> Function(Map<String, dynamic> profile)? onRecommend;
+  final Future<Map<String, dynamic>?> Function()? onLoadDevices;
 
   @override
   State<AudioControllerStudioScreen> createState() => _AudioControllerStudioScreenState();
@@ -28,6 +29,10 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
   bool _specificationsVerified = false;
   bool _advisorLoading = false;
   String? _advisorError;
+  String? _deviceDetectionMessage;
+  String? _selectedEndpointId;
+  List<Map<String, dynamic>> _captureDevices = <Map<String, dynamic>>[];
+  List<Map<String, dynamic>> _playbackDevices = <Map<String, dynamic>>[];
   Map<String, dynamic>? _advisorRecommendation;
   double _inputGain = 0;
   double _gateThreshold = -48;
@@ -58,6 +63,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
   void initState() {
     super.initState();
     unawaited(_load());
+    unawaited(_loadAudioDevices());
   }
 
   Future<void> _load() async {
@@ -276,6 +282,64 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
   }
 
 
+
+  List<Map<String, dynamic>> get _endpointOptions {
+    final source = _deviceType == 'microphone'
+        ? _captureDevices
+        : _deviceType == 'headset'
+            ? <Map<String, dynamic>>[..._captureDevices, ..._playbackDevices]
+            : _playbackDevices;
+    return source.map((device) {
+      final direction = device['direction'] as String? ?? '';
+      return <String, dynamic>{
+        ...device,
+        'id': '$direction:${device['index']}',
+      };
+    }).toList(growable: false);
+  }
+
+  Future<void> _loadAudioDevices() async {
+    if (widget.onLoadDevices == null) {
+      if (mounted) setState(() => _deviceDetectionMessage = 'Bridge device detection is not available in this context.');
+      return;
+    }
+    try {
+      final result = await widget.onLoadDevices!();
+      if (result == null) throw const FormatException('Bridge did not return audio devices.');
+      List<Map<String, dynamic>> parse(Object? raw, String direction) {
+        if (raw is! List) throw const FormatException('Invalid device list.');
+        return raw.whereType<Map>().map((item) => <String, dynamic>{
+          'index': item['index'] is num ? (item['index'] as num).toInt() : -1,
+          'name': item['name'] is String ? item['name'] as String : '',
+          'isDefault': item['isDefault'] == true,
+          'direction': direction,
+        }).where((item) => (item['index'] as int) >= 0 && (item['name'] as String).isNotEmpty).toList(growable: false);
+      }
+      setState(() {
+        _captureDevices = parse(result['capture'], 'capture');
+        _playbackDevices = parse(result['playback'], 'playback');
+        _deviceDetectionMessage = 'Detected ${_captureDevices.length} input and ${_playbackDevices.length} output endpoints on this computer.';
+      });
+      _syncSelectedEndpoint();
+    } catch (error) {
+      if (mounted) setState(() => _deviceDetectionMessage = 'Device detection unavailable: $error');
+    }
+  }
+
+  void _syncSelectedEndpoint() {
+    final options = _endpointOptions;
+    if (options.isEmpty) {
+      setState(() => _selectedEndpointId = null);
+      return;
+    }
+    final selected = options.where((device) => device['id'] == _selectedEndpointId).firstOrNull;
+    final device = selected ?? options.where((item) => item['isDefault'] == true).firstOrNull ?? options.first;
+    setState(() {
+      _selectedEndpointId = device['id'] as String;
+      _deviceModelController.text = device['name'] as String;
+    });
+  }
+
   Widget _buildDeviceIntelligencePanel() => Card(
     child: Padding(
       padding: const EdgeInsets.all(18),
@@ -290,6 +354,33 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
           const SizedBox(height: 6),
           const Text('Gemma runs locally through the authenticated bridge. Enter the endpoint name and capabilities reported by your operating system; do not guess specifications. Suggestions are advisory and are never applied automatically.'),
           const SizedBox(height: 14),
+          Row(children: [
+            Expanded(child: Text(_deviceDetectionMessage ?? 'Detecting audio endpoints…')),
+            IconButton(
+              tooltip: 'Refresh audio devices',
+              onPressed: _advisorLoading ? null : _loadAudioDevices,
+              icon: const Icon(Icons.refresh),
+            ),
+          ]),
+          if (_endpointOptions.isNotEmpty) DropdownButtonFormField<String>(
+            value: _endpointOptions.any((item) => item['id'] == _selectedEndpointId) ? _selectedEndpointId : null,
+            decoration: const InputDecoration(labelText: 'Detected audio endpoint'),
+            items: [
+              for (final device in _endpointOptions)
+                DropdownMenuItem<String>(
+                  value: device['id'] as String,
+                  child: Text('${device['name'] as String}${device['isDefault'] == true ? ' (default)' : ''}', overflow: TextOverflow.ellipsis),
+                ),
+            ],
+            onChanged: (value) {
+              final selected = _endpointOptions.where((item) => item['id'] == value).firstOrNull;
+              if (selected == null) return;
+              setState(() {
+                _selectedEndpointId = value;
+                _deviceModelController.text = selected['name'] as String;
+              });
+            },
+          ),
           TextField(
             controller: _deviceModelController,
             maxLength: 120,
@@ -311,7 +402,11 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
                 DropdownMenuItem(value: 'headphones', child: Text('Headphones')),
                 DropdownMenuItem(value: 'headset', child: Text('Headset')),
               ],
-              onChanged: (value) => setState(() { if (value != null) _deviceType = value; }),
+              onChanged: (value) {
+                if (value == null) return;
+                setState(() => _deviceType = value);
+                _syncSelectedEndpoint();
+              },
             )),
             SizedBox(width: 220, child: DropdownButtonFormField<String>(
               value: _usage,
