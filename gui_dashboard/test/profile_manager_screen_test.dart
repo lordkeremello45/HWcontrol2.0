@@ -92,6 +92,25 @@ void main() {
     });
   });
 
+  testWidgets('deletes a profile only after confirmation', (tester) async {
+    await openScreen(tester);
+    await tester.tap(find.text('Create profile'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'Temporary');
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(PopupMenuButton<String>).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Delete profile?'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await tester.pumpAndSettle();
+
+    expect((await store.readValidatedProfiles()).profiles, isEmpty);
+  });
+
   testWidgets('shows recovery guidance for a malformed saved document', (tester) async {
     final file = await store.configFile('profiles.v1.json');
     await file.writeAsString('not valid json');
