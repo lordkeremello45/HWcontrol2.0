@@ -1,6 +1,6 @@
 # HWcontrol2.0 product context
 
-Context version: v2026-10
+HWCONTROL_PRODUCT_CONTEXT=v2026-10
 
 HWcontrol2.0 is a cross-platform desktop hardware monitoring and control application with a Flutter/Dart GUI, authenticated localhost Go Bridge, native C++/CMake engine, and platform-specific hardware APIs.
 
