@@ -58,6 +58,20 @@ func capability(available bool, backend, reason string) HardwareCapability {
 	return HardwareCapability{Available: available, Backend: backend, Reason: reason}
 }
 
+func hasValidatedFanControl(metrics HardwareMetrics) bool {
+	return metrics.FanControlSupported || anyControllableFanChannel(metrics.FanChannels)
+}
+
+func hasValidCriticalTemperature(metrics HardwareMetrics) bool {
+	cpuCritical := metrics.CPUTemperature > 0 &&
+		isValidTemperature(metrics.CPUTemperature) &&
+		metrics.CPUTemperature >= thermalCriticalTemperature
+	gpuCritical := metrics.GPUTemperature > 0 &&
+		isValidTemperature(metrics.GPUTemperature) &&
+		metrics.GPUTemperature >= thermalCriticalTemperature
+	return cpuCritical || gpuCritical
+}
+
 func resolvedFanControlBackend(metrics HardwareMetrics) string {
 	if metrics.FanControlSupported && metrics.FanControlBackend != "" {
 		return metrics.FanControlBackend
@@ -78,7 +92,7 @@ func evaluateHardwareHealth(metrics HardwareMetrics) HardwareHealthEvaluation {
 		"cpuTemperature":   capability(metrics.CPUTemperatureSource != "" && metrics.CPUTemperature > 0 && isValidTemperature(metrics.CPUTemperature), metrics.CPUTemperatureSource, "CPU thermal telemetry unavailable or source unknown"),
 		"gpuTemperature":   capability(metrics.GPUTemperatureSource != "" && metrics.GPUTemperature > 0 && isValidTemperature(metrics.GPUTemperature), metrics.GPUTemperatureSource, "GPU thermal telemetry unavailable or source unknown"),
 		"fanRpm":           capability(isFinitePositive(metrics.FanRPM) && metrics.FanRPMSource != "", metrics.FanRPMSource, "Fan RPM telemetry unavailable or source unknown"),
-		"fanControl":       capability(metrics.FanControlSupported || anyControllableFanChannel(metrics.FanChannels), resolvedFanControlBackend(metrics), "No validated hardware-control backend"),
+		"fanControl":       capability(hasValidatedFanControl(metrics), resolvedFanControlBackend(metrics), "No validated hardware-control backend"),
 		"fanChannels":      capability(len(metrics.FanChannels) > 0, "platform-fan-discovery", "No fan/PWM channels were enumerated"),
 		"voltage":          capability(isFinitePositive(metrics.Voltage), metrics.SensorSource, "Voltage telemetry unavailable"),
 		"power":            capability(isFinitePositive(metrics.PowerWatts), metrics.SensorSource, "Power telemetry unavailable"),
@@ -94,7 +108,7 @@ func evaluateHardwareHealth(metrics HardwareMetrics) HardwareHealthEvaluation {
 		"fanPercent":       capability(isFiniteNonNegative(metrics.FanPercent) && metrics.FanPercent > 0 && metrics.FanPercent <= 100 && metrics.FanPercentSource != "", metrics.FanPercentSource, "Fan percentage telemetry unavailable or source unknown"),
 		"batteryHealth":    capability(metrics.Battery.Present && metrics.Battery.DataAvailable && isFinitePositive(metrics.Battery.HealthPercent), "platform-battery-api", "Battery health requires valid design and full-charge capacity readings"),
 		"thermalSafety":    capability(metrics.ThermalSafetyAvailable && ((metrics.CPUTemperature > 0 && isValidTemperature(metrics.CPUTemperature)) || (metrics.GPUTemperature > 0 && isValidTemperature(metrics.GPUTemperature))), metrics.SensorSource, "No valid CPU/GPU temperature source is available"),
-		"fanCurveAutomation": capability((metrics.FanControlSupported || anyControllableFanChannel(metrics.FanChannels)) && metrics.ThermalSafetyAvailable, resolvedFanControlBackend(metrics), "Automatic fan control requires both valid thermal telemetry and a supported control backend"),
+		"fanCurveAutomation": capability(hasValidatedFanControl(metrics) && metrics.ThermalSafetyAvailable, resolvedFanControlBackend(metrics), "Automatic fan control requires both valid thermal telemetry and a supported control backend"),
 		"gpuPowerLimitControl": capability(false, "not-implemented", "GPU power-limit telemetry may be readable, but a validated write backend is not implemented"),
 		"cpuOverclockControl": capability(false, "not-implemented", "CPU clock/voltage overclocking is not implemented"),
 		"batteryChargeLimitControl": capability(false, "not-implemented", "Battery health is read-only; charging thresholds are not changed"),
@@ -155,7 +169,11 @@ func evaluateHardwareHealth(metrics HardwareMetrics) HardwareHealthEvaluation {
 		recoveryAction = "trusted-repair-or-reinstall-required"
 		anomalies = append(anomalies, HardwareAnomaly{Code: "runtime-integrity-failure", Severity: "critical", Message: "Runtime integrity verification failed; sensitive IPC and hardware control must remain disabled"})
 	} else if safetyState == "CRITICAL" {
-		recoveryAction = "stop-hardware-control-and-cool"
+		if hasValidCriticalTemperature(metrics) && metrics.ThermalSafetyAvailable && hasValidatedFanControl(metrics) {
+			recoveryAction = "emergency-cooling-and-reduce-thermal-load"
+		} else {
+			recoveryAction = "stop-hardware-control-and-cool"
+		}
 	} else if safetyState == "WARNING" {
 		recoveryAction = "monitor-and-reduce-thermal-load"
 	}
@@ -187,7 +205,7 @@ func healthSnapshot() HealthSnapshot {
 	evaluation := evaluateHardwareHealth(metrics)
 	checks := map[string]string{"authentication": "ok", "localTransport": "ok", "hardwareControl": "monitor-only", "hardwareIdentity": "unavailable", "sensors": "unavailable", "runtimeIntegrity": "unhealthy"}
 	warnings := make([]string, 0, 4)
-	if metrics.FanControlSupported {
+	if hasValidatedFanControl(metrics) {
 		checks["hardwareControl"] = "enabled"
 	} else {
 		warnings = append(warnings, "hardware control backend is unavailable")
