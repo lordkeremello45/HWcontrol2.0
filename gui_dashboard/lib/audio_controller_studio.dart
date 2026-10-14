@@ -253,7 +253,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
             children: [
               Text('Profile editor • DSP integration in progress', style: TextStyle(fontWeight: FontWeight.w800)),
               SizedBox(height: 4),
-              Text('These settings are saved locally. Microphone capture, system-audio routing, live meters and effects are not active until the native audio backend is connected. No audio is being recorded.'),
+              Text('These settings are saved locally. The native device-host prototype can enumerate and open capture/playback devices, but this screen is not connected to it yet. System-audio routing and live UI meters are not active. No audio is being recorded. No audio is being recorded.'),
             ],
           ),
         ),
@@ -366,7 +366,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
     icon: Icons.route_outlined,
     child: Column(
       children: const [
-        _CapabilityRow('Microphone capture', 'NOT IMPLEMENTED', Icons.mic_none),
+        _CapabilityRow('Microphone capture / playback', 'NATIVE PROTOTYPE', Icons.mic_none),
         Divider(),
         _CapabilityRow('System audio capture', 'NOT IMPLEMENTED', Icons.speaker_group_outlined),
         Divider(),
@@ -419,6 +419,6 @@ class _CapabilityRow extends StatelessWidget {
     Icon(icon, size: 20),
     const SizedBox(width: 10),
     Expanded(child: Text(label)),
-    Text(status, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: status == 'NOT IMPLEMENTED' ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.onSurfaceVariant)),
+    Text(status, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: status == 'NOT IMPLEMENTED' ? Theme.of(context).colorScheme.error : status == 'NATIVE PROTOTYPE' ? Theme.of(context).colorScheme.tertiary : Theme.of(context).colorScheme.onSurfaceVariant)),
   ]);
 }
