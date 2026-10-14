@@ -260,7 +260,7 @@ std::string buildAnalysisPrompt(const HardwareTelemetry& current,
         << "Yalnızca aşağıdaki ölçülmüş verilere dayan; ürün bilgisini ölçüm yerine kullanma. "
         << "Yok olan alanlar için değer uydurma. Fan, voltaj, saat hızı veya güç limiti değiştirmeyi emretme. "
         << "Belirsizliği açıkça belirt. Türkçe, en fazla 3 kısa cümle yaz. "
-        << "Önce durum, sonra önemli bulgu, sonra güvenli izleme önerisi ver.\\n";
+        << "Önce durum, sonra önemli bulgu, sonra güvenli izleme önerisi ver.\n";
 
     out << "RISK_ENGINE=" << assessment.level << "; ";
     if (isFiniteMeasurement(assessment.cpuTemperatureDeltaC)) {
