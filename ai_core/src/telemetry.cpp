@@ -99,8 +99,8 @@ std::string cleanAudioLabel(const std::string& input, size_t maxLength) {
     output.reserve(std::min(input.size(), maxLength));
     for (unsigned char c : input) {
         if (output.size() >= maxLength) break;
-        if (c >= 0x20 && c != 0x7f) output.push_back(static_cast<char>(c));
-        else output.push_back(' ');
+        if (c == '"' || c == '\\' || c < 0x20 || c == 0x7f) output.push_back(' ');
+        else output.push_back(static_cast<char>(c));
     }
     return output;
 }
