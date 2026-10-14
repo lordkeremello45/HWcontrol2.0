@@ -237,6 +237,10 @@ func collectMetrics() HardwareMetrics {
 				metrics.SensorSource = "nvidia-smi"
 			}
 		}
+		if value, available := maxNvidiaGPUTemperatureFromMetricsOutput(output); available {
+			metrics.GPUTemperature = value
+			metrics.GPUTemperatureSource = "nvidia-smi:max-gpu-temperature"
+		}
 	}
 	mergePlatformMetrics(&metrics)
 	mergeBatteryMetrics(&metrics)
@@ -302,6 +306,26 @@ func collectMetrics() HardwareMetrics {
 // CPU-utilization sampling used by collectMetrics. A multi-channel write must
 // revalidate thermal safety on every command without multiplying that delay by
 // the number of fans.
+func maxNvidiaGPUTemperatureFromMetricsOutput(output []byte) (float64, bool) {
+	var highest float64
+	found := false
+	for _, line := range strings.Split(string(output), "\n") {
+		parts := strings.Split(line, ",")
+		if len(parts) < 3 {
+			continue
+		}
+		value, err := strconv.ParseFloat(strings.TrimSpace(parts[2]), 64)
+		if err != nil || !isValidTemperature(value) || value <= 0 {
+			continue
+		}
+		if !found || value > highest {
+			highest = value
+			found = true
+		}
+	}
+	return highest, found
+}
+
 const nvidiaSafetyTemperatureTimeout = 1200 * time.Millisecond
 
 func nvidiaSMITemperatureOutput() ([]byte, error) {
