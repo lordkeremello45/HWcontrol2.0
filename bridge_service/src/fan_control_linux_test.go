@@ -106,6 +106,19 @@ func TestLinuxFanDiscoveryHonorsExplicitChannelSelection(t *testing.T) {
 	}
 }
 
+func TestFanChannelIDIgnoresHwmonEnumerationSuffix(t *testing.T) {
+	firstPath := canonicalLinuxHwmonDevicePath("/sys/devices/platform/controller/hwmon/hwmon4")
+	secondPath := canonicalLinuxHwmonDevicePath("/sys/devices/platform/controller/hwmon/hwmon9")
+	if firstPath != secondPath {
+		t.Fatalf("canonical paths differ across hwmon enumeration: %q != %q", firstPath, secondPath)
+	}
+	first := stableLinuxFanChannelID(firstPath+"#testchip", 1)
+	second := stableLinuxFanChannelID(secondPath+"#testchip", 1)
+	if first != second {
+		t.Fatal("fan profile identifier changed with the hwmon enumeration index")
+	}
+}
+
 func TestStableLinuxFanChannelIDIsDeterministic(t *testing.T) {
 	first := stableLinuxFanChannelID("/sys/devices/platform/test-hwmon", 2)
 	second := stableLinuxFanChannelID("/sys/devices/platform/test-hwmon", 2)
