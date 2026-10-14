@@ -19,7 +19,8 @@ A cross-platform audio workstation inside HWcontrol2.0 for microphone processing
 - Three configurable peaking-EQ bands (frequency, gain, Q).
 - Input gain, simple noise gate, static-ratio compressor, and peak limiter.
 - Input/output peak and RMS meters, clipped-sample count, processed-frame count.
-- Unit tests for limiter bounds, gain, gate behavior, non-finite sample sanitation, and invalid sample-rate fallback.
+- Fixed-size 1024-point Hann-window FFT spectrum analysis on a worker/analysis thread (not the device callback), with peak-frequency and RMS output.
+- Unit tests for limiter bounds, gain, gate behavior, EQ response, compression, FFT peak-frequency detection, non-finite sample sanitation, and invalid sample-rate fallback.
 
 The current gate is a basic threshold gate, not AI noise reduction. The compressor is a simple static curve, not a complete studio compressor with attack/release, knee, and sidechain. The limiter is a hard sample-peak clamp, not a look-ahead true-peak limiter. These distinctions are intentional.
 
@@ -29,7 +30,7 @@ The current gate is a basic threshold gate, not AI noise reduction. The compress
 2. Add smoothed parameters, attack/release envelopes, soft-knee compression, true-peak/look-ahead limiting, de-esser, expander, and a well-tested filter library.
 3. Add device lifecycle and capture/playback adapters; test hot-plug, device loss, sample-rate changes, and long-running streams.
 4. Add platform-specific system-audio capture and output routing/virtual-device strategy. Do not claim system-wide effects from loopback capture alone.
-5. Add FFT/spectrogram, LUFS and channel/phase analysis with validated metering.
+5. Connect the current FFT analyzer to real input/output taps; then add spectrogram history, validated LUFS/true-peak and channel/phase analysis.
 6. Add the Flutter Studio UI, visual effect graph, profile automation, presets, recording/export, and localization.
 7. Add offline/opt-in microphone calibration and privacy-preserving local assistance.
 8. Validate package install, launch, runtime, and cleanup on actual supported OS versions and hardware.
