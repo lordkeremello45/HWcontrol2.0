@@ -1,6 +1,7 @@
 package main
 
-import (\n\t"encoding/json"\n\t"testing"
+import (
+	"encoding/json"
 	"bufio"
 	"crypto/sha256"
 	"encoding/hex"
