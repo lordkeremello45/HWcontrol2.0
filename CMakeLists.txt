@@ -28,6 +28,22 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(llama_cpp)
 
+# miniaudio is a small, permissively licensed cross-platform device layer.
+# Pin the version so release builds do not silently pick up upstream changes.
+FetchContent_Declare(
+  miniaudio
+  GIT_REPOSITORY https://github.com/mackron/miniaudio.git
+  GIT_TAG        0.11.22
+  GIT_SHALLOW    TRUE
+)
+FetchContent_GetProperties(miniaudio)
+if(NOT miniaudio_POPULATED)
+  FetchContent_Populate(miniaudio)
+endif()
+
+find_package(Threads REQUIRED)
+
+
 # Enable CTest explicitly so native regression tests are available to CI and
 # local builds without requiring callers to know the implementation detail.
 include(CTest)
