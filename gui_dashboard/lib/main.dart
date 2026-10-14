@@ -1871,7 +1871,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       final channels = profile['channels'];
       if (deviceType is! String || usage is! String || model is! String ||
           sampleRate is! int || channels is! int ||
-          model.trim().isEmpty || model.length > 120 || manufacturer.length > 80 ||
+          model.trim().isEmpty || utf8.encode(model).length > 120 || utf8.encode(manufacturer).length > 80 ||
           sampleRate < 8000 || sampleRate > 192000 || channels < 1 || channels > 8) {
         throw const FormatException('Audio profile input is outside supported bounds.');
       }
