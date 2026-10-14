@@ -5,15 +5,15 @@ void main() {
   group('ScanFileTypeCatalog', () {
     test('recognizes Windows installers, executables, drivers and archives', () {
       for (final path in [
-        r'C:\\Downloads\\setup.exe',
-        r'C:\\Downloads\\package.msixbundle',
-        r'C:\\Drivers\\device.sys',
-        r'C:\\Downloads\\archive.rar',
+        r'C:\Downloads\setup.exe',
+        r'C:\Downloads\package.msixbundle',
+        r'C:\Drivers\device.sys',
+        r'C:\Downloads\archive.rar',
       ]) {
         expect(ScanFileTypeCatalog.hasKnownExtension(path), isTrue, reason: path);
       }
       expect(
-        ScanFileTypeCatalog.platformsForPath(r'C:\\Downloads\\setup.exe'),
+        ScanFileTypeCatalog.platformsForPath(r'C:\Downloads\setup.exe'),
         contains(ScanFilePlatform.windows),
       );
     });
@@ -83,7 +83,7 @@ void main() {
 
     test('matches paths case-insensitively and supports Windows separators', () {
       expect(
-        ScanFileTypeCatalog.hasKnownExtension(r'C:\\TEMP\\PAYLOAD.MSIX'),
+        ScanFileTypeCatalog.hasKnownExtension(r'C:\TEMP\PAYLOAD.MSIX'),
         isTrue,
       );
     });
