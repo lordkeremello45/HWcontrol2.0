@@ -3553,6 +3553,46 @@ Attach this archive to a support issue only after reviewing it for personal info
       ),
     );
   }
+  Future<void> _applyFanChannelPreset(String presetKey) async {
+    final supportedChannels = _fanChannels
+        .where((channel) => channel.supported && channel.id.isNotEmpty)
+        .toList(growable: false);
+    if (supportedChannels.isEmpty) return;
+
+    final curve = fanCurvePreset(presetKey).normalized();
+    setState(() {
+      _fanCurve = curve;
+      _smartFanEnabled = true;
+      for (final channel in supportedChannels) {
+        final profile = _profileForFanChannel(channel);
+        _fanChannelProfiles[channel.id] = profile.copyWith(
+          curve: curve,
+          automaticEnabled: true,
+        );
+      }
+    });
+    await _persistFanCurves();
+    unawaited(_saveSettings());
+    _addEvent(
+      _feedbackText(
+        '$_presetNameForFanCurve(presetKey) eğrisi tüm desteklenen fan kanallarına uygulandı',
+        '$_presetNameForFanCurve(presetKey) curve applied to all supported fan channels',
+      ),
+    );
+  }
+
+  String _presetNameForFanCurve(String presetKey) {
+    switch (presetKey) {
+      case 'quiet':
+        return _tr('quiet');
+      case 'performance':
+        return _tr('performance');
+      case 'balanced':
+      default:
+        return _tr('balanced');
+    }
+  }
+
   Future<void> _openFanChannelCurveEditor(FanChannelTelemetry channel) async {
     final profile = _profileForFanChannel(channel);
     await showDialog<void>(
@@ -3618,6 +3658,28 @@ Attach this archive to a support issue only after reviewing it for personal info
             'Each channel has its own curve and temperature source. Control is enabled only for channels the bridge reports as supported.',
           ),
           style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            OutlinedButton.icon(
+              onPressed: _isSending ? null : () => _applyFanChannelPreset('quiet'),
+              icon: const Icon(Icons.volume_down_outlined, size: 16),
+              label: Text(_tr('quiet')),
+            ),
+            OutlinedButton.icon(
+              onPressed: _isSending ? null : () => _applyFanChannelPreset('balanced'),
+              icon: const Icon(Icons.tune, size: 16),
+              label: Text(_tr('balanced')),
+            ),
+            OutlinedButton.icon(
+              onPressed: _isSending ? null : () => _applyFanChannelPreset('performance'),
+              icon: const Icon(Icons.speed, size: 16),
+              label: Text(_tr('performance')),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         for (final channel in _fanChannels) ...[
