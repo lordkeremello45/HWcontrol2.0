@@ -371,7 +371,7 @@ const (
 	criticalGPUTemperature = 95.0
 )
 
-func hardwareControlSafetyError(metrics HardwareMetrics) error {
+func validateThermalTelemetry(metrics HardwareMetrics) error {
 	if !metrics.ThermalSafetyAvailable {
 		return fmt.Errorf("hardware control blocked: no valid thermal telemetry available")
 	}
@@ -381,7 +381,19 @@ func hardwareControlSafetyError(metrics HardwareMetrics) error {
 	if metrics.GPUTemperature != 0 && !isValidTemperature(metrics.GPUTemperature) {
 		return fmt.Errorf("hardware control blocked: GPU temperature telemetry is invalid")
 	}
-	if metrics.CPUTemperature >= criticalCPUTemperature || metrics.GPUTemperature >= criticalGPUTemperature {
+	return nil
+}
+
+func hasCriticalThermalState(metrics HardwareMetrics) bool {
+	return metrics.CPUTemperature >= criticalCPUTemperature ||
+		metrics.GPUTemperature >= criticalGPUTemperature
+}
+
+func hardwareControlSafetyError(metrics HardwareMetrics) error {
+	if err := validateThermalTelemetry(metrics); err != nil {
+		return err
+	}
+	if hasCriticalThermalState(metrics) {
 		return fmt.Errorf("hardware control blocked: critical temperature detected")
 	}
 	return nil
@@ -391,14 +403,14 @@ func validateFanControlRequest(cmd Command, metrics HardwareMetrics) error {
 	if cmd.Action != "Fan Hızı" {
 		return nil
 	}
-	if !metrics.ThermalSafetyAvailable {
-		return fmt.Errorf("hardware control blocked: no valid thermal sensor available")
-	}
-	if err := hardwareControlSafetyError(metrics); err != nil {
+	if err := validateThermalTelemetry(metrics); err != nil {
 		return err
 	}
 	if !metrics.FanControlSupported || metrics.FanControlBackend == "" || metrics.FanControlBackend == "monitor-only" {
 		return fmt.Errorf("hardware fan control is unavailable")
+	}
+	if hasCriticalThermalState(metrics) && cmd.Value < 100 {
+		return fmt.Errorf("critical temperature detected; only the 100% emergency cooling target is allowed")
 	}
 	return nil
 }
