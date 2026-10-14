@@ -247,9 +247,11 @@ class _HWAimTrainerScreenState extends State<HWAimTrainerScreen> {
                       if (_running)
                         Positioned(
                           left: (_targetX * constraints.maxWidth - _targetSize / 2)
-                              .clamp(0.0, constraints.maxWidth - _targetSize),
+                              .clamp(0.0, constraints.maxWidth - _targetSize)
+                              .toDouble(),
                           top: (_targetY * constraints.maxHeight - _targetSize / 2)
-                              .clamp(0.0, constraints.maxHeight - _targetSize),
+                              .clamp(0.0, constraints.maxHeight - _targetSize)
+                              .toDouble(),
                           width: _targetSize.toDouble(),
                           height: _targetSize.toDouble(),
                           child: Semantics(
@@ -328,7 +330,7 @@ class _HWAimTrainerScreenState extends State<HWAimTrainerScreen> {
                 const Text('No sessions yet. Complete a practice session to see your results here.')
               else
                 SizedBox(
-                  height: math.min(MediaQuery.of(context).size.height * 0.5, 420),
+                  height: math.min(MediaQuery.of(context).size.height * 0.5, 420).toDouble(),
                   child: ListView.separated(
                     shrinkWrap: true,
                     itemCount: _history.length,
