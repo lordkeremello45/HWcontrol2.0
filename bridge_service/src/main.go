@@ -556,7 +556,7 @@ func executeHardwareCommand(cmd Command) error {
 		if panicModeActive() {
 			return fmt.Errorf("hardware control blocked: security panic mode active")
 		}
-		metrics := collectMetrics()
+		metrics := collectHardwareControlSafetyMetrics()
 		if err := validateFanControlRequest(cmd, metrics); err != nil {
 			return err
 		}
