@@ -20,7 +20,7 @@ The native AI process is persistent during active use so the model is loaded onc
 
 ## Runtime protocol
 
-`ai_engine --stdio` reads one telemetry request per line and returns `OK|<analysis>`. Malformed telemetry is rejected explicitly.
+`ai_engine --stdio` reads one telemetry request per line and returns `OK|<analysis>`. It also accepts bounded `AUDIO type=... usage=... rate=... channels=... model_hex=... verified=...` requests and returns `AUDIO_OK|<JSON recommendation>`. The audio advisor validates device type, use case, sample rate, channel count, and hex-encoded labels before building a local-only prompt. Malformed requests are rejected explicitly; audio suggestions are advisory and must be schema-validated and approved before application.
 
 ## Current boundary
 
