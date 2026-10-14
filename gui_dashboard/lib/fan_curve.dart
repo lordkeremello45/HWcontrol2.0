@@ -92,6 +92,28 @@ class FanCurve {
   }
 }
 
+
+/// Combines independent automatic fan requests without letting a lower
+/// temperature rule override a stronger curve request. A rule may raise the
+/// current target, but it cannot lower it while the curve controller is
+/// waiting for hysteresis or rate-limit conditions to be met.
+double? resolveAutomaticFanTarget({
+  required double? curveTarget,
+  required double? ruleTarget,
+  required double currentFanPercent,
+}) {
+  if (curveTarget != null && ruleTarget != null) {
+    return curveTarget >= ruleTarget ? curveTarget : ruleTarget;
+  }
+  if (curveTarget != null) return curveTarget;
+  if (ruleTarget != null &&
+      currentFanPercent.isFinite &&
+      ruleTarget >= currentFanPercent) {
+    return ruleTarget;
+  }
+  return null;
+}
+
 class FanCurveController {
   FanCurveController({
     this.minFanPercent = 20,
