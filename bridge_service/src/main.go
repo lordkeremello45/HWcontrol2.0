@@ -32,7 +32,8 @@ import (
 type Command struct {
 	Action    string  `json:"action"`
 	Value     float64 `json:"value"`
-	Target    string  `json:"target,omitempty"`
+	Target    string          `json:"target,omitempty"`
+	Payload   json.RawMessage `json:"payload,omitempty"`
 	Timestamp int64   `json:"timestamp"`
 	Nonce     string  `json:"nonce"`
 	Auth      string  `json:"auth"`
@@ -53,6 +54,9 @@ func commandPayload(cmd Command) string {
 	// the channel identifier in the authenticated payload for targeted writes.
 	if cmd.Target != "" {
 		payload += "\n" + cmd.Target
+	}
+	if len(cmd.Payload) > 0 && string(cmd.Payload) != "null" {
+		payload += "\n" + string(cmd.Payload)
 	}
 	return payload
 }
@@ -155,6 +159,106 @@ type HardwareMetrics struct {
 	ThermalSafetyAvailable bool      `json:"thermalSafetyAvailable"`
 	Battery                BatteryMetrics `json:"battery"`
 }
+
+
+type AudioProfileRequest struct {
+	DeviceType string `json:"deviceType"`
+	Model string `json:"model"`
+	Manufacturer string `json:"manufacturer,omitempty"`
+	Usage string `json:"usage"`
+	SampleRateHz uint32 `json:"sampleRateHz"`
+	Channels uint32 `json:"channels"`
+	SpecificationsVerified bool `json:"specificationsVerified"`
+}
+
+func validateAudioProfilePayload(raw json.RawMessage) error {
+	var request AudioProfileRequest
+	decoder := json.NewDecoder(strings.NewReader(string(raw)))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&request); err != nil {
+		return fmt.Errorf("invalid audio profile payload")
+	}
+	if len(strings.TrimSpace(request.Model)) == 0 || len(request.Model) > 120 || len(request.Manufacturer) > 80 {
+		return fmt.Errorf("device model/manufacturer length is invalid")
+	}
+	for _, value := range []string{request.Model, request.Manufacturer} {
+		for _, r := range value {
+			if r < 0x20 || r == 0x7f {
+				return fmt.Errorf("device labels must not contain control characters")
+			}
+		}
+	}
+	switch request.DeviceType {
+	case "microphone", "speaker", "headphones", "headset":
+	default:
+		return fmt.Errorf("unsupported audio device type")
+	}
+	switch request.Usage {
+	case "voice", "gaming", "music", "movie", "meeting", "streaming":
+	default:
+		return fmt.Errorf("unsupported audio usage")
+	}
+	if request.SampleRateHz < 8000 || request.SampleRateHz > 192000 || request.Channels < 1 || request.Channels > 8 {
+		return fmt.Errorf("audio capabilities are outside supported bounds")
+	}
+	return nil
+}
+
+func runLocalAudioProfileAdvisor(request AudioProfileRequest) (string, error) {
+	payload, err := json.Marshal(request)
+	if err != nil { return "", fmt.Errorf("could not encode audio profile") }
+	if err := validateAudioProfilePayload(payload); err != nil { return "", err }
+	executable, err := os.Executable()
+	if err != nil { return "", fmt.Errorf("could not locate HWcontrol installation") }
+	name := "ai_engine"
+	if runtime.GOOS == "windows" { name += ".exe" }
+	advisorPath := filepath.Join(filepath.Dir(executable), name)
+	info, err := os.Stat(advisorPath)
+	if err != nil || !info.Mode().IsRegular() {
+		return "", fmt.Errorf("local Gemma engine is not installed beside the bridge")
+	}
+	if runtime.GOOS != "windows" && info.Mode().Perm()&0111 == 0 {
+		return "", fmt.Errorf("local Gemma engine is not executable")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, advisorPath, "--stdio")
+	stdin, err := cmd.StdinPipe()
+	if err != nil { return "", fmt.Errorf("could not open local AI input") }
+	stdout, err := cmd.StdoutPipe()
+	if err != nil { return "", fmt.Errorf("could not open local AI output") }
+	cmd.Stderr = io.Discard
+	if err := cmd.Start(); err != nil { return "", fmt.Errorf("could not start local Gemma engine") }
+	modelHex := hex.EncodeToString([]byte(request.Model))
+	manufacturerHex := hex.EncodeToString([]byte(request.Manufacturer))
+	verified := "0"
+	if request.SpecificationsVerified { verified = "1" }
+	line := fmt.Sprintf("AUDIO type=%s usage=%s rate=%d channels=%d model_hex=%s manufacturer_hex=%s verified=%s\n",
+		request.DeviceType, request.Usage, request.SampleRateHz, request.Channels, modelHex, manufacturerHex, verified)
+	if _, err := io.WriteString(stdin, line); err != nil {
+		_ = cmd.Process.Kill()
+		_ = cmd.Wait()
+		return "", fmt.Errorf("could not submit audio profile to local Gemma")
+	}
+	_ = stdin.Close()
+	reader := bufio.NewReaderSize(stdout, 4096)
+	response, readErr := reader.ReadString('\n')
+	waitErr := cmd.Wait()
+	if ctx.Err() != nil { return "", fmt.Errorf("local Gemma recommendation timed out") }
+	if readErr != nil || waitErr != nil {
+		return "", fmt.Errorf("local Gemma engine failed; check that its model is installed")
+	}
+	response = strings.TrimSpace(response)
+	if !strings.HasPrefix(response, "AUDIO_OK|") {
+		return "", fmt.Errorf("local Gemma did not return a valid audio recommendation")
+	}
+	response = strings.TrimPrefix(response, "AUDIO_OK|")
+	if len(response) == 0 || len(response) > 1200 {
+		return "", fmt.Errorf("local Gemma recommendation was empty or too large")
+	}
+	return response, nil
+}
+
 
 var errRequestTooLarge = errors.New("request too large")
 
@@ -467,6 +571,12 @@ func validateCommand(cmd Command) error {
 	} else if cmd.Target != "" {
 		return fmt.Errorf("target is only accepted for Set Fan Channel")
 	}
+	if len(cmd.Payload) > 2048 {
+		return fmt.Errorf("payload is too large")
+	}
+	if action != "Get Audio Profile" && len(cmd.Payload) > 0 && string(cmd.Payload) != "null" {
+		return fmt.Errorf("payload is only accepted for Get Audio Profile")
+	}
 	switch action {
 	case "Fan Hızı", "AI İşlem Gücü", "Set Game Mode":
 		return nil
@@ -476,6 +586,11 @@ func validateCommand(cmd Command) error {
 		return validatePowerModeRequest(action, cmd.Value)
 	case "Set Power Profile":
 		return validatePowerModeRequest("Set Power Mode AC", cmd.Value)
+	case "Get Audio Profile":
+		if cmd.Value != 0 || len(cmd.Payload) == 0 || string(cmd.Payload) == "null" {
+			return fmt.Errorf("Get Audio Profile requires a payload and zero command value")
+		}
+		return validateAudioProfilePayload(cmd.Payload)
 	case "Get Power Mode":
 		if cmd.Value != 0 {
 			return fmt.Errorf("read-only command value must be zero")
@@ -975,6 +1090,24 @@ func handleConnection(conn net.Conn, secret string) {
 			continue
 		}
 		lastCommandAt = now
+		if cmd.Action == "Get Audio Profile" {
+			var request AudioProfileRequest
+			if err := json.Unmarshal(cmd.Payload, &request); err != nil {
+				_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+				if encoder.Encode(Response{Status: "ERROR", Message: "invalid audio profile payload"}) != nil { return }
+				continue
+			}
+			recommendation, err := runLocalAudioProfileAdvisor(request)
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			if err != nil {
+				if encoder.Encode(Response{Status: "ERROR", Message: err.Error()}) != nil { return }
+			} else if encoder.Encode(Response{Status: "SUCCESS", Message: "Local Gemma audio recommendation generated", Data: map[string]any{
+				"recommendation": recommendation,
+				"localOnly": true,
+				"requiresApproval": true,
+			}}) != nil { return }
+			continue
+		}
 		if cmd.Action == "Get Update" {
 			status := checkForUpdates(context.Background())
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
