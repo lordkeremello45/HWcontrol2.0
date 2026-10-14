@@ -56,6 +56,14 @@ class HWControlProfile {
     if (fanCurve.length < 2 || fanCurve.length > maxFanCurvePoints) {
       throw const FormatException('Fan curve must contain 2–16 points.');
     }
+    for (final point in fanCurve) {
+      if (point.temperatureCelsius < 0 ||
+          point.temperatureCelsius > 120 ||
+          point.fanPercent < 1 ||
+          point.fanPercent > 100) {
+        throw const FormatException('Fan curve values are outside safe bounds.');
+      }
+    }
     for (var i = 1; i < fanCurve.length; i++) {
       if (fanCurve[i].temperatureCelsius <=
           fanCurve[i - 1].temperatureCelsius) {
