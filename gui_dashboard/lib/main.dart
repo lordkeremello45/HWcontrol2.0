@@ -17,6 +17,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'diagnostics.dart';
+import 'setup_wizard.dart';
 import 'fan_curve.dart';
 import 'fan_channels.dart';
 import 'benchmark.dart';
@@ -72,6 +73,8 @@ class _HWControlAppState extends State<HWControlApp> {
   bool _animationsEnabled = true;
   bool _showWelcome = true;
   bool _welcomeSeen = false;
+  bool _showSetupWizard = false;
+  bool _setupWizardCompleted = false;
   final HWControlUserDataStore _userData = HWControlUserDataStore();
   Map<String, String> _welcomeTranslations = const <String, String>{};
   String _welcomeLocale = 'en-US';
@@ -87,6 +90,7 @@ class _HWControlAppState extends State<HWControlApp> {
     try {
       final settings = await _userData.readSettings();
       final savedLocale = settings['language'] as String?;
+      final setupCompleted = settings['setupWizardCompleted'] == true;
       final style = settings['languageStyle'] == HWControlLocalizationStyleService.literary
           ? HWControlLocalizationStyleService.literary
           : HWControlLocalizationStyleService.standard;
@@ -105,6 +109,7 @@ class _HWControlAppState extends State<HWControlApp> {
       setState(() {
         _welcomeLocale = locale;
         _welcomeTranslations = translations;
+        _setupWizardCompleted = setupCompleted;
       });
     } catch (_) {
       // The welcome screen keeps English fallbacks if localization setup fails.
@@ -143,8 +148,31 @@ class _HWControlAppState extends State<HWControlApp> {
     setState(() {
       _welcomeSeen = dontShowAgain;
       _showWelcome = false;
+      _showSetupWizard = !_setupWizardCompleted;
     });
     _saveUiPreferences();
+  }
+
+  void _completeSetupWizard(Map<String, dynamic> choices) {
+    setState(() {
+      _setupWizardCompleted = true;
+      _showSetupWizard = false;
+    });
+    unawaited(() async {
+      try {
+        final settings = await _userData.readSettings();
+        await _userData.writeSettings(<String, dynamic>{
+          ...settings,
+          ...choices,
+        });
+      } catch (_) {
+        // A settings write failure must not block the dashboard.
+      }
+    }());
+  }
+
+  void _cancelSetupWizard() {
+    setState(() => _showSetupWizard = false);
   }
 
   void _openDashboardFromWelcome() {
@@ -186,7 +214,18 @@ class _HWControlAppState extends State<HWControlApp> {
                     translations: _welcomeTranslations,
                   ),
                 )
-              : DashboardScreen(
+              : _showSetupWizard
+                  ? Directionality(
+                      textDirection: HWControlLanguageService.isRightToLeft(_welcomeLocale)
+                          ? TextDirection.rtl
+                          : TextDirection.ltr,
+                      child: HWControlSetupWizard(
+                        onComplete: _completeSetupWizard,
+                        onCancel: _cancelSetupWizard,
+                        translations: _welcomeTranslations,
+                      ),
+                    )
+                  : DashboardScreen(
                   darkMode: _darkMode,
                   animationsEnabled: _animationsEnabled,
                   onThemeChanged: _setDarkMode,
