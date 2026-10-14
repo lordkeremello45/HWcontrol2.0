@@ -1110,7 +1110,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       'cpuTemperature': cpu,
       'gpuTemperature': gpu,
     });
-    final automaticTarget = ruleTarget ?? curveTarget;
+    final automaticTarget = resolveAutomaticFanTarget(
+      curveTarget: curveTarget,
+      ruleTarget: ruleTarget,
+      currentFanPercent: _fanValue,
+    );
     if (automaticTarget == null || !automaticTarget.isFinite) return;
     // A game profile is a minimum target, not permission to suppress thermal
     // automation. Smart Fan may raise the target above the selected profile.
