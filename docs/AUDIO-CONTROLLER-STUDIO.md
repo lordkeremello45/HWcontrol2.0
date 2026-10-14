@@ -36,15 +36,14 @@ The current gate is a basic threshold gate, not AI noise reduction. The compress
 
 ## Required next stages
 
-1. Validate this core in CI with CMake/CTest on Windows, Linux, and macOS.
-2. Add smoothed parameters, attack/release envelopes, soft-knee compression, true-peak/look-ahead limiting, de-esser, expander, and a well-tested filter library.
-3. Verify the packaged `hwcontrol_audio_probe` and `ai_engine` binaries are installed beside the bridge on each OS; test authenticated device enumeration and local Gemma requests, then handle hot-plug/device loss and sample-rate changes.
-4. Add platform-specific system-audio capture and output routing/virtual-device strategy. Do not claim system-wide effects from loopback capture alone.
-5. Connect the current FFT analyzer to real input/output taps; then add spectrogram history, validated LUFS/true-peak and channel/phase analysis.
-6. Add the Flutter Studio UI, visual effect graph, profile automation, presets, recording/export, and localization.
-7. Add offline/opt-in microphone calibration and privacy-preserving local assistance.
-8. Connect the authenticated Go bridge to the bounded audio-profile protocol and expose detected device capabilities to Flutter; validate model output against a strict schema before presenting it for explicit approval.\n9. Validate package install, launch, runtime, and cleanup on actual supported OS versions and hardware.
-
+1. Validate the native core and audio-profile protocol in CI with CMake/CTest on Windows, Linux, and macOS.
+2. Verify release packages install `hwcontrol_audio_probe` and `ai_engine` where the GUI can find them; validate real device discovery and local Gemma inference on each OS.
+3. Connect the live DSP controls and meters to the native device host through a stable, bounded interface; test hot-plug, device loss, sample-rate changes, and long-running streams.
+4. Add platform-specific system-audio capture, virtual-device strategy, and per-application routing. Do not claim system-wide effects from endpoint enumeration alone.
+5. Connect FFT analysis to real input/output taps; then add spectrogram history, validated LUFS/true-peak and channel/phase analysis.
+6. Complete the visual effect graph, profile automation, recording/export, and localization.
+7. Add optional microphone calibration and measured-response-aware tuning with explicit consent.
+8. Validate package installation, launch, runtime behavior, and cleanup on supported OS versions and physical audio hardware.
 ## Current branch deliverables
 
 - Dashboard shortcut to Audio Controller Studio.
