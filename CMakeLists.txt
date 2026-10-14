@@ -36,5 +36,6 @@ if(BUILD_TESTING)
 endif()
 
 add_subdirectory(ai_core)
+add_subdirectory(audio_core)
 
 message(STATUS "HWControl 2.0 configuration completed successfully.")
