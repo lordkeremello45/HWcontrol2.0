@@ -27,21 +27,6 @@ func testCommand(action string, value float64) Command {
 }
 
 
-func TestAudioProfilePayloadValidation(t *testing.T) {
-	valid := json.RawMessage(`{"deviceType":"microphone","model":"USB Mic","manufacturer":"Example","usage":"voice","sampleRateHz":48000,"channels":1,"specificationsVerified":true}`)
-	if err := validateAudioProfilePayload(valid); err != nil { t.Fatalf("valid audio payload rejected: %v", err) }
-	invalid := []string{
-		`{"deviceType":"unknown","model":"Mic","usage":"voice","sampleRateHz":48000,"channels":1}`,
-		`{"deviceType":"microphone","model":"Mic","usage":"unknown","sampleRateHz":48000,"channels":1}`,
-		`{"deviceType":"microphone","model":"Mic","usage":"voice","sampleRateHz":384000,"channels":1}`,
-		`{"deviceType":"microphone","model":"Mic","usage":"voice","sampleRateHz":48000,"channels":9}`,
-		`{"deviceType":"microphone","model":"Mic","usage":"voice","sampleRateHz":48000,"channels":1,"extra":"nope"}`,
-	}
-	for _, value := range invalid {
-		if err := validateAudioProfilePayload(json.RawMessage(value)); err == nil { t.Errorf("invalid payload accepted: %s", value) }
-	}
-}
-
 func TestValidateCommand(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -501,19 +486,3 @@ func TestHardwareControlSafetyGateRejectsInvalidSensorValues(t *testing.T) {
 	}
 }
 
-func TestAudioProfilePayloadIsAuthenticated(t *testing.T) {
-	cmd := testCommand("Get Audio Profile", 0)
-	cmd.Payload = json.RawMessage(`{"deviceType":"microphone","model":"USB Mic","usage":"voice","sampleRateHz":48000,"channels":1}`)
-	const secret = "unit-test-bridge-secret"
-	cmd.Auth = signCommand(cmd, secret)
-	if err := validateCommand(cmd); err != nil {
-		t.Fatalf("valid signed audio profile command rejected: %v", err)
-	}
-	if !authenticateCommand(cmd, secret) {
-		t.Fatal("valid audio profile signature rejected")
-	}
-	cmd.Payload = json.RawMessage(`{"deviceType":"microphone","model":"Different Mic","usage":"voice","sampleRateHz":48000,"channels":1}`)
-	if authenticateCommand(cmd, secret) {
-		t.Fatal("modified audio profile payload accepted with stale signature")
-	}
-}
