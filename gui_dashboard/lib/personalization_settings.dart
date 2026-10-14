@@ -145,10 +145,10 @@ class _HWControlPersonalizationScreenState extends State<HWControlPersonalizatio
             DropdownMenuItem(value:'compact',child:Text('Compact')),DropdownMenuItem(value:'comfortable',child:Text('Comfortable')),
           ],onChanged:(v){if(v!=null)_set('density',v);}),
           Text('Text size: \${(_n('fontScale',1.0)*100).round()}%'),
-          Slider(value:_n('fontScale',1.0).clamp(0.8,1.5),min:0.8,max:1.5,divisions:7,onChanged:(v)=>_set('fontScale',v)),
+          Slider(value:_n('fontScale',1.0).clamp(0.8,1.5).toDouble(),min:0.8,max:1.5,divisions:7,onChanged:(v)=>_set('fontScale',v)),
           SwitchListTile(contentPadding:EdgeInsets.zero,title:const Text('Interface sounds'),value:_b('uiSoundsEnabled',true),onChanged:(v)=>_set('uiSoundsEnabled',v)),
           Text('Animation speed: \${_n('animationSpeed',1.0).toStringAsFixed(1)}×'),
-          Slider(value:_n('animationSpeed',1.0).clamp(0.0,2.0),min:0,max:2,divisions:4,onChanged:(v)=>_set('animationSpeed',v)),
+          Slider(value:_n('animationSpeed',1.0).clamp(0.0,2.0).toDouble(),min:0,max:2,divisions:4,onChanged:(v)=>_set('animationSpeed',v)),
           DropdownButtonFormField<String>(value:_s('startupPage','dashboard'),decoration:const InputDecoration(labelText:'Startup page'),items:const[
             DropdownMenuItem(value:'dashboard',child:Text('Dashboard')),DropdownMenuItem(value:'controls',child:Text('Controls')),DropdownMenuItem(value:'graphs',child:Text('Graphs')),
           ],onChanged:(v){if(v!=null)_set('startupPage',v);}),
