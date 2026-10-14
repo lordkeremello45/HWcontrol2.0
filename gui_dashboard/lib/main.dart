@@ -3362,6 +3362,11 @@ Attach this archive to a support issue only after reviewing it for personal info
   }
 
   Widget _buildSliderControl(String label, IconData icon, double value, ValueChanged<double> onChanged, Color color, {String? command}) {
+    // The bridge rejects a zero-percent fan target because it can stop cooling.
+    // Keep the manual control within the backend's accepted range instead of
+    // letting the user select a value that will always fail at apply time.
+    final minimum = command == 'Fan Hızı' ? 1.0 : 0.0;
+    final sliderValue = value.clamp(minimum, 100.0).toDouble();
     return Column(
       children: [
         Row(
@@ -3369,17 +3374,24 @@ Attach this archive to a support issue only after reviewing it for personal info
             Icon(icon, color: color, size: 20),
             const SizedBox(width: 10),
             Expanded(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600))),
-            Text('${value.round()}%', style: TextStyle(color: color, fontWeight: FontWeight.w700)),
+            Text('${sliderValue.round()}%', style: TextStyle(color: color, fontWeight: FontWeight.w700)),
             const SizedBox(width: 12),
             IconButton(
               tooltip: _tr('apply'),
-              onPressed: _isSending || !_fanControlSupported ? null : () => _sendCommand(command ?? label, value),
+              onPressed: _isSending || !_fanControlSupported ? null : () => _sendCommand(command ?? label, sliderValue),
               icon: const Icon(Icons.check_circle_outline),
               color: color,
             ),
           ],
         ),
-        Slider(value: value, min: 0, max: 100, divisions: 20, activeColor: color, onChanged: _fanControlSupported ? onChanged : null),
+        Slider(
+          value: sliderValue,
+          min: minimum,
+          max: 100,
+          divisions: command == 'Fan Hızı' ? 99 : 20,
+          activeColor: color,
+          onChanged: _fanControlSupported ? onChanged : null,
+        ),
       ],
     );
   }
