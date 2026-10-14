@@ -3,6 +3,27 @@ import 'package:hwcontrol_dashboard/fan_channels.dart';
 import 'package:hwcontrol_dashboard/fan_curve.dart';
 
 void main() {
+  test('built-in fan presets remain monotonic and above the cooling floor', () {
+    for (final preset in <String>['quiet', 'balanced', 'performance']) {
+      final points = fanCurvePreset(preset).safetyNormalizedPoints;
+      expect(points.length, greaterThanOrEqualTo(2));
+      expect(points.first.fanPercent, greaterThanOrEqualTo(20));
+      for (var i = 1; i < points.length; i++) {
+        expect(
+          points[i].fanPercent,
+          greaterThanOrEqualTo(points[i - 1].fanPercent),
+          reason: '$preset preset must not lower fan demand as temperature rises',
+        );
+      }
+      expect(points.last.fanPercent, lessThanOrEqualTo(100));
+    }
+
+    expect(
+      fanCurvePreset('performance').evaluate(70),
+      greaterThan(fanCurvePreset('quiet').evaluate(70)),
+    );
+  });
+
   test('fan telemetry rejects malformed channel IDs as controllable', () {
     final channel = FanChannelTelemetry.fromJson(<String, dynamic>{
       'id': '/sys/class/hwmon/hwmon0/pwm1',
