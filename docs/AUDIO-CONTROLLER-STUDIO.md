@@ -1,6 +1,6 @@
 # Audio Controller Studio
 
-**Status: PARTIAL / foundation in progress.** The initial native DSP core is being introduced separately from the hardware-control engine. Device capture, virtual routing, the Flutter studio UI, and platform audio backends are not yet implemented by this change.
+**Status: PARTIAL / foundation in progress.** The initial native DSP core and a Flutter profile-editor screen are present on the feature branch. The UI currently saves profile settings locally; it is not connected to live DSP. Device capture, virtual routing, and platform audio backends remain unimplemented.
 
 ## Product goals
 
@@ -8,7 +8,7 @@ A cross-platform audio workstation inside HWcontrol2.0 for microphone processing
 
 ## Architecture
 
-- **Flutter/Dart:** studio UI, meters, visual routing graph, presets, and explicit device/capability status.
+- **Flutter/Dart:** initial profile editor and presets exist; live meters, visual routing graph, and native control integration remain future work. Capability status must remain explicit.
 - **Authenticated Go bridge:** control plane only; device selection, configuration, status, and permissions. Audio buffers must not traverse HTTP/JSON or the bridge.
 - **C++17 DSP core:** bounded, allocation-free processing per audio block; float32 samples; interleaved stereo in the first iteration.
 - **Platform adapters:** Windows WASAPI, Linux PipeWire (PulseAudio/ALSA fallback as justified), and macOS Core Audio. Capture, processing, and rerouting are separate capabilities and must be reported independently.
@@ -33,6 +33,13 @@ The current gate is a basic threshold gate, not AI noise reduction. The compress
 6. Add the Flutter Studio UI, visual effect graph, profile automation, presets, recording/export, and localization.
 7. Add offline/opt-in microphone calibration and privacy-preserving local assistance.
 8. Validate package install, launch, runtime, and cleanup on actual supported OS versions and hardware.
+
+## Current branch deliverables
+
+- Dashboard shortcut to Audio Controller Studio.
+- Locally persisted profile editor with Neutral, Voice, Gaming, and Broadcast starting presets.
+- UI tests that assert the live-audio limitation is disclosed and preset selection works.
+- Native CTest coverage for limiter bounds, gain, gate, EQ, compressor, non-finite sample sanitation, and invalid sample-rate fallback.
 
 ## Real-time constraints
 
