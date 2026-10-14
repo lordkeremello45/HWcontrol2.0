@@ -43,9 +43,9 @@ jobs:
           CURRENT_SHA: ${{ github.sha }}
         run: |
           if [[ "$EVENT_NAME" == "pull_request" ]]; then
-            changed="$(git diff --name-only --diff-filter=ACMR "$PR_BASE_SHA" "$CURRENT_SHA" -- src security_guardian)"
+            changed="$(git -C "$GITHUB_WORKSPACE" diff --name-only --diff-filter=ACMR "$PR_BASE_SHA" "$CURRENT_SHA" -- bridge_service/src bridge_service/security_guardian | sed 's#^bridge_service/##')"
           elif [[ "$EVENT_NAME" == "push" && "$PUSH_BEFORE_SHA" != "0000000000000000000000000000000000000000" ]]; then
-            changed="$(git diff --name-only --diff-filter=ACMR "$PUSH_BEFORE_SHA" "$CURRENT_SHA" -- src security_guardian)"
+            changed="$(git -C "$GITHUB_WORKSPACE" diff --name-only --diff-filter=ACMR "$PUSH_BEFORE_SHA" "$CURRENT_SHA" -- bridge_service/src bridge_service/security_guardian | sed 's#^bridge_service/##')"
           else
             changed="$(find src security_guardian -type f -name '*.go' -print)"
           fi
