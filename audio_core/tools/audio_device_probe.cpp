@@ -9,6 +9,29 @@
 #include <vector>
 
 namespace {
+std::string hexEncode(const std::string& value) {
+  constexpr char digits[] = "0123456789abcdef";
+  std::string output;
+  output.reserve(value.size() * 2);
+  for (unsigned char c : value) {
+    output += digits[(c >> 4) & 0x0f];
+    output += digits[c & 0x0f];
+  }
+  return output;
+}
+
+void writeDeviceArray(const std::vector<hwcontrol::audio::AudioDeviceInfo>& devices) {
+  std::cout << "[";
+  for (std::size_t i = 0; i < devices.size(); ++i) {
+    if (i != 0) std::cout << ",";
+    const auto& device = devices[i];
+    std::cout << "{\"index\":" << device.index
+              << ",\"nameHex\":\"" << hexEncode(device.name)
+              << "\",\"isDefault\":" << (device.isDefault ? "true" : "false") << "}";
+  }
+  std::cout << "]";
+}
+
 const hwcontrol::audio::AudioDeviceInfo* findDefault(
     const std::vector<hwcontrol::audio::AudioDeviceInfo>& devices) {
   const auto it = std::find_if(devices.begin(), devices.end(),
@@ -16,7 +39,6 @@ const hwcontrol::audio::AudioDeviceInfo* findDefault(
   return it == devices.end() ? (devices.empty() ? nullptr : &devices.front()) : &*it;
 }
 }
-
 int main(int argc, char** argv) {
   using hwcontrol::audio::AudioDeviceHost;
   using hwcontrol::audio::DeviceDirection;
@@ -25,6 +47,15 @@ int main(int argc, char** argv) {
   AudioDeviceHost host;
   const auto capture = host.enumerate(DeviceDirection::Capture);
   const auto playback = host.enumerate(DeviceDirection::Playback);
+
+  if (argc >= 2 && std::string(argv[1]) == "--json") {
+    std::cout << "{\"capture\":";
+    writeDeviceArray(capture);
+    std::cout << ",\"playback\":";
+    writeDeviceArray(playback);
+    std::cout << "}\n";
+    return 0;
+  }
 
   std::cout << "Capture devices (" << capture.size() << "):\n";
   for (const auto& device : capture) {
