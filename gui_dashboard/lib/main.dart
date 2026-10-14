@@ -3042,7 +3042,7 @@ Attach this archive to a support issue only after reviewing it for personal info
   Future<void> _openAudioControllerStudio() async {
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
-        builder: (_) => AudioControllerStudioScreen(onRecommend: _requestAudioProfile),
+        builder: (_) => AudioControllerStudioScreen(onRecommend: _requestAudioProfile, onLoadDevices: () => _requestBridgeData('Get Audio Devices')),
       ),
     );
   }
