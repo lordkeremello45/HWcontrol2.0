@@ -364,10 +364,13 @@ class _HWControlProfileManagerScreenState
                                   switch (action) {
                                     case 'edit':
                                       _editExisting(profile);
+                                      break;
                                     case 'duplicate':
                                       _duplicate(profile);
+                                      break;
                                     case 'delete':
                                       _delete(profile);
+                                      break;
                                   }
                                 },
                                 itemBuilder: (context) => const [
