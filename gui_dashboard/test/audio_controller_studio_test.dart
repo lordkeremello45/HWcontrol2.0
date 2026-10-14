@@ -13,8 +13,9 @@ void main() {
     expect(find.text('Parametric equalizer'), findsOneWidget);
     expect(find.text('Dynamics and safety'), findsOneWidget);
     expect(find.text('Analysis laboratory'), findsOneWidget);
-    expect(find.text('Microphone capture'), findsOneWidget);
-    expect(find.text('NOT IMPLEMENTED'), findsNWidgets(4));
+    expect(find.text('Microphone capture / playback'), findsOneWidget);
+    expect(find.text('NATIVE PROTOTYPE'), findsOneWidget);
+    expect(find.text('NOT IMPLEMENTED'), findsNWidgets(3));
     expect(
       find.textContaining('No audio is being recorded.'),
       findsOneWidget,
