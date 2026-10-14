@@ -63,6 +63,41 @@ void testNonFiniteSamplesAreContained() {
   for (float sample : samples) require(std::isfinite(sample), "non-finite output remains");
 }
 
+void testEqualizerBoostsConfiguredBand() {
+  hwcontrol::audio::AudioEngine engine;
+  hwcontrol::audio::ProcessorConfig config;
+  config.limiterEnabled = false;
+  config.eq[1] = {1000.0F, 12.0F, 1.0F};
+  config.eqEnabled[1] = true;
+  require(engine.configure(config, 48000.0), "EQ configuration rejected");
+
+  constexpr std::size_t frames = 4800;
+  std::array<float, frames * 2> samples{};
+  for (std::size_t frame = 0; frame < frames; ++frame) {
+    const float value = 0.1F * std::sin(2.0F * 3.14159265F *
+        1000.0F * static_cast<float>(frame) / 48000.0F);
+    samples[frame * 2] = value;
+    samples[frame * 2 + 1] = value;
+  }
+  engine.process(samples.data(), frames);
+  require(engine.metrics().outputRms > engine.metrics().inputRms * 1.5F,
+          "enabled peaking EQ did not boost its configured frequency");
+}
+
+void testCompressorReducesAboveThresholdLevel() {
+  hwcontrol::audio::AudioEngine engine;
+  hwcontrol::audio::ProcessorConfig config;
+  config.limiterEnabled = false;
+  config.compressorEnabled = true;
+  config.compressorThresholdDb = -12.0F;
+  config.compressorRatio = 4.0F;
+  require(engine.configure(config, 48000.0), "compressor configuration rejected");
+  std::array<float, 4> samples{{0.8F, -0.8F, 0.8F, -0.8F}};
+  engine.process(samples.data(), 2);
+  require(std::abs(samples[0]) < 0.5F,
+          "compressor did not reduce a signal above threshold");
+}
+
 void testInvalidSampleRateFallsBack() {
   hwcontrol::audio::AudioEngine engine;
   hwcontrol::audio::ProcessorConfig config;
@@ -77,6 +112,8 @@ int main() {
   testLimiterAndMetrics();
   testGainAndGate();
   testNonFiniteSamplesAreContained();
+  testEqualizerBoostsConfiguredBand();
+  testCompressorReducesAboveThresholdLevel();
   testInvalidSampleRateFallsBack();
   std::cout << "Audio core tests passed\n";
   return 0;
