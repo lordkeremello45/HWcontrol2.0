@@ -68,8 +68,6 @@ void main() {
     expect(result?['automaticFanControlRequested'], isFalse);
     expect(result?['securityScannerRequested'], isFalse);
   });
-}
-
 
   testWidgets('optional security scanner choice is saved only when opted in', (tester) async {
     Map<String, dynamic>? result;
@@ -99,3 +97,4 @@ void main() {
 
     expect(result?['securityScannerRequested'], isTrue);
   });
+}
