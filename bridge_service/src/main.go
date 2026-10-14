@@ -161,6 +161,69 @@ type HardwareMetrics struct {
 }
 
 
+
+type audioDeviceRecord struct {
+	Index int `json:"index"`
+	NameHex string `json:"nameHex"`
+	IsDefault bool `json:"isDefault"`
+}
+
+type audioDevice struct {
+	Index int `json:"index"`
+	Name string `json:"name"`
+	IsDefault bool `json:"isDefault"`
+}
+
+func runAudioDeviceProbe() (map[string]any, error) {
+	executable, err := os.Executable()
+	if err != nil { return nil, fmt.Errorf("could not locate HWcontrol installation") }
+	name := "hwcontrol_audio_probe"
+	if runtime.GOOS == "windows" { name += ".exe" }
+	probePath := filepath.Join(filepath.Dir(executable), name)
+	info, err := os.Stat(probePath)
+	if err != nil || !info.Mode().IsRegular() {
+		return nil, fmt.Errorf("native audio device probe is not installed beside the bridge")
+	}
+	if runtime.GOOS != "windows" && info.Mode().Perm()&0111 == 0 {
+		return nil, fmt.Errorf("native audio device probe is not executable")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, probePath, "--json")
+	cmd.Stderr = io.Discard
+	output, err := cmd.Output()
+	if ctx.Err() != nil { return nil, fmt.Errorf("audio device enumeration timed out") }
+	if err != nil || len(output) > 64*1024 {
+		return nil, fmt.Errorf("native audio device enumeration failed")
+	}
+	var raw struct {
+		Capture []audioDeviceRecord `json:"capture"`
+		Playback []audioDeviceRecord `json:"playback"`
+	}
+	if err := json.Unmarshal(output, &raw); err != nil {
+		return nil, fmt.Errorf("native audio device probe returned invalid data")
+	}
+	decode := func(records []audioDeviceRecord) ([]audioDevice, error) {
+		result := make([]audioDevice, 0, len(records))
+		for _, record := range records {
+			if record.Index < 0 || len(record.NameHex) > 1024 || len(record.NameHex)%2 != 0 {
+				return nil, fmt.Errorf("native audio device metadata is invalid")
+			}
+			nameBytes, err := hex.DecodeString(record.NameHex)
+			if err != nil || len(nameBytes) > 512 {
+				return nil, fmt.Errorf("native audio device name is invalid")
+			}
+			result = append(result, audioDevice{Index: record.Index, Name: string(nameBytes), IsDefault: record.IsDefault})
+		}
+		return result, nil
+	}
+	capture, err := decode(raw.Capture)
+	if err != nil { return nil, err }
+	playback, err := decode(raw.Playback)
+	if err != nil { return nil, err }
+	return map[string]any{"capture": capture, "playback": playback, "localOnly": true}, nil
+}
+
 type AudioProfileRequest struct {
 	DeviceType string `json:"deviceType"`
 	Model string `json:"model"`
@@ -586,6 +649,9 @@ func validateCommand(cmd Command) error {
 		return validatePowerModeRequest(action, cmd.Value)
 	case "Set Power Profile":
 		return validatePowerModeRequest("Set Power Mode AC", cmd.Value)
+	case "Get Audio Devices":
+		if cmd.Value != 0 || len(cmd.Payload) > 0 { return fmt.Errorf("Get Audio Devices is read-only") }
+		return nil
 	case "Get Audio Profile":
 		if cmd.Value != 0 || len(cmd.Payload) == 0 || string(cmd.Payload) == "null" {
 			return fmt.Errorf("Get Audio Profile requires a payload and zero command value")
@@ -1090,6 +1156,14 @@ func handleConnection(conn net.Conn, secret string) {
 			continue
 		}
 		lastCommandAt = now
+		if cmd.Action == "Get Audio Devices" {
+			data, err := runAudioDeviceProbe()
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			if err != nil {
+				if encoder.Encode(Response{Status: "ERROR", Message: err.Error()}) != nil { return }
+			} else if encoder.Encode(Response{Status: "SUCCESS", Message: "Local audio devices enumerated", Data: data}) != nil { return }
+			continue
+		}
 		if cmd.Action == "Get Audio Profile" {
 			var request AudioProfileRequest
 			if err := json.Unmarshal(cmd.Payload, &request); err != nil {
