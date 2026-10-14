@@ -8,7 +8,7 @@ on:
       - 'bridge_service/security_guardian/**'
       - '.github/workflows/security-services.yml'
   pull_request:
-    branches: [main]
+    branches: ['**']
     paths:
       - 'bridge_service/src/**'
       - 'bridge_service/security_guardian/**'
@@ -29,15 +29,43 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
+          fetch-depth: 0
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version-file: bridge_service/go.mod
           cache: false
       - name: Go formatting
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
         run: |
-          files="$(gofmt -l src security_guardian)"
-          if [ -n "$files" ]; then
-            printf '%s\n' "$files"
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            changed="$(git -C "$GITHUB_WORKSPACE" diff --name-only --diff-filter=ACMR "$PR_BASE_SHA" "$CURRENT_SHA" -- bridge_service/src bridge_service/security_guardian | sed 's#^bridge_service/##')"
+          elif [[ "$EVENT_NAME" == "push" && "$PUSH_BEFORE_SHA" != "0000000000000000000000000000000000000000" ]]; then
+            changed="$(git -C "$GITHUB_WORKSPACE" diff --name-only --diff-filter=ACMR "$PUSH_BEFORE_SHA" "$CURRENT_SHA" -- bridge_service/src bridge_service/security_guardian | sed 's#^bridge_service/##')"
+          else
+            changed="$(find src security_guardian -type f -name '*.go' -print)"
+          fi
+
+          files=""
+          while IFS= read -r file; do
+            [[ -z "$file" ]] && continue
+            if [[ "$file" == *.go ]]; then
+              files+="$file"$'\n'
+            fi
+          done <<< "$changed"
+
+          if [[ -z "$files" ]]; then
+            echo "No changed Go files to format-check."
+            exit 0
+          fi
+
+          unformatted="$(printf '%s' "$files" | xargs -r gofmt -l)"
+          if [[ -n "$unformatted" ]]; then
+            printf '%s\n' "$unformatted"
             exit 1
           fi
       - name: Test bridge services

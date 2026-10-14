@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
 
+import 'profile_document.dart';
+
 /// Persistent per-user application data.
 ///
 /// Layout:
@@ -13,10 +15,18 @@ import 'package:path_provider/path_provider.dart';
 /// migrated into the new config/data layout. Security-sensitive bridge keys
 /// remain under the platform service locations and are not copied here.
 class HWControlUserDataStore {
+  HWControlUserDataStore({
+    Future<Directory> Function()? supportDirectoryProvider,
+  }) : _supportDirectoryProvider = supportDirectoryProvider;
+
+  final Future<Directory> Function()? _supportDirectoryProvider;
+
   static const int currentSchema = 2;
 
   Future<Directory> get rootDirectory async {
-    final base = await getApplicationSupportDirectory();
+    final base = _supportDirectoryProvider == null
+        ? await getApplicationSupportDirectory()
+        : await _supportDirectoryProvider();
     final dir = Directory(
       '${base.path}${Platform.pathSeparator}HWControl',
     );
@@ -138,6 +148,39 @@ class HWControlUserDataStore {
       'schema': currentSchema,
       'profiles': profiles,
     });
+  }
+
+  /// Reads the typed, schema-versioned profile collection.
+  ///
+  /// This deliberately uses a separate file from legacy `profiles.json`:
+  /// the older profile shape contains arbitrary numeric settings and cannot
+  /// be losslessly converted into a fan-curve profile without user choices.
+  /// Corrupt or unsupported typed documents throw instead of being silently
+  /// replaced, preserving the user's data for recovery.
+  Future<HWControlProfileCollection> readValidatedProfiles() async {
+    // Read this versioned file strictly. The generic JSON helper intentionally
+    // treats malformed legacy settings as absent, which would hide corruption
+    // here and make a damaged profile file look like an empty collection.
+    final file = await configFile('profiles.v1.json');
+    if (!await file.exists()) {
+      return HWControlProfileCollection(const <HWControlProfile>[]);
+    }
+    return HWControlProfileCollection.decode(await file.readAsString());
+  }
+
+  /// Atomically persists the validated profile collection using the existing
+  /// temporary-file/backup write path. Does not alter legacy profiles.
+  Future<void> writeValidatedProfiles(
+    HWControlProfileCollection collection,
+  ) async {
+    final decoded = jsonDecode(collection.encode());
+    if (decoded is! Map) {
+      throw const FormatException('Profile document must be an object.');
+    }
+    await writeJsonObject(
+      'profiles.v1.json',
+      Map<String, dynamic>.from(decoded),
+    );
   }
 
   Future<Map<String, dynamic>> readSettings() async {
