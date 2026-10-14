@@ -22,6 +22,33 @@ func TestEvaluateHardwareHealthCapabilityMatrix(t *testing.T) {
 	}
 }
 
+func TestEvaluateHardwareHealthRecognizesIndividualFanControl(t *testing.T) {
+	bridgeIntegrityState.Store(true)
+	evaluation := evaluateHardwareHealth(HardwareMetrics{
+		CPUTemperature: 55,
+		CPUTemperatureSource: "test-cpu",
+		ThermalSafetyAvailable: true,
+		FanControlSupported: false,
+		FanControlBackend: "monitor-only",
+		FanChannels: []FanChannel{{
+			ID: "0123456789abcdef",
+			Name: "Test PWM 1",
+			Backend: "linux-hwmon",
+			Supported: true,
+			FanRPM: 1200,
+			RPMAvailable: true,
+		}},
+	})
+	for _, key := range []string{"fanChannels", "fanControl", "fanCurveAutomation"} {
+		if !evaluation.Capabilities[key].Available {
+			t.Fatalf("capability %q should be available for a supported independent fan channel: %#v", key, evaluation.Capabilities[key])
+		}
+	}
+	if evaluation.Capabilities["fanControl"].Backend != "linux-hwmon" {
+		t.Fatalf("fan-control backend = %q, want linux-hwmon", evaluation.Capabilities["fanControl"].Backend)
+	}
+}
+
 func TestEvaluateHardwareHealthDetectsThermalAnomaly(t *testing.T) {
 	bridgeIntegrityState.Store(true)
 	metrics := HardwareMetrics{CPUTemperature: 96, ThermalSafetyAvailable: true, SensorSource: "test"}
