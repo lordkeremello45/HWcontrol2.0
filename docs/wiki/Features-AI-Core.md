@@ -8,13 +8,16 @@ The AI model is optional and is not required to complete the base installation. 
 
 The model manager uses HTTPS, verifies the exact expected byte count and SHA-256 digest while streaming, writes through a .part file, and only exposes a verified model as the final filename. Failed model downloads do not block the bridge or hardware monitoring. If the cached model is missing or fails its size/SHA-256 validation, the same verified download path is retried and the invalid cache is replaced only after the new file is fully verified. Obsolete Gemma 2B cache files are removed only after the new model is verified.
 
-## Product context supplied to Gemma
+## Gemma instructions and local memory boundary
 
-The telemetry-analysis prompt includes a compact, versioned `HWCONTROL_PRODUCT_CONTEXT` block (currently `v2026-10`). It summarizes the current feature set and, importantly, the limits that must not be presented as implemented: Game Mode does not change process priority; the Performance Mode toggle is not overclocking; generic per-application RAM reservation and universal voltage/clock/power-limit writes are unavailable; macOS power-mode automation is unavailable. It also describes capability-gated fan control, battery-health caveats, and the bridge's authority over hardware capabilities.
+The native AI prompt loads the maintained files in `ai_core/instructions/`:
+- `SYSTEM.md`: truthfulness, safety, privacy, and response rules.
+- `PRODUCT_CONTEXT.md`: versioned feature inventory and explicit non-implemented boundaries.
+- `MEMORY_POLICY.md`: design rules for a future persistent local learning memory; this file is policy documentation and is not itself a persistent-memory implementation.
 
-This is deliberately embedded in the native prompt, so it works offline and does not depend on the model manager, a network request, or an external context file being packaged. Prompt tests assert that key features and non-implemented boundaries remain present. When product behavior changes, update this context and its tests alongside the relevant feature documentation.
+At startup, the engine checks `HWCONTROL_INSTRUCTIONS_DIR`, then known relative instruction directories. The executable resolves an adjacent `instructions/` directory when one is packaged beside it. CMake copies the files next to the native executable and the telemetry test binary. Each file is size-bounded; if a file is missing, a conservative built-in fallback keeps analysis available. This behavior is offline and does not use a cloud model.
 
-This is a compact product brief for telemetry explanations, **not** repository-wide retrieval or a general-purpose feature Q&A interface. It does not make the model an authority for controls, and it does not prove the described features work on every device.
+Prompt tests assert that the anti-hallucination rules and important product limitations remain present. Update the files and tests together when verified product behavior changes. These files provide context for telemetry explanations; they do not implement repository-wide retrieval, general-purpose feature Q&A, persistent user memory, or model-weight fine-tuning.
 
 ## Safety architecture
 
