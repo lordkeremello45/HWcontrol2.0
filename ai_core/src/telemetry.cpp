@@ -2,11 +2,69 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
+#include <filesystem>
+#include <fstream>
 #include <iomanip>
 #include <sstream>
 #include <string_view>
+#include <vector>
 
 namespace {
+
+std::string readInstructionFile(const std::filesystem::path& path) {
+    std::error_code error;
+    const auto size = std::filesystem::file_size(path, error);
+    if (error || size == 0 || size > 16384) {
+        return {};
+    }
+    std::ifstream input(path, std::ios::binary);
+    if (!input) {
+        return {};
+    }
+    std::string content((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
+    return content.size() == size ? content : std::string{};
+}
+
+std::string loadInstructionBundle() {
+    static const std::string bundle = [] {
+        std::vector<std::filesystem::path> directories;
+        if (const char* configured = std::getenv("HWCONTROL_INSTRUCTIONS_DIR");
+            configured != nullptr && *configured != '\0') {
+            directories.emplace_back(configured);
+        }
+        std::error_code error;
+        const auto cwd = std::filesystem::current_path(error);
+        if (!error) {
+            directories.push_back(cwd / "instructions");
+            directories.push_back(cwd / "ai_core" / "instructions");
+            directories.push_back(cwd / ".." / "ai_core" / "instructions");
+        }
+
+        std::string system;
+        std::string product;
+        for (const auto& directory : directories) {
+            if (system.empty()) system = readInstructionFile(directory / "SYSTEM.md");
+            if (product.empty()) product = readInstructionFile(directory / "PRODUCT_CONTEXT.md");
+            if (!system.empty() && !product.empty()) break;
+        }
+
+        if (system.empty()) {
+            system = "HWcontrol yerel donanım analiz motorusun. Ölçüm, özellik veya eylem uydurma; "
+                     "eksik veriyi bilinmiyor olarak belirt. Donanım komutu verme; Go Bridge yetenek "
+                     "matrisi ve deterministik risk değerlendirmesi yetkilidir. Türkçe ve kısa yanıt ver.";
+        }
+        if (product.empty()) {
+            product = "HWCONTROL_PRODUCT_CONTEXT=v2026-10. HWcontrol2.0; Flutter/Dart, kimliği doğrulanan "
+                      "localhost Go Bridge ve C++ motoruyla çalışır. Game Mode süreç önceliğini değiştirmez; "
+                      "Performance Mode overclock yapmaz; evrensel voltaj/saat/güç yazımı ve rastgele RAM "
+                      "ayırma uygulanmış özellikler değildir. Desteklenmeyen denetim yolları kapalı kalır.";
+        }
+        return std::string("GEMMA_SYSTEM_INSTRUCTIONS\n") + system +
+               "\nGEMMA_PRODUCT_CONTEXT\n" + product;
+    }();
+    return bundle;
+}
 
 void appendMetric(std::ostringstream& out, std::string_view name, double value, std::string_view unit = {}) {
     out << name << '=';
@@ -239,24 +297,7 @@ RiskAssessment assessHardwareRisk(const HardwareTelemetry& current,
 std::string buildAnalysisPrompt(const HardwareTelemetry& current,
                                 const RiskAssessment& assessment) {
     std::ostringstream out;
-    // Compact, versioned product knowledge gives the small local model accurate
-    // context about recent features without loading external files or using a network.
-    out << "HWCONTROL_PRODUCT_CONTEXT=v2026-10. "
-        << "HWcontrol2.0; Flutter/Dart arayüzü, kimliği doğrulanan localhost Go Bridge "
-        << "ve yerel C++ motorundan oluşan çapraz platform donanım izleme/denetim uygulamasıdır. "
-        << "Özellikler: CPU/GPU sıcaklık ve yük ölçümleri (işletim sistemi/sürücü sağlarsa saat, güç ve bellek); "
-        << "fan RPM/yüzdesi ve desteklenen Linux hwmon kanallarında bağımsız fan hedefleri; "
-        << "Smart Fan Curve, minimum soğutma tabanı, termal acil durum ve destek yoksa güvenli biçimde denetimi kapatma; "
-        << "Quiet/Balanced/Performance uygulama profilleri; Game Mode oyun sürecini algılar ve destek varsa "
-        << "fan profilini uygular; sağlık/anomali tanılama, depolama telemetrisi ve pil kapasitesi sağlığı. "
-        << "Sınırlar: Game Mode süreç önceliğini değiştirmez; evrensel overclock, voltaj/saat/güç limiti yazımı "
-        << "ve rastgele uygulamalara RAM ayırma uygulanmış özellikler değildir. Performance Mode tek başına "
-        << "overclock yapmaz; işletim sistemi güç profili yalnızca desteklenen adaptörlerde uygulanır "
-        << "(Windows 11 ve uygun Linux power-profiles-daemon; macOS otomatik geçişi yok). "
-        << "Pil sağlığı yalnızca geçerli tasarım ve tam dolum kapasitesi varsa hesaplanır; yüzde 60 altı "
-        << "uyarı bir kestirimdir, pil ömrü garantisi değildir. Go Bridge yetenek matrisi ve deterministik "
-        << "termal risk değerlendirmesi yetkilidir; model donanım komutu vermez. "
-        << "Sen HWcontrol yerel donanım analiz motorusun. "
+    out << loadInstructionBundle() << "\n"
         << "Yalnızca aşağıdaki ölçülmüş verilere dayan; ürün bilgisini ölçüm yerine kullanma. "
         << "Yok olan alanlar için değer uydurma. Fan, voltaj, saat hızı veya güç limiti değiştirmeyi emretme. "
         << "Belirsizliği açıkça belirt. Türkçe, en fazla 3 kısa cümle yaz. "
