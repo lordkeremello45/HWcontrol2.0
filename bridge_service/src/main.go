@@ -1147,7 +1147,7 @@ func handleConnection(conn net.Conn, secret string) {
 		authFailures = 0
 		if panicModeActive() {
 			switch cmd.Action {
-			case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Sensor History", "Get Fan Channels", "Get Fetch Status", "Get Power Mode":
+			case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Sensor History", "Get Fan Channels", "Get Fetch Status", "Get Power Mode", "Get Audio Devices":
 				// Read-only diagnostics remain available so the user can see why the system entered panic mode.
 			default:
 				_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
