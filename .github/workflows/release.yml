@@ -104,6 +104,7 @@ jobs:
           & "$packageDir/hwcontrol-hardware-identification.exe" --self-test
           if ($LASTEXITCODE -ne 0) { throw 'Packaged C# hardware identification self-test failed' }
           Copy-Item build-windows/ai_core/Release/ai_engine.exe "$packageDir/ai_engine.exe"
+          Copy-Item build-windows/audio_core/Release/hwcontrol_audio_probe.exe "$packageDir/hwcontrol_audio_probe.exe"
           Copy-Item -Recurse gui_dashboard/build/windows/x64/runner/Release "$packageDir/dashboard"
           Copy-Item gui_dashboard/build/windows/x64/runner/Release/hwcontrol_dashboard.exe "$packageDir/HWControl.exe"
           Copy-Item bridge-service.exe "$packageDir/bridge-service.exe"
