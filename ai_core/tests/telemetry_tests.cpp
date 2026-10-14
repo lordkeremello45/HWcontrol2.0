@@ -24,6 +24,13 @@ int main() {
         assert(prompt.find("GPU_memory=97.0%") != std::string::npos);
         assert(prompt.find("RISK_ENGINE=yuksek") != std::string::npos);
         assert(prompt.find("değer uydurma") != std::string::npos);
+        assert(prompt.find("HWCONTROL_PRODUCT_CONTEXT=v2026-10") != std::string::npos);
+        assert(prompt.find("Smart Fan Curve") != std::string::npos);
+        assert(prompt.find("Game Mode") != std::string::npos);
+        assert(prompt.find("pil kapasitesi sağlığı") != std::string::npos);
+        assert(prompt.find("süreç önceliğini değiştirmez") != std::string::npos);
+        assert(prompt.find("macOS otomatik geçişi yok") != std::string::npos);
+        assert(prompt.find("model donanım komutu vermez") != std::string::npos);
     }
 
     {
