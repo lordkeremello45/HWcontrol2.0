@@ -32,7 +32,7 @@ class ScanFileTypeCatalog {
   };
 
   /// Returns all known extension matches for a path, including overlapping
-  /// platform formats such as ZIP. Compound suffixes are matched first.
+  /// platform formats such as ZIP.
   static Set<ScanFilePlatform> platformsForPath(String path) {
     final name = _basename(path).toLowerCase();
     final matches = <ScanFilePlatform>{};
@@ -60,7 +60,7 @@ class ScanFileTypeCatalog {
       !hasKnownExtension(path);
 
   static String _basename(String path) {
-    final normalized = path.replaceAll('\\\\', '/');
+    final normalized = path.replaceAll(String.fromCharCode(92), '/');
     final separator = normalized.lastIndexOf('/');
     return separator < 0 ? normalized : normalized.substring(separator + 1);
   }
