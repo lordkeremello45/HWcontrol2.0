@@ -49,9 +49,9 @@ class AudioEngine final {
  public:
   AudioEngine() noexcept;
 
-  // Invalid values are clamped or ignored; returns false if any value needed
-  // correction. Call only while processing is stopped or on the control thread
-  // before the audio callback is started.
+  // Numeric controls are clamped to safe ranges. Returns false only when the
+  // sample rate is invalid and the 48 kHz fallback is selected. Call only
+  // while processing is stopped or before the audio callback is started.
   bool configure(const ProcessorConfig& config,
                 double sampleRateHz) noexcept;
 
