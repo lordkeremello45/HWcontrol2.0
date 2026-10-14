@@ -30,8 +30,8 @@ func TestDetailedCapabilityRecordsDistinguishReadOnlyAndWritable(t *testing.T) {
 	if got["fanControl"].State != capabilityStateSupported {
 		t.Fatalf("fan control state = %q, want supported", got["fanControl"].State)
 	}
-	if got["fanControl"].Constraints == nil || got["fanControl"].Constraints.Minimum != 20 || got["fanControl"].Constraints.Maximum != 100 {
-		t.Fatalf("fan control constraints missing or unsafe: %#v", got["fanControl"].Constraints)
+	if got["fanControl"].Constraints != nil {
+		t.Fatalf("generic bridge must not invent adapter-specific control ranges: %#v", got["fanControl"].Constraints)
 	}
 	if got["gpuPowerLimitControl"].State != capabilityStateUnavailable {
 		t.Fatalf("unimplemented power limit state = %q, want unavailable", got["gpuPowerLimitControl"].State)
@@ -80,5 +80,30 @@ func TestDetailedCapabilityRecordsSanitizeTextAndSerializeVersion(t *testing.T) 
 	}
 	if decoded["state"] != capabilityStateUnavailable {
 		t.Fatalf("serialized state = %#v", decoded["state"])
+	}
+}
+
+func TestDetailedCapabilityRecordsDoNotAssumeUnknownCapabilityIsWritable(t *testing.T) {
+	records := detailedCapabilityRecords(map[string]HardwareCapability{
+		"futureVendorControl": {Available: true, Backend: "vendor-backend"},
+	}, HardwareMetrics{}, "linux", true)
+	if len(records) != 1 {
+		t.Fatalf("records length = %d, want 1", len(records))
+	}
+	if records[0].State != capabilityStateUnavailable {
+		t.Fatalf("unknown capability state = %q, want unavailable", records[0].State)
+	}
+	if records[0].Reason == "" {
+		t.Fatal("unknown capability must explain why it is unavailable")
+	}
+}
+
+func TestSanitizeCapabilityTextPreservesValidUTF8(t *testing.T) {
+	got := sanitizeCapabilityText("donanım-kontrol", 10)
+	if !json.Valid([]byte("\"" + got + "\"")) {
+		t.Fatalf("sanitized text is not valid JSON UTF-8: %q", got)
+	}
+	if len(got) > 10 {
+		t.Fatalf("sanitized text is %d bytes, want at most 10", len(got))
 	}
 }
