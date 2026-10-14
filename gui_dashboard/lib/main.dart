@@ -1892,9 +1892,17 @@ Attach this archive to a support issue only after reviewing it for personal info
       ];
       process.stdin.writeln(fields.join(' '));
       await process.stdin.flush();
-      if (!await responses.moveNext().timeout(const Duration(seconds: 90))) {
-        throw StateError('Local Gemma audio recommendation timed out.');
-      }
+      final hasResponse = await responses.moveNext().timeout(
+        const Duration(seconds: 90),
+        onTimeout: () {
+          process.kill();
+          _aiProcess = null;
+          _aiResponses = null;
+          unawaited(responses.cancel());
+          throw TimeoutException('Local Gemma audio recommendation timed out.');
+        },
+      );
+      if (!hasResponse) throw StateError('Local Gemma process closed without a response.');
       final response = responses.current;
       if (!response.startsWith('AUDIO_OK|')) {
         throw StateError(response.startsWith('AUDIO_ERROR|') ? response : 'Local Gemma returned an unexpected response.');
