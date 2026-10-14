@@ -1,5 +1,6 @@
 #include "hwcontrol_audio/audio_engine.hpp"
 #include "hwcontrol_audio/audio_analyzer.hpp"
+#include "hwcontrol_audio/audio_device_host.hpp"
 
 #include <array>
 #include <cmath>
@@ -123,6 +124,17 @@ void testSpectrumAnalyzerFindsTone() {
           "wrong FFT frame size accepted");
 }
 
+void testAudioDeviceHostLifecycleWithoutAssumingHardware() {
+  hwcontrol::audio::AudioDeviceHost host;
+  (void)host.enumerate(hwcontrol::audio::DeviceDirection::Capture);
+  (void)host.enumerate(hwcontrol::audio::DeviceDirection::Playback);
+  require(!host.running(), "device host should not start implicitly");
+  const auto metrics = host.metrics();
+  require(!metrics.running, "stopped host reports running");
+  host.stop();
+  require(!host.running(), "stop should be idempotent");
+}
+
 void testInvalidSampleRateFallsBack() {
   hwcontrol::audio::AudioEngine engine;
   hwcontrol::audio::ProcessorConfig config;
@@ -140,6 +152,7 @@ int main() {
   testEqualizerBoostsConfiguredBand();
   testCompressorReducesAboveThresholdLevel();
   testSpectrumAnalyzerFindsTone();
+  testAudioDeviceHostLifecycleWithoutAssumingHardware();
   testInvalidSampleRateFallsBack();
   std::cout << "Audio core tests passed\n";
   return 0;
