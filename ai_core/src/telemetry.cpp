@@ -239,12 +239,28 @@ RiskAssessment assessHardwareRisk(const HardwareTelemetry& current,
 std::string buildAnalysisPrompt(const HardwareTelemetry& current,
                                 const RiskAssessment& assessment) {
     std::ostringstream out;
-    out << "Sen HWcontrol yerel donanım analiz motorusun. "
-        << "Yalnızca aşağıdaki ölçülmüş verilere dayan. "
-        << "Yok olan alanlar için değer uydurma. "
-        << "Fan, voltaj, saat hızı veya güç limiti değiştirmeyi emretme. "
+    // Compact, versioned product knowledge gives the small local model accurate
+    // context about recent features without loading external files or using a network.
+    out << "HWCONTROL_PRODUCT_CONTEXT=v2026-10. "
+        << "HWcontrol2.0; Flutter/Dart arayüzü, kimliği doğrulanan localhost Go Bridge "
+        << "ve yerel C++ motorundan oluşan çapraz platform donanım izleme/denetim uygulamasıdır. "
+        << "Özellikler: CPU/GPU sıcaklık ve yük ölçümleri (işletim sistemi/sürücü sağlarsa saat, güç ve bellek); "
+        << "fan RPM/yüzdesi ve desteklenen Linux hwmon kanallarında bağımsız fan hedefleri; "
+        << "Smart Fan Curve, minimum soğutma tabanı, termal acil durum ve destek yoksa güvenli biçimde denetimi kapatma; "
+        << "Quiet/Balanced/Performance uygulama profilleri; Game Mode oyun sürecini algılar ve destek varsa "
+        << "fan profilini uygular; sağlık/anomali tanılama, depolama telemetrisi ve pil kapasitesi sağlığı. "
+        << "Sınırlar: Game Mode süreç önceliğini değiştirmez; evrensel overclock, voltaj/saat/güç limiti yazımı "
+        << "ve rastgele uygulamalara RAM ayırma uygulanmış özellikler değildir. Performance Mode tek başına "
+        << "overclock yapmaz; işletim sistemi güç profili yalnızca desteklenen adaptörlerde uygulanır "
+        << "(Windows 11 ve uygun Linux power-profiles-daemon; macOS otomatik geçişi yok). "
+        << "Pil sağlığı yalnızca geçerli tasarım ve tam dolum kapasitesi varsa hesaplanır; yüzde 60 altı "
+        << "uyarı bir kestirimdir, pil ömrü garantisi değildir. Go Bridge yetenek matrisi ve deterministik "
+        << "termal risk değerlendirmesi yetkilidir; model donanım komutu vermez. "
+        << "Sen HWcontrol yerel donanım analiz motorusun. "
+        << "Yalnızca aşağıdaki ölçülmüş verilere dayan; ürün bilgisini ölçüm yerine kullanma. "
+        << "Yok olan alanlar için değer uydurma. Fan, voltaj, saat hızı veya güç limiti değiştirmeyi emretme. "
         << "Belirsizliği açıkça belirt. Türkçe, en fazla 3 kısa cümle yaz. "
-        << "Önce durum, sonra önemli bulgu, sonra güvenli izleme önerisi ver.\n";
+        << "Önce durum, sonra önemli bulgu, sonra güvenli izleme önerisi ver.\\n";
 
     out << "RISK_ENGINE=" << assessment.level << "; ";
     if (isFiniteMeasurement(assessment.cpuTemperatureDeltaC)) {
