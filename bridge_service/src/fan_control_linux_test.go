@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -103,6 +104,84 @@ func TestLinuxFanDiscoveryHonorsExplicitChannelSelection(t *testing.T) {
 	targets := discoverLinuxFanTargets(root, []string{first})
 	if len(targets) != 1 || targets[0].pwmPath != first {
 		t.Fatalf("explicit selection returned %+v; want only %s", targets, first)
+	}
+}
+
+func TestSetLinuxFanControlChannelWritesOnlySelectedPWM(t *testing.T) {
+	root := t.TempDir()
+	rpm1, rpm2 := 1000, 1500
+	first := writeFanFixture(t, root, "hwmon0", "testchip", 1, 1, 40, &rpm1)
+	second := writeFanFixture(t, root, "hwmon1", "testchip", 1, 1, 80, &rpm2)
+
+	targets := discoverLinuxFanTargets(root, nil)
+	if len(targets) != 2 {
+		t.Fatalf("discovery returned %d targets, want 2", len(targets))
+	}
+	firstID := ""
+	secondID := ""
+	for _, target := range targets {
+		switch target.pwmPath {
+		case first:
+			firstID = target.id
+		case second:
+			secondID = target.id
+		}
+	}
+	if firstID == "" || secondID == "" {
+		t.Fatalf("could not resolve both test channel identifiers: %+v", targets)
+	}
+
+	if err := setLinuxFanControlChannel(targets, firstID, 50); err != nil {
+		t.Fatalf("set selected fan channel: %v", err)
+	}
+	firstValue, err := os.ReadFile(first)
+	if err != nil {
+		t.Fatalf("read first PWM after write: %v", err)
+	}
+	secondValue, err := os.ReadFile(second)
+	if err != nil {
+		t.Fatalf("read second PWM after write: %v", err)
+	}
+	if strings.TrimSpace(string(firstValue)) != "127" {
+		t.Fatalf("selected PWM value = %q, want 127 (50%% of 255)", strings.TrimSpace(string(firstValue)))
+	}
+	if strings.TrimSpace(string(secondValue)) != "80" {
+		t.Fatalf("non-selected PWM changed to %q; want 80", strings.TrimSpace(string(secondValue)))
+	}
+}
+
+func TestSetLinuxFanControlChannelRejectsUnsafeRequests(t *testing.T) {
+	root := t.TempDir()
+	rpm := 1200
+	writeFanFixture(t, root, "hwmon0", "testchip", 1, 1, 140, &rpm)
+	targets := discoverLinuxFanTargets(root, nil)
+	if len(targets) != 1 {
+		t.Fatalf("discovery returned %d targets, want 1", len(targets))
+	}
+	for _, test := range []struct {
+		name string
+		id string
+		percent float64
+	}{
+		{name: "invalid identifier", id: "/sys/class/hwmon/hwmon0/pwm1", percent: 60},
+		{name: "unknown identifier", id: "ffffffffffffffff", percent: 60},
+		{name: "zero percent can stop cooling", id: targets[0].id, percent: 0},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if err := setLinuxFanControlChannel(targets, test.id, test.percent); err == nil {
+				t.Fatal("unsafe fan-channel request was accepted")
+			}
+		})
+	}
+	automaticRoot := t.TempDir()
+	automaticRPM := 900
+	writeFanFixture(t, automaticRoot, "hwmon0", "testchip", 1, 2, 150, &automaticRPM)
+	automaticTargets := discoverLinuxFanTargets(automaticRoot, nil)
+	if len(automaticTargets) != 1 {
+		t.Fatalf("automatic-mode discovery returned %d targets, want 1", len(automaticTargets))
+	}
+	if err := setLinuxFanControlChannel(automaticTargets, automaticTargets[0].id, 80); err == nil {
+		t.Fatal("monitor-only PWM channel must not accept a write")
 	}
 }
 
