@@ -148,10 +148,10 @@ class _HWControlAppState extends State<HWControlApp> {
         }
         if (accentPreset is String) _accentPreset = accentPreset;
         if (customAccent is String) _customAccent = customAccent;
-        if (fontScale is num) _fontScale = fontScale.toDouble().clamp(0.8, 1.5);
+        if (fontScale is num) _fontScale = fontScale.toDouble().clamp(0.8, 1.5).toDouble();
         if (cornerStyle is String) _cornerStyle = cornerStyle;
         if (reduceMotion is bool) _reduceMotion = reduceMotion;
-        if (animationSpeed is num) _animationSpeed = animationSpeed.toDouble().clamp(0, 2);
+        if (animationSpeed is num) _animationSpeed = animationSpeed.toDouble().clamp(0, 2).toDouble();
         _animationsEnabled = !_reduceMotion && _animationSpeed > 0;
         if (welcomeSeen is bool) {
           _welcomeSeen = welcomeSeen;
@@ -240,10 +240,10 @@ class _HWControlAppState extends State<HWControlApp> {
       }
       final accent = preferences['accentPreset']; if (accent is String) _accentPreset = accent;
       final custom = preferences['customAccent']; if (custom is String) _customAccent = custom;
-      final scale = preferences['fontScale']; if (scale is num) _fontScale = scale.toDouble().clamp(0.8, 1.5);
+      final scale = preferences['fontScale']; if (scale is num) _fontScale = scale.toDouble().clamp(0.8, 1.5).toDouble();
       final corners = preferences['cornerStyle']; if (corners is String) _cornerStyle = corners;
       final reduce = preferences['reduceMotion']; if (reduce is bool) _reduceMotion = reduce;
-      final speed = preferences['animationSpeed']; if (speed is num) _animationSpeed = speed.toDouble().clamp(0, 2);
+      final speed = preferences['animationSpeed']; if (speed is num) _animationSpeed = speed.toDouble().clamp(0, 2).toDouble();
       _animationsEnabled = !_reduceMotion && _animationSpeed > 0;
     });
     _saveUiPreferences();
