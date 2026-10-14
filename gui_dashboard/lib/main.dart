@@ -152,7 +152,9 @@ class _HWControlAppState extends State<HWControlApp> {
         if (cornerStyle is String) _cornerStyle = cornerStyle;
         if (reduceMotion is bool) _reduceMotion = reduceMotion;
         if (animationSpeed is num) _animationSpeed = animationSpeed.toDouble().clamp(0, 2).toDouble();
-        _animationsEnabled = !_reduceMotion && _animationSpeed > 0;
+        if (reduceMotion is bool || animationSpeed is num) {
+          _animationsEnabled = !_reduceMotion && _animationSpeed > 0;
+        }
         if (welcomeSeen is bool) {
           _welcomeSeen = welcomeSeen;
           _showWelcome = !welcomeSeen;
