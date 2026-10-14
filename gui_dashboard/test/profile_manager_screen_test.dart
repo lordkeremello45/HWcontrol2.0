@@ -47,6 +47,28 @@ void main() {
     expect(stored.profiles.single.mode, 'balanced');
   });
 
+  testWidgets('persists mode and Game Mode preference without applying hardware changes', (tester) async {
+    await openScreen(tester);
+
+    await tester.tap(find.text('Create profile'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'Performance desk');
+
+    await tester.tap(find.text('Balanced').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Performance').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(SwitchListTile));
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+
+    final stored = await store.readValidatedProfiles();
+    expect(stored.profiles.single.mode, 'performance');
+    expect(stored.profiles.single.gameModeEnabled, isTrue);
+    expect(find.textContaining('does not change hardware settings'), findsOneWidget);
+  });
+
   testWidgets('renames a profile and persists the new name', (tester) async {
     await openScreen(tester);
     await tester.tap(find.text('Create profile'));
