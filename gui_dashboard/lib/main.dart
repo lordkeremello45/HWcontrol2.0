@@ -25,6 +25,7 @@ import 'automation_rules.dart';
 import 'model_manager.dart';
 import 'user_data_store.dart';
 import 'profile_manager_screen.dart';
+import 'personalization_settings.dart';
 import 'game_profile.dart';
 import 'l10n/app_localizations.dart';
 import 'l10n/app_localizations_map.dart';
@@ -72,6 +73,13 @@ class HWControlApp extends StatefulWidget {
 class _HWControlAppState extends State<HWControlApp> {
   bool _darkMode = true;
   bool _animationsEnabled = true;
+  String _themeModePreference = 'dark';
+  String _accentPreset = 'teal';
+  String _customAccent = '#64D8CB';
+  double _fontScale = 1.0;
+  String _cornerStyle = 'rounded';
+  bool _reduceMotion = false;
+  double _animationSpeed = 1.0;
   bool _showWelcome = true;
   bool _welcomeSeen = false;
   bool _showSetupWizard = false;
@@ -124,9 +132,29 @@ class _HWControlAppState extends State<HWControlApp> {
       final darkMode = preferences['darkMode'];
       final animations = preferences['animationsEnabled'];
       final welcomeSeen = preferences['welcomeSeen'];
+      final themeMode = preferences['themeMode'];
+      final accentPreset = preferences['accentPreset'];
+      final customAccent = preferences['customAccent'];
+      final fontScale = preferences['fontScale'];
+      final cornerStyle = preferences['cornerStyle'];
+      final reduceMotion = preferences['reduceMotion'];
+      final animationSpeed = preferences['animationSpeed'];
       setState(() {
         if (darkMode is bool) _darkMode = darkMode;
         if (animations is bool) _animationsEnabled = animations;
+        if (themeMode is String && const ['system', 'dark', 'light'].contains(themeMode)) {
+          _themeModePreference = themeMode;
+          if (themeMode != 'system') _darkMode = themeMode == 'dark';
+        }
+        if (accentPreset is String) _accentPreset = accentPreset;
+        if (customAccent is String) _customAccent = customAccent;
+        if (fontScale is num) _fontScale = fontScale.toDouble().clamp(0.8, 1.5).toDouble();
+        if (cornerStyle is String) _cornerStyle = cornerStyle;
+        if (reduceMotion is bool) _reduceMotion = reduceMotion;
+        if (animationSpeed is num) _animationSpeed = animationSpeed.toDouble().clamp(0, 2).toDouble();
+        if (reduceMotion is bool || animationSpeed is num) {
+          _animationsEnabled = !_reduceMotion && _animationSpeed > 0;
+        }
         if (welcomeSeen is bool) {
           _welcomeSeen = welcomeSeen;
           _showWelcome = !welcomeSeen;
@@ -138,11 +166,26 @@ class _HWControlAppState extends State<HWControlApp> {
   }
 
   void _saveUiPreferences() {
-    unawaited(_userData.writeUiPreferences(<String, dynamic>{
-      'darkMode': _darkMode,
-      'animationsEnabled': _animationsEnabled,
-      'welcomeSeen': _welcomeSeen,
-    }));
+    unawaited(() async {
+      try {
+        final existing = await _userData.readUiPreferences();
+        await _userData.writeUiPreferences(<String, dynamic>{
+          ...existing,
+          'darkMode': _darkMode,
+          'animationsEnabled': _animationsEnabled,
+          'themeMode': _themeModePreference,
+          'accentPreset': _accentPreset,
+          'customAccent': _customAccent,
+          'fontScale': _fontScale,
+          'cornerStyle': _cornerStyle,
+          'reduceMotion': _reduceMotion,
+          'animationSpeed': _animationSpeed,
+          'welcomeSeen': _welcomeSeen,
+        });
+      } catch (_) {
+        // UI preferences must not prevent startup or normal interaction.
+      }
+    }());
   }
 
   void _completeWelcome(bool dontShowAgain) {
@@ -181,12 +224,30 @@ class _HWControlAppState extends State<HWControlApp> {
   }
 
   void _setDarkMode(bool value) {
-    setState(() => _darkMode = value);
+    setState(() { _darkMode = value; _themeModePreference = value ? 'dark' : 'light'; });
     _saveUiPreferences();
   }
 
   void _setAnimationsEnabled(bool value) {
-    setState(() => _animationsEnabled = value);
+    setState(() { _animationsEnabled = value; _reduceMotion = !value; _animationSpeed = value ? 1.0 : 0.0; });
+    _saveUiPreferences();
+  }
+
+  void _applyPersonalization(Map<String, dynamic> preferences) {
+    setState(() {
+      final mode = preferences['themeMode'];
+      if (mode is String && const ['system', 'dark', 'light'].contains(mode)) {
+        _themeModePreference = mode;
+        if (mode != 'system') _darkMode = mode == 'dark';
+      }
+      final accent = preferences['accentPreset']; if (accent is String) _accentPreset = accent;
+      final custom = preferences['customAccent']; if (custom is String) _customAccent = custom;
+      final scale = preferences['fontScale']; if (scale is num) _fontScale = scale.toDouble().clamp(0.8, 1.5).toDouble();
+      final corners = preferences['cornerStyle']; if (corners is String) _cornerStyle = corners;
+      final reduce = preferences['reduceMotion']; if (reduce is bool) _reduceMotion = reduce;
+      final speed = preferences['animationSpeed']; if (speed is num) _animationSpeed = speed.toDouble().clamp(0, 2).toDouble();
+      _animationsEnabled = !_reduceMotion && _animationSpeed > 0;
+    });
     _saveUiPreferences();
   }
 
@@ -201,7 +262,9 @@ class _HWControlAppState extends State<HWControlApp> {
       ),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      theme: _buildTheme(_darkMode),
+      theme: _buildTheme(false),
+      darkTheme: _buildTheme(true),
+      themeMode: _themeModePreference == 'system' ? ThemeMode.system : _themeModePreference == 'light' ? ThemeMode.light : ThemeMode.dark,
       home: blockedRelease
           ? const UnofficialBuildScreen()
           : _showWelcome
@@ -232,31 +295,35 @@ class _HWControlAppState extends State<HWControlApp> {
                   onThemeChanged: _setDarkMode,
                   onAnimationsChanged: _setAnimationsEnabled,
                   onLocaleChanged: (locale) => setState(() => _welcomeLocale = locale),
+                  onPersonalizationChanged: _applyPersonalization,
                 ),
     );
   }
 
   ThemeData _buildTheme(bool darkMode) {
-    final colors = darkMode
-        ? const ColorScheme.dark(primary: Color(0xFF64D8CB), secondary: Color(0xFFFFB454), surface: Color(0xFF121920))
-        : const ColorScheme.light(primary: Color(0xFF087F78), secondary: Color(0xFFB56800), surface: Color(0xFFFFFFFF));
-    return ThemeData(
-      brightness: darkMode ? Brightness.dark : Brightness.light,
-      colorScheme: colors,
+    final palette = <String, Color>{'teal': const Color(0xFF64D8CB), 'blue': const Color(0xFF5B9BFF), 'purple': const Color(0xFFB58CFF), 'red': const Color(0xFFFF6B75), 'green': const Color(0xFF6DD58C), 'orange': const Color(0xFFFFB454), 'pink': const Color(0xFFFF83C8)};
+    final hex = _customAccent.replaceFirst('#', '');
+    final custom = RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(hex) ? Color(0xFF000000 | int.parse(hex, radix: 16)) : const Color(0xFF64D8CB);
+    final primary = _accentPreset == 'custom' ? custom : (palette[_accentPreset] ?? palette['teal']!);
+    final colors = darkMode ? ColorScheme.dark(primary: primary, secondary: const Color(0xFFFFB454), surface: const Color(0xFF121920)) : ColorScheme.light(primary: primary, secondary: const Color(0xFFB56800), surface: const Color(0xFFFFFFFF));
+    final radius = _cornerStyle == 'sharp' ? 2.0 : _cornerStyle == 'standard' ? 8.0 : 16.0;
+    return ThemeData(brightness: darkMode ? Brightness.dark : Brightness.light, colorScheme: colors,
       scaffoldBackgroundColor: darkMode ? const Color(0xFF0A0E12) : const Color(0xFFF0F4F3),
-      useMaterial3: true,
-    );
+      textTheme: ThemeData(brightness: darkMode ? Brightness.dark : Brightness.light).textTheme.apply(fontSizeFactor: _fontScale),
+      cardTheme: CardThemeData(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius))),
+      dialogTheme: DialogThemeData(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius))), useMaterial3: true);
   }
 }
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key, required this.darkMode, required this.animationsEnabled, required this.onThemeChanged, required this.onAnimationsChanged, required this.onLocaleChanged});
+  const DashboardScreen({super.key, required this.darkMode, required this.animationsEnabled, required this.onThemeChanged, required this.onAnimationsChanged, required this.onLocaleChanged, required this.onPersonalizationChanged});
 
   final bool darkMode;
   final bool animationsEnabled;
   final ValueChanged<bool> onThemeChanged;
   final ValueChanged<bool> onAnimationsChanged;
   final ValueChanged<String> onLocaleChanged;
+  final ValueChanged<Map<String, dynamic>> onPersonalizationChanged;
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -1509,6 +1576,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } catch (_) {
       // Persistence is best-effort; telemetry collection must continue.
     }
+  }
+
+  Future<void> _openPersonalization() async {
+    final preferences = await _userData.readUiPreferences();
+    if (!mounted) return;
+    await Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => HWControlPersonalizationScreen(
+      store: _userData, initialPreferences: preferences, onSaved: widget.onPersonalizationChanged,
+    )));
   }
 
   Future<void> _openProfileManager() async {
@@ -3038,6 +3113,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           onPressed: () => widget.onAnimationsChanged(!widget.animationsEnabled),
           icon: Icon(widget.animationsEnabled ? Icons.animation : Icons.animation_outlined),
         ),
+        IconButton(tooltip: 'Personalization', onPressed: _openPersonalization, icon: const Icon(Icons.palette_outlined)),
         IconButton(tooltip: _tr('menu'), onPressed: _openSettingsMenu, icon: const Icon(Icons.menu)),
         _buildConnectionBadge(),
       ],
