@@ -158,11 +158,14 @@ class HWControlUserDataStore {
   /// Corrupt or unsupported typed documents throw instead of being silently
   /// replaced, preserving the user's data for recovery.
   Future<HWControlProfileCollection> readValidatedProfiles() async {
-    final root = await readJsonObject('profiles.v1.json');
-    if (root == null) {
+    // Read this versioned file strictly. The generic JSON helper intentionally
+    // treats malformed legacy settings as absent, which would hide corruption
+    // here and make a damaged profile file look like an empty collection.
+    final file = await configFile('profiles.v1.json');
+    if (!await file.exists()) {
       return HWControlProfileCollection(const <HWControlProfile>[]);
     }
-    return HWControlProfileCollection.decode(jsonEncode(root));
+    return HWControlProfileCollection.decode(await file.readAsString());
   }
 
   /// Atomically persists the validated profile collection using the existing
