@@ -39,6 +39,44 @@ void main() {
     expect(FanCurve.fromJson(curve.toJson()).evaluate(60), 20);
   });
 
+  test('automation rules cannot reduce a stronger curve target', () {
+    expect(
+      resolveAutomaticFanTarget(
+        curveTarget: 90,
+        ruleTarget: 70,
+        currentFanPercent: 85,
+      ),
+      90,
+    );
+    expect(
+      resolveAutomaticFanTarget(
+        curveTarget: 70,
+        ruleTarget: 90,
+        currentFanPercent: 70,
+      ),
+      90,
+    );
+  });
+
+  test('automation rules cannot lower fan speed while curve is rate-limited', () {
+    expect(
+      resolveAutomaticFanTarget(
+        curveTarget: null,
+        ruleTarget: 70,
+        currentFanPercent: 85,
+      ),
+      isNull,
+    );
+    expect(
+      resolveAutomaticFanTarget(
+        curveTarget: null,
+        ruleTarget: 90,
+        currentFanPercent: 85,
+      ),
+      90,
+    );
+  });
+
   test('controller smooths, rate-limits and clamps fan target', () {
     final controller = FanCurveController(
       minimumChangePercent: 2,
