@@ -52,7 +52,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
           _compressorAttack = _number(raw['compressorAttack'], 10).clamp(0.1, 200).toDouble();
           _compressorRelease = _number(raw['compressorRelease'], 100).clamp(1, 2000).toDouble();
           _compressorKnee = _number(raw['compressorKnee'], 6).clamp(0, 24).toDouble();
-          _highPassFrequency = _number(raw['highPassFrequency'], 80).clamp(20, 18000).toDouble();
+          _highPassFrequency = _number(raw['highPassFrequency'], 80).clamp(20, 1000).toDouble();
           _limiterCeiling = _number(raw['limiterCeiling'], -1).clamp(-24, 0).toDouble();
           _gateEnabled = raw['gateEnabled'] == true;
           _compressorEnabled = raw['compressorEnabled'] == true;
@@ -157,6 +157,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
           _eqGain[2] = 1;
           _gateEnabled = true;
           _compressorEnabled = true;
+          _highPassEnabled = true;
           _limiterEnabled = true;
           break;
         default:
@@ -356,7 +357,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
         const Divider(),
         _slider('Compressor threshold', _compressorThreshold, -60, 0, (v) => setState(() { _compressorThreshold = v; _preset = 'Custom'; }), suffix: 'dB'),
         _slider('Attack', _compressorAttack, 0.1, 200, (v) => setState(() { _compressorAttack = v; _preset = 'Custom'; }), suffix: 'ms'),
-        _slider('Release', _compressorRelease, 1, 500, (v) => setState(() { _compressorRelease = v; _preset = 'Custom'; }), suffix: 'ms'),
+        _slider('Release', _compressorRelease, 1, 2000, (v) => setState(() { _compressorRelease = v; _preset = 'Custom'; }), suffix: 'ms'),
         _slider('Soft-knee width', _compressorKnee, 0, 24, (v) => setState(() { _compressorKnee = v; _preset = 'Custom'; }), suffix: 'dB'),
         SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('Compressor'), value: _compressorEnabled, onChanged: (v) => setState(() { _compressorEnabled = v; _preset = 'Custom'; })),
         const Divider(),
