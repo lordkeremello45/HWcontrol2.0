@@ -49,6 +49,20 @@ void AudioEngine::Biquad::setPeaking(float frequencyHz, float gainDb, float q,
   a2 = static_cast<float>((1.0 - alpha / a) / a0);
 }
 
+void AudioEngine::Biquad::setHighPass(float frequencyHz,
+                                        double sampleRateHz) noexcept {
+  const double omega = 2.0 * kPi * static_cast<double>(frequencyHz) / sampleRateHz;
+  const double cosine = std::cos(omega);
+  const double sine = std::sin(omega);
+  const double alpha = sine / (2.0 * 0.7071067811865476);
+  const double a0 = 1.0 + alpha;
+  b0 = static_cast<float>((1.0 + cosine) * 0.5 / a0);
+  b1 = static_cast<float>(-(1.0 + cosine) / a0);
+  b2 = b0;
+  a1 = static_cast<float>(-2.0 * cosine / a0);
+  a2 = static_cast<float>((1.0 - alpha) / a0);
+}
+
 float AudioEngine::Biquad::tick(float input, std::size_t channel) noexcept {
   const float output = b0 * input + z1[channel];
   z1[channel] = b1 * input - a1 * output + z2[channel];
@@ -82,6 +96,18 @@ bool AudioEngine::configure(const ProcessorConfig& requested,
   config_.gateThresholdDb = std::clamp(finiteOr(config_.gateThresholdDb, -72.0F), kMinDb, 0.0F);
   config_.compressorThresholdDb = std::clamp(finiteOr(config_.compressorThresholdDb, -12.0F), kMinDb, 0.0F);
   config_.compressorRatio = std::clamp(finiteOr(config_.compressorRatio, 2.0F), 1.0F, 20.0F);
+  config_.compressorAttackMs = std::clamp(finiteOr(config_.compressorAttackMs, 10.0F), 0.1F, 200.0F);
+  config_.compressorReleaseMs = std::clamp(finiteOr(config_.compressorReleaseMs, 100.0F), 1.0F, 2000.0F);
+  config_.compressorKneeDb = std::clamp(finiteOr(config_.compressorKneeDb, 6.0F), 0.0F, 24.0F);
+  config_.highPassFrequencyHz = std::clamp(finiteOr(config_.highPassFrequencyHz, 80.0F),
+      20.0F, static_cast<float>(sampleRateHz_ * 0.40));
+  compressorAttackCoefficient_ = static_cast<float>(std::exp(
+      -1.0 / (static_cast<double>(config_.compressorAttackMs) * 0.001 * sampleRateHz_)));
+  compressorReleaseCoefficient_ = static_cast<float>(std::exp(
+      -1.0 / (static_cast<double>(config_.compressorReleaseMs) * 0.001 * sampleRateHz_)));
+  highPassFilter_.setHighPass(config_.highPassFrequencyHz, sampleRateHz_);
+  highPassFilter_.clear();
+  compressorEnvelope_.fill(0.0F);
   config_.limiterCeilingDb = std::clamp(finiteOr(config_.limiterCeilingDb, -1.0F), -24.0F, 0.0F);
 
   for (std::size_t i = 0; i < kEqBandCount; ++i) {
@@ -121,17 +147,34 @@ void AudioEngine::process(float* samples, std::size_t frameCount) noexcept {
 
       value *= gain;
       if (config_.noiseGateEnabled && std::abs(value) < gate) value = 0.0F;
+      if (config_.highPassEnabled) value = highPassFilter_.tick(value, channel);
       for (std::size_t band = 0; band < kEqBandCount; ++band) {
         if (config_.eqEnabled[band]) value = filters_[band].tick(value, channel);
       }
       if (config_.compressorEnabled) {
         const float magnitude = std::abs(value);
-        if (magnitude > compressorThreshold && magnitude > 0.0F) {
-          const float levelDb = linearToDb(magnitude);
-          const float compressedDb = config_.compressorThresholdDb +
-              (levelDb - config_.compressorThresholdDb) / config_.compressorRatio;
-          value = std::copysign(dbToLinear(compressedDb), value);
+        const float coefficient = magnitude > compressorEnvelope_[channel]
+            ? compressorAttackCoefficient_ : compressorReleaseCoefficient_;
+        compressorEnvelope_[channel] =
+            coefficient * compressorEnvelope_[channel] + (1.0F - coefficient) * magnitude;
+        const float levelDb = linearToDb(compressorEnvelope_[channel]);
+        const float overThreshold = levelDb - config_.compressorThresholdDb;
+        const float knee = config_.compressorKneeDb;
+        float gainReductionDb = 0.0F;
+        if (knee <= 0.0F) {
+          if (overThreshold > 0.0F) {
+            gainReductionDb = overThreshold * (1.0F - 1.0F / config_.compressorRatio);
+          }
+        } else if (overThreshold > -knee * 0.5F) {
+          if (overThreshold >= knee * 0.5F) {
+            gainReductionDb = overThreshold * (1.0F - 1.0F / config_.compressorRatio);
+          } else {
+            const float shifted = overThreshold + knee * 0.5F;
+            gainReductionDb = shifted * shifted / (2.0F * knee) *
+                (1.0F - 1.0F / config_.compressorRatio);
+          }
         }
+        if (gainReductionDb > 0.0F) value *= dbToLinear(-gainReductionDb);
       }
       if (config_.limiterEnabled) {
         value = std::clamp(value, -limiterCeiling, limiterCeiling);
@@ -155,6 +198,8 @@ void AudioEngine::process(float* samples, std::size_t frameCount) noexcept {
 
 void AudioEngine::reset() noexcept {
   for (auto& filter : filters_) filter.clear();
+  highPassFilter_.clear();
+  compressorEnvelope_.fill(0.0F);
   metrics_ = AudioMetrics{};
 }
 
