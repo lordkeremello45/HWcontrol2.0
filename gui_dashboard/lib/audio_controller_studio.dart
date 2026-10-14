@@ -315,6 +315,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
           'direction': direction,
         }).where((item) => (item['index'] as int) >= 0 && (item['name'] as String).isNotEmpty).toList(growable: false);
       }
+      if (!mounted) return;
       setState(() {
         _captureDevices = parse(result['capture'], 'capture');
         _playbackDevices = parse(result['playback'], 'playback');
@@ -332,8 +333,13 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
       setState(() => _selectedEndpointId = null);
       return;
     }
-    final selected = options.where((device) => device['id'] == _selectedEndpointId).firstOrNull;
-    final device = selected ?? options.where((item) => item['isDefault'] == true).firstOrNull ?? options.first;
+    final selectedMatches = options.where((device) => device['id'] == _selectedEndpointId);
+    final defaultMatches = options.where((item) => item['isDefault'] == true);
+    final device = selectedMatches.isNotEmpty
+        ? selectedMatches.first
+        : defaultMatches.isNotEmpty
+            ? defaultMatches.first
+            : options.first;
     setState(() {
       _selectedEndpointId = device['id'] as String;
       _deviceModelController.text = device['name'] as String;
@@ -373,8 +379,9 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
                 ),
             ],
             onChanged: (value) {
-              final selected = _endpointOptions.where((item) => item['id'] == value).firstOrNull;
-              if (selected == null) return;
+              final matches = _endpointOptions.where((item) => item['id'] == value);
+              if (matches.isEmpty) return;
+              final selected = matches.first;
               setState(() {
                 _selectedEndpointId = value;
                 _deviceModelController.text = selected['name'] as String;
