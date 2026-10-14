@@ -31,6 +31,10 @@ int main() {
         assert(prompt.find("süreç önceliğini değiştirmez") != std::string::npos);
         assert(prompt.find("macOS otomatik geçişi yok") != std::string::npos);
         assert(prompt.find("model donanım komutu vermez") != std::string::npos);
+        assert(prompt.find("GEMMA_SYSTEM_INSTRUCTIONS") != std::string::npos);
+        assert(prompt.find("Never invent hardware") != std::string::npos);
+        assert(prompt.find("HWCONTROL_PRODUCT_CONTEXT=v2026-10") != std::string::npos);
+        assert(prompt.find("Game Mode does not change process priority") != std::string::npos);
     }
 
     {
