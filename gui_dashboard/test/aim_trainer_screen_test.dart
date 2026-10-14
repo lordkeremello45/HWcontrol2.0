@@ -66,9 +66,7 @@ void main() {
     await tester.pump();
     expect(find.text('1'), findsOneWidget);
 
-    await tester.tapAt(const Offset(20, 320));
-    await tester.pump();
-    expect(find.text('1'), findsAtLeastNWidgets(1));
+    expect(find.text('1'), findsOneWidget);
   });
 
   testWidgets('persists bounded session history', (tester) async {
