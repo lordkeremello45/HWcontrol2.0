@@ -18,6 +18,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'diagnostics.dart';
 import 'fan_curve.dart';
+import 'fan_channels.dart';
 import 'benchmark.dart';
 import 'automation_rules.dart';
 import 'model_manager.dart';
@@ -318,6 +319,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _thermalAlertActive = false;
   Map<String, Map<String, double>> _profiles = {};
   FanCurve _fanCurve = FanCurve.balanced;
+  List<FanChannelTelemetry> _fanChannels = <FanChannelTelemetry>[];
+  Map<String, FanChannelProfile> _fanChannelProfiles = <String, FanChannelProfile>{};
+  final Map<String, FanCurveController> _fanChannelControllers = <String, FanCurveController>{};
   bool _smartFanEnabled = false;
   List<HardwareAutomationRule> _automationRules = <HardwareAutomationRule>[];
   final FanCurveController _fanCurveController = FanCurveController();
@@ -1498,8 +1502,10 @@ Attach this archive to a support issue only after reviewing it for personal info
     required double value,
     required int timestamp,
     required String nonce,
+    String? target,
   }) {
-    final payload = '$action\n${value.toStringAsFixed(6)}\n$timestamp\n$nonce';
+    var payload = '$action\n${value.toStringAsFixed(6)}\n$timestamp\n$nonce';
+    if (target != null && target.isNotEmpty) payload = '$payload\n$target';
     return Hmac(sha256, utf8.encode(_sharedKey)).convert(utf8.encode(payload)).toString();
   }
 
@@ -2110,11 +2116,25 @@ Attach this archive to a support issue only after reviewing it for personal info
     }
   }
 
-  Future<bool> _sendCommand(String action, double value) async {
-    if (action == 'Fan Hızı' && _emergencyCoolingActive && value < 100) {
+  Future<bool> _sendCommand(String action, double value, {String? target}) async {
+    if ((action == 'Fan Hızı' || action == 'Set Fan Channel') &&
+        _emergencyCoolingActive &&
+        value < 100) {
       if (mounted) {
         setState(() => _status = 'Acil soğutma etkin; sıcaklıklar 92 °C altına inene kadar fan hedefi düşürülemez');
       }
+      return false;
+    }
+    if (action == 'Set Fan Channel' &&
+        (target == null ||
+            !_fanChannels.any((channel) => channel.id == target && channel.supported))) {
+      if (mounted) {
+        setState(() => _status = 'Fan kanalı artık kullanılabilir değil; donanım yeteneklerini yenileyin');
+      }
+      return false;
+    }
+    if (action != 'Set Fan Channel' && target != null) {
+      if (mounted) setState(() => _status = 'Geçersiz hedefli komut');
       return false;
     }
     if ((action == 'Fan Hızı' || action == 'AI İşlem Gücü') && !_fanControlSupported) {
@@ -2136,14 +2156,22 @@ Attach this archive to a support issue only after reviewing it for personal info
     try {
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final nonce = _commandNonce();
-      final auth = _commandAuth(action: action, value: value, timestamp: timestamp, nonce: nonce);
-      socket.write('${jsonEncode({
+      final auth = _commandAuth(
+        action: action,
+        value: value,
+        timestamp: timestamp,
+        nonce: nonce,
+        target: target,
+      );
+      final request = <String, dynamic>{
         'action': action,
         'value': value,
         'timestamp': timestamp,
         'nonce': nonce,
         'auth': auth,
-      })}\n');
+      };
+      if (target != null) request['target'] = target;
+      socket.write('${jsonEncode(request)}\n');
 
       final responses = _responses;
       if (responses == null || !await responses.moveNext().timeout(const Duration(seconds: 3))) {
@@ -2155,7 +2183,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       final responseData = response['data'];
       setState(() {
         _status = response['message'] as String? ?? 'Yanıt alındı';
-        _lastAction = '$action  •  %${value.round()}';
+        _lastAction = target == null ? '$action  •  %${value.round()}' : '$action  •  $target  •  %${value.round()}';
         if ((action == 'Get Power Mode' ||
                 action == 'Set Power Mode AC' ||
                 action == 'Set Power Mode DC') &&
