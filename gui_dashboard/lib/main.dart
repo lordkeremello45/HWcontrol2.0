@@ -1095,15 +1095,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  Future<bool> _sendEmergencyCoolingTarget(
+    List<FanChannelTelemetry> supportedChannels,
+  ) async {
+    if (supportedChannels.isEmpty) {
+      if (!_fanControlSupported) return false;
+      if (_fanValue >= 100) return true;
+      final success = await _sendCommand('Fan Hızı', 100);
+      if (success && mounted) setState(() => _fanValue = 100);
+      return success;
+    }
+
+    var allSuccessful = true;
+    for (final channel in supportedChannels) {
+      if (channel.percentAvailable && channel.fanPercent >= 99.5) continue;
+      final success = await _sendCommand(
+        'Set Fan Channel',
+        100,
+        target: channel.id,
+      );
+      if (!success) allSuccessful = false;
+    }
+    return allSuccessful;
+  }
+
   Future<void> _applyAutomaticFanControl(Map<String, dynamic> telemetry) async {
-    if (!_fanControlSupported || !_isConnected || _isSending) return;
+    final supportedChannels = _fanChannels
+        .where((channel) => channel.supported && channel.id.isNotEmpty)
+        .toList(growable: false);
+    if (!_isConnected ||
+        _isSending ||
+        (!_fanControlSupported && supportedChannels.isEmpty)) {
+      return;
+    }
+
     final cpu = (telemetry['cpuTemperature'] as num?)?.toDouble() ?? double.nan;
     final gpu = (telemetry['gpuTemperature'] as num?)?.toDouble() ?? double.nan;
-    final cpuValid = cpu.isFinite && cpu > 0 && cpu <= 125;
-    final gpuValid = gpu.isFinite && gpu > 0 && gpu <= 125;
-    // A critical reading must not disable cooling automation. Request the
-    // maximum supported fan target, then keep it latched until all available
-    // CPU/GPU readings fall below the 92 °C release threshold.
+    final cpuValid = isUsableFanTemperature(cpu);
+    final gpuValid = isUsableFanTemperature(gpu);
+
+    // Emergency cooling is independent of normal per-channel automation.
+    // The bridge independently enforces the same critical-temperature rule.
     final criticalThermal = (cpuValid && cpu >= 95) || (gpuValid && gpu >= 95);
     final anyValidThermal = cpuValid || gpuValid;
     final emergencyReleaseReached = anyValidThermal &&
@@ -1112,66 +1144,119 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     if (_emergencyCoolingActive && !emergencyReleaseReached) {
       _fanCurveController.reset();
-      // Reassert the emergency target if the user changes the pending slider
-      // while the critical-cooling latch is active.
-      if (_fanValue < 100 && !_isSending) {
-        final success = await _sendCommand('Fan Hızı', 100);
-        if (success) {
-          if (mounted) setState(() => _fanValue = 100);
-          _addEvent('Acil soğutma hedefi %100 olarak korundu');
-        }
+      for (final controller in _fanChannelControllers.values) {
+        controller.reset();
       }
+      final success = await _sendEmergencyCoolingTarget(supportedChannels);
+      if (success) _addEvent('Acil soğutma hedefi %100 olarak korundu');
       return;
     }
     if (_emergencyCoolingActive && emergencyReleaseReached) {
       _emergencyCoolingActive = false;
       _fanCurveController.reset();
+      for (final controller in _fanChannelControllers.values) {
+        controller.reset();
+      }
+      _addEvent('Sıcaklıklar güvenli bırakma eşiğinin altına indi; acil soğutma kilidi kaldırıldı');
     }
     if (criticalThermal) {
       _fanCurveController.reset();
-      if (_isSending) return;
-      final success = await _sendCommand('Fan Hızı', 100);
+      for (final controller in _fanChannelControllers.values) {
+        controller.reset();
+      }
+      final success = await _sendEmergencyCoolingTarget(supportedChannels);
       if (success) {
         _emergencyCoolingActive = true;
-        if (mounted) setState(() => _fanValue = 100);
-        _addEvent('Kritik sıcaklık algılandı; acil soğutma hedefi %100 uygulandı');
+        _addEvent('Kritik sıcaklık algılandı; desteklenen fan kanallarında acil soğutma uygulandı');
+      } else {
+        _addEvent('Kritik sıcaklık algılandı fakat acil fan komutu doğrulanamadı');
       }
       return;
     }
 
-    // Emergency cooling is independent of the normal Smart Fan toggle.
+    // The master switch and each channel's own automatic-enable setting must
+    // both be active before normal curve control can run.
     if (!_smartFanEnabled) return;
 
-    final controlTemperature = cpuValid && gpuValid
-        ? math.max(cpu, gpu).toDouble()
-        : cpuValid
-            ? cpu
-            : gpuValid
-                ? gpu
-                : double.nan;
-    final curveTarget = _fanCurveController.nextTarget(
-      curve: _fanCurve,
-      temperature: controlTemperature,
-      now: DateTime.now(),
-      sensorValid: controlTemperature.isFinite,
-      hardwareControlSupported: _fanControlSupported,
-    );
     final ruleTarget = HardwareAutomationEngine(_automationRules).evaluate(<String, dynamic>{
       'cpuTemperature': cpu,
       'gpuTemperature': gpu,
     });
+
+    if (supportedChannels.isNotEmpty) {
+      for (final channel in supportedChannels) {
+        final profile = _profileForFanChannel(channel);
+        if (!profile.automaticEnabled) continue;
+
+        final controlTemperature = selectFanControlTemperature(
+          sensorSource: profile.sensorSource,
+          cpuTemperature: cpu,
+          gpuTemperature: gpu,
+        );
+        final controller = _fanChannelControllers.putIfAbsent(
+          channel.id,
+          FanCurveController.new,
+        );
+        final curveTarget = controller.nextTarget(
+          curve: profile.curve,
+          temperature: controlTemperature ?? double.nan,
+          now: DateTime.now(),
+          sensorValid: isUsableFanTemperature(controlTemperature),
+          hardwareControlSupported: channel.supported,
+        );
+        final currentFanPercent = channel.percentAvailable
+            ? channel.fanPercent
+            : profile.manualPercent;
+        final automaticTarget = resolveAutomaticFanTarget(
+          curveTarget: curveTarget,
+          ruleTarget: ruleTarget,
+          currentFanPercent: currentFanPercent,
+        );
+        if (automaticTarget == null || !automaticTarget.isFinite) continue;
+
+        var target = automaticTarget.clamp(20, 100).toDouble();
+        // A game-specific fan request is a floor, not permission to defeat a
+        // stronger per-channel thermal curve.
+        if (_gameProfileApplied) {
+          target = math.max(target, currentFanPercent).clamp(20, 100).toDouble();
+        }
+        final success = await _sendCommand(
+          'Set Fan Channel',
+          target,
+          target: channel.id,
+        );
+        if (success) {
+          _addEvent('${channel.name}: otomatik fan hedefi ${target.round()}%');
+        }
+      }
+      return;
+    }
+
+    // Backwards-compatible path for a platform exposing only the legacy
+    // single-fan adapter and no independently addressable channels.
+    final controlTemperature = selectFanControlTemperature(
+      sensorSource: 'hottest',
+      cpuTemperature: cpu,
+      gpuTemperature: gpu,
+    );
+    final curveTarget = _fanCurveController.nextTarget(
+      curve: _fanCurve,
+      temperature: controlTemperature ?? double.nan,
+      now: DateTime.now(),
+      sensorValid: isUsableFanTemperature(controlTemperature),
+      hardwareControlSupported: _fanControlSupported,
+    );
     final automaticTarget = resolveAutomaticFanTarget(
       curveTarget: curveTarget,
       ruleTarget: ruleTarget,
       currentFanPercent: _fanValue,
     );
     if (automaticTarget == null || !automaticTarget.isFinite) return;
-    // A game profile is a minimum target, not permission to suppress thermal
-    // automation. Smart Fan may raise the target above the selected profile.
-    final target = _gameProfileApplied
-        ? math.max(_fanValue, automaticTarget).toDouble()
-        : automaticTarget;
-    if (!target.isFinite) return;
+    final target = (_gameProfileApplied
+            ? math.max(_fanValue, automaticTarget)
+            : automaticTarget)
+        .clamp(20, 100)
+        .toDouble();
     final success = await _sendCommand('Fan Hızı', target);
     if (success) {
       if (mounted) setState(() => _fanValue = target);
