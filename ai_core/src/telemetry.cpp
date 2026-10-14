@@ -136,7 +136,7 @@ std::string buildAudioProfilePrompt(const AudioProfileRequest& request) {
         << "; model_label=\"" << model << "\"; manufacturer_label=\"" << manufacturer << "\""
         << "; sample_rate_hz=" << request.sampleRateHz << "; channels=" << request.channels
         << "; specifications_verified=" << (request.specificationsVerified ? "true" : "false")
-        << ". These values describe reported device capabilities, not frequency response. The result is advisory and requires user approval.\n";
+        << ". Sample rate and channel count are user-reported. If specifications_verified=false, do not assume these capabilities are supported; explicitly warn the user to verify them. These values do not describe frequency response. The result is advisory and requires user approval.\n";
     return out.str();
 }
 
