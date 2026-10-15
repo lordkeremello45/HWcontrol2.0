@@ -381,7 +381,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Start live processing'));
     await tester.tap(find.text('Start live processing'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 10));
 
     expect(find.text('Dropped FFT frames'), findsOneWidget);
     expect(find.text('7'), findsOneWidget);
