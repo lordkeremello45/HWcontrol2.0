@@ -258,6 +258,51 @@ void main() {
     expect(dropdowns[1].value, isNull);
   });
 
+  testWidgets('preserves selected devices when enumeration order changes', (tester) async {
+    var deviceLoads = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: AudioControllerStudioScreen(
+        onLoadDevices: () async {
+          deviceLoads++;
+          if (deviceLoads == 1) {
+            return <String, dynamic>{
+              'capture': <Map<String, dynamic>>[
+                <String, dynamic>{'index': 0, 'name': 'USB Microphone', 'isDefault': true},
+                <String, dynamic>{'index': 1, 'name': 'Built-in Microphone', 'isDefault': false},
+              ],
+              'playback': <Map<String, dynamic>>[
+                <String, dynamic>{'index': 0, 'name': 'Headphones', 'isDefault': true},
+                <String, dynamic>{'index': 1, 'name': 'Speakers', 'isDefault': false},
+              ],
+            };
+          }
+          return <String, dynamic>{
+            'capture': <Map<String, dynamic>>[
+              <String, dynamic>{'index': 0, 'name': 'Built-in Microphone', 'isDefault': false},
+              <String, dynamic>{'index': 1, 'name': 'USB Microphone', 'isDefault': false},
+            ],
+            'playback': <Map<String, dynamic>>[
+              <String, dynamic>{'index': 0, 'name': 'Speakers', 'isDefault': false},
+              <String, dynamic>{'index': 1, 'name': 'Headphones', 'isDefault': false},
+            ],
+          };
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Refresh devices'));
+    await tester.tap(find.text('Refresh devices'));
+    await tester.pumpAndSettle();
+
+    expect(deviceLoads, 2);
+    final dropdowns = tester.widgetList<DropdownButton<int>>(
+      find.byType(DropdownButton<int>),
+    ).toList(growable: false);
+    expect(dropdowns, hasLength(2));
+    expect(dropdowns[0].value, 1);
+    expect(dropdowns[1].value, 1);
+  });
+
   testWidgets('leaves ambiguous same-name endpoints unselected', (tester) async {
     var deviceLoads = 0;
     await tester.pumpWidget(MaterialApp(
