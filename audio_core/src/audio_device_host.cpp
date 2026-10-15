@@ -57,6 +57,9 @@ struct AudioDeviceHost::Impl {
   std::atomic<bool> spectrumAvailable{false};
 
   Impl() {
+    for (auto& magnitude : spectrumMagnitude) {
+      magnitude.store(0.0F, std::memory_order_relaxed);
+    }
     contextReady = ma_context_init(nullptr, 0, nullptr, &context) == MA_SUCCESS;
   }
 
