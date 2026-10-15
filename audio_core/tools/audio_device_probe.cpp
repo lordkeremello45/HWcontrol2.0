@@ -4,6 +4,8 @@
 #include <chrono>
 #include <cstdlib>
 #include <iostream>
+#include <sstream>
+#include <cmath>
 #include <string>
 #include <thread>
 #include <vector>
@@ -40,12 +42,115 @@ const hwcontrol::audio::AudioDeviceInfo* findDefault(
 }
 }
  
+
+void writeMetrics(const hwcontrol::audio::LiveAudioMetrics& metrics) {
+  std::cout << "{\"status\":\"SUCCESS\",\"data\":{"
+            << "\"running\":" << (metrics.running ? "true" : "false")
+            << ",\"inputPeak\":" << metrics.inputPeak
+            << ",\"outputPeak\":" << metrics.outputPeak
+            << ",\"inputRms\":" << metrics.inputRms
+            << ",\"outputRms\":" << metrics.outputRms
+            << ",\"processedFrames\":" << metrics.processedFrames
+            << "}}\n";
+}
+
+bool handleServerCommand(AudioDeviceHost& host, const std::string& line) {
+  std::istringstream input(line);
+  std::string action;
+  input >> action;
+  if (action == "devices") {
+    const auto capture = host.enumerate(DeviceDirection::Capture);
+    const auto playback = host.enumerate(DeviceDirection::Playback);
+    std::cout << "{\"status\":\"SUCCESS\",\"data\":{\"capture\":";
+    writeDeviceArray(capture);
+    std::cout << ",\"playback\":";
+    writeDeviceArray(playback);
+    std::cout << "}}\n";
+    return true;
+  }
+  if (action == "status") {
+    writeMetrics(host.metrics());
+    return true;
+  }
+  if (action == "stop") {
+    host.stop();
+    writeMetrics(host.metrics());
+    return true;
+  }
+  if (action != "start") {
+    std::cout << "{\"status\":\"ERROR\",\"message\":\"unknown audio command\"}\n";
+    return true;
+  }
+
+  long long captureIndex = -1;
+  long long playbackIndex = -1;
+  int monitor = 0;
+  ProcessorConfig config;
+  int gateEnabled = 0, compressorEnabled = 0, highPassEnabled = 0, limiterEnabled = 1;
+  if (!(input >> captureIndex >> playbackIndex >> monitor
+        >> config.inputGainDb >> config.gateThresholdDb
+        >> config.compressorThresholdDb >> config.compressorRatio
+        >> config.compressorAttackMs >> config.compressorReleaseMs
+        >> config.compressorKneeDb >> config.highPassFrequencyHz
+        >> config.limiterCeilingDb >> gateEnabled >> compressorEnabled
+        >> highPassEnabled >> limiterEnabled
+        >> config.eq[0].frequencyHz >> config.eq[0].gainDb
+        >> config.eq[1].frequencyHz >> config.eq[1].gainDb
+        >> config.eq[2].frequencyHz >> config.eq[2].gainDb)
+      || captureIndex < 0 || playbackIndex < 0 || monitor < 0 || monitor > 1
+      || gateEnabled < 0 || gateEnabled > 1 || compressorEnabled < 0 || compressorEnabled > 1
+      || highPassEnabled < 0 || highPassEnabled > 1 || limiterEnabled < 0 || limiterEnabled > 1) {
+    std::cout << "{\"status\":\"ERROR\",\"message\":\"invalid audio start request\"}\n";
+    return true;
+  }
+  const float values[] = {config.inputGainDb, config.gateThresholdDb,
+    config.compressorThresholdDb, config.compressorRatio, config.compressorAttackMs,
+    config.compressorReleaseMs, config.compressorKneeDb, config.highPassFrequencyHz,
+    config.limiterCeilingDb, config.eq[0].frequencyHz, config.eq[0].gainDb,
+    config.eq[1].frequencyHz, config.eq[1].gainDb, config.eq[2].frequencyHz, config.eq[2].gainDb};
+  for (float value : values) {
+    if (!std::isfinite(value)) {
+      std::cout << "{\"status\":\"ERROR\",\"message\":\"non-finite audio parameter rejected\"}\n";
+      return true;
+    }
+  }
+  config.noiseGateEnabled = gateEnabled != 0;
+  config.compressorEnabled = compressorEnabled != 0;
+  config.highPassEnabled = highPassEnabled != 0;
+  config.limiterEnabled = limiterEnabled != 0;
+  for (std::size_t i = 0; i < config.eq.size(); ++i) {
+    config.eqEnabled[i] = std::abs(config.eq[i].gainDb) > 0.001F;
+  }
+  std::string error;
+  if (!host.start(static_cast<std::size_t>(captureIndex),
+                  static_cast<std::size_t>(playbackIndex), config, monitor != 0, error)) {
+    std::cout << "{\"status\":\"ERROR\",\"messageHex\":\"" << hexEncode(error) << "\"}\n";
+    return true;
+  }
+  writeMetrics(host.metrics());
+  return true;
+}
+
 int main(int argc, char** argv) {
   using hwcontrol::audio::AudioDeviceHost;
   using hwcontrol::audio::DeviceDirection;
   using hwcontrol::audio::ProcessorConfig;
 
   AudioDeviceHost host;
+  if (argc >= 2 && std::string(argv[1]) == "--server") {
+    std::string line;
+    while (std::getline(std::cin, line)) {
+      if (line.size() > 4096) {
+        std::cout << "{\"status\":\"ERROR\",\"message\":\"command too large\"}\n";
+        std::cout.flush();
+        continue;
+      }
+      handleServerCommand(host, line);
+      std::cout.flush();
+    }
+    host.stop();
+    return 0;
+  }
   const auto capture = host.enumerate(DeviceDirection::Capture);
   const auto playback = host.enumerate(DeviceDirection::Playback);
 
