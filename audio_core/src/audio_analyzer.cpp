@@ -4,7 +4,6 @@
 #include <cmath>
 #include <complex>
 #include <cstdint>
-#include <limits>
 
 namespace hwcontrol::audio {
 namespace {
