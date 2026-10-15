@@ -28,6 +28,9 @@ struct LiveAudioMetrics {
   std::uint64_t processedFrames = 0;
   std::uint64_t droppedSpectrumFrames = 0;
   std::uint64_t limitedSamples = 0;
+  double callbackProcessingTimeUs = 0.0;
+  double maxCallbackProcessingTimeUs = 0.0;
+  std::uint64_t callbackBudgetOverruns = 0;
   bool running = false;
   bool spectrumAvailable = false;
   float spectrumPeakFrequencyHz = 0.0F;

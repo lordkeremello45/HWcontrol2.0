@@ -475,6 +475,12 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
     return value.toInt().toString();
   }
 
+  String _safeMetricDecimal(String key) {
+    final value = _liveMetrics[key];
+    if (value is! num || !value.isFinite || value < 0) return '0.0';
+    return value.toDouble().toStringAsFixed(1);
+  }
+
   String _metricDb(String key) {
     final value = _liveMetrics[key];
     if (value is! num || !value.isFinite || value <= 0) return '−∞ dBFS';
@@ -979,7 +985,9 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
               _metric('Output peak', _liveRunning ? _metricDb('outputPeak') : 'Not connected'),
               _metric('Input RMS', _liveRunning ? _metricDb('inputRms') : 'Not connected'),
               _metric('FFT peak', peakLabel),
-              _metric('Latency / dropout', 'Not measured'),
+              _metric('Callback processing', _liveRunning ? '${_safeMetricDecimal('callbackProcessingTimeUs')} µs' : 'Not connected'),
+              _metric('Worst callback', _liveRunning ? '${_safeMetricDecimal('maxCallbackProcessingTimeUs')} µs' : 'Not connected'),
+              _metric('Callback budget overruns', _liveRunning ? '${_safeMetricCount('callbackBudgetOverruns')}' : 'Not connected'),
               _metric('Processed frames', _liveRunning ? '${_safeMetricCount('processedFrames')}' : 'Not connected'),
               _metric('Dropped FFT frames', _liveRunning ? '${_safeMetricCount('droppedSpectrumFrames')}' : 'Not connected'),
               _metric('Limiter-restrained samples', _liveRunning ? '${_safeMetricCount('limitedSamples')}' : 'Not connected'),

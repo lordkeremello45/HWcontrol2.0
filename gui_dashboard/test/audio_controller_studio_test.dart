@@ -52,6 +52,9 @@ void main() {
               'outputRms': 0.08,
               'processedFrames': 480,
               'limitedSamples': 12,
+              'callbackProcessingTimeUs': 83.4,
+              'maxCallbackProcessingTimeUs': 104.7,
+              'callbackBudgetOverruns': 2,
               'spectrumAvailable': true,
               'spectrumPeakFrequencyHz': 1500.0,
               'sampleRateHz': 48000.0,
@@ -67,6 +70,9 @@ void main() {
               'outputRms': 0.08,
               'processedFrames': 960,
               'limitedSamples': 19,
+              'callbackProcessingTimeUs': 72.3,
+              'maxCallbackProcessingTimeUs': 104.7,
+              'callbackBudgetOverruns': 2,
               'spectrumAvailable': true,
               'spectrumPeakFrequencyHz': 1500.0,
               'sampleRateHz': 48000.0,
@@ -85,6 +91,11 @@ void main() {
     expect(find.text('LIVE • audio is processed locally'), findsOneWidget);
     expect(find.text('1500 Hz'), findsOneWidget);
     expect(find.text('Limiter-restrained samples'), findsOneWidget);
+    expect(find.text('Callback processing'), findsOneWidget);
+    expect(find.text('Worst callback'), findsOneWidget);
+    expect(find.text('Callback budget overruns'), findsOneWidget);
+    expect(find.text('72.3 µs'), findsOneWidget);
+    expect(find.text('104.7 µs'), findsOneWidget);
     expect(find.text('19'), findsOneWidget);
     expect(find.text('Live spectrum (1024-point FFT)'), findsOneWidget);
     final liveSlider = tester.widget<Slider>(find.byType(Slider).first);

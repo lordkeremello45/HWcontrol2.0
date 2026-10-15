@@ -39,6 +39,9 @@ struct AudioDeviceHost::Impl {
   std::atomic<std::uint64_t> processedFrames{0};
   std::atomic<std::uint64_t> droppedSpectrumFrames{0};
   std::atomic<std::uint64_t> limitedSamples{0};
+  std::atomic<double> callbackProcessingTimeUs{0.0};
+  std::atomic<double> maxCallbackProcessingTimeUs{0.0};
+  std::atomic<std::uint64_t> callbackBudgetOverruns{0};
   std::atomic<bool> isRunning{false};
   std::mutex lifecycleMutex;
 
@@ -160,6 +163,7 @@ struct AudioDeviceHost::Impl {
                        ma_uint32 frameCount) {
     auto* self = static_cast<Impl*>(device->pUserData);
     if (self == nullptr) return;
+    const auto callbackStarted = std::chrono::steady_clock::now();
     auto* out = static_cast<float*>(output);
     const auto* in = static_cast<const float*>(input);
     std::array<float, kMaxCallbackFrames * kSamplesPerFrame> scratch{};
@@ -205,6 +209,21 @@ struct AudioDeviceHost::Impl {
       self->inputRms.store(static_cast<float>(std::sqrt(inSquares / static_cast<double>(samplesSeen))), std::memory_order_relaxed);
       self->outputRms.store(static_cast<float>(std::sqrt(outSquares / static_cast<double>(samplesSeen))), std::memory_order_relaxed);
       self->processedFrames.fetch_add(static_cast<std::uint64_t>(frameCount), std::memory_order_relaxed);
+    }
+    const auto callbackFinished = std::chrono::steady_clock::now();
+    const double elapsedUs = std::chrono::duration<double, std::micro>(
+        callbackFinished - callbackStarted).count();
+    self->callbackProcessingTimeUs.store(elapsedUs, std::memory_order_relaxed);
+    double previousMax = self->maxCallbackProcessingTimeUs.load(std::memory_order_relaxed);
+    while (elapsedUs > previousMax &&
+           !self->maxCallbackProcessingTimeUs.compare_exchange_weak(
+               previousMax, elapsedUs, std::memory_order_relaxed)) {}
+    const double sampleRate = device->sampleRate > 0
+        ? static_cast<double>(device->sampleRate) : 48000.0;
+    const double callbackBudgetUs =
+        static_cast<double>(frameCount) * 1000000.0 / sampleRate;
+    if (elapsedUs > callbackBudgetUs) {
+      self->callbackBudgetOverruns.fetch_add(1, std::memory_order_relaxed);
     }
   }
 
@@ -274,6 +293,9 @@ bool AudioDeviceHost::start(std::size_t captureIndex, std::size_t playbackIndex,
   impl_->processedFrames.store(0, std::memory_order_relaxed);
   impl_->droppedSpectrumFrames.store(0, std::memory_order_relaxed);
   impl_->limitedSamples.store(0, std::memory_order_relaxed);
+  impl_->callbackProcessingTimeUs.store(0.0, std::memory_order_relaxed);
+  impl_->maxCallbackProcessingTimeUs.store(0.0, std::memory_order_relaxed);
+  impl_->callbackBudgetOverruns.store(0, std::memory_order_relaxed);
   impl_->spectrumPeakFrequencyHz.store(0.0F, std::memory_order_relaxed);
   impl_->spectrumRms.store(0.0F, std::memory_order_relaxed);
   for (auto& magnitude : impl_->spectrumMagnitude) magnitude.store(0.0F, std::memory_order_relaxed);
@@ -342,6 +364,9 @@ LiveAudioMetrics AudioDeviceHost::metrics() const noexcept {
   result.processedFrames = impl_->processedFrames.load(std::memory_order_relaxed);
   result.droppedSpectrumFrames = impl_->droppedSpectrumFrames.load(std::memory_order_relaxed);
   result.limitedSamples = impl_->limitedSamples.load(std::memory_order_relaxed);
+  result.callbackProcessingTimeUs = impl_->callbackProcessingTimeUs.load(std::memory_order_relaxed);
+  result.maxCallbackProcessingTimeUs = impl_->maxCallbackProcessingTimeUs.load(std::memory_order_relaxed);
+  result.callbackBudgetOverruns = impl_->callbackBudgetOverruns.load(std::memory_order_relaxed);
   result.running = running();
   result.spectrumAvailable = impl_->spectrumAvailable.load(std::memory_order_acquire);
   result.spectrumPeakFrequencyHz = impl_->spectrumPeakFrequencyHz.load(std::memory_order_relaxed);
