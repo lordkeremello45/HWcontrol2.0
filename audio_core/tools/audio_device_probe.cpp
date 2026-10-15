@@ -41,7 +41,6 @@ const hwcontrol::audio::AudioDeviceInfo* findDefault(
   return it == devices.end() ? (devices.empty() ? nullptr : &devices.front()) : &*it;
 }
 }
- 
 
 void writeMetrics(const hwcontrol::audio::LiveAudioMetrics& metrics) {
   std::cout << "{\"status\":\"SUCCESS\",\"data\":{"
@@ -51,7 +50,16 @@ void writeMetrics(const hwcontrol::audio::LiveAudioMetrics& metrics) {
             << ",\"inputRms\":" << metrics.inputRms
             << ",\"outputRms\":" << metrics.outputRms
             << ",\"processedFrames\":" << metrics.processedFrames
-            << "}}\n";
+            << ",\"spectrumAvailable\":" << (metrics.spectrumAvailable ? "true" : "false")
+            << ",\"spectrumPeakFrequencyHz\":" << metrics.spectrumPeakFrequencyHz
+            << ",\"spectrumRms\":" << metrics.spectrumRms
+            << ",\"sampleRateHz\":" << metrics.sampleRateHz
+            << ",\"spectrumMagnitude\":[";
+  for (std::size_t i = 0; i < metrics.spectrumMagnitude.size(); ++i) {
+    if (i != 0) std::cout << ",";
+    std::cout << metrics.spectrumMagnitude[i];
+  }
+  std::cout << "]}}\n";
 }
 
 bool handleServerCommand(AudioDeviceHost& host, const std::string& line) {
@@ -215,7 +223,8 @@ int main(int argc, char** argv) {
     const auto metrics = host.metrics();
     std::cout << "input peak=" << metrics.inputPeak
               << " rms=" << metrics.inputRms
-              << " processed frames=" << metrics.processedFrames << '\n';
+              << " processed frames=" << metrics.processedFrames
+              << " FFT peak=" << metrics.spectrumPeakFrequencyHz << " Hz\n";
   }
   host.stop();
   return 0;
