@@ -216,6 +216,59 @@ void main() {
     expect(dropdowns[1].value, isNull);
   });
 
+  testWidgets('leaves ambiguous same-name endpoints unselected', (tester) async {
+    var deviceLoads = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: AudioControllerStudioScreen(
+        onLoadDevices: () async {
+          deviceLoads++;
+          if (deviceLoads == 1) {
+            return <String, dynamic>{
+              'capture': <Map<String, dynamic>>[
+                <String, dynamic>{'index': 0, 'name': 'USB Microphone', 'isDefault': true},
+              ],
+              'playback': <Map<String, dynamic>>[
+                <String, dynamic>{'index': 0, 'name': 'Headphones', 'isDefault': true},
+              ],
+            };
+          }
+          return <String, dynamic>{
+            'capture': <Map<String, dynamic>>[
+              <String, dynamic>{'index': 0, 'name': 'USB Microphone', 'isDefault': true},
+              <String, dynamic>{'index': 1, 'name': 'USB Microphone', 'isDefault': false},
+            ],
+            'playback': <Map<String, dynamic>>[
+              <String, dynamic>{'index': 0, 'name': 'Headphones', 'isDefault': true},
+              <String, dynamic>{'index': 1, 'name': 'Headphones', 'isDefault': false},
+            ],
+          };
+        },
+        onControl: (action, payload) async {
+          if (action == 'Start Audio Studio') {
+            return <String, dynamic>{'running': true};
+          }
+          if (action == 'Get Audio Studio Status') {
+            return <String, dynamic>{'running': false};
+          }
+          return <String, dynamic>{'running': false};
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Start live processing'));
+    await tester.tap(find.text('Start live processing'));
+    await tester.pumpAndSettle();
+
+    expect(deviceLoads, 2);
+    expect(find.textContaining('A previously selected device is missing'), findsOneWidget);
+    final dropdowns = tester.widgetList<DropdownButton<int>>(
+      find.byType(DropdownButton<int>),
+    ).toList(growable: false);
+    expect(dropdowns, hasLength(2));
+    expect(dropdowns[0].value, isNull);
+    expect(dropdowns[1].value, isNull);
+  });
+
   testWidgets('studio preset controls can be selected', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(home: AudioControllerStudioScreen()),
