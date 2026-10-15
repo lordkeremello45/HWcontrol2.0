@@ -95,9 +95,11 @@ struct AudioDeviceHost::Impl {
 
     if (samplesSeen != 0) {
       self->inputPeak.store(inPeak, std::memory_order_relaxed);
-      self->outputPeak.store(self->monitorOutput ? outPeak : 0.0F, std::memory_order_relaxed);
+      // Report processed DSP levels even when monitor playback is disabled.
+      // The monitoring flag controls routing to the output device, not analysis.
+      self->outputPeak.store(outPeak, std::memory_order_relaxed);
       self->inputRms.store(static_cast<float>(std::sqrt(inSquares / static_cast<double>(samplesSeen))), std::memory_order_relaxed);
-      self->outputRms.store(self->monitorOutput ? static_cast<float>(std::sqrt(outSquares / static_cast<double>(samplesSeen))) : 0.0F, std::memory_order_relaxed);
+      self->outputRms.store(static_cast<float>(std::sqrt(outSquares / static_cast<double>(samplesSeen))), std::memory_order_relaxed);
       self->processedFrames.fetch_add(static_cast<std::uint64_t>(frameCount), std::memory_order_relaxed);
     }
   }
