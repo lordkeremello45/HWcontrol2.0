@@ -889,23 +889,70 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
     ),
   );
 
-  Widget _buildAnalysisPanel() => _panel(
-    title: 'Analysis laboratory',
-    subtitle: 'Live peak and RMS measurements from the native processing stream; FFT and latency remain unavailable.',
-    icon: Icons.monitor_heart_outlined,
-    child: Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: [
-        _metric('Input peak', _liveRunning ? _metricDb('inputPeak') : 'Not connected'),
-        _metric('Output peak', _liveRunning ? _metricDb('outputPeak') : 'Not connected'),
-        _metric('Input RMS', _liveRunning ? _metricDb('inputRms') : 'Not connected'),
-        _metric('FFT / spectrogram', 'Not connected'),
-        _metric('Latency / dropout', 'Not connected'),
-        _metric('Processed frames', _liveRunning ? '${_liveMetrics['processedFrames'] ?? 0}' : 'Not connected'),
-      ],
-    ),
-  );
+  Widget _buildAnalysisPanel() {
+    final rawSpectrum = _liveMetrics['spectrumMagnitude'];
+    final magnitudes = rawSpectrum is List
+        ? rawSpectrum.whereType<num>().map((value) => value.toDouble())
+            .where((value) => value.isFinite && value >= 0).toList(growable: false)
+        : <double>[];
+    final spectrumAvailable = _liveRunning &&
+        _liveMetrics['spectrumAvailable'] == true &&
+        magnitudes.length == 513;
+    final peak = _liveMetrics['spectrumPeakFrequencyHz'];
+    final peakLabel = spectrumAvailable && peak is num && peak.isFinite
+        ? '${peak.toDouble().round()} Hz'
+        : 'Waiting for data';
+    return _panel(
+      title: 'Analysis laboratory',
+      subtitle: 'Live peak/RMS meters and a 1024-point FFT of locally processed audio. Latency and dropout measurement are not yet available.',
+      icon: Icons.monitor_heart_outlined,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              _metric('Input peak', _liveRunning ? _metricDb('inputPeak') : 'Not connected'),
+              _metric('Output peak', _liveRunning ? _metricDb('outputPeak') : 'Not connected'),
+              _metric('Input RMS', _liveRunning ? _metricDb('inputRms') : 'Not connected'),
+              _metric('FFT peak', peakLabel),
+              _metric('Latency / dropout', 'Not measured'),
+              _metric('Processed frames', _liveRunning ? '${_liveMetrics['processedFrames'] ?? 0}' : 'Not connected'),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text('Live spectrum (1024-point FFT)', style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            height: 150,
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: spectrumAvailable
+                ? CustomPaint(
+                    painter: _SpectrumPainter(magnitudes, Theme.of(context).colorScheme.primary),
+                    child: const SizedBox.expand(),
+                  )
+                : const Center(child: Text('Waiting for 1024 processed audio samples…')),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              const Text('0 Hz'),
+              const Spacer(),
+              Text('${((_liveMetrics['sampleRateHz'] is num ? (_liveMetrics['sampleRateHz'] as num).toDouble() : 48000.0) / 4).round()} Hz'),
+              const Spacer(),
+              Text('${((_liveMetrics['sampleRateHz'] is num ? (_liveMetrics['sampleRateHz'] as num).toDouble() : 48000.0) / 2).round()} Hz'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildRoutingPanel() => _panel(
     title: 'Devices and routing',
@@ -953,6 +1000,35 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
       Text(value, style: const TextStyle(fontWeight: FontWeight.w700)),
     ]),
   );
+}
+
+class _SpectrumPainter extends CustomPainter {
+  const _SpectrumPainter(this.magnitudes, this.color);
+
+  final List<double> magnitudes;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (magnitudes.isEmpty || size.width <= 0 || size.height <= 0) return;
+    final maxMagnitude = magnitudes.fold<double>(0, (current, value) => math.max(current, value));
+    if (!maxMagnitude.isFinite || maxMagnitude <= 0) return;
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = math.max(1.0, size.width / magnitudes.length * 0.7)
+      ..strokeCap = StrokeCap.round;
+    for (var i = 0; i < magnitudes.length; i++) {
+      final magnitude = magnitudes[i];
+      final normalized = (math.log(1 + (magnitude / maxMagnitude) * 9) / math.log(10)).clamp(0.0, 1.0);
+      final x = (i / (magnitudes.length - 1)) * size.width;
+      final y = size.height - normalized * size.height;
+      canvas.drawLine(Offset(x, size.height), Offset(x, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _SpectrumPainter oldDelegate) =>
+      oldDelegate.magnitudes != magnitudes || oldDelegate.color != color;
 }
 
 class _CapabilityRow extends StatelessWidget {
