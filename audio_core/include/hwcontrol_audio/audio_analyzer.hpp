@@ -12,6 +12,9 @@ struct SpectrumFrame {
   std::array<float, kSpectrumBinCount> magnitude{};
   float peakFrequencyHz = 0.0F;
   float rms = 0.0F;
+  float leftRms = 0.0F;
+  float rightRms = 0.0F;
+  float stereoCorrelation = 0.0F;
 };
 
 // Fixed-size analyzer for a worker/analysis thread. Do not call from a device
