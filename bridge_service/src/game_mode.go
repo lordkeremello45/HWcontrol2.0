@@ -11,14 +11,14 @@ import (
 )
 
 type GameModeState struct {
-	Enabled          bool   `json:"enabled"`
-	AutoDetection    bool   `json:"autoDetection"`
-	GameDetected     bool   `json:"gameDetected"`
-	ProcessName      string `json:"processName"`
-	PID              uint32 `json:"pid"`
-	DetectedAt       string `json:"detectedAt"`
-	SessionDurationSeconds int64 `json:"sessionDurationSeconds"`
-	OptimizationMode string `json:"optimizationMode"`
+	Enabled                bool   `json:"enabled"`
+	AutoDetection          bool   `json:"autoDetection"`
+	GameDetected           bool   `json:"gameDetected"`
+	ProcessName            string `json:"processName"`
+	PID                    uint32 `json:"pid"`
+	DetectedAt             string `json:"detectedAt"`
+	SessionDurationSeconds int64  `json:"sessionDurationSeconds"`
+	OptimizationMode       string `json:"optimizationMode"`
 }
 
 var gameModeState = struct {

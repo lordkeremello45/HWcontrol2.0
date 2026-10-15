@@ -28,25 +28,25 @@ type HardwareHealthEvaluation struct {
 }
 
 type HealthSnapshot struct {
-	Status            string                        `json:"status"`
-	SafetyState       string                        `json:"safetyState"`
-	RecoveryAction    string                        `json:"recoveryAction"`
-	Checks            map[string]string             `json:"checks"`
-	Warnings          []string                      `json:"warnings,omitempty"`
-	Anomalies         []HardwareAnomaly             `json:"anomalies,omitempty"`
-	Capabilities      map[string]HardwareCapability `json:"capabilities"`
-	BridgeVersion     string                        `json:"bridgeVersion"`
-	Platform          string                        `json:"platform"`
-	Architecture      string                        `json:"architecture"`
-	LocalOnly         bool                          `json:"localOnly"`
-	HardwareControl   string                        `json:"hardwareControl"`
-	SensorSource      string                        `json:"sensorSource"`
-	CPUTemperatureSource string                     `json:"cpuTemperatureSource,omitempty"`
-	GPUTemperatureSource string                     `json:"gpuTemperatureSource,omitempty"`
-	MetricsCollectedAt string                       `json:"metricsCollectedAt,omitempty"`
-	DetectionStatus   string                        `json:"detectionStatus"`
-	IdentityAvailable bool                          `json:"identityAvailable"`
-	Storage           []StorageVolume               `json:"storage"`
+	Status               string                        `json:"status"`
+	SafetyState          string                        `json:"safetyState"`
+	RecoveryAction       string                        `json:"recoveryAction"`
+	Checks               map[string]string             `json:"checks"`
+	Warnings             []string                      `json:"warnings,omitempty"`
+	Anomalies            []HardwareAnomaly             `json:"anomalies,omitempty"`
+	Capabilities         map[string]HardwareCapability `json:"capabilities"`
+	BridgeVersion        string                        `json:"bridgeVersion"`
+	Platform             string                        `json:"platform"`
+	Architecture         string                        `json:"architecture"`
+	LocalOnly            bool                          `json:"localOnly"`
+	HardwareControl      string                        `json:"hardwareControl"`
+	SensorSource         string                        `json:"sensorSource"`
+	CPUTemperatureSource string                        `json:"cpuTemperatureSource,omitempty"`
+	GPUTemperatureSource string                        `json:"gpuTemperatureSource,omitempty"`
+	MetricsCollectedAt   string                        `json:"metricsCollectedAt,omitempty"`
+	DetectionStatus      string                        `json:"detectionStatus"`
+	IdentityAvailable    bool                          `json:"identityAvailable"`
+	Storage              []StorageVolume               `json:"storage"`
 }
 
 const (
@@ -89,28 +89,28 @@ func resolvedFanControlBackend(metrics HardwareMetrics) string {
 
 func evaluateHardwareHealth(metrics HardwareMetrics) HardwareHealthEvaluation {
 	capabilities := map[string]HardwareCapability{
-		"cpuTemperature":   capability(metrics.CPUTemperatureSource != "" && metrics.CPUTemperature > 0 && isValidTemperature(metrics.CPUTemperature), metrics.CPUTemperatureSource, "CPU thermal telemetry unavailable or source unknown"),
-		"gpuTemperature":   capability(metrics.GPUTemperatureSource != "" && metrics.GPUTemperature > 0 && isValidTemperature(metrics.GPUTemperature), metrics.GPUTemperatureSource, "GPU thermal telemetry unavailable or source unknown"),
-		"fanRpm":           capability(metrics.FanRPMSource != "" && isFiniteNonNegative(metrics.FanRPM), metrics.FanRPMSource, "Fan RPM telemetry unavailable or source unknown"),
-		"fanControl":       capability(hasValidatedFanControl(metrics), resolvedFanControlBackend(metrics), "No validated hardware-control backend"),
-		"fanChannels":      capability(len(metrics.FanChannels) > 0, "platform-fan-discovery", "No fan/PWM channels were enumerated"),
-		"voltage":          capability(isFinitePositive(metrics.Voltage), metrics.SensorSource, "Voltage telemetry unavailable"),
-		"power":            capability(isFinitePositive(metrics.PowerWatts), metrics.SensorSource, "Power telemetry unavailable"),
-		"gpuCoreClock":     capability(isFinitePositive(metrics.GPUCoreClockMHz), metrics.SensorSource, "GPU core clock telemetry unavailable"),
-		"gpuMemoryClock":   capability(isFinitePositive(metrics.GPUMemoryClockMHz), metrics.SensorSource, "GPU memory clock telemetry unavailable"),
-		"gpuMemory":        capability(metrics.GPUMemoryTotalBytes > 0, metrics.SensorSource, "GPU memory capacity unavailable"),
-		"hardwareIdentity": capability(strings.TrimSpace(metrics.DetectionStatus) != "" && metrics.DetectionStatus != "unavailable", metrics.DetectionSource, "Hardware identity unavailable"),
-		"storage":          capability(len(metrics.StorageVolumes) > 0, "gopsutil", "No mounted storage volume could be enumerated"),
-		"cpuUtilization":   capability(isFiniteNonNegative(metrics.CPUUsage) && metrics.CPUUsage <= 100, "gopsutil", "CPU utilization telemetry unavailable or invalid"),
-		"memory":           capability(metrics.MemoryTotalBytes > 0 && isFiniteNonNegative(metrics.MemoryUsage) && metrics.MemoryUsage <= 100, "gopsutil", "System memory telemetry unavailable or invalid"),
-		"diskUsage":        capability(metrics.DiskTotalBytes > 0 && isFiniteNonNegative(metrics.DiskUsage) && metrics.DiskUsage <= 100, "gopsutil", "Root-volume usage telemetry unavailable or invalid"),
-		"gpuUtilization":   capability(isFiniteNonNegative(metrics.GPUUsage) && metrics.GPUUsage <= 100 && metrics.GPUVendor != "", metrics.SensorSource, "GPU utilization telemetry unavailable or invalid"),
-		"fanPercent":       capability(metrics.FanPercentSource != "" && isFiniteNonNegative(metrics.FanPercent) && metrics.FanPercent <= 100, metrics.FanPercentSource, "Fan percentage telemetry unavailable or source unknown"),
-		"batteryHealth":    capability(metrics.Battery.Present && metrics.Battery.DataAvailable && isFinitePositive(metrics.Battery.HealthPercent), "platform-battery-api", "Battery health requires valid design and full-charge capacity readings"),
-		"thermalSafety":    capability(metrics.ThermalSafetyAvailable && ((metrics.CPUTemperature > 0 && isValidTemperature(metrics.CPUTemperature)) || (metrics.GPUTemperature > 0 && isValidTemperature(metrics.GPUTemperature))), metrics.SensorSource, "No valid CPU/GPU temperature source is available"),
-		"fanCurveAutomation": capability(hasValidatedFanControl(metrics) && metrics.ThermalSafetyAvailable, resolvedFanControlBackend(metrics), "Automatic fan control requires both valid thermal telemetry and a supported control backend"),
-		"gpuPowerLimitControl": capability(false, "not-implemented", "GPU power-limit telemetry may be readable, but a validated write backend is not implemented"),
-		"cpuOverclockControl": capability(false, "not-implemented", "CPU clock/voltage overclocking is not implemented"),
+		"cpuTemperature":            capability(metrics.CPUTemperatureSource != "" && metrics.CPUTemperature > 0 && isValidTemperature(metrics.CPUTemperature), metrics.CPUTemperatureSource, "CPU thermal telemetry unavailable or source unknown"),
+		"gpuTemperature":            capability(metrics.GPUTemperatureSource != "" && metrics.GPUTemperature > 0 && isValidTemperature(metrics.GPUTemperature), metrics.GPUTemperatureSource, "GPU thermal telemetry unavailable or source unknown"),
+		"fanRpm":                    capability(metrics.FanRPMSource != "" && isFiniteNonNegative(metrics.FanRPM), metrics.FanRPMSource, "Fan RPM telemetry unavailable or source unknown"),
+		"fanControl":                capability(hasValidatedFanControl(metrics), resolvedFanControlBackend(metrics), "No validated hardware-control backend"),
+		"fanChannels":               capability(len(metrics.FanChannels) > 0, "platform-fan-discovery", "No fan/PWM channels were enumerated"),
+		"voltage":                   capability(isFinitePositive(metrics.Voltage), metrics.SensorSource, "Voltage telemetry unavailable"),
+		"power":                     capability(isFinitePositive(metrics.PowerWatts), metrics.SensorSource, "Power telemetry unavailable"),
+		"gpuCoreClock":              capability(isFinitePositive(metrics.GPUCoreClockMHz), metrics.SensorSource, "GPU core clock telemetry unavailable"),
+		"gpuMemoryClock":            capability(isFinitePositive(metrics.GPUMemoryClockMHz), metrics.SensorSource, "GPU memory clock telemetry unavailable"),
+		"gpuMemory":                 capability(metrics.GPUMemoryTotalBytes > 0, metrics.SensorSource, "GPU memory capacity unavailable"),
+		"hardwareIdentity":          capability(strings.TrimSpace(metrics.DetectionStatus) != "" && metrics.DetectionStatus != "unavailable", metrics.DetectionSource, "Hardware identity unavailable"),
+		"storage":                   capability(len(metrics.StorageVolumes) > 0, "gopsutil", "No mounted storage volume could be enumerated"),
+		"cpuUtilization":            capability(isFiniteNonNegative(metrics.CPUUsage) && metrics.CPUUsage <= 100, "gopsutil", "CPU utilization telemetry unavailable or invalid"),
+		"memory":                    capability(metrics.MemoryTotalBytes > 0 && isFiniteNonNegative(metrics.MemoryUsage) && metrics.MemoryUsage <= 100, "gopsutil", "System memory telemetry unavailable or invalid"),
+		"diskUsage":                 capability(metrics.DiskTotalBytes > 0 && isFiniteNonNegative(metrics.DiskUsage) && metrics.DiskUsage <= 100, "gopsutil", "Root-volume usage telemetry unavailable or invalid"),
+		"gpuUtilization":            capability(isFiniteNonNegative(metrics.GPUUsage) && metrics.GPUUsage <= 100 && metrics.GPUVendor != "", metrics.SensorSource, "GPU utilization telemetry unavailable or invalid"),
+		"fanPercent":                capability(metrics.FanPercentSource != "" && isFiniteNonNegative(metrics.FanPercent) && metrics.FanPercent <= 100, metrics.FanPercentSource, "Fan percentage telemetry unavailable or source unknown"),
+		"batteryHealth":             capability(metrics.Battery.Present && metrics.Battery.DataAvailable && isFinitePositive(metrics.Battery.HealthPercent), "platform-battery-api", "Battery health requires valid design and full-charge capacity readings"),
+		"thermalSafety":             capability(metrics.ThermalSafetyAvailable && ((metrics.CPUTemperature > 0 && isValidTemperature(metrics.CPUTemperature)) || (metrics.GPUTemperature > 0 && isValidTemperature(metrics.GPUTemperature))), metrics.SensorSource, "No valid CPU/GPU temperature source is available"),
+		"fanCurveAutomation":        capability(hasValidatedFanControl(metrics) && metrics.ThermalSafetyAvailable, resolvedFanControlBackend(metrics), "Automatic fan control requires both valid thermal telemetry and a supported control backend"),
+		"gpuPowerLimitControl":      capability(false, "not-implemented", "GPU power-limit telemetry may be readable, but a validated write backend is not implemented"),
+		"cpuOverclockControl":       capability(false, "not-implemented", "CPU clock/voltage overclocking is not implemented"),
 		"batteryChargeLimitControl": capability(false, "not-implemented", "Battery health is read-only; charging thresholds are not changed"),
 	}
 

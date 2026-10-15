@@ -83,77 +83,77 @@ type Response struct {
 }
 
 type HardwareMetrics struct {
-	GameModeEnabled        bool      `json:"gameModeEnabled"`
-	GameDetected           bool      `json:"gameDetected"`
-	GameProcessName        string    `json:"gameProcessName"`
-	GameProcessPID          uint32    `json:"gameProcessPid"`
-	GameDetectedAt          string    `json:"gameDetectedAt"`
-	GameSessionDurationSeconds int64 `json:"gameSessionDurationSeconds"`
-	SystemManufacturer     string    `json:"systemManufacturer"`
-	SystemModel            string    `json:"systemModel"`
-	SystemVersion          string    `json:"systemVersion"`
-	BIOSVendor             string    `json:"biosVendor"`
-	BIOSVersion            string    `json:"biosVersion"`
-	MotherboardVendor      string    `json:"motherboardVendor"`
-	MotherboardModel       string    `json:"motherboardModel"`
-	MotherboardVersion     string    `json:"motherboardVersion"`
-	CPUManufacturer        string    `json:"cpuManufacturer"`
-	CPUModel               string    `json:"cpuModel"`
-	CPUArchitecture        string    `json:"cpuArchitecture"`
-	CPUPhysicalCores       int       `json:"cpuPhysicalCores"`
-	CPUThreads             int       `json:"cpuThreads"`
-	GPUModel               string    `json:"gpuModel"`
-	DetectionSource        string    `json:"detectionSource"`
-	DetectionStatus        string    `json:"detectionStatus"`
-	SerialsExcluded        bool      `json:"serialsExcluded"`
-	CPUUsage               float64   `json:"cpuUsage"`
-	CPUPerCoreUsage        []float64 `json:"cpuPerCoreUsage"`
-	CPUCoreCount           int       `json:"cpuCoreCount"`
-	CPUFrequencyMHz        float64   `json:"cpuFrequencyMHz"`
-	CPUTemperature         float64   `json:"cpuTemperature"`
-	CPUTemperatureSource   string    `json:"cpuTemperatureSource,omitempty"`
-	GPUTemperature         float64   `json:"gpuTemperature"`
-	GPUTemperatureSource   string    `json:"gpuTemperatureSource,omitempty"`
-	MetricsCollectedAt     string    `json:"metricsCollectedAt"`
-	GPUUsage               float64   `json:"gpuUsage"`
-	GPUMemoryUsage         float64   `json:"gpuMemoryUsage"`
-	GPUPowerLimitWatts     float64   `json:"gpuPowerLimitWatts"`
-	GPUPState              string    `json:"gpuPState"`
-	GPUEncoderUsage        float64   `json:"gpuEncoderUsage"`
-	GPUDecoderUsage        float64   `json:"gpuDecoderUsage"`
-	FanPercent             float64   `json:"fanPercent"`
-	FanPercentSource       string    `json:"fanPercentSource,omitempty"`
-	FanRPM                 float64   `json:"fanRpm"`
-	FanRPMSource           string    `json:"fanRpmSource,omitempty"`
-	MemoryUsage            float64   `json:"memoryUsage"`
-	MemoryTotalBytes       uint64    `json:"memoryTotalBytes"`
-	DiskUsage              float64   `json:"diskUsage"`
-	DiskTotalBytes         uint64    `json:"diskTotalBytes"`
-	StorageVolumes         []StorageVolume `json:"storageVolumes"`
-	PowerWatts             float64   `json:"powerWatts"`
-	Voltage                float64   `json:"voltage"`
-	UptimeSeconds          uint64    `json:"uptimeSeconds"`
-	Platform               string    `json:"platform"`
-	GPUVendor              string    `json:"gpuVendor"`
-	GPUName                string    `json:"gpuName"`
-	GPUDriver              string    `json:"gpuDriver"`
-	GPUDriverProvider      string    `json:"gpuDriverProvider"`
-	GPUDriverVersion       string    `json:"gpuDriverVersion"`
-	GPUDriverStatus        string    `json:"gpuDriverStatus"`
-	GPUDriverSource        string    `json:"gpuDriverSource"`
-	GPUDriverAction        string    `json:"gpuDriverAction"`
-	GPUDriverReason        string    `json:"gpuDriverReason"`
-	GPUMemoryUsedBytes     uint64    `json:"gpuMemoryUsedBytes"`
-	GPUMemoryTotalBytes    uint64    `json:"gpuMemoryTotalBytes"`
-	GPUCoreClockMHz        float64   `json:"gpuCoreClockMHz"`
-	GPUMemoryClockMHz      float64   `json:"gpuMemoryClockMHz"`
-	SensorSource           string    `json:"sensorSource"`
-	FanControlSupported    bool      `json:"fanControlSupported"`
-	FanControlBackend      string    `json:"fanControlBackend"`
-	FanChannels            []FanChannel `json:"fanChannels"`
-	HardwareControlMode    string    `json:"hardwareControlMode"`
-	ThermalSafetyAvailable bool      `json:"thermalSafetyAvailable"`
-	Battery                BatteryMetrics `json:"battery"`
+	GameModeEnabled            bool            `json:"gameModeEnabled"`
+	GameDetected               bool            `json:"gameDetected"`
+	GameProcessName            string          `json:"gameProcessName"`
+	GameProcessPID             uint32          `json:"gameProcessPid"`
+	GameDetectedAt             string          `json:"gameDetectedAt"`
+	GameSessionDurationSeconds int64           `json:"gameSessionDurationSeconds"`
+	SystemManufacturer         string          `json:"systemManufacturer"`
+	SystemModel                string          `json:"systemModel"`
+	SystemVersion              string          `json:"systemVersion"`
+	BIOSVendor                 string          `json:"biosVendor"`
+	BIOSVersion                string          `json:"biosVersion"`
+	MotherboardVendor          string          `json:"motherboardVendor"`
+	MotherboardModel           string          `json:"motherboardModel"`
+	MotherboardVersion         string          `json:"motherboardVersion"`
+	CPUManufacturer            string          `json:"cpuManufacturer"`
+	CPUModel                   string          `json:"cpuModel"`
+	CPUArchitecture            string          `json:"cpuArchitecture"`
+	CPUPhysicalCores           int             `json:"cpuPhysicalCores"`
+	CPUThreads                 int             `json:"cpuThreads"`
+	GPUModel                   string          `json:"gpuModel"`
+	DetectionSource            string          `json:"detectionSource"`
+	DetectionStatus            string          `json:"detectionStatus"`
+	SerialsExcluded            bool            `json:"serialsExcluded"`
+	CPUUsage                   float64         `json:"cpuUsage"`
+	CPUPerCoreUsage            []float64       `json:"cpuPerCoreUsage"`
+	CPUCoreCount               int             `json:"cpuCoreCount"`
+	CPUFrequencyMHz            float64         `json:"cpuFrequencyMHz"`
+	CPUTemperature             float64         `json:"cpuTemperature"`
+	CPUTemperatureSource       string          `json:"cpuTemperatureSource,omitempty"`
+	GPUTemperature             float64         `json:"gpuTemperature"`
+	GPUTemperatureSource       string          `json:"gpuTemperatureSource,omitempty"`
+	MetricsCollectedAt         string          `json:"metricsCollectedAt"`
+	GPUUsage                   float64         `json:"gpuUsage"`
+	GPUMemoryUsage             float64         `json:"gpuMemoryUsage"`
+	GPUPowerLimitWatts         float64         `json:"gpuPowerLimitWatts"`
+	GPUPState                  string          `json:"gpuPState"`
+	GPUEncoderUsage            float64         `json:"gpuEncoderUsage"`
+	GPUDecoderUsage            float64         `json:"gpuDecoderUsage"`
+	FanPercent                 float64         `json:"fanPercent"`
+	FanPercentSource           string          `json:"fanPercentSource,omitempty"`
+	FanRPM                     float64         `json:"fanRpm"`
+	FanRPMSource               string          `json:"fanRpmSource,omitempty"`
+	MemoryUsage                float64         `json:"memoryUsage"`
+	MemoryTotalBytes           uint64          `json:"memoryTotalBytes"`
+	DiskUsage                  float64         `json:"diskUsage"`
+	DiskTotalBytes             uint64          `json:"diskTotalBytes"`
+	StorageVolumes             []StorageVolume `json:"storageVolumes"`
+	PowerWatts                 float64         `json:"powerWatts"`
+	Voltage                    float64         `json:"voltage"`
+	UptimeSeconds              uint64          `json:"uptimeSeconds"`
+	Platform                   string          `json:"platform"`
+	GPUVendor                  string          `json:"gpuVendor"`
+	GPUName                    string          `json:"gpuName"`
+	GPUDriver                  string          `json:"gpuDriver"`
+	GPUDriverProvider          string          `json:"gpuDriverProvider"`
+	GPUDriverVersion           string          `json:"gpuDriverVersion"`
+	GPUDriverStatus            string          `json:"gpuDriverStatus"`
+	GPUDriverSource            string          `json:"gpuDriverSource"`
+	GPUDriverAction            string          `json:"gpuDriverAction"`
+	GPUDriverReason            string          `json:"gpuDriverReason"`
+	GPUMemoryUsedBytes         uint64          `json:"gpuMemoryUsedBytes"`
+	GPUMemoryTotalBytes        uint64          `json:"gpuMemoryTotalBytes"`
+	GPUCoreClockMHz            float64         `json:"gpuCoreClockMHz"`
+	GPUMemoryClockMHz          float64         `json:"gpuMemoryClockMHz"`
+	SensorSource               string          `json:"sensorSource"`
+	FanControlSupported        bool            `json:"fanControlSupported"`
+	FanControlBackend          string          `json:"fanControlBackend"`
+	FanChannels                []FanChannel    `json:"fanChannels"`
+	HardwareControlMode        string          `json:"hardwareControlMode"`
+	ThermalSafetyAvailable     bool            `json:"thermalSafetyAvailable"`
+	Battery                    BatteryMetrics  `json:"battery"`
 }
 
 var errRequestTooLarge = errors.New("request too large")
@@ -261,7 +261,7 @@ func collectMetrics() HardwareMetrics {
 	}
 	metrics.ThermalSafetyAvailable =
 		(metrics.CPUTemperatureSource != "" && isValidTemperature(metrics.CPUTemperature) && metrics.CPUTemperature > 0) ||
-		(metrics.GPUTemperatureSource != "" && isValidTemperature(metrics.GPUTemperature) && metrics.GPUTemperature > 0)
+			(metrics.GPUTemperatureSource != "" && isValidTemperature(metrics.GPUTemperature) && metrics.GPUTemperature > 0)
 	game := collectGameModeState()
 	metrics.GameModeEnabled = game.Enabled
 	metrics.GameDetected = game.GameDetected
@@ -775,9 +775,9 @@ func diagnosticsSnapshot() map[string]any {
 		"goVersion":              runtime.Version(),
 		"keyFileConfigured":      strings.TrimSpace(os.Getenv("HWCONTROL_KEY_FILE")) != "",
 		"keyConfigured":          strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "" && strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "replace-me",
-		"bridgeIntegrityHealthy":  bridgeIntegrityHealthy(),
-		"bridgeIntegrityMonitor":  strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) == "" || strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) == "replace-me",
-		"bridgeIntegrityTargets":  bridgeIntegrityTargetCount.Load(),
+		"bridgeIntegrityHealthy": bridgeIntegrityHealthy(),
+		"bridgeIntegrityMonitor": strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) == "" || strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) == "replace-me",
+		"bridgeIntegrityTargets": bridgeIntegrityTargetCount.Load(),
 		"modelPathConfigured":    modelPath != "",
 		"modelState":             modelState,
 		"modelSha256":            modelDigest(),
@@ -788,30 +788,30 @@ func diagnosticsSnapshot() map[string]any {
 		"hardwareControl":        hasValidatedFanControl(metrics),
 		"fanControlBackend":      metrics.FanControlBackend,
 		"hardwareControlMode":    metrics.HardwareControlMode,
-		"fanChannels":             metrics.FanChannels,
+		"fanChannels":            metrics.FanChannels,
 		"thermalSafetyAvailable": metrics.ThermalSafetyAvailable,
 		"localOnly":              true,
 		"listenAddress":          bridgeEndpoint(),
 		"uptimeSeconds":          metrics.UptimeSeconds,
-		"healthStatus":            health.Status,
-		"safetyState":              health.SafetyState,
-		"recoveryAction":           health.RecoveryAction,
-		"hardwareCapabilities":     health.Capabilities,
-		"hardwareAnomalies":        health.Anomalies,
-		"services":                 serviceCatalogSnapshot(),
-		"fetchStatus":              fetchStatusSnapshot(),
-		"diagnosticService":        diagnosticServiceSnapshot(),
-		"panicMode":                panicModeActive(),
+		"healthStatus":           health.Status,
+		"safetyState":            health.SafetyState,
+		"recoveryAction":         health.RecoveryAction,
+		"hardwareCapabilities":   health.Capabilities,
+		"hardwareAnomalies":      health.Anomalies,
+		"services":               serviceCatalogSnapshot(),
+		"fetchStatus":            fetchStatusSnapshot(),
+		"diagnosticService":      diagnosticServiceSnapshot(),
+		"panicMode":              panicModeActive(),
 		"gameMode": func() map[string]any {
 			state := collectGameModeState()
 			return map[string]any{
-				"enabled": state.Enabled,
-				"gameDetected": state.GameDetected,
-				"processName": state.ProcessName,
-				"pid": state.PID,
-				"detectedAt": state.DetectedAt,
+				"enabled":                state.Enabled,
+				"gameDetected":           state.GameDetected,
+				"processName":            state.ProcessName,
+				"pid":                    state.PID,
+				"detectedAt":             state.DetectedAt,
 				"sessionDurationSeconds": state.SessionDurationSeconds,
-				"optimizationMode": state.OptimizationMode,
+				"optimizationMode":       state.OptimizationMode,
 			}
 		}(),
 
@@ -962,7 +962,9 @@ func handleConnection(conn net.Conn, secret string) {
 				// Read-only diagnostics remain available so the user can see why the system entered panic mode.
 			default:
 				_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-				if err := encoder.Encode(Response{Status: "ERROR", Message: "security panic mode active; hardware-control request denied"}); err != nil { return }
+				if err := encoder.Encode(Response{Status: "ERROR", Message: "security panic mode active; hardware-control request denied"}); err != nil {
+					return
+				}
 				continue
 			}
 		}
@@ -978,23 +980,31 @@ func handleConnection(conn net.Conn, secret string) {
 		if cmd.Action == "Get Update" {
 			status := checkForUpdates(context.Background())
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Update Service durumu alındı", Data: status}); err != nil { return }
+			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Update Service durumu alındı", Data: status}); err != nil {
+				return
+			}
 			continue
 		}
 		if cmd.Action == "Get Sensor Health" {
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "SensorHealth durumu alındı", Data: sensorHealthSnapshot()}); err != nil { return }
+			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "SensorHealth durumu alındı", Data: sensorHealthSnapshot()}); err != nil {
+				return
+			}
 			continue
 		}
 		if cmd.Action == "Get Sensor History" {
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Yerel sensör geçmişi alındı", Data: sensorHistorySnapshot()}); err != nil { return }
+			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Yerel sensör geçmişi alındı", Data: sensorHistorySnapshot()}); err != nil {
+				return
+			}
 			continue
 		}
 		if cmd.Action == "Get Fetch Status" {
 			checkDecoyIntegrity()
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Fetch Status durumu alındı", Data: fetchStatusSnapshot()}); err != nil { return }
+			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Fetch Status durumu alındı", Data: fetchStatusSnapshot()}); err != nil {
+				return
+			}
 			continue
 		}
 		if cmd.Action == "Get Fan Channels" {
@@ -1003,7 +1013,7 @@ func handleConnection(conn net.Conn, secret string) {
 				Status:  "SUCCESS",
 				Message: "Fan channel capabilities retrieved",
 				Data: map[string]any{
-					"channels": listFanChannels(),
+					"channels":  listFanChannels(),
 					"localOnly": true,
 				},
 			}); err != nil {
@@ -1047,8 +1057,8 @@ func handleConnection(conn net.Conn, secret string) {
 				"bridgeIntegrity":   bridgeIntegrityHealthy(),
 				"modelSha256":       modelDigest(),
 				"keyFileConfigured": strings.TrimSpace(os.Getenv("HWCONTROL_KEY_FILE")) != "",
-				"panicMode":          panicModeActive(),
-				"services":           serviceCatalogSnapshot(),
+				"panicMode":         panicModeActive(),
+				"services":          serviceCatalogSnapshot(),
 			}}); err != nil {
 				return
 			}

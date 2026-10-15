@@ -29,7 +29,7 @@ type StorageVolume struct {
 
 var storageIOState struct {
 	sync.Mutex
-	At time.Time
+	At       time.Time
 	Counters map[string]disk.IOCountersStat
 }
 
@@ -106,7 +106,7 @@ func collectStorageVolumes() []StorageVolume {
 			MountPoint:   mount,
 			Device:       strings.TrimSpace(partition.Device),
 			FileSystem:   strings.TrimSpace(partition.Fstype),
-			Options:       strings.TrimSpace(strings.Join(partition.Opts, ",")),
+			Options:      strings.TrimSpace(strings.Join(partition.Opts, ",")),
 			TotalBytes:   usage.Total,
 			UsedBytes:    usage.Used,
 			FreeBytes:    usage.Free,

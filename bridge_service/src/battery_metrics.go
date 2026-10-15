@@ -5,22 +5,22 @@ import "math"
 // BatteryMetrics reports battery wear metadata only. It does not infer remaining
 // runtime from health and never changes charging or power-management settings.
 type BatteryMetrics struct {
-	Present             bool    `json:"present"`
-	Status              string  `json:"status"`
-	DataAvailable       bool    `json:"dataAvailable"`
-	DesignCapacity      float64 `json:"designCapacity"`
-	FullChargeCapacity  float64 `json:"fullChargeCapacity"`
-	CapacityUnit        string  `json:"capacityUnit"`
-	HealthPercent       float64 `json:"healthPercent"`
-	CycleCount          *int    `json:"cycleCount,omitempty"`
+	Present            bool    `json:"present"`
+	Status             string  `json:"status"`
+	DataAvailable      bool    `json:"dataAvailable"`
+	DesignCapacity     float64 `json:"designCapacity"`
+	FullChargeCapacity float64 `json:"fullChargeCapacity"`
+	CapacityUnit       string  `json:"capacityUnit"`
+	HealthPercent      float64 `json:"healthPercent"`
+	CycleCount         *int    `json:"cycleCount,omitempty"`
 }
 
 func makeBatteryMetrics(present bool, status string, design, full float64, unit string, cycles *int) BatteryMetrics {
 	result := BatteryMetrics{
-		Present: present,
-		Status: status,
+		Present:      present,
+		Status:       status,
 		CapacityUnit: unit,
-		CycleCount: cycles,
+		CycleCount:   cycles,
 	}
 	if !present || !isFinitePositive(design) || !isFinitePositive(full) || unit == "" {
 		return result
@@ -37,4 +37,3 @@ func makeBatteryMetrics(present bool, status string, design, full float64, unit 
 	}
 	return result
 }
-

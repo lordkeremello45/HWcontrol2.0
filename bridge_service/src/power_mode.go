@@ -13,8 +13,8 @@ type PowerModeState struct {
 }
 
 const (
-	powerModeBalanced   = 0.0
-	powerModeEfficiency = 50.0
+	powerModeBalanced    = 0.0
+	powerModeEfficiency  = 50.0
 	powerModePerformance = 100.0
 )
 

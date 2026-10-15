@@ -22,11 +22,11 @@ type integrityTarget struct {
 }
 
 type bridgeIntegrityMonitor struct {
-	targets   []integrityTarget
+	targets    []integrityTarget
 	verifyRoot string
-	stopCh   chan struct{}
-	stopOnce sync.Once
-	healthy  atomic.Bool
+	stopCh     chan struct{}
+	stopOnce   sync.Once
+	healthy    atomic.Bool
 }
 
 func newBridgeIntegrityMonitor() (*bridgeIntegrityMonitor, error) {
@@ -85,9 +85,9 @@ func newBridgeIntegrityMonitor() (*bridgeIntegrityMonitor, error) {
 	bridgeIntegrityState.Store(true)
 	bridgeIntegrityTargetCount.Store(int64(len(targets)))
 	m := &bridgeIntegrityMonitor{
-		targets: targets,
+		targets:    targets,
 		verifyRoot: verifyRoot,
-		stopCh: make(chan struct{}),
+		stopCh:     make(chan struct{}),
 	}
 	m.healthy.Store(true)
 	return m, nil

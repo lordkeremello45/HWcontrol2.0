@@ -89,9 +89,9 @@ func TestMaxNvidiaGPUTemperatureRejectsMissingOrInvalidSamples(t *testing.T) {
 
 func TestFanChannelCommandRequiresValidatedTarget(t *testing.T) {
 	for _, test := range []struct {
-		name  string
+		name   string
 		target string
-		valid bool
+		valid  bool
 	}{
 		{name: "missing target", target: "", valid: false},
 		{name: "path is not a channel id", target: "/sys/class/hwmon/hwmon0/pwm1", valid: false},
@@ -461,11 +461,11 @@ func TestBridgeKeyLifecycleUsesAtomicFile(t *testing.T) {
 func TestHardwareControlSafetyGateRejectsInvalidSensorValues(t *testing.T) {
 	base := HardwareMetrics{
 		ThermalSafetyAvailable: true,
-		CPUTemperature: 60,
-		GPUTemperature: 65,
+		CPUTemperature:         60,
+		GPUTemperature:         65,
 	}
 	for _, test := range []struct {
-		name string
+		name   string
 		mutate func(*HardwareMetrics)
 	}{
 		{"CPU over sensor range", func(m *HardwareMetrics) { m.CPUTemperature = 150 }},
