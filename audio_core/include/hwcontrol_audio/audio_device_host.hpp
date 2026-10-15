@@ -35,6 +35,9 @@ struct LiveAudioMetrics {
   bool spectrumAvailable = false;
   float spectrumPeakFrequencyHz = 0.0F;
   float spectrumRms = 0.0F;
+  float spectrumLeftRms = 0.0F;
+  float spectrumRightRms = 0.0F;
+  float stereoCorrelation = 0.0F;
   std::array<float, kSpectrumBinCount> spectrumMagnitude{};
   double sampleRateHz = 0.0;
 };
