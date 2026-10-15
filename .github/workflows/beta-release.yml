@@ -123,6 +123,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path $root | Out-Null
           & "$PWD\deploy\windows\Invoke-MsiWithTimeout.ps1" -MsiPath $msi -Action Install -LogPath "$root/install.log" -TimeoutSeconds 120
           if (-not (Test-Path "$env:ProgramFiles\HWControl\HWControl.exe")) { throw 'MSI did not install HWControl.exe' }
+          if (-not (Test-Path "$env:ProgramFiles\HWControl\hwcontrol_audio_probe.exe")) { throw 'MSI did not install native audio helper' }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\hwcontrol-hardware-identification.exe")) { throw 'C# hardware identification helper was not installed' }
           & "$env:ProgramFiles\HWControl\hwcontrol-hardware-identification.exe" --self-test
           if ($LASTEXITCODE -ne 0) { throw 'Installed C# hardware identification self-test failed' }
@@ -244,6 +245,7 @@ jobs:
           rm -rf package linux-deb
           mkdir -p "package/$root" linux-deb/DEBIAN linux-deb/opt/hwcontrol linux-deb/usr/bin linux-deb/lib/systemd/system
           install -m 0755 build/ai_core/ai_engine "package/$root/ai_engine"
+          install -m 0755 build/audio_core/hwcontrol_audio_probe "package/$root/hwcontrol_audio_probe"
           install -m 0755 bridge-service "package/$root/bridge-service"
           install -m 0755 security-guardian "package/$root/security-guardian"
           install -m 0440 security/fetch-status/bridger.key "package/$root/security/fetch-status/bridger.key"
@@ -348,6 +350,7 @@ jobs:
           mkdir -p pkg-root/Applications/HWControl dmg-root
           cp -R gui_dashboard/build/macos/Build/Products/Release/HWControl.app pkg-root/Applications/HWControl/
           install -m 0755 build/ai_core/ai_engine pkg-root/Applications/HWControl/ai_engine
+          install -m 0755 build/audio_core/hwcontrol_audio_probe pkg-root/Applications/HWControl/hwcontrol_audio_probe
           install -m 0755 bridge-service pkg-root/Applications/HWControl/bridge-service
           install -m 0755 security-guardian pkg-root/Applications/HWControl/security-guardian
           install -m 0644 deploy/macos/com.hwcontrol.bridge.plist pkg-root/Applications/HWControl/com.hwcontrol.bridge.plist
@@ -363,6 +366,7 @@ jobs:
           sudo installer -pkg "HWControl-$RELEASE_TAG-macOS-AppleSilicon.pkg" -target /
           test -d /Applications/HWControl/HWControl.app
           test -x /Applications/HWControl/bridge-service
+          test -x /Applications/HWControl/hwcontrol_audio_probe
           test -x /Applications/HWControl/ai_engine
           test -x /Applications/HWControl/security-guardian
           test -f '/Library/Application Support/HWControl/security/canary/bridger.key'
