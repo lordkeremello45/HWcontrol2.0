@@ -404,11 +404,16 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
     try {
       final result = await widget.onControl!('Get Audio Studio Status', null);
       if (!mounted || result == null) return;
+      final wasRunning = _liveRunning;
+      final isRunning = result['running'] == true;
       setState(() {
         _liveMetrics = result;
-        _liveRunning = result['running'] == true;
+        _liveRunning = isRunning;
+        if (wasRunning && !isRunning) {
+          _liveError = 'The audio stream stopped unexpectedly. Audio is no longer being processed. Refresh devices, then start the stream again.';
+        }
       });
-      if (!_liveRunning) { _metricsTimer?.cancel(); _metricsTimer = null; }
+      if (!isRunning) { _metricsTimer?.cancel(); _metricsTimer = null; }
     } catch (error) {
       if (mounted) setState(() => _liveError = 'Live metrics unavailable: $error');
     } finally {
