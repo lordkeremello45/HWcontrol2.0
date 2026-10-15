@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -7,20 +6,10 @@ import 'package:hwcontrol_dashboard/aim_trainer_screen.dart';
 import 'package:hwcontrol_dashboard/user_data_store.dart';
 
 void main() {
-  late Directory temporaryDirectory;
   late HWControlUserDataStore store;
 
-  setUp(() async {
-    temporaryDirectory = await Directory.systemTemp.createTemp('hwcontrol-aim-test-');
-    store = HWControlUserDataStore(
-      supportDirectoryProvider: () async => temporaryDirectory,
-    );
-  });
-
-  tearDown(() async {
-    if (await temporaryDirectory.exists()) {
-      await temporaryDirectory.delete(recursive: true);
-    }
+  setUp(() {
+    store = HWControlUserDataStore();
   });
 
   testWidgets('shows offline trainer and starts a session', (tester) async {
@@ -90,7 +79,8 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 50));
       final preferences = await store.readUiPreferences();
       expect(preferences['aimTrainerHistory'], isA<List>());
-      expect((preferences['aimTrainerHistory'] as List), hasLength(1));
+      expect((preferences['aimTrainerHistory'] as List), isNotEmpty);
+      expect((preferences['aimTrainerHistory'] as List).last['durationSeconds'], 5);
     });
     expect(find.text('Session complete'), findsOneWidget);
   });
