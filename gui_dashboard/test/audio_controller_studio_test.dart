@@ -1,0 +1,106 @@
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:hwcontrol_dashboard/audio_controller_studio.dart';
+
+void main() {
+  testWidgets('studio clearly reports that live audio is not connected', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: AudioControllerStudioScreen()),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Audio Controller Studio'), findsOneWidget);
+    expect(find.text('Parametric equalizer'), findsOneWidget);
+    expect(find.text('Dynamics and safety'), findsOneWidget);
+    expect(find.text('Analysis laboratory'), findsOneWidget);
+    expect(find.text('Microphone capture / playback'), findsOneWidget);
+    expect(find.text('NATIVE PROTOTYPE'), findsOneWidget);
+    expect(find.text('NOT IMPLEMENTED'), findsNWidgets(3));
+    expect(
+      find.textContaining('No audio is being recorded.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('studio preset controls can be selected', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: AudioControllerStudioScreen()),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Voice'));
+    await tester.pumpAndSettle();
+
+    final voiceChip = tester.widget<ChoiceChip>(
+      find.widgetWithText(ChoiceChip, 'Voice'),
+    );
+    expect(voiceChip.selected, isTrue);
+  });
+
+  testWidgets('detects endpoints and applies only validated Gemma suggestions', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: AudioControllerStudioScreen(
+        onLoadDevices: () async => <String, dynamic>{
+          'capture': <Map<String, dynamic>>[
+            <String, dynamic>{'index': 0, 'name': 'USB Microphone', 'isDefault': true},
+          ],
+          'playback': <Map<String, dynamic>>[
+            <String, dynamic>{'index': 0, 'name': 'Studio Speakers', 'isDefault': true},
+          ],
+        },
+        onRecommend: (profile) async {
+          expect(profile['model'], 'USB Microphone');
+          return <String, dynamic>{
+            'recommendation': jsonEncode(<String, dynamic>{
+              'summary': 'Conservative voice profile',
+              'inputGainDb': 0,
+              'highPassEnabled': true,
+              'highPassHz': 80,
+              'noiseGateEnabled': true,
+              'noiseGateThresholdDb': -48,
+              'compressorEnabled': true,
+              'compressorRatio': 2,
+              'limiterEnabled': true,
+              'limiterCeilingDb': -1,
+              'eqBands': <Map<String, dynamic>>[
+                <String, dynamic>{'frequencyHz': 1000, 'gainDb': 1},
+              ],
+              'warnings': <String>[],
+            }),
+          };
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Detected 1 input and 1 output endpoints'), findsOneWidget);
+    await tester.ensureVisible(find.text('Ask local Gemma'));
+    await tester.tap(find.text('Ask local Gemma'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Conservative voice profile'), findsOneWidget);
+    await tester.ensureVisible(find.text('Apply validated settings'));
+    await tester.tap(find.text('Apply validated settings'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Validated Gemma settings applied'), findsOneWidget);
+  });
+
+  testWidgets('rejects malformed Gemma recommendation output', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: AudioControllerStudioScreen(
+        onLoadDevices: () async => <String, dynamic>{'capture': <dynamic>[], 'playback': <dynamic>[]},
+        onRecommend: (_) async => <String, dynamic>{'recommendation': '{"summary":"unsafe"}'},
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Device model / endpoint name'));
+    await tester.enterText(find.byType(TextField).first, 'USB Mic');
+    await tester.ensureVisible(find.text('Ask local Gemma'));
+    await tester.tap(find.text('Ask local Gemma'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Recommendation rejected'), findsOneWidget);
+    expect(find.text('Apply validated settings'), findsNothing);
+  });
+}
