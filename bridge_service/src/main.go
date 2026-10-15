@@ -1107,10 +1107,17 @@ func main() {
 	}
 }
 
+func isCPUTemperatureSensorKey(key string) bool {
+	key = strings.ToLower(key)
+	if strings.Contains(key, "gpu") || strings.Contains(key, "graphics") {
+		return false
+	}
+	return strings.Contains(key, "cpu") || strings.Contains(key, "package") || strings.Contains(key, "core")
+}
+
 func firstValidCPUTemperature(temperatures []host.TemperatureStat) (float64, string, bool) {
 	for _, sensor := range temperatures {
-		key := strings.ToLower(sensor.SensorKey)
-		if !strings.Contains(key, "cpu") && !strings.Contains(key, "package") && !strings.Contains(key, "core") {
+		if !isCPUTemperatureSensorKey(sensor.SensorKey) {
 			continue
 		}
 		if !isValidTemperature(sensor.Temperature) || sensor.Temperature <= 0 {
