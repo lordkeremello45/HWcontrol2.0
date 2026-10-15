@@ -256,7 +256,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
                                 ChoiceChip(
                                   label: Text(preset),
                                   selected: _preset == preset,
-                                  onSelected: (_) => _applyPreset(preset),
+                                  onSelected: _liveRunning || _liveBusy ? null : (_) => _applyPreset(preset),
                                 ),
                             ],
                           ),
@@ -764,7 +764,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
             max: 12,
             divisions: 48,
             label: '${_eqGain[i].toStringAsFixed(1)} dB',
-            onChanged: (v) => setState(() { _eqGain[i] = v; _preset = 'Custom'; }),
+            onChanged: _liveRunning || _liveBusy ? null : (v) => setState(() { _eqGain[i] = v; _preset = 'Custom'; }),
           ),
           Row(children: [
             Text('Center frequency'),
@@ -776,7 +776,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
             min: 20,
             max: 18000,
             divisions: 1798,
-            onChanged: (v) => setState(() { _eqFrequency[i] = v; _preset = 'Custom'; }),
+            onChanged: _liveRunning || _liveBusy ? null : (v) => setState(() { _eqFrequency[i] = v; _preset = 'Custom'; }),
           ),
           if (i != 2) const Divider(),
         ],
@@ -786,25 +786,25 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
 
   Widget _buildDynamicsPanel() => _panel(
     title: 'Dynamics and safety',
-    subtitle: 'Settings preview; live processing is not connected',
+    subtitle: _liveRunning ? 'Stop live processing before changing DSP settings; changes apply on the next start.' : 'Changes are applied when the native stream starts.',
     icon: Icons.tune,
     child: Column(
       children: [
         _slider('Noise gate threshold', _gateThreshold, -90, 0, (v) => setState(() { _gateThreshold = v; _preset = 'Custom'; }), suffix: 'dB'),
-        SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('Noise gate'), subtitle: const Text('Basic threshold gate; not AI noise removal.'), value: _gateEnabled, onChanged: (v) => setState(() { _gateEnabled = v; _preset = 'Custom'; })),
+        SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('Noise gate'), subtitle: const Text('Basic threshold gate; not AI noise removal.'), value: _gateEnabled, onChanged: _liveRunning || _liveBusy ? null : (v) => setState(() { _gateEnabled = v; _preset = 'Custom'; })),
         const Divider(),
         _slider('High-pass frequency', _highPassFrequency, 20, 1000, (v) => setState(() { _highPassFrequency = v; _preset = 'Custom'; }), suffix: 'Hz'),
-        SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('High-pass filter'), subtitle: const Text('Reduces low-frequency rumble.'), value: _highPassEnabled, onChanged: (v) => setState(() { _highPassEnabled = v; _preset = 'Custom'; })),
+        SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('High-pass filter'), subtitle: const Text('Reduces low-frequency rumble.'), value: _highPassEnabled, onChanged: _liveRunning || _liveBusy ? null : (v) => setState(() { _highPassEnabled = v; _preset = 'Custom'; })),
         const Divider(),
         _slider('Compressor threshold', _compressorThreshold, -60, 0, (v) => setState(() { _compressorThreshold = v; _preset = 'Custom'; }), suffix: 'dB'),
         _slider('Compressor ratio', _compressorRatio, 1, 4, (v) => setState(() { _compressorRatio = v; _preset = 'Custom'; }), suffix: ':1'),
         _slider('Attack', _compressorAttack, 0.1, 200, (v) => setState(() { _compressorAttack = v; _preset = 'Custom'; }), suffix: 'ms'),
         _slider('Release', _compressorRelease, 1, 2000, (v) => setState(() { _compressorRelease = v; _preset = 'Custom'; }), suffix: 'ms'),
         _slider('Soft-knee width', _compressorKnee, 0, 24, (v) => setState(() { _compressorKnee = v; _preset = 'Custom'; }), suffix: 'dB'),
-        SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('Compressor'), value: _compressorEnabled, onChanged: (v) => setState(() { _compressorEnabled = v; _preset = 'Custom'; })),
+        SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('Compressor'), value: _compressorEnabled, onChanged: _liveRunning || _liveBusy ? null : (v) => setState(() { _compressorEnabled = v; _preset = 'Custom'; })),
         const Divider(),
         _slider('Limiter ceiling', _limiterCeiling, -24, 0, (v) => setState(() { _limiterCeiling = v; _preset = 'Custom'; }), suffix: 'dBFS'),
-        SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('Output limiter'), subtitle: const Text('Hard sample-peak clamp in the current native prototype.'), value: _limiterEnabled, onChanged: (v) => setState(() { _limiterEnabled = v; _preset = 'Custom'; })),
+        SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('Output limiter'), subtitle: const Text('Hard sample-peak clamp in the current native prototype.'), value: _limiterEnabled, onChanged: _liveRunning || _liveBusy ? null : (v) => setState(() { _limiterEnabled = v; _preset = 'Custom'; })),
       ],
     ),
   );
@@ -891,7 +891,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
 
   Widget _buildAnalysisPanel() => _panel(
     title: 'Analysis laboratory',
-    subtitle: 'Live analysis becomes available with device integration',
+    subtitle: 'Live peak and RMS measurements from the native processing stream; FFT and latency remain unavailable.',
     icon: Icons.monitor_heart_outlined,
     child: Wrap(
       spacing: 12,
@@ -936,7 +936,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
             Expanded(child: Text(title)),
             Text('${value.toStringAsFixed(1)} $suffix', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700)),
           ]),
-          Slider(value: value.clamp(min, max).toDouble(), min: min, max: max, onChanged: changed),
+          Slider(value: value.clamp(min, max).toDouble(), min: min, max: max, onChanged: _liveRunning || _liveBusy ? null : changed),
         ],
       );
 
