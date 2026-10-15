@@ -172,6 +172,8 @@ void testSpectrumAnalyzerReportsStereoLevelsAndCorrelation() {
           "right-channel RMS incorrect");
   require(spectrum.stereoCorrelation < -0.999F,
           "inverted stereo channels were not identified as negatively correlated");
+  require(spectrum.rms < 1.0e-6F,
+          "anti-phase stereo channels should cancel in the mono spectrum");
 
   samples.fill(0.0F);
   require(analyzer.analyze(samples.data(), hwcontrol::audio::kFftSize,
@@ -250,6 +252,13 @@ void testSpectrumAnalyzerHandlesLargestFiniteSamples() {
           "FFT RMS overflowed on finite extreme input");
   require(std::isfinite(spectrum.peakFrequencyHz),
           "FFT peak frequency overflowed on finite extreme input");
+  require(std::isfinite(spectrum.leftRms) &&
+              std::isfinite(spectrum.rightRms) &&
+              std::isfinite(spectrum.stereoCorrelation),
+          "stereo metrics overflowed on finite extreme input");
+  require(spectrum.stereoCorrelation >= -1.0F &&
+              spectrum.stereoCorrelation <= 1.0F,
+          "stereo correlation escaped its normalized range");
   for (float magnitude : spectrum.magnitude) {
     require(std::isfinite(magnitude),
             "FFT magnitude overflowed on finite extreme input");
