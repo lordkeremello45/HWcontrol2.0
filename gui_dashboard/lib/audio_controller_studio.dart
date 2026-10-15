@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'user_data_store.dart';
 
@@ -420,7 +421,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
   String _metricDb(String key) {
     final value = _liveMetrics[key];
     if (value is! num || !value.isFinite || value <= 0) return '−∞ dBFS';
-    return '${(20 * (value.toDouble().clamp(0.000001, 100.0)).log / 2.302585092994046).toStringAsFixed(1)} dBFS';
+    return '${(20 * math.log(value.toDouble().clamp(0.000001, 100.0)) / 2.302585092994046).toStringAsFixed(1)} dBFS';
   }
 
   void _syncSelectedEndpoint() {
@@ -896,12 +897,12 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
       spacing: 12,
       runSpacing: 12,
       children: [
-        _metric('Input peak', 'Not connected'),
-        _metric('Output peak', 'Not connected'),
-        _metric('RMS / LUFS', 'Not connected'),
+        _metric('Input peak', _liveRunning ? _metricDb('inputPeak') : 'Not connected'),
+        _metric('Output peak', _liveRunning ? _metricDb('outputPeak') : 'Not connected'),
+        _metric('Input RMS', _liveRunning ? _metricDb('inputRms') : 'Not connected'),
         _metric('FFT / spectrogram', 'Not connected'),
         _metric('Latency / dropout', 'Not connected'),
-        _metric('Clipping counter', 'Not connected'),
+        _metric('Processed frames', _liveRunning ? '${_liveMetrics['processedFrames'] ?? 0}' : 'Not connected'),
       ],
     ),
   );
