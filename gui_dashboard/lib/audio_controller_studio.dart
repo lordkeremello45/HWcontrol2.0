@@ -9,10 +9,11 @@ import 'user_data_store.dart';
 /// claim live capture, system-wide processing, or device routing until the
 /// native device adapters and bridge contract are implemented.
 class AudioControllerStudioScreen extends StatefulWidget {
-  const AudioControllerStudioScreen({super.key, this.onRecommend, this.onLoadDevices});
+  const AudioControllerStudioScreen({super.key, this.onRecommend, this.onLoadDevices, this.onControl});
 
   final Future<Map<String, dynamic>?> Function(Map<String, dynamic> profile)? onRecommend;
   final Future<Map<String, dynamic>?> Function()? onLoadDevices;
+  final Future<Map<String, dynamic>?> Function(String action, Map<String, dynamic>? payload)? onControl;
 
   @override
   State<AudioControllerStudioScreen> createState() => _AudioControllerStudioScreenState();
@@ -31,6 +32,15 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
   String? _advisorError;
   String? _deviceDetectionMessage;
   String? _selectedEndpointId;
+  int? _selectedCaptureIndex;
+  int? _selectedPlaybackIndex;
+  bool _monitorOutput = false;
+  bool _liveRunning = false;
+  bool _liveBusy = false;
+  bool _metricsPolling = false;
+  String? _liveError;
+  Map<String, dynamic> _liveMetrics = <String, dynamic>{};
+  Timer? _metricsTimer;
   List<Map<String, dynamic>> _captureDevices = <Map<String, dynamic>>[];
   List<Map<String, dynamic>> _playbackDevices = <Map<String, dynamic>>[];
   Map<String, dynamic>? _advisorRecommendation;
@@ -55,6 +65,10 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
 
   @override
   void dispose() {
+    _metricsTimer?.cancel();
+    if (_liveRunning && widget.onControl != null) {
+      unawaited(widget.onControl!('Stop Audio Studio', null));
+    }
     _deviceModelController.dispose();
     _manufacturerController.dispose();
     super.dispose();
@@ -260,6 +274,8 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
                               ],
                             ),
                           const SizedBox(height: 16),
+                          _buildLiveControlPanel(),
+                          const SizedBox(height: 16),
                           _buildAnalysisPanel(),
                           const SizedBox(height: 16),
                           _buildDeviceIntelligencePanel(),
@@ -322,12 +338,89 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
       setState(() {
         _captureDevices = parse(result['capture'], 'capture');
         _playbackDevices = parse(result['playback'], 'playback');
+        _selectedCaptureIndex = _defaultDeviceIndex(_captureDevices, _selectedCaptureIndex);
+        _selectedPlaybackIndex = _defaultDeviceIndex(_playbackDevices, _selectedPlaybackIndex);
         _deviceDetectionMessage = 'Detected ${_captureDevices.length} input and ${_playbackDevices.length} output endpoints on this computer.';
       });
       _syncSelectedEndpoint();
     } catch (error) {
       if (mounted) setState(() => _deviceDetectionMessage = 'Device detection unavailable: $error');
     }
+  }
+
+
+  int? _defaultDeviceIndex(List<Map<String, dynamic>> devices, int? selected) {
+    if (devices.isEmpty) return null;
+    if (selected != null && devices.any((device) => device['index'] == selected)) return selected;
+    final defaults = devices.where((device) => device['isDefault'] == true);
+    return (defaults.isNotEmpty ? defaults.first : devices.first)['index'] as int;
+  }
+
+  Future<void> _startLiveAudio() async {
+    if (widget.onControl == null || _selectedCaptureIndex == null || _selectedPlaybackIndex == null) {
+      setState(() => _liveError = 'Native audio control or a capture/playback device is unavailable.');
+      return;
+    }
+    setState(() { _liveBusy = true; _liveError = null; });
+    try {
+      final payload = <String, dynamic>{
+        ..._configuration(),
+        'captureIndex': _selectedCaptureIndex,
+        'playbackIndex': _selectedPlaybackIndex,
+        'monitorOutput': _monitorOutput,
+      };
+      final result = await widget.onControl!('Start Audio Studio', payload);
+      if (result == null) throw const FormatException('Native audio engine returned no status.');
+      if (!mounted) return;
+      setState(() { _liveRunning = result['running'] == true; _liveMetrics = result; });
+      if (!_liveRunning) throw const FormatException('Native audio engine did not enter the running state.');
+      _metricsTimer?.cancel();
+      _metricsTimer = Timer.periodic(const Duration(milliseconds: 500), (_) => _refreshLiveMetrics());
+      await _refreshLiveMetrics();
+    } catch (error) {
+      if (mounted) setState(() => _liveError = 'Could not start live audio: $error');
+    } finally {
+      if (mounted) setState(() => _liveBusy = false);
+    }
+  }
+
+  Future<void> _stopLiveAudio() async {
+    _metricsTimer?.cancel();
+    _metricsTimer = null;
+    if (widget.onControl == null) return;
+    setState(() { _liveBusy = true; _liveError = null; });
+    try {
+      final result = await widget.onControl!('Stop Audio Studio', null);
+      if (mounted) setState(() { _liveRunning = false; if (result != null) _liveMetrics = result; });
+    } catch (error) {
+      if (mounted) setState(() => _liveError = 'Could not stop audio cleanly: $error');
+    } finally {
+      if (mounted) setState(() => _liveBusy = false);
+    }
+  }
+
+  Future<void> _refreshLiveMetrics() async {
+    if (!_liveRunning || _metricsPolling || widget.onControl == null) return;
+    _metricsPolling = true;
+    try {
+      final result = await widget.onControl!('Get Audio Studio Status', null);
+      if (!mounted || result == null) return;
+      setState(() {
+        _liveMetrics = result;
+        _liveRunning = result['running'] == true;
+      });
+      if (!_liveRunning) { _metricsTimer?.cancel(); _metricsTimer = null; }
+    } catch (error) {
+      if (mounted) setState(() => _liveError = 'Live metrics unavailable: $error');
+    } finally {
+      _metricsPolling = false;
+    }
+  }
+
+  String _metricDb(String key) {
+    final value = _liveMetrics[key];
+    if (value is! num || !value.isFinite || value <= 0) return '−∞ dBFS';
+    return '${(20 * (value.toDouble().clamp(0.000001, 100.0)).log / 2.302585092994046).toStringAsFixed(1)} dBFS';
   }
 
   void _syncSelectedEndpoint() {
@@ -617,9 +710,9 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Profile editor • DSP integration in progress', style: TextStyle(fontWeight: FontWeight.w800)),
+              Text('Audio profile editor and native DSP engine', style: TextStyle(fontWeight: FontWeight.w800)),
               SizedBox(height: 4),
-              Text('These settings are saved locally. The native device-host prototype can enumerate and open capture/playback devices, but this screen is not connected to it yet. System-audio routing and live UI meters are not active. No audio is being recorded.'),
+              Text('Start live processing to apply the selected profile to the chosen microphone and output. Monitoring is opt-in to reduce feedback risk. System-audio loopback, virtual devices, and per-application routing are not implemented. Audio is not recorded.'),
             ],
           ),
         ),
@@ -711,6 +804,86 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
         const Divider(),
         _slider('Limiter ceiling', _limiterCeiling, -24, 0, (v) => setState(() { _limiterCeiling = v; _preset = 'Custom'; }), suffix: 'dBFS'),
         SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('Output limiter'), subtitle: const Text('Hard sample-peak clamp in the current native prototype.'), value: _limiterEnabled, onChanged: (v) => setState(() { _limiterEnabled = v; _preset = 'Custom'; })),
+      ],
+    ),
+  );
+
+
+  Widget _buildLiveControlPanel() => _panel(
+    title: 'Live audio engine',
+    subtitle: 'Microphone capture → native DSP → selected output; recording is disabled',
+    icon: Icons.graphic_eq,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_captureDevices.isEmpty || _playbackDevices.isEmpty)
+          const Text('Connect an input and output device, then refresh endpoints before starting the engine.'),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            SizedBox(
+              width: 320,
+              child: DropdownButtonFormField<int>(
+                value: _selectedCaptureIndex,
+                decoration: const InputDecoration(labelText: 'Microphone / capture device'),
+                items: [for (final device in _captureDevices) DropdownMenuItem<int>(
+                  value: device['index'] as int,
+                  child: Text('${device['name'] as String}${device['isDefault'] == true ? ' (default)' : ''}', overflow: TextOverflow.ellipsis),
+                )],
+                onChanged: _liveRunning || _liveBusy ? null : (value) => setState(() => _selectedCaptureIndex = value),
+              ),
+            ),
+            SizedBox(
+              width: 320,
+              child: DropdownButtonFormField<int>(
+                value: _selectedPlaybackIndex,
+                decoration: const InputDecoration(labelText: 'Playback device'),
+                items: [for (final device in _playbackDevices) DropdownMenuItem<int>(
+                  value: device['index'] as int,
+                  child: Text('${device['name'] as String}${device['isDefault'] == true ? ' (default)' : ''}', overflow: TextOverflow.ellipsis),
+                )],
+                onChanged: _liveRunning || _liveBusy ? null : (value) => setState(() => _selectedPlaybackIndex = value),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          value: _monitorOutput,
+          onChanged: _liveRunning || _liveBusy ? null : (value) => setState(() => _monitorOutput = value),
+          title: const Text('Play processed microphone through the selected output'),
+          subtitle: const Text('Off by default to prevent acoustic feedback. Use headphones if enabling monitoring.'),
+        ),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            FilledButton.icon(
+              onPressed: _liveBusy || _liveRunning || widget.onControl == null || _selectedCaptureIndex == null || _selectedPlaybackIndex == null ? null : _startLiveAudio,
+              icon: _liveBusy ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.play_arrow),
+              label: const Text('Start live processing'),
+            ),
+            OutlinedButton.icon(
+              onPressed: _liveBusy || !_liveRunning ? null : _stopLiveAudio,
+              icon: const Icon(Icons.stop),
+              label: const Text('Stop'),
+            ),
+            OutlinedButton.icon(
+              onPressed: _liveBusy ? null : _loadAudioDevices,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Refresh devices'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Text(_liveRunning ? 'LIVE • audio is processed locally' : 'Stopped • no microphone stream is active',
+          style: TextStyle(fontWeight: FontWeight.w800, color: _liveRunning ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant)),
+        if (_liveError != null) Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(_liveError!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        ),
       ],
     ),
   );
