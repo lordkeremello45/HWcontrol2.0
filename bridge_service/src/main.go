@@ -193,15 +193,9 @@ func collectMetrics() HardwareMetrics {
 	}
 	metrics.StorageVolumes = collectStorageVolumes()
 	if temperatures, err := host.SensorsTemperatures(); err == nil {
-		for _, sensor := range temperatures {
-			key := strings.ToLower(sensor.SensorKey)
-			if strings.Contains(key, "cpu") || strings.Contains(key, "package") || strings.Contains(key, "core") {
-				if isValidTemperature(sensor.Temperature) && sensor.Temperature > 0 {
-					metrics.CPUTemperature = sensor.Temperature
-					metrics.CPUTemperatureSource = "gopsutil-host-sensors:" + sensor.SensorKey
-				}
-				break
-			}
+		if temperature, source, ok := firstValidCPUTemperature(temperatures); ok {
+			metrics.CPUTemperature = temperature
+			metrics.CPUTemperatureSource = source
 		}
 	}
 	if output, err := nvidiaSMIOutput(); err == nil {
@@ -1111,4 +1105,18 @@ func main() {
 		fmt.Println("Bridge başlatılamadı:", err)
 		os.Exit(1)
 	}
+}
+
+func firstValidCPUTemperature(temperatures []host.TemperatureStat) (float64, string, bool) {
+	for _, sensor := range temperatures {
+		key := strings.ToLower(sensor.SensorKey)
+		if !strings.Contains(key, "cpu") && !strings.Contains(key, "package") && !strings.Contains(key, "core") {
+			continue
+		}
+		if !isValidTemperature(sensor.Temperature) || sensor.Temperature <= 0 {
+			continue
+		}
+		return sensor.Temperature, "gopsutil-host-sensors:" + sensor.SensorKey, true
+	}
+	return 0, "", false
 }
