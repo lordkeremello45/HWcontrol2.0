@@ -1782,6 +1782,13 @@ Attach this archive to a support issue only after reviewing it for personal info
     if (!_isConnected || socket == null || _sharedKey.isEmpty) {
       throw StateError('Connect to the authenticated local bridge before controlling audio.');
     }
+    if (action == 'Stop Audio Studio') {
+      var attempts = 0;
+      while (_isSending && attempts < 120) {
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        attempts++;
+      }
+    }
     if (_isSending) throw StateError('Another bridge request is in progress.');
     String? target;
     if (payload != null) {
