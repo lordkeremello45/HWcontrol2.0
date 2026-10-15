@@ -51,6 +51,10 @@ void main() {
               'inputRms': 0.1,
               'outputRms': 0.08,
               'processedFrames': 480,
+              'spectrumAvailable': true,
+              'spectrumPeakFrequencyHz': 1500.0,
+              'sampleRateHz': 48000.0,
+              'spectrumMagnitude': List<double>.filled(513, 0.1),
             };
           }
           if (action == 'Get Audio Studio Status') {
@@ -61,6 +65,10 @@ void main() {
               'inputRms': 0.1,
               'outputRms': 0.08,
               'processedFrames': 960,
+              'spectrumAvailable': true,
+              'spectrumPeakFrequencyHz': 1500.0,
+              'sampleRateHz': 48000.0,
+              'spectrumMagnitude': List<double>.filled(513, 0.1),
             };
           }
           return <String, dynamic>{'running': false};
@@ -73,6 +81,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(actions, contains('Start Audio Studio'));
     expect(find.text('LIVE • audio is processed locally'), findsOneWidget);
+    expect(find.text('1500 Hz'), findsOneWidget);
+    expect(find.text('Live spectrum (1024-point FFT)'), findsOneWidget);
     final liveSlider = tester.widget<Slider>(find.byType(Slider).first);
     expect(liveSlider.onChanged, isNull, reason: 'DSP parameters must not imply live reconfiguration.');
     final livePreset = tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Voice'));
