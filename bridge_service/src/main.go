@@ -481,7 +481,7 @@ func validateCommand(cmd Command) error {
 			return fmt.Errorf("read-only command value must be zero")
 		}
 		return nil
-	case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Sensor History", "Get Fan Channels", "Get Fetch Status":
+	case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Sensor History", "Get Fan Channels", "Get Fetch Status", "Get Audio Devices":
 		if cmd.Value != 0 {
 			return fmt.Errorf("read-only command value must be zero")
 		}
@@ -754,6 +754,88 @@ func loadOrCreateSecret() (string, error) {
 	return secret, nil
 }
 
+
+type audioProbeDevice struct {
+	Index     int    `json:"index"`
+	NameHex   string `json:"nameHex"`
+	IsDefault bool   `json:"isDefault"`
+}
+
+type audioProbeOutput struct {
+	Capture  []audioProbeDevice `json:"capture"`
+	Playback []audioProbeDevice `json:"playback"`
+}
+
+func decodeAudioDeviceProbeOutput(raw []byte) (map[string]any, error) {
+	var output audioProbeOutput
+	if err := json.Unmarshal(raw, &output); err != nil {
+		return nil, fmt.Errorf("decode native audio device response: %w", err)
+	}
+	convert := func(devices []audioProbeDevice) ([]map[string]any, error) {
+		result := make([]map[string]any, 0, len(devices))
+		for _, device := range devices {
+			if device.Index < 0 || len(device.NameHex) > 2048 {
+				return nil, fmt.Errorf("native audio device response contains invalid fields")
+			}
+			nameBytes, err := hex.DecodeString(device.NameHex)
+			if err != nil || len(nameBytes) == 0 {
+				return nil, fmt.Errorf("native audio device response contains invalid device name")
+			}
+			name := strings.ToValidUTF8(string(nameBytes), "\\uFFFD")
+			if strings.TrimSpace(name) == "" || strings.ContainsRune(name, 0) {
+				return nil, fmt.Errorf("native audio device response contains an empty device name")
+			}
+			result = append(result, map[string]any{
+				"index": device.Index, "name": name, "isDefault": device.IsDefault,
+			})
+		}
+		return result, nil
+	}
+	capture, err := convert(output.Capture)
+	if err != nil { return nil, err }
+	playback, err := convert(output.Playback)
+	if err != nil { return nil, err }
+	return map[string]any{"capture": capture, "playback": playback, "localOnly": true}, nil
+}
+
+func resolveAudioProbePath() (string, error) {
+	if configured := strings.TrimSpace(os.Getenv("HWCONTROL_AUDIO_PROBE")); configured != "" {
+		if !filepath.IsAbs(configured) {
+			return "", fmt.Errorf("HWCONTROL_AUDIO_PROBE must be an absolute path")
+		}
+		info, err := os.Stat(configured)
+		if err != nil { return "", fmt.Errorf("inspect configured audio probe: %w", err) }
+		if !info.Mode().IsRegular() { return "", fmt.Errorf("configured audio probe is not a regular file") }
+		return configured, nil
+	}
+	executable, err := os.Executable()
+	if err != nil { return "", fmt.Errorf("resolve bridge executable: %w", err) }
+	name := "hwcontrol_audio_probe"
+	if runtime.GOOS == "windows" { name += ".exe" }
+	dir := filepath.Dir(executable)
+	for _, candidate := range []string{
+		filepath.Join(dir, name),
+		filepath.Join(dir, "native", name),
+		filepath.Join(dir, "bin", name),
+	} {
+		info, statErr := os.Stat(candidate)
+		if statErr == nil && info.Mode().IsRegular() { return candidate, nil }
+	}
+	return "", fmt.Errorf("native audio probe is not packaged; build hwcontrol_audio_probe and place it beside the bridge or set HWCONTROL_AUDIO_PROBE")
+}
+
+func audioDeviceSnapshot() (map[string]any, error) {
+	probe, err := resolveAudioProbePath()
+	if err != nil { return nil, err }
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	command := exec.CommandContext(ctx, probe, "--json")
+	output, err := command.Output()
+	if ctx.Err() != nil { return nil, fmt.Errorf("native audio device enumeration timed out") }
+	if err != nil { return nil, fmt.Errorf("native audio device enumeration failed: %w", err) }
+	return decodeAudioDeviceProbeOutput(output)
+}
+
 func diagnosticsSnapshot() map[string]any {
 	metrics := collectMetrics()
 	health := evaluateHardwareHealth(metrics)
@@ -958,7 +1040,7 @@ func handleConnection(conn net.Conn, secret string) {
 		authFailures = 0
 		if panicModeActive() {
 			switch cmd.Action {
-			case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Sensor History", "Get Fan Channels", "Get Fetch Status", "Get Power Mode":
+			case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Sensor History", "Get Fan Channels", "Get Fetch Status", "Get Power Mode", "Get Audio Devices":
 				// Read-only diagnostics remain available so the user can see why the system entered panic mode.
 			default:
 				_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
@@ -975,6 +1057,16 @@ func handleConnection(conn net.Conn, secret string) {
 			continue
 		}
 		lastCommandAt = now
+		if cmd.Action == "Get Audio Devices" {
+			data, audioErr := audioDeviceSnapshot()
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			if audioErr != nil {
+				if err := encoder.Encode(Response{Status: "ERROR", Message: audioErr.Error()}); err != nil { return }
+			} else {
+				if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Native audio endpoints enumerated locally", Data: data}); err != nil { return }
+			}
+			continue
+		}
 		if cmd.Action == "Get Update" {
 			status := checkForUpdates(context.Background())
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
