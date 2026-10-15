@@ -57,6 +57,9 @@ void main() {
               'callbackBudgetOverruns': 2,
               'spectrumAvailable': true,
               'spectrumPeakFrequencyHz': 1500.0,
+              'spectrumLeftRms': 0.1,
+              'spectrumRightRms': 0.08,
+              'stereoCorrelation': 0.75,
               'sampleRateHz': 48000.0,
               'spectrumMagnitude': List<double>.filled(513, 0.1),
             };
@@ -75,6 +78,9 @@ void main() {
               'callbackBudgetOverruns': 2,
               'spectrumAvailable': true,
               'spectrumPeakFrequencyHz': 1500.0,
+              'spectrumLeftRms': 0.1,
+              'spectrumRightRms': 0.08,
+              'stereoCorrelation': 0.75,
               'sampleRateHz': 48000.0,
               'spectrumMagnitude': List<double>.filled(513, 0.1),
             };
@@ -91,6 +97,10 @@ void main() {
     expect(find.text('LIVE • audio is processed locally'), findsOneWidget);
     expect(find.text('1500 Hz'), findsOneWidget);
     expect(find.text('Limiter-restrained samples'), findsOneWidget);
+    expect(find.text('Left channel RMS'), findsOneWidget);
+    expect(find.text('Right channel RMS'), findsOneWidget);
+    expect(find.text('Stereo correlation'), findsOneWidget);
+    expect(find.text('0.75'), findsOneWidget);
     expect(find.text('Callback processing'), findsOneWidget);
     expect(find.text('Worst callback'), findsOneWidget);
     expect(find.text('Callback budget overruns'), findsOneWidget);
