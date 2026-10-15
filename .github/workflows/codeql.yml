@@ -26,7 +26,7 @@ jobs:
       matrix:
         include:
           - language: c-cpp
-            build-mode: autobuild
+            build-mode: manual
           - language: go
             build-mode: autobuild
     steps:
@@ -42,8 +42,17 @@ jobs:
           build-mode: ${{ matrix.build-mode }}
           queries: security-extended
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v4
+      - name: Install native build dependencies
+        if: matrix.language == 'c-cpp'
+        run: sudo apt-get update && sudo apt-get install -y build-essential cmake pkg-config libasound2-dev
+
+      - name: Configure C++ project
+        if: matrix.language == 'c-cpp'
+        run: cmake -S . -B build-codeql -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
+
+      - name: Build C++ project for CodeQL
+        if: matrix.language == 'c-cpp'
+        run: cmake --build build-codeql --parallel 2
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
