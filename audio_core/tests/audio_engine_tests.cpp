@@ -200,6 +200,8 @@ void testAudioDeviceHostLifecycleWithoutAssumingHardware() {
   require(!host.running(), "device host should not start implicitly");
   const auto metrics = host.metrics();
   require(!metrics.running, "stopped host reports running");
+  require(!metrics.spectrumAvailable, "spectrum must not be reported before analysis");
+  require(metrics.spectrumMagnitude[0] == 0.0F, "spectrum metrics must start deterministically at zero");
   host.stop();
   require(!host.running(), "stop should be idempotent");
 }
