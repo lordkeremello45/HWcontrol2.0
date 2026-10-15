@@ -143,6 +143,7 @@ jobs:
           & "$PWD\deploy\windows\Invoke-MsiWithTimeout.ps1" -MsiPath $msi -Action Install -LogPath (Join-Path $root 'install.log') -TimeoutSeconds 120
           if (-not (Test-Path "$env:ProgramFiles\HWControl\HWControl.exe")) { throw 'HWControl.exe was not installed' }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\bridge-service.exe")) { throw 'bridge-service.exe was not installed' }
+          if (-not (Test-Path "$env:ProgramFiles\HWControl\hwcontrol_audio_probe.exe")) { throw 'native audio helper was not installed' }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\security-guardian.exe")) { throw 'security-guardian.exe was not installed' }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\hwcontrol-hardware-identification.exe")) { throw 'C# hardware identification helper was not installed' }
           & "$env:ProgramFiles\HWControl\hwcontrol-hardware-identification.exe" --self-test
@@ -178,6 +179,7 @@ jobs:
           Expand-Archive -Path $zip -DestinationPath verify-zip -Force
           if (-not (Test-Path "verify-zip/HWControl.exe")) { throw 'HWControl.exe missing from ZIP' }
           if (-not (Test-Path "verify-zip/bridge-service.exe")) { throw 'bridge-service.exe missing from ZIP' }
+          if (-not (Test-Path "verify-zip/hwcontrol_audio_probe.exe")) { throw 'native audio helper missing from ZIP' }
           if (-not (Test-Path "verify-zip/ai_engine.exe")) { throw 'ai_engine.exe missing from ZIP' }
           if (-not (Test-Path "verify-zip/security-guardian.exe")) { throw 'security-guardian.exe missing from ZIP' }
           if (-not (Test-Path "verify-zip/hwcontrol-hardware-identification.exe")) { throw 'C# hardware identification helper missing from ZIP' }
