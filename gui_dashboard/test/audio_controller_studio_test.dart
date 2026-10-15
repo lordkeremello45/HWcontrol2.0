@@ -129,6 +129,43 @@ void main() {
     expect(find.text('24000 Hz'), findsOneWidget);
   });
 
+  testWidgets('reports an unexpected native stream stop and cancels polling', (tester) async {
+    var statusCalls = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: AudioControllerStudioScreen(
+        onLoadDevices: () async => <String, dynamic>{
+          'capture': <Map<String, dynamic>>[
+            <String, dynamic>{'index': 0, 'name': 'USB Microphone', 'isDefault': true},
+          ],
+          'playback': <Map<String, dynamic>>[
+            <String, dynamic>{'index': 0, 'name': 'Headphones', 'isDefault': true},
+          ],
+        },
+        onControl: (action, payload) async {
+          if (action == 'Start Audio Studio') {
+            return <String, dynamic>{'running': true};
+          }
+          if (action == 'Get Audio Studio Status') {
+            statusCalls++;
+            return <String, dynamic>{'running': false};
+          }
+          return <String, dynamic>{'running': false};
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Start live processing'));
+    await tester.tap(find.text('Start live processing'));
+    await tester.pumpAndSettle();
+
+    expect(statusCalls, 1);
+    expect(find.textContaining('The audio stream stopped unexpectedly.'), findsOneWidget);
+    expect(find.text('Stopped • no microphone stream is active'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 2));
+    expect(statusCalls, 1, reason: 'Polling must stop after the backend reports a stopped stream.');
+  });
+
   testWidgets('studio preset controls can be selected', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(home: AudioControllerStudioScreen()),
