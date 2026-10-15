@@ -181,6 +181,21 @@ void testSpectrumAnalyzerReportsStereoLevelsAndCorrelation() {
           "silence produced nonzero channel RMS");
   require(spectrum.stereoCorrelation == 0.0F,
           "silence should have neutral correlation rather than NaN");
+
+  for (std::size_t frame = 0; frame < hwcontrol::audio::kFftSize; ++frame) {
+    const float quiet = 1.0e-10F * std::sin(static_cast<float>(
+        2.0 * 3.14159265358979323846 * frequency *
+        static_cast<double>(frame) / sampleRate));
+    samples[frame * 2] = quiet;
+    samples[frame * 2 + 1] = quiet * 0.5F;
+  }
+  require(analyzer.analyze(samples.data(), hwcontrol::audio::kFftSize,
+                           sampleRate, spectrum),
+          "stereo analysis rejected a quiet but valid frame");
+  require(spectrum.stereoCorrelation > 0.999F,
+          "quiet correlated channels lost their correlation");
+  require(spectrum.leftRms > spectrum.rightRms * 1.9F,
+          "unequal quiet channel levels were not preserved");
 }
 
 void testSpectrumAnalyzerRejectsInvalidRatesAndContainsBadSamples() {
