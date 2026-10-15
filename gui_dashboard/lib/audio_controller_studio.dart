@@ -369,7 +369,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
         final missingCapture = preserveMissingSelection && _selectedCaptureIndex == null;
         final missingPlayback = preserveMissingSelection && _selectedPlaybackIndex == null;
         _deviceDetectionMessage = missingCapture || missingPlayback
-            ? 'Audio endpoints refreshed. A previously selected device is missing; choose a device manually before restarting.'
+            ? 'Audio endpoints refreshed. A previously selected device is missing or ambiguous; choose devices manually before restarting.'
             : 'Detected ${_captureDevices.length} input and ${_playbackDevices.length} output endpoints on this computer.';
       });
       _syncSelectedEndpoint();
