@@ -6,9 +6,9 @@
 
 ## Executive finding
 
-The main branch does **not** currently contain the native `audio_core/` or the Flutter `audio_controller_studio.dart` implementation. Those files exist on `feat/audio-controller-studio-core`, a diverged branch that is 124 commits ahead and 9 commits behind main. Do not merge that branch wholesale: its diff contains many unrelated bridge, hardware, CI, and documentation changes. Port audio-specific changes in small, reviewable units after reconciling dependencies.
+The native `audio_core/`, the Flutter `audio_controller_studio.dart` screen, and its UI tests have now been ported to `main`. CMake builds the native probe; the Go bridge exposes authenticated device enumeration, start, stop, and live status commands. The native control process receives bounded, range-validated DSP settings and returns peak/RMS/frame metrics. Release and beta packaging workflows now stage the helper beside the bridge.
 
-The existing main-branch CMake entry point only adds `ai_core`; the Flutter dependency manifest includes `audioplayers`, which is for app-level playback and is not a replacement for a low-latency system audio engine. The canonical status page must not be interpreted as proof that the feature branch implementation is integrated into main.
+**Validation remains pending:** source presence does not prove the helper compiles, the GUI analyzes, or capture/playback works on physical devices. System loopback, virtual devices, per-application routing, advanced noise suppression, and the full mixer remain unimplemented.
 
 ## Competitor technology review
 
