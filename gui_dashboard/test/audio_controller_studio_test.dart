@@ -24,6 +24,63 @@ void main() {
     );
   });
 
+
+  testWidgets('starts and stops the native live session through the control callback', (tester) async {
+    final actions = <String>[];
+    await tester.pumpWidget(MaterialApp(
+      home: AudioControllerStudioScreen(
+        onLoadDevices: () async => <String, dynamic>{
+          'capture': <Map<String, dynamic>>[
+            <String, dynamic>{'index': 0, 'name': 'USB Microphone', 'isDefault': true},
+          ],
+          'playback': <Map<String, dynamic>>[
+            <String, dynamic>{'index': 2, 'name': 'Headphones', 'isDefault': true},
+          ],
+        },
+        onControl: (action, payload) async {
+          actions.add(action);
+          if (action == 'Start Audio Studio') {
+            expect(payload?['captureIndex'], 0);
+            expect(payload?['playbackIndex'], 2);
+            expect(payload?['monitorOutput'], false);
+            expect(payload?['eqGain'], hasLength(3));
+            return <String, dynamic>{
+              'running': true,
+              'inputPeak': 0.25,
+              'outputPeak': 0.2,
+              'inputRms': 0.1,
+              'outputRms': 0.08,
+              'processedFrames': 480,
+            };
+          }
+          if (action == 'Get Audio Studio Status') {
+            return <String, dynamic>{
+              'running': true,
+              'inputPeak': 0.25,
+              'outputPeak': 0.2,
+              'inputRms': 0.1,
+              'outputRms': 0.08,
+              'processedFrames': 960,
+            };
+          }
+          return <String, dynamic>{'running': false};
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Start live processing'));
+    await tester.tap(find.text('Start live processing'));
+    await tester.pumpAndSettle();
+    expect(actions, contains('Start Audio Studio'));
+    expect(find.text('LIVE • audio is processed locally'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Stop'));
+    await tester.tap(find.text('Stop'));
+    await tester.pumpAndSettle();
+    expect(actions, contains('Stop Audio Studio'));
+    expect(find.text('Stopped • no microphone stream is active'), findsOneWidget);
+  });
+
   testWidgets('studio preset controls can be selected', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(home: AudioControllerStudioScreen()),
