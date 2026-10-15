@@ -53,9 +53,8 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('aim-target')));
     await tester.pump();
-    expect(find.text('1'), findsOneWidget);
-
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Hits: 1'), findsOneWidget);
+    expect(find.text('Misses: 0'), findsOneWidget);
   });
 
   testWidgets('persists bounded session history', (tester) async {
