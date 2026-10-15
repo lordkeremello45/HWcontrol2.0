@@ -12,6 +12,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/shirou/gopsutil/v3/host"
 )
 
 func testCommand(action string, value float64) Command {
@@ -481,5 +483,33 @@ func TestHardwareControlSafetyGateRejectsInvalidSensorValues(t *testing.T) {
 				t.Fatal("expected invalid thermal telemetry to block hardware control")
 			}
 		})
+	}
+}
+
+func TestFirstValidCPUTemperatureSkipsInvalidMatchingSensor(t *testing.T) {
+	temperature, source, ok := firstValidCPUTemperature([]host.TemperatureStat{
+		{SensorKey: "coretemp_invalid", Temperature: 0},
+		{SensorKey: "package_id_0", Temperature: math.NaN()},
+		{SensorKey: "cpu_package", Temperature: 67.5},
+	})
+	if !ok {
+		t.Fatal("expected a valid CPU temperature after invalid matching sensors")
+	}
+	if temperature != 67.5 {
+		t.Fatalf("temperature = %v, want 67.5", temperature)
+	}
+	if source != "gopsutil-host-sensors:cpu_package" {
+		t.Fatalf("source = %q, want valid sensor source", source)
+	}
+}
+
+func TestFirstValidCPUTemperatureRejectsUnrelatedOrInvalidSensors(t *testing.T) {
+	temperature, source, ok := firstValidCPUTemperature([]host.TemperatureStat{
+		{SensorKey: "gpu_core", Temperature: 70},
+		{SensorKey: "cpu_package", Temperature: 0},
+		{SensorKey: "cpu_core", Temperature: 130},
+	})
+	if ok || temperature != 0 || source != "" {
+		t.Fatalf("invalid CPU readings returned (%v, %q, %v)", temperature, source, ok)
 	}
 }
