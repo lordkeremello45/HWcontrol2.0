@@ -4,11 +4,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'user_data_store.dart';
 
-/// First UI milestone for Audio Controller Studio.
-///
-/// This screen edits and persists a local DSP profile. It deliberately does not
-/// claim live capture, system-wide processing, or device routing until the
-/// native device adapters and bridge contract are implemented.
+/// Audio profile editor and live microphone-processing controls for the native
+/// DSP host. System-audio loopback, virtual devices, and per-application routing
+/// remain unavailable until their platform-specific adapters are implemented.
 class AudioControllerStudioScreen extends StatefulWidget {
   const AudioControllerStudioScreen({super.key, this.onRecommend, this.onLoadDevices, this.onControl});
 
@@ -158,7 +156,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
       });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Audio profile saved locally. Live audio backend is not connected yet.')),
+        const SnackBar(content: Text('Audio profile saved locally.')),
       );
     } catch (_) {
       if (!mounted) return;
