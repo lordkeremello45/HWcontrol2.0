@@ -127,13 +127,29 @@ struct AudioDeviceHost::Impl {
   }
 
   void stopLocked() noexcept {
+    // Clear the public state before asking miniaudio to stop: its stopped
+    // notification is also emitted for an intentional stop.
+    isRunning.store(false, std::memory_order_release);
     if (deviceReady) {
       (void)ma_device_stop(&device);
       ma_device_uninit(&device);
       deviceReady = false;
     }
-    isRunning.store(false, std::memory_order_release);
     stopAnalysisWorker();
+  }
+
+  static void notification(ma_device_notification* notification) {
+    if (notification == nullptr || notification->pDevice == nullptr ||
+        notification->type != ma_device_notification_type_stopped) {
+      return;
+    }
+    auto* self = static_cast<Impl*>(notification->pDevice->pUserData);
+    if (self != nullptr) {
+      // Device loss or a backend failure can stop a stream without a control
+      // request. Publish that state; restart/uninit must happen on the control
+      // thread, never from this callback.
+      self->isRunning.store(false, std::memory_order_release);
+    }
   }
 
   static void callback(ma_device* device, void* output, const void* input,
@@ -265,6 +281,7 @@ bool AudioDeviceHost::start(std::size_t captureIndex, std::size_t playbackIndex,
   deviceConfig.playback.channels = static_cast<ma_uint32>(kChannelCount);
   deviceConfig.sampleRate = 48000;
   deviceConfig.dataCallback = &Impl::callback;
+  deviceConfig.notificationCallback = &Impl::notification;
   deviceConfig.pUserData = impl_.get();
 
   const ma_result initResult = ma_device_init(&impl_->context, &deviceConfig, &impl_->device);
