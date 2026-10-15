@@ -26,6 +26,7 @@ struct LiveAudioMetrics {
   float inputRms = 0.0F;
   float outputRms = 0.0F;
   std::uint64_t processedFrames = 0;
+  std::uint64_t droppedSpectrumFrames = 0;
   bool running = false;
   bool spectrumAvailable = false;
   float spectrumPeakFrequencyHz = 0.0F;

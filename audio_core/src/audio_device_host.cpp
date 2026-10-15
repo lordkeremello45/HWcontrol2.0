@@ -37,6 +37,7 @@ struct AudioDeviceHost::Impl {
   std::atomic<float> inputRms{0.0F};
   std::atomic<float> outputRms{0.0F};
   std::atomic<std::uint64_t> processedFrames{0};
+  std::atomic<std::uint64_t> droppedSpectrumFrames{0};
   std::atomic<bool> isRunning{false};
   std::mutex lifecycleMutex;
 
@@ -121,6 +122,8 @@ struct AudioDeviceHost::Impl {
       auto& slot = spectrumQueue[static_cast<std::size_t>(write % kSpectrumQueueSlots)];
       std::copy(partialFrame.begin(), partialFrame.end(), slot.begin());
       writeIndex.store(write + 1, std::memory_order_release);
+    } else {
+      droppedSpectrumFrames.fetch_add(1, std::memory_order_relaxed);
     }
     // Reset even when full; audio must never wait for analysis to catch up.
     partialSamples = 0;
@@ -267,6 +270,7 @@ bool AudioDeviceHost::start(std::size_t captureIndex, std::size_t playbackIndex,
   impl_->inputRms.store(0.0F, std::memory_order_relaxed);
   impl_->outputRms.store(0.0F, std::memory_order_relaxed);
   impl_->processedFrames.store(0, std::memory_order_relaxed);
+  impl_->droppedSpectrumFrames.store(0, std::memory_order_relaxed);
   impl_->spectrumPeakFrequencyHz.store(0.0F, std::memory_order_relaxed);
   impl_->spectrumRms.store(0.0F, std::memory_order_relaxed);
   for (auto& magnitude : impl_->spectrumMagnitude) magnitude.store(0.0F, std::memory_order_relaxed);
@@ -333,6 +337,7 @@ LiveAudioMetrics AudioDeviceHost::metrics() const noexcept {
   result.inputRms = impl_->inputRms.load(std::memory_order_relaxed);
   result.outputRms = impl_->outputRms.load(std::memory_order_relaxed);
   result.processedFrames = impl_->processedFrames.load(std::memory_order_relaxed);
+  result.droppedSpectrumFrames = impl_->droppedSpectrumFrames.load(std::memory_order_relaxed);
   result.running = running();
   result.spectrumAvailable = impl_->spectrumAvailable.load(std::memory_order_acquire);
   result.spectrumPeakFrequencyHz = impl_->spectrumPeakFrequencyHz.load(std::memory_order_relaxed);
