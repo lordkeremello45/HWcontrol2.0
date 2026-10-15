@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -70,6 +71,7 @@ void main() {
   });
 
   testWidgets('persists bounded session history', (tester) async {
+    final saved = Completer<void>();
     await tester.binding.setSurfaceSize(const Size(900, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -78,6 +80,7 @@ void main() {
         store: store,
         sessionSeconds: 5,
         random: () => math.Random(1),
+        onSessionSaved: saved.complete,
       ),
     ));
     await tester.pumpAndSettle();
@@ -87,7 +90,7 @@ void main() {
     await tester.pump(const Duration(seconds: 6));
     await tester.pumpAndSettle();
     await tester.runAsync(() async {
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await saved.future;
       final preferences = await store.readUiPreferences();
       expect(preferences['aimTrainerHistory'], isA<List>());
       expect((preferences['aimTrainerHistory'] as List), isNotEmpty);
