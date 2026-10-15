@@ -230,6 +230,7 @@ func TestEvaluateHardwareHealthDoesNotConfuseFanControlWithFanTelemetry(t *testi
 	}
 }
 
+// A zero reading is valid when the source identifies a real fan telemetry endpoint.
 func TestEvaluateHardwareHealthRecognizesFanStopAsValidTelemetry(t *testing.T) {
 	bridgeIntegrityState.Store(true)
 	evaluation := evaluateHardwareHealth(HardwareMetrics{
