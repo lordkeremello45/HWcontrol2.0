@@ -68,36 +68,42 @@ struct AudioDeviceHost::Impl {
     if (contextReady) ma_context_uninit(&context);
   }
 
-  void startAnalysisWorker() {
+  bool startAnalysisWorker() {
     writeIndex.store(0, std::memory_order_relaxed);
     readIndex.store(0, std::memory_order_relaxed);
     partialSamples = 0;
     analysisStop.store(false, std::memory_order_release);
     spectrumAvailable.store(false, std::memory_order_release);
-    analysisThread = std::thread([this] {
-      AudioAnalyzer analyzer;
-      SpectrumFrame frame;
-      for (;;) {
-        const std::uint64_t read = readIndex.load(std::memory_order_relaxed);
-        const std::uint64_t write = writeIndex.load(std::memory_order_acquire);
-        if (read == write) {
-          if (analysisStop.load(std::memory_order_acquire)) break;
-          std::this_thread::sleep_for(std::chrono::milliseconds(2));
-          continue;
-        }
-        const auto& samples = spectrumQueue[static_cast<std::size_t>(read % kSpectrumQueueSlots)];
-        if (analyzer.analyze(samples.data(), kFftSize,
-                             analysisSampleRateHz.load(std::memory_order_relaxed), frame)) {
-          for (std::size_t i = 0; i < kSpectrumBinCount; ++i) {
-            spectrumMagnitude[i].store(frame.magnitude[i], std::memory_order_relaxed);
+    try {
+      analysisThread = std::thread([this] {
+        AudioAnalyzer analyzer;
+        SpectrumFrame frame;
+        for (;;) {
+          const std::uint64_t read = readIndex.load(std::memory_order_relaxed);
+          const std::uint64_t write = writeIndex.load(std::memory_order_acquire);
+          if (read == write) {
+            if (analysisStop.load(std::memory_order_acquire)) break;
+            std::this_thread::sleep_for(std::chrono::milliseconds(2));
+            continue;
           }
-          spectrumPeakFrequencyHz.store(frame.peakFrequencyHz, std::memory_order_relaxed);
-          spectrumRms.store(frame.rms, std::memory_order_relaxed);
-          spectrumAvailable.store(true, std::memory_order_release);
+          const auto& samples = spectrumQueue[static_cast<std::size_t>(read % kSpectrumQueueSlots)];
+          if (analyzer.analyze(samples.data(), kFftSize,
+                               analysisSampleRateHz.load(std::memory_order_relaxed), frame)) {
+            for (std::size_t i = 0; i < kSpectrumBinCount; ++i) {
+              spectrumMagnitude[i].store(frame.magnitude[i], std::memory_order_relaxed);
+            }
+            spectrumPeakFrequencyHz.store(frame.peakFrequencyHz, std::memory_order_relaxed);
+            spectrumRms.store(frame.rms, std::memory_order_relaxed);
+            spectrumAvailable.store(true, std::memory_order_release);
+          }
+          readIndex.store(read + 1, std::memory_order_release);
         }
-        readIndex.store(read + 1, std::memory_order_release);
-      }
-    });
+      });
+    } catch (...) {
+      analysisStop.store(true, std::memory_order_release);
+      return false;
+    }
+    return true;
   }
 
   void stopAnalysisWorker() noexcept {
@@ -276,7 +282,11 @@ bool AudioDeviceHost::start(std::size_t captureIndex, std::size_t playbackIndex,
     return false;
   }
   impl_->analysisSampleRateHz.store(actualSampleRate, std::memory_order_relaxed);
-  impl_->startAnalysisWorker();
+  if (!impl_->startAnalysisWorker()) {
+    error = "Could not create the audio analysis worker thread.";
+    impl_->stopLocked();
+    return false;
+  }
 
   const ma_result startResult = ma_device_start(&impl_->device);
   if (startResult != MA_SUCCESS) {
