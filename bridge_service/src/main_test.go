@@ -561,3 +561,25 @@ func TestDecodeAudioStudioStartTarget(t *testing.T) {
 		t.Fatal("malformed audio configuration target must be rejected")
 	}
 }
+
+
+func TestValidateAudioStudioStartCommand(t *testing.T) {
+	request := audioStudioStartRequest{
+		CaptureIndex: 0, PlaybackIndex: 0,
+		GateThreshold: -48, CompressorThreshold: -12,
+		CompressorRatio: 2, CompressorAttack: 10, CompressorRelease: 100,
+		CompressorKnee: 6, HighPassFrequency: 80, LimiterCeiling: -1,
+		EQGain: []float64{0, 0, 0}, EQFrequency: []float64{100, 1000, 8000},
+	}
+	raw, err := json.Marshal(request)
+	if err != nil { t.Fatal(err) }
+	cmd := testCommand("Start Audio Studio", 0)
+	cmd.Target = base64.RawURLEncoding.EncodeToString(raw)
+	if err := validateCommand(cmd); err != nil {
+		t.Fatalf("valid authenticated audio command shape rejected: %v", err)
+	}
+	cmd.Target = ""
+	if err := validateCommand(cmd); err == nil {
+		t.Fatal("start command without profile must be rejected")
+	}
+}
