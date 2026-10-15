@@ -900,6 +900,11 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
     final peakLabel = spectrumAvailable && peak is num && peak.isFinite
         ? '${peak.toDouble().round()} Hz'
         : 'Waiting for data';
+    final rawSampleRate = _liveMetrics['sampleRateHz'];
+    final sampleRate = rawSampleRate is num ? rawSampleRate.toDouble() : 48000.0;
+    final safeSampleRate = sampleRate.isFinite && sampleRate >= 8000.0 && sampleRate <= 192000.0
+        ? sampleRate
+        : 48000.0;
     return _panel(
       title: 'Analysis laboratory',
       subtitle: 'Live peak/RMS meters and a 1024-point FFT of locally processed audio. Latency and dropout measurement are not yet available.',
@@ -942,9 +947,9 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
             children: [
               const Text('0 Hz'),
               const Spacer(),
-              Text('${((_liveMetrics['sampleRateHz'] is num ? (_liveMetrics['sampleRateHz'] as num).toDouble() : 48000.0) / 4).round()} Hz'),
+              Text('${(safeSampleRate / 4).round()} Hz'),
               const Spacer(),
-              Text('${((_liveMetrics['sampleRateHz'] is num ? (_liveMetrics['sampleRateHz'] as num).toDouble() : 48000.0) / 2).round()} Hz'),
+              Text('${(safeSampleRate / 2).round()} Hz'),
             ],
           ),
         ],
