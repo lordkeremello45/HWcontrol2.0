@@ -619,7 +619,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
             children: [
               Text('Profile editor • DSP integration in progress', style: TextStyle(fontWeight: FontWeight.w800)),
               SizedBox(height: 4),
-              Text('These settings are saved locally. The native device-host prototype can enumerate and open capture/playback devices, but this screen is not connected to it yet. System-audio routing and live UI meters are not active. No audio is being recorded. No audio is being recorded.'),
+              Text('These settings are saved locally. The native device-host prototype can enumerate and open capture/playback devices, but this screen is not connected to it yet. System-audio routing and live UI meters are not active. No audio is being recorded.'),
             ],
           ),
         ),
