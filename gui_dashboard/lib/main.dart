@@ -1774,6 +1774,73 @@ Attach this archive to a support issue only after reviewing it for personal info
   }
 
 
+  Future<Map<String, dynamic>?> _requestLocalAudioProfile(Map<String, dynamic> profile) async {
+    if (_aiSending) throw StateError('Gemma is currently processing another request.');
+    _aiSending = true;
+    try {
+      await _ensureAiEngine();
+      final process = _aiProcess;
+      final responses = _aiResponses;
+      if (process == null || responses == null) {
+        throw StateError(_aiModelError ?? 'Local Gemma engine is not ready.');
+      }
+      final deviceType = profile['deviceType'];
+      final usage = profile['usage'];
+      final model = profile['model'];
+      final manufacturer = profile['manufacturer'] is String ? profile['manufacturer'] as String : '';
+      final sampleRate = profile['sampleRateHz'];
+      final channels = profile['channels'];
+      if (deviceType is! String || usage is! String || model is! String ||
+          sampleRate is! int || channels is! int ||
+          model.trim().isEmpty || utf8.encode(model).length > 120 || utf8.encode(manufacturer).length > 80 ||
+          sampleRate < 8000 || sampleRate > 192000 || channels < 1 || channels > 8) {
+        throw const FormatException('Audio profile input is outside supported bounds.');
+      }
+      const deviceTypes = {'microphone', 'speaker', 'headphones', 'headset'};
+      const useCases = {'voice', 'gaming', 'music', 'movie', 'meeting', 'streaming'};
+      if (!deviceTypes.contains(deviceType) || !useCases.contains(usage)) {
+        throw const FormatException('Unsupported device type or use case.');
+      }
+      final fields = <String>[
+        'AUDIO',
+        'type=$deviceType',
+        'usage=$usage',
+        'rate=$sampleRate',
+        'channels=$channels',
+        'model_hex=${_hexEncode(model)}',
+        if (manufacturer.isNotEmpty) 'manufacturer_hex=${_hexEncode(manufacturer)}',
+        'verified=${_aiBool(profile['specificationsVerified'])}',
+      ];
+      process.stdin.writeln(fields.join(' '));
+      await process.stdin.flush();
+      final hasResponse = await responses.moveNext().timeout(
+        const Duration(seconds: 90),
+        onTimeout: () {
+          process.kill();
+          _aiProcess = null;
+          _aiResponses = null;
+          unawaited(responses.cancel());
+          throw TimeoutException('Local Gemma audio recommendation timed out.');
+        },
+      );
+      if (!hasResponse) throw StateError('Local Gemma process closed without a response.');
+      final response = responses.current;
+      if (!response.startsWith('AUDIO_OK|')) {
+        throw StateError(response.startsWith('AUDIO_ERROR|') ? response : 'Local Gemma returned an unexpected response.');
+      }
+      return <String, dynamic>{
+        'recommendation': response.substring('AUDIO_OK|'.length).trim(),
+        'localOnly': true,
+        'requiresApproval': true,
+      };
+    } catch (error) {
+      if (mounted) setState(() => _aiStatus = 'Audio advisor: $error');
+      rethrow;
+    } finally {
+      _aiSending = false;
+    }
+  }
+
   Future<Map<String, dynamic>?> _requestAudioStudioControl(
     String action,
     Map<String, dynamic>? payload,
@@ -3056,7 +3123,7 @@ Attach this archive to a support issue only after reviewing it for personal info
 
   Future<void> _openAudioControllerStudio() async {
     await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(builder: (_) => AudioControllerStudioScreen(onLoadDevices: () => _requestBridgeData('Get Audio Devices'), onControl: _requestAudioStudioControl)),
+      MaterialPageRoute<void>(builder: (_) => AudioControllerStudioScreen(onRecommend: _requestLocalAudioProfile, onLoadDevices: () => _requestBridgeData('Get Audio Devices'), onControl: _requestAudioStudioControl)),
     );
   }
 
