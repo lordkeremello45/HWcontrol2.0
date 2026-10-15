@@ -361,7 +361,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
             Text('Device intelligence', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
           ]),
           const SizedBox(height: 6),
-          const Text('Gemma runs locally in the app's existing AI process. Enter the endpoint name and capabilities reported by your operating system; do not guess specifications. Suggestions are advisory and are never applied automatically.'),
+          const Text("Gemma runs locally in the app's existing AI process. Enter the endpoint name and capabilities reported by your operating system; do not guess specifications. Suggestions are advisory and are never applied automatically."),
           const SizedBox(height: 14),
           Row(children: [
             Expanded(child: Text(_deviceDetectionMessage ?? 'Detecting audio endpoints…')),
