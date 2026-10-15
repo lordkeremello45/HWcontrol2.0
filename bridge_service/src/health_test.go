@@ -230,3 +230,17 @@ func TestEvaluateHardwareHealthDoesNotConfuseFanControlWithFanTelemetry(t *testi
 		t.Fatal("fan control support must not imply readable fan telemetry")
 	}
 }
+
+func TestEvaluateHardwareHealthRecognizesFanStopAsValidTelemetry(t *testing.T) {
+	bridgeIntegrityState.Store(true)
+	evaluation := evaluateHardwareHealth(HardwareMetrics{
+		FanRPM: 0, FanRPMSource: "test-fan",
+		FanPercent: 0, FanPercentSource: "test-fan",
+		ThermalSafetyAvailable: true,
+	})
+	for _, key := range []string{"fanRpm", "fanPercent"} {
+		if !evaluation.Capabilities[key].Available {
+			t.Errorf("zero fan-stop reading with a known source must remain valid telemetry: %q: %#v", key, evaluation.Capabilities[key])
+		}
+	}
+}
