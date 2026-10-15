@@ -79,7 +79,7 @@ bool AudioAnalyzer::analyze(const float* samples, std::size_t frameCount,
   output.leftRms = static_cast<float>(std::sqrt(leftSquareSum / frameCountDouble));
   output.rightRms = static_cast<float>(std::sqrt(rightSquareSum / frameCountDouble));
   const double correlationDenominator = std::sqrt(leftSquareSum * rightSquareSum);
-  if (correlationDenominator > std::numeric_limits<double>::epsilon()) {
+  if (correlationDenominator > 0.0 && std::isfinite(correlationDenominator)) {
     const double correlation = crossProductSum / correlationDenominator;
     if (std::isfinite(correlation)) {
       output.stereoCorrelation = static_cast<float>(std::clamp(correlation, -1.0, 1.0));
