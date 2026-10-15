@@ -48,15 +48,23 @@ bool AudioAnalyzer::analyze(const float* samples, std::size_t frameCount,
 
   ComplexBuffer buffer{};
   double squareSum = 0.0;
+  double leftSquareSum = 0.0;
+  double rightSquareSum = 0.0;
+  double crossProductSum = 0.0;
   double windowSum = 0.0;
   for (std::size_t i = 0; i < kFftSize; ++i) {
     float left = samples[i * 2];
     float right = samples[i * 2 + 1];
     if (!std::isfinite(left)) left = 0.0F;
     if (!std::isfinite(right)) right = 0.0F;
-    // Average in double precision so two finite, large float samples do not
-    // overflow during the addition before the FFT's sanitization boundary.
-    const double monoDouble = (static_cast<double>(left) + static_cast<double>(right)) * 0.5;
+    const double leftDouble = static_cast<double>(left);
+    const double rightDouble = static_cast<double>(right);
+    leftSquareSum += leftDouble * leftDouble;
+    rightSquareSum += rightDouble * rightDouble;
+    crossProductSum += leftDouble * rightDouble;
+    // Average in double precision so finite float samples cannot overflow
+    // during addition before the FFT's sanitization boundary.
+    const double monoDouble = (leftDouble + rightDouble) * 0.5;
     const float mono = std::isfinite(monoDouble) ? static_cast<float>(monoDouble) : 0.0F;
     const double window = 0.5 * (1.0 - std::cos(
         2.0 * kPi * static_cast<double>(i) / static_cast<double>(kFftSize - 1)));
@@ -66,7 +74,17 @@ bool AudioAnalyzer::analyze(const float* samples, std::size_t frameCount,
   }
 
   fft(buffer);
-  output.rms = static_cast<float>(std::sqrt(squareSum / static_cast<double>(kFftSize)));
+  const double frameCountDouble = static_cast<double>(kFftSize);
+  output.rms = static_cast<float>(std::sqrt(squareSum / frameCountDouble));
+  output.leftRms = static_cast<float>(std::sqrt(leftSquareSum / frameCountDouble));
+  output.rightRms = static_cast<float>(std::sqrt(rightSquareSum / frameCountDouble));
+  const double correlationDenominator = std::sqrt(leftSquareSum * rightSquareSum);
+  if (correlationDenominator > std::numeric_limits<double>::epsilon()) {
+    const double correlation = crossProductSum / correlationDenominator;
+    if (std::isfinite(correlation)) {
+      output.stereoCorrelation = static_cast<float>(std::clamp(correlation, -1.0, 1.0));
+    }
+  }
   float largest = 0.0F;
   std::size_t largestBin = 0;
   for (std::size_t bin = 0; bin < kSpectrumBinCount; ++bin) {
