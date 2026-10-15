@@ -349,11 +349,9 @@ func collectHardwareControlSafetyMetrics() HardwareMetrics {
 	if temperatures, err := host.SensorsTemperatures(); err == nil {
 		for _, sensor := range temperatures {
 			key := strings.ToLower(sensor.SensorKey)
-			if strings.Contains(key, "cpu") || strings.Contains(key, "package") || strings.Contains(key, "core") {
-				if isValidTemperature(sensor.Temperature) && sensor.Temperature > 0 {
-					metrics.CPUTemperature = sensor.Temperature
-					metrics.CPUTemperatureSource = "gopsutil-host-sensors:" + sensor.SensorKey
-				}
+			if isCPUTemperatureSensorKey(key) && isValidTemperature(sensor.Temperature) && sensor.Temperature > 0 {
+				metrics.CPUTemperature = sensor.Temperature
+				metrics.CPUTemperatureSource = "gopsutil-host-sensors:" + sensor.SensorKey
 			}
 			if strings.Contains(key, "gpu") || strings.Contains(key, "graphics") {
 				if isValidTemperature(sensor.Temperature) && sensor.Temperature > 0 {
