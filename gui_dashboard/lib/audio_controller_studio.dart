@@ -1011,7 +1011,7 @@ class _SpectrumPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (magnitudes.isEmpty || size.width <= 0 || size.height <= 0) return;
-    final maxMagnitude = magnitudes.fold<double>(0, (current, value) => math.max(current, value));
+    final maxMagnitude = magnitudes.fold<double>(0.0, (current, value) => math.max(current, value).toDouble());
     if (!maxMagnitude.isFinite || maxMagnitude <= 0) return;
     final paint = Paint()
       ..color = color
