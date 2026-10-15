@@ -347,27 +347,26 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
       setState(() {
         _captureDevices = parse(result['capture'], 'capture');
         _playbackDevices = parse(result['playback'], 'playback');
-        if (preserveMissingSelection) {
-          final matchingCapture = previousCaptureName == null
-              ? <Map<String, dynamic>>[]
-              : _captureDevices.where((device) => device['name'] == previousCaptureName).toList(growable: false);
-          final matchingPlayback = previousPlaybackName == null
-              ? <Map<String, dynamic>>[]
-              : _playbackDevices.where((device) => device['name'] == previousPlaybackName).toList(growable: false);
-          // Names are not stable hardware identifiers. Keep a selection only
-          // when the old name maps to exactly one refreshed endpoint.
-          _selectedCaptureIndex = matchingCapture.length == 1
-              ? matchingCapture.first['index'] as int
-              : null;
-          _selectedPlaybackIndex = matchingPlayback.length == 1
-              ? matchingPlayback.first['index'] as int
-              : null;
-        } else {
-          _selectedCaptureIndex = _defaultDeviceIndex(_captureDevices, _selectedCaptureIndex);
-          _selectedPlaybackIndex = _defaultDeviceIndex(_playbackDevices, _selectedPlaybackIndex);
-        }
-        final missingCapture = preserveMissingSelection && _selectedCaptureIndex == null;
-        final missingPlayback = preserveMissingSelection && _selectedPlaybackIndex == null;
+        final matchingCapture = previousCaptureName == null
+            ? <Map<String, dynamic>>[]
+            : _captureDevices.where((device) => device['name'] == previousCaptureName).toList(growable: false);
+        final matchingPlayback = previousPlaybackName == null
+            ? <Map<String, dynamic>>[]
+            : _playbackDevices.where((device) => device['name'] == previousPlaybackName).toList(growable: false);
+        // Preserve an existing choice by a unique name match, never by index:
+        // enumeration order can change after hot-plugging or backend refresh.
+        _selectedCaptureIndex = previousCaptureName == null
+            ? _defaultDeviceIndex(_captureDevices, null)
+            : matchingCapture.length == 1
+                ? matchingCapture.first['index'] as int
+                : null;
+        _selectedPlaybackIndex = previousPlaybackName == null
+            ? _defaultDeviceIndex(_playbackDevices, null)
+            : matchingPlayback.length == 1
+                ? matchingPlayback.first['index'] as int
+                : null;
+        final missingCapture = previousCaptureName != null && _selectedCaptureIndex == null;
+        final missingPlayback = previousPlaybackName != null && _selectedPlaybackIndex == null;
         _deviceDetectionMessage = missingCapture || missingPlayback
             ? 'Audio endpoints refreshed. A previously selected device is missing or ambiguous; choose devices manually before restarting.'
             : 'Detected ${_captureDevices.length} input and ${_playbackDevices.length} output endpoints on this computer.';
