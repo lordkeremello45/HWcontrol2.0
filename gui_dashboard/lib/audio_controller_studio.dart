@@ -1015,11 +1015,11 @@ class _SpectrumPainter extends CustomPainter {
     if (!maxMagnitude.isFinite || maxMagnitude <= 0) return;
     final paint = Paint()
       ..color = color
-      ..strokeWidth = math.max(1.0, size.width / magnitudes.length * 0.7)
+      ..strokeWidth = math.max(1.0, size.width / magnitudes.length * 0.7).toDouble()
       ..strokeCap = StrokeCap.round;
     for (var i = 0; i < magnitudes.length; i++) {
       final magnitude = magnitudes[i];
-      final normalized = (math.log(1 + (magnitude / maxMagnitude) * 9) / math.log(10)).clamp(0.0, 1.0);
+      final normalized = (math.log(1 + (magnitude / maxMagnitude) * 9) / math.log(10)).clamp(0.0, 1.0).toDouble();
       final x = (i / (magnitudes.length - 1)) * size.width;
       final y = size.height - normalized * size.height;
       canvas.drawLine(Offset(x, size.height), Offset(x, y), paint);
