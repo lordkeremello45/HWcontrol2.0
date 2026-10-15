@@ -1,13 +1,13 @@
 # Audio Controller Studio
 
-**Status: PARTIAL / foundation in progress.** The native DSP core, a miniaudio-based capture/playback device-host prototype, and a Flutter profile-editor screen are present on the feature branch. The native host can enumerate and open a selected microphone and playback device, process captured samples, expose atomic metrics, and optionally monitor processed audio. The Flutter UI now calls the authenticated Go bridge for endpoint enumeration and for starting/stopping the native capture/DSP session and polling live peak/RMS/frame metrics. The native probe supports a persistent line-based control mode; the GUI passes a bounded, authenticated profile to the bridge, which validates the parameters before forwarding them. The helper still must be present beside the bridge, in a recognized build directory, or configured with an absolute `HWCONTROL_AUDIO_PROBE` path. System-audio loopback, virtual microphone/output routing, and application-level routing remain unimplemented.
+**Status: PARTIAL / foundation in progress.** The native DSP core, a miniaudio-based capture/playback host, a persistent native control protocol, and a Flutter profile-editor/live-control screen are now committed to `main`. The native host can enumerate and open a selected microphone and playback device, process captured samples, expose atomic metrics, and optionally monitor processed audio. The Flutter UI now calls the authenticated Go bridge for endpoint enumeration and for starting/stopping the native capture/DSP session and polling live peak/RMS/frame metrics. The native probe supports a persistent line-based control mode; the GUI passes a bounded, authenticated profile to the bridge, which validates the parameters before forwarding them. The bridge resolves the helper beside itself, in `native/` or `bin/`, in recognized development build directories, or via an absolute `HWCONTROL_AUDIO_PROBE` path. Windows, Linux, macOS, and beta release workflows now stage the helper beside the bridge; those package changes still require CI and install-smoke validation. System-audio loopback, virtual microphone/output routing, and application-level routing remain unimplemented.
 
 ## Current endpoint enumeration integration
 
 - Flutter sends the authenticated read-only `Get Audio Devices` command.
 - The Go bridge locates `hwcontrol_audio_probe` beside itself, in `native/` or `bin/`, or via the absolute `HWCONTROL_AUDIO_PROBE` path.
 - The bridge runs one-shot enumeration with a 5-second timeout, validates the JSON and hex-encoded endpoint names, then returns decoded endpoint names. The persistent native control process accepts validated start/stop/status commands and returns metrics; audio samples never cross the bridge.
-- Packaging is not yet wired to place this helper beside the bridge; endpoint detection reports a clear error until the native probe is packaged or explicitly configured.
+- Release and beta package workflows now include the native helper beside the bridge. The package/install path is not considered verified until the corresponding CI jobs pass.
 
 
 ## Live DSP session integration
