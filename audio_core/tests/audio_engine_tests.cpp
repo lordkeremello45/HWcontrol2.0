@@ -148,6 +148,33 @@ void testSpectrumAnalyzerFindsTone() {
           "wrong FFT frame size accepted");
 }
 
+void testSpectrumAnalyzerRejectsInvalidRatesAndContainsBadSamples() {
+  hwcontrol::audio::AudioAnalyzer analyzer;
+  hwcontrol::audio::SpectrumFrame spectrum;
+  std::array<float, hwcontrol::audio::kFftSize * 2> samples{};
+
+  require(!analyzer.analyze(samples.data(), hwcontrol::audio::kFftSize,
+                            std::numeric_limits<double>::quiet_NaN(), spectrum),
+          "FFT accepted a NaN sample rate");
+  require(!analyzer.analyze(samples.data(), hwcontrol::audio::kFftSize,
+                            500000.0, spectrum),
+          "FFT accepted a sample rate outside its supported range");
+
+  samples[0] = std::numeric_limits<float>::quiet_NaN();
+  samples[1] = std::numeric_limits<float>::infinity();
+  require(analyzer.analyze(samples.data(), hwcontrol::audio::kFftSize,
+                           48000.0, spectrum),
+          "FFT rejected a correctly sized frame containing bad samples");
+  require(std::isfinite(spectrum.rms) && spectrum.rms == 0.0F,
+          "FFT RMS is not safely zero for sanitized silence");
+  require(std::isfinite(spectrum.peakFrequencyHz),
+          "FFT peak frequency is non-finite");
+  for (float magnitude : spectrum.magnitude) {
+    require(std::isfinite(magnitude) && magnitude >= 0.0F,
+            "FFT produced an invalid magnitude");
+  }
+}
+
 void testAudioDeviceHostLifecycleWithoutAssumingHardware() {
   hwcontrol::audio::AudioDeviceHost host;
   (void)host.enumerate(hwcontrol::audio::DeviceDirection::Capture);
@@ -177,6 +204,7 @@ int main() {
   testCompressorReducesAboveThresholdLevel();
   testHighPassAttenuatesLowFrequencyTone();
   testSpectrumAnalyzerFindsTone();
+  testSpectrumAnalyzerRejectsInvalidRatesAndContainsBadSamples();
   testAudioDeviceHostLifecycleWithoutAssumingHardware();
   testInvalidSampleRateFallsBack();
   std::cout << "Audio core tests passed\n";
