@@ -82,6 +82,9 @@ bool handleServerCommand(AudioDeviceHost& host, const std::string& line) {
     return true;
   }
 
+  // Refresh both endpoint maps in this process before resolving the supplied indices.
+  (void)host.enumerate(DeviceDirection::Capture);
+  (void)host.enumerate(DeviceDirection::Playback);
   long long captureIndex = -1;
   long long playbackIndex = -1;
   int monitor = 0;
