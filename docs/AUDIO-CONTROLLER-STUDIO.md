@@ -1,13 +1,22 @@
 # Audio Controller Studio
 
-**Status: PARTIAL / foundation in progress.** The native DSP core, a miniaudio-based capture/playback device-host prototype, and a Flutter profile-editor screen are present on the feature branch. The native host can enumerate and open a selected microphone and playback device, process captured samples, expose atomic metrics, and optionally monitor processed audio. The Flutter UI now calls the authenticated Go bridge for endpoint enumeration, which invokes the packaged native probe. Live stream start/stop, DSP parameter application, and live metrics are not yet connected. System-audio loopback, virtual microphone/output routing, and application-level routing remain unimplemented.
+**Status: PARTIAL / foundation in progress.** The native DSP core, a miniaudio-based capture/playback device-host prototype, and a Flutter profile-editor screen are present on the feature branch. The native host can enumerate and open a selected microphone and playback device, process captured samples, expose atomic metrics, and optionally monitor processed audio. The Flutter UI now calls the authenticated Go bridge for endpoint enumeration and for starting/stopping the native capture/DSP session and polling live peak/RMS/frame metrics. The native probe supports a persistent line-based control mode; the GUI passes a bounded, authenticated profile to the bridge, which validates the parameters before forwarding them. The helper still must be present beside the bridge, in a recognized build directory, or configured with an absolute `HWCONTROL_AUDIO_PROBE` path. System-audio loopback, virtual microphone/output routing, and application-level routing remain unimplemented.
 
 ## Current endpoint enumeration integration
 
 - Flutter sends the authenticated read-only `Get Audio Devices` command.
 - The Go bridge locates `hwcontrol_audio_probe` beside itself, in `native/` or `bin/`, or via the absolute `HWCONTROL_AUDIO_PROBE` path.
-- The bridge runs the probe with a 5-second timeout, validates the JSON and hex-encoded endpoint names, then returns decoded endpoint names. Audio samples never cross the bridge.
+- The bridge runs one-shot enumeration with a 5-second timeout, validates the JSON and hex-encoded endpoint names, then returns decoded endpoint names. The persistent native control process accepts validated start/stop/status commands and returns metrics; audio samples never cross the bridge.
 - Packaging is not yet wired to place this helper beside the bridge; endpoint detection reports a clear error until the native probe is packaged or explicitly configured.
+
+
+## Live DSP session integration
+
+- `Start Audio Studio` accepts a base64url-encoded, HMAC-authenticated profile and validates device indices, finite numeric ranges, and exactly three EQ bands before launching a native session.
+- `Stop Audio Studio` and `Get Audio Studio Status` are authenticated bridge actions. Stopping is allowed even when security panic mode is active; starting is not.
+- Processed microphone audio is captured and analyzed locally. Output monitoring is off by default; enabling it routes processed mic audio to the selected output and can cause feedback, so headphones are recommended.
+- The current native host reports peak/RMS and processed-frame metrics. Live FFT/spectrogram, LUFS, clipping totals, loopback, virtual devices, per-application routing, and packaged-helper lifecycle tests remain outstanding.
+- CI compilation and end-to-end device validation are still required; code presence is not proof of runtime success.
 
 ## Product goals
 
