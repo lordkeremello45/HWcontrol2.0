@@ -1773,6 +1773,55 @@ Attach this archive to a support issue only after reviewing it for personal info
     return Hmac(sha256, utf8.encode(_sharedKey)).convert(utf8.encode(payload)).toString();
   }
 
+
+  Future<Map<String, dynamic>?> _requestAudioStudioControl(
+    String action,
+    Map<String, dynamic>? payload,
+  ) async {
+    final socket = _socket;
+    if (!_isConnected || socket == null || _sharedKey.isEmpty) {
+      throw StateError('Connect to the authenticated local bridge before controlling audio.');
+    }
+    if (_isSending) throw StateError('Another bridge request is in progress.');
+    String? target;
+    if (payload != null) {
+      target = base64Url.encode(utf8.encode(jsonEncode(payload))).replaceAll('=', '');
+    }
+    _isSending = true;
+    try {
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final nonce = _commandNonce();
+      final auth = _commandAuth(
+        action: action,
+        value: 0.0,
+        timestamp: timestamp,
+        nonce: nonce,
+        target: target,
+      );
+      final request = <String, dynamic>{
+        'action': action,
+        'value': 0.0,
+        'timestamp': timestamp,
+        'nonce': nonce,
+        'auth': auth,
+      };
+      if (target != null) request['target'] = target;
+      socket.write('${jsonEncode(request)}\n');
+      final responses = _responses;
+      if (responses == null || !await responses.moveNext().timeout(const Duration(seconds: 5))) {
+        throw StateError('Audio bridge response timed out.');
+      }
+      final response = jsonDecode(responses.current) as Map<String, dynamic>;
+      if (response['status'] != 'SUCCESS') {
+        throw StateError(response['message'] is String ? response['message'] as String : 'Audio bridge command failed.');
+      }
+      final data = response['data'];
+      return data is Map<String, dynamic> ? data : null;
+    } finally {
+      _isSending = false;
+    }
+  }
+
   Future<Map<String, dynamic>?> _requestBridgeData(String action) async {
     final socket = _socket;
     if (!_isConnected || socket == null || _sharedKey.isEmpty || _isSending) return null;
@@ -3000,7 +3049,7 @@ Attach this archive to a support issue only after reviewing it for personal info
 
   Future<void> _openAudioControllerStudio() async {
     await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(builder: (_) => AudioControllerStudioScreen(onLoadDevices: () => _requestBridgeData('Get Audio Devices'))),
+      MaterialPageRoute<void>(builder: (_) => AudioControllerStudioScreen(onLoadDevices: () => _requestBridgeData('Get Audio Devices'), onControl: _requestAudioStudioControl)),
     );
   }
 
