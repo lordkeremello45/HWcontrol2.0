@@ -124,8 +124,8 @@ bool AudioEngine::configure(const ProcessorConfig& requested,
   return valid;
 }
 
-void AudioEngine::process(float* samples, std::size_t frameCount) noexcept {
-  if (samples == nullptr || frameCount == 0) return;
+std::uint64_t AudioEngine::process(float* samples, std::size_t frameCount) noexcept {
+  if (samples == nullptr || frameCount == 0) return 0;
 
   double inputSquares = 0.0;
   double outputSquares = 0.0;
@@ -175,11 +175,11 @@ void AudioEngine::process(float* samples, std::size_t frameCount) noexcept {
         }
         if (gainReductionDb > 0.0F) value *= dbToLinear(-gainReductionDb);
       }
-      if (config_.limiterEnabled) {
+      if (config_.limiterEnabled && std::abs(value) > limiterCeiling) {
+        ++clipped;
         value = std::clamp(value, -limiterCeiling, limiterCeiling);
       }
       if (!std::isfinite(value)) value = 0.0F;
-      if (std::abs(value) >= 1.0F) ++clipped;
       outputPeak = std::max(outputPeak, std::abs(value));
       outputSquares += static_cast<double>(value) * static_cast<double>(value);
       samples[index] = value;
@@ -193,6 +193,7 @@ void AudioEngine::process(float* samples, std::size_t frameCount) noexcept {
   metrics_.outputRms = static_cast<float>(std::sqrt(outputSquares / sampleCount));
   metrics_.clippedSamples += clipped;
   metrics_.processedFrames += static_cast<std::uint64_t>(frameCount);
+  return clipped;
 }
 
 void AudioEngine::reset() noexcept {

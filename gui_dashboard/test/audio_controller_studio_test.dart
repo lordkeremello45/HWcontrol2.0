@@ -51,6 +51,7 @@ void main() {
               'inputRms': 0.1,
               'outputRms': 0.08,
               'processedFrames': 480,
+              'limitedSamples': 12,
               'spectrumAvailable': true,
               'spectrumPeakFrequencyHz': 1500.0,
               'sampleRateHz': 48000.0,
@@ -65,6 +66,7 @@ void main() {
               'inputRms': 0.1,
               'outputRms': 0.08,
               'processedFrames': 960,
+              'limitedSamples': 19,
               'spectrumAvailable': true,
               'spectrumPeakFrequencyHz': 1500.0,
               'sampleRateHz': 48000.0,
@@ -82,6 +84,8 @@ void main() {
     expect(actions, contains('Start Audio Studio'));
     expect(find.text('LIVE • audio is processed locally'), findsOneWidget);
     expect(find.text('1500 Hz'), findsOneWidget);
+    expect(find.text('Limiter-restrained samples'), findsOneWidget);
+    expect(find.text('19'), findsOneWidget);
     expect(find.text('Live spectrum (1024-point FFT)'), findsOneWidget);
     final liveSlider = tester.widget<Slider>(find.byType(Slider).first);
     expect(liveSlider.onChanged, isNull, reason: 'DSP parameters must not imply live reconfiguration.');

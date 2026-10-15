@@ -38,6 +38,7 @@ struct AudioDeviceHost::Impl {
   std::atomic<float> outputRms{0.0F};
   std::atomic<std::uint64_t> processedFrames{0};
   std::atomic<std::uint64_t> droppedSpectrumFrames{0};
+  std::atomic<std::uint64_t> limitedSamples{0};
   std::atomic<bool> isRunning{false};
   std::mutex lifecycleMutex;
 
@@ -181,7 +182,8 @@ struct AudioDeviceHost::Impl {
         inSquares += static_cast<double>(value) * static_cast<double>(value);
       }
 
-      self->engine.process(scratch.data(), blockFrames);
+      const std::uint64_t limitedInBlock = self->engine.process(scratch.data(), blockFrames);
+      self->limitedSamples.fetch_add(limitedInBlock, std::memory_order_relaxed);
       for (std::size_t i = 0; i < sampleCount; ++i) {
         const float value = scratch[i];
         self->enqueueSpectrumSample(value);
@@ -271,6 +273,7 @@ bool AudioDeviceHost::start(std::size_t captureIndex, std::size_t playbackIndex,
   impl_->outputRms.store(0.0F, std::memory_order_relaxed);
   impl_->processedFrames.store(0, std::memory_order_relaxed);
   impl_->droppedSpectrumFrames.store(0, std::memory_order_relaxed);
+  impl_->limitedSamples.store(0, std::memory_order_relaxed);
   impl_->spectrumPeakFrequencyHz.store(0.0F, std::memory_order_relaxed);
   impl_->spectrumRms.store(0.0F, std::memory_order_relaxed);
   for (auto& magnitude : impl_->spectrumMagnitude) magnitude.store(0.0F, std::memory_order_relaxed);
@@ -338,6 +341,7 @@ LiveAudioMetrics AudioDeviceHost::metrics() const noexcept {
   result.outputRms = impl_->outputRms.load(std::memory_order_relaxed);
   result.processedFrames = impl_->processedFrames.load(std::memory_order_relaxed);
   result.droppedSpectrumFrames = impl_->droppedSpectrumFrames.load(std::memory_order_relaxed);
+  result.limitedSamples = impl_->limitedSamples.load(std::memory_order_relaxed);
   result.running = running();
   result.spectrumAvailable = impl_->spectrumAvailable.load(std::memory_order_acquire);
   result.spectrumPeakFrequencyHz = impl_->spectrumPeakFrequencyHz.load(std::memory_order_relaxed);

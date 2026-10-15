@@ -63,7 +63,8 @@ class AudioEngine final {
   // Processes frames in-place. A frame contains left then right samples.
   // The caller owns the buffers and must ensure they contain frameCount * 2
   // float samples. No allocation, locks, I/O, or logging occurs here.
-  void process(float* interleavedStereo, std::size_t frameCount) noexcept;
+  // Returns the number of samples constrained by the enabled limiter in this block.
+  std::uint64_t process(float* interleavedStereo, std::size_t frameCount) noexcept;
 
   const AudioMetrics& metrics() const noexcept { return metrics_; }
   void reset() noexcept;

@@ -15,7 +15,7 @@
 - `Start Audio Studio` accepts a base64url-encoded, HMAC-authenticated profile and validates device indices, finite numeric ranges, and exactly three EQ bands before launching a native session.
 - `Stop Audio Studio` and `Get Audio Studio Status` are authenticated bridge actions. Stopping is allowed even when security panic mode is active; starting is not.
 - Processed microphone audio is captured and analyzed locally. Output monitoring is off by default; enabling it routes processed mic audio to the selected output and can cause feedback, so headphones are recommended.
-- The native host reports peak/RMS/frame metrics, dropped spectrum-frame count, plus the latest 1024-point FFT magnitudes and peak frequency. Flutter renders the current spectrum frame (not a scrolling spectrogram history) and displays the current session's processed-frame and dropped-FFT-frame counters. LUFS, clipping totals, loopback, virtual devices, per-application routing, and packaged-helper lifecycle tests remain outstanding.
+- The native host reports peak/RMS/frame metrics, dropped spectrum-frame count, plus the latest 1024-point FFT magnitudes and peak frequency. The current session also counts samples constrained by the enabled limiter before they reach playback; this is a limiter-engagement count, not a general-purpose distortion or clipping detector. Flutter displays processed frames, dropped FFT frames, and limiter-restrained samples. LUFS, true-peak/distortion detection, loopback, virtual devices, per-application routing, and packaged-helper lifecycle tests remain outstanding.
 - CI compilation and end-to-end device validation are still required; code presence is not proof of runtime success.
 
 ## Product goals

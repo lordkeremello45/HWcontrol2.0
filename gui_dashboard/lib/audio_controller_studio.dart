@@ -982,6 +982,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
               _metric('Latency / dropout', 'Not measured'),
               _metric('Processed frames', _liveRunning ? '${_safeMetricCount('processedFrames')}' : 'Not connected'),
               _metric('Dropped FFT frames', _liveRunning ? '${_safeMetricCount('droppedSpectrumFrames')}' : 'Not connected'),
+              _metric('Limiter-restrained samples', _liveRunning ? '${_safeMetricCount('limitedSamples')}' : 'Not connected'),
             ],
           ),
           const SizedBox(height: 16),
