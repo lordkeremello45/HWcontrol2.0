@@ -374,7 +374,21 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
       });
       _syncSelectedEndpoint();
     } catch (error) {
-      if (mounted) setState(() => _deviceDetectionMessage = 'Device detection unavailable: $error');
+      if (mounted) {
+        setState(() {
+          if (preserveMissingSelection) {
+            // A failed refresh cannot prove that old indices still refer to the
+            // same hardware. Fail closed instead of allowing a stale restart.
+            _selectedCaptureIndex = null;
+            _selectedPlaybackIndex = null;
+            _selectedEndpointId = null;
+            _deviceModelController.clear();
+          }
+          _deviceDetectionMessage = preserveMissingSelection
+              ? 'Device refresh failed after the stream stopped. Selections were cleared; refresh devices and choose them again. ($error)'
+              : 'Device detection unavailable: $error';
+        });
+      }
     }
   }
 
