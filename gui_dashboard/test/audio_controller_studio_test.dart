@@ -73,6 +73,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(actions, contains('Start Audio Studio'));
     expect(find.text('LIVE • audio is processed locally'), findsOneWidget);
+    final liveSlider = tester.widget<Slider>(find.byType(Slider).first);
+    expect(liveSlider.onChanged, isNull, reason: 'DSP parameters must not imply live reconfiguration.');
+    final livePreset = tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Voice'));
+    expect(livePreset.onSelected, isNull, reason: 'Preset changes apply only after restarting the stream.');
 
     await tester.ensureVisible(find.text('Stop'));
     await tester.tap(find.text('Stop'));
