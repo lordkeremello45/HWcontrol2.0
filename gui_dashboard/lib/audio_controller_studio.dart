@@ -481,6 +481,12 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
     return value.toDouble().toStringAsFixed(1);
   }
 
+  String _safeCorrelation() {
+    final value = _liveMetrics['stereoCorrelation'];
+    if (value is! num || !value.isFinite) return '0.00';
+    return value.toDouble().clamp(-1.0, 1.0).toStringAsFixed(2);
+  }
+
   String _metricDb(String key) {
     final value = _liveMetrics[key];
     if (value is! num || !value.isFinite || value <= 0) return '−∞ dBFS';
@@ -972,7 +978,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
         : 48000.0;
     return _panel(
       title: 'Analysis laboratory',
-      subtitle: 'Live peak/RMS meters and a 1024-point FFT of locally processed audio. Latency and dropout measurement are not yet available.',
+      subtitle: 'Live peak/RMS meters, left/right channel levels, stereo correlation, and a 1024-point FFT. Latency and hardware dropout measurement are not yet available.',
       icon: Icons.monitor_heart_outlined,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -985,6 +991,9 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
               _metric('Output peak', _liveRunning ? _metricDb('outputPeak') : 'Not connected'),
               _metric('Input RMS', _liveRunning ? _metricDb('inputRms') : 'Not connected'),
               _metric('FFT peak', peakLabel),
+              _metric('Left channel RMS', spectrumAvailable ? _metricDb('spectrumLeftRms') : 'Waiting for data'),
+              _metric('Right channel RMS', spectrumAvailable ? _metricDb('spectrumRightRms') : 'Waiting for data'),
+              _metric('Stereo correlation', spectrumAvailable ? _safeCorrelation() : 'Waiting for data'),
               _metric('Callback processing', _liveRunning ? '${_safeMetricDecimal('callbackProcessingTimeUs')} µs' : 'Not connected'),
               _metric('Worst callback', _liveRunning ? '${_safeMetricDecimal('maxCallbackProcessingTimeUs')} µs' : 'Not connected'),
               _metric('Callback budget overruns', _liveRunning ? '${_safeMetricCount('callbackBudgetOverruns')}' : 'Not connected'),
