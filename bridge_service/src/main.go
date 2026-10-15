@@ -817,6 +817,9 @@ func resolveAudioProbePath() (string, error) {
 		filepath.Join(dir, name),
 		filepath.Join(dir, "native", name),
 		filepath.Join(dir, "bin", name),
+		filepath.Join(dir, "..", "build", "audio_core", name),
+		filepath.Join(dir, "..", "build-windows", "audio_core", "Release", name),
+		filepath.Join(dir, "..", "build-windows", "audio_core", name),
 	} {
 		info, statErr := os.Stat(candidate)
 		if statErr == nil && info.Mode().IsRegular() { return candidate, nil }
