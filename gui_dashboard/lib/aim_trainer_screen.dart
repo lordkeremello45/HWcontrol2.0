@@ -12,11 +12,13 @@ class HWAimTrainerScreen extends StatefulWidget {
     required this.store,
     this.sessionSeconds = 30,
     this.random,
+    this.onSessionSaved,
   }) : assert(sessionSeconds > 0);
 
   final HWControlUserDataStore store;
   final int sessionSeconds;
   final math.Random Function()? random;
+  final VoidCallback? onSessionSaved;
 
   @override
   State<HWAimTrainerScreen> createState() => _HWAimTrainerScreenState();
@@ -99,6 +101,7 @@ class _HWAimTrainerScreenState extends State<HWAimTrainerScreen> {
       ...preferences,
       'aimTrainerHistory': history,
     });
+    widget.onSessionSaved?.call();
   }
 
   @override
