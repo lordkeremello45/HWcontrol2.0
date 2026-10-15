@@ -175,6 +175,24 @@ void testSpectrumAnalyzerRejectsInvalidRatesAndContainsBadSamples() {
   }
 }
 
+void testSpectrumAnalyzerHandlesLargestFiniteSamples() {
+  hwcontrol::audio::AudioAnalyzer analyzer;
+  hwcontrol::audio::SpectrumFrame spectrum;
+  std::array<float, hwcontrol::audio::kFftSize * 2> samples{};
+  samples.fill(std::numeric_limits<float>::max());
+  require(analyzer.analyze(samples.data(), hwcontrol::audio::kFftSize,
+                           48000.0, spectrum),
+          "FFT rejected finite extreme input");
+  require(std::isfinite(spectrum.rms),
+          "FFT RMS overflowed on finite extreme input");
+  require(std::isfinite(spectrum.peakFrequencyHz),
+          "FFT peak frequency overflowed on finite extreme input");
+  for (float magnitude : spectrum.magnitude) {
+    require(std::isfinite(magnitude),
+            "FFT magnitude overflowed on finite extreme input");
+  }
+}
+
 void testAudioDeviceHostLifecycleWithoutAssumingHardware() {
   hwcontrol::audio::AudioDeviceHost host;
   (void)host.enumerate(hwcontrol::audio::DeviceDirection::Capture);
@@ -205,6 +223,7 @@ int main() {
   testHighPassAttenuatesLowFrequencyTone();
   testSpectrumAnalyzerFindsTone();
   testSpectrumAnalyzerRejectsInvalidRatesAndContainsBadSamples();
+  testSpectrumAnalyzerHandlesLargestFiniteSamples();
   testAudioDeviceHostLifecycleWithoutAssumingHardware();
   testInvalidSampleRateFallsBack();
   std::cout << "Audio core tests passed\n";
