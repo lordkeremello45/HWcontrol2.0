@@ -1,6 +1,13 @@
 # Audio Controller Studio
 
-**Status: PARTIAL / foundation in progress.** The native DSP core, a miniaudio-based capture/playback device-host prototype, and a Flutter profile-editor screen are present on the feature branch. The native host can enumerate and open a selected microphone and playback device, process captured samples, expose atomic metrics, and optionally monitor processed audio. The Flutter UI is not connected to this host yet. System-audio loopback, virtual microphone/output routing, and application-level routing remain unimplemented.
+**Status: PARTIAL / foundation in progress.** The native DSP core, a miniaudio-based capture/playback device-host prototype, and a Flutter profile-editor screen are present on the feature branch. The native host can enumerate and open a selected microphone and playback device, process captured samples, expose atomic metrics, and optionally monitor processed audio. The Flutter UI now calls the authenticated Go bridge for endpoint enumeration, which invokes the packaged native probe. Live stream start/stop, DSP parameter application, and live metrics are not yet connected. System-audio loopback, virtual microphone/output routing, and application-level routing remain unimplemented.
+
+## Current endpoint enumeration integration
+
+- Flutter sends the authenticated read-only `Get Audio Devices` command.
+- The Go bridge locates `hwcontrol_audio_probe` beside itself, in `native/` or `bin/`, or via the absolute `HWCONTROL_AUDIO_PROBE` path.
+- The bridge runs the probe with a 5-second timeout, validates the JSON and hex-encoded endpoint names, then returns decoded endpoint names. Audio samples never cross the bridge.
+- Packaging is not yet wired to place this helper beside the bridge; endpoint detection reports a clear error until the native probe is packaged or explicitly configured.
 
 ## Product goals
 
