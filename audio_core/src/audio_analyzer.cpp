@@ -50,6 +50,8 @@ bool AudioAnalyzer::analyze(const float* samples, std::size_t frameCount,
   double squareSum = 0.0;
   double leftSquareSum = 0.0;
   double rightSquareSum = 0.0;
+  double leftSum = 0.0;
+  double rightSum = 0.0;
   double crossProductSum = 0.0;
   double windowSum = 0.0;
   for (std::size_t i = 0; i < kFftSize; ++i) {
@@ -61,6 +63,8 @@ bool AudioAnalyzer::analyze(const float* samples, std::size_t frameCount,
     const double rightDouble = static_cast<double>(right);
     leftSquareSum += leftDouble * leftDouble;
     rightSquareSum += rightDouble * rightDouble;
+    leftSum += leftDouble;
+    rightSum += rightDouble;
     crossProductSum += leftDouble * rightDouble;
     // Average in double precision so finite float samples cannot overflow
     // during addition before the FFT's sanitization boundary.
@@ -78,9 +82,16 @@ bool AudioAnalyzer::analyze(const float* samples, std::size_t frameCount,
   output.rms = static_cast<float>(std::sqrt(squareSum / frameCountDouble));
   output.leftRms = static_cast<float>(std::sqrt(leftSquareSum / frameCountDouble));
   output.rightRms = static_cast<float>(std::sqrt(rightSquareSum / frameCountDouble));
-  const double correlationDenominator = std::sqrt(leftSquareSum * rightSquareSum);
+  const double centeredLeftSquares = std::max(
+      0.0, leftSquareSum - (leftSum * leftSum / frameCountDouble));
+  const double centeredRightSquares = std::max(
+      0.0, rightSquareSum - (rightSum * rightSum / frameCountDouble));
+  const double centeredCrossProduct =
+      crossProductSum - (leftSum * rightSum / frameCountDouble);
+  const double correlationDenominator = std::sqrt(
+      centeredLeftSquares * centeredRightSquares);
   if (correlationDenominator > 0.0 && std::isfinite(correlationDenominator)) {
-    const double correlation = crossProductSum / correlationDenominator;
+    const double correlation = centeredCrossProduct / correlationDenominator;
     if (std::isfinite(correlation)) {
       output.stereoCorrelation = static_cast<float>(std::clamp(correlation, -1.0, 1.0));
     }
