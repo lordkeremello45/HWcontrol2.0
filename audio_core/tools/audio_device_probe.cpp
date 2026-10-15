@@ -58,6 +58,9 @@ void writeMetrics(const hwcontrol::audio::LiveAudioMetrics& metrics) {
             << ",\"spectrumAvailable\":" << (metrics.spectrumAvailable ? "true" : "false")
             << ",\"spectrumPeakFrequencyHz\":" << metrics.spectrumPeakFrequencyHz
             << ",\"spectrumRms\":" << metrics.spectrumRms
+            << ",\"spectrumLeftRms\":" << metrics.spectrumLeftRms
+            << ",\"spectrumRightRms\":" << metrics.spectrumRightRms
+            << ",\"stereoCorrelation\":" << metrics.stereoCorrelation
             << ",\"sampleRateHz\":" << metrics.sampleRateHz
             << ",\"spectrumMagnitude\":[";
   for (std::size_t i = 0; i < metrics.spectrumMagnitude.size(); ++i) {
