@@ -321,14 +321,16 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
       if (mounted) setState(() => _deviceDetectionMessage = 'Bridge device detection is not available in this context.');
       return;
     }
-    final previousCaptureName = _captureDevices
+    final previousCapture = _captureDevices
         .where((device) => device['index'] == _selectedCaptureIndex)
         .map((device) => device['name'] as String)
-        .firstOrNull;
-    final previousPlaybackName = _playbackDevices
+        .toList(growable: false);
+    final previousPlayback = _playbackDevices
         .where((device) => device['index'] == _selectedPlaybackIndex)
         .map((device) => device['name'] as String)
-        .firstOrNull;
+        .toList(growable: false);
+    final previousCaptureName = previousCapture.isEmpty ? null : previousCapture.first;
+    final previousPlaybackName = previousPlayback.isEmpty ? null : previousPlayback.first;
     try {
       final result = await widget.onLoadDevices!();
       if (result == null) throw const FormatException('Bridge did not return audio devices.');
@@ -346,14 +348,14 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
         _captureDevices = parse(result['capture'], 'capture');
         _playbackDevices = parse(result['playback'], 'playback');
         if (preserveMissingSelection) {
-          _selectedCaptureIndex = previousCaptureName == null
-              ? null
-              : _captureDevices.where((device) => device['name'] == previousCaptureName)
-                  .map((device) => device['index'] as int).firstOrNull;
-          _selectedPlaybackIndex = previousPlaybackName == null
-              ? null
-              : _playbackDevices.where((device) => device['name'] == previousPlaybackName)
-                  .map((device) => device['index'] as int).firstOrNull;
+          final matchingCapture = previousCaptureName == null
+              ? <Map<String, dynamic>>[]
+              : _captureDevices.where((device) => device['name'] == previousCaptureName).toList(growable: false);
+          final matchingPlayback = previousPlaybackName == null
+              ? <Map<String, dynamic>>[]
+              : _playbackDevices.where((device) => device['name'] == previousPlaybackName).toList(growable: false);
+          _selectedCaptureIndex = matchingCapture.isEmpty ? null : matchingCapture.first['index'] as int;
+          _selectedPlaybackIndex = matchingPlayback.isEmpty ? null : matchingPlayback.first['index'] as int;
         } else {
           _selectedCaptureIndex = _defaultDeviceIndex(_captureDevices, _selectedCaptureIndex);
           _selectedPlaybackIndex = _defaultDeviceIndex(_playbackDevices, _selectedPlaybackIndex);
