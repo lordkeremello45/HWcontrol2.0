@@ -316,11 +316,19 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
     }).toList(growable: false);
   }
 
-  Future<void> _loadAudioDevices() async {
+  Future<void> _loadAudioDevices({bool preserveMissingSelection = false}) async {
     if (widget.onLoadDevices == null) {
       if (mounted) setState(() => _deviceDetectionMessage = 'Bridge device detection is not available in this context.');
       return;
     }
+    final previousCaptureName = _captureDevices
+        .where((device) => device['index'] == _selectedCaptureIndex)
+        .map((device) => device['name'] as String)
+        .firstOrNull;
+    final previousPlaybackName = _playbackDevices
+        .where((device) => device['index'] == _selectedPlaybackIndex)
+        .map((device) => device['name'] as String)
+        .firstOrNull;
     try {
       final result = await widget.onLoadDevices!();
       if (result == null) throw const FormatException('Bridge did not return audio devices.');
@@ -337,9 +345,24 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
       setState(() {
         _captureDevices = parse(result['capture'], 'capture');
         _playbackDevices = parse(result['playback'], 'playback');
-        _selectedCaptureIndex = _defaultDeviceIndex(_captureDevices, _selectedCaptureIndex);
-        _selectedPlaybackIndex = _defaultDeviceIndex(_playbackDevices, _selectedPlaybackIndex);
-        _deviceDetectionMessage = 'Detected ${_captureDevices.length} input and ${_playbackDevices.length} output endpoints on this computer.';
+        if (preserveMissingSelection) {
+          _selectedCaptureIndex = previousCaptureName == null
+              ? null
+              : _captureDevices.where((device) => device['name'] == previousCaptureName)
+                  .map((device) => device['index'] as int).firstOrNull;
+          _selectedPlaybackIndex = previousPlaybackName == null
+              ? null
+              : _playbackDevices.where((device) => device['name'] == previousPlaybackName)
+                  .map((device) => device['index'] as int).firstOrNull;
+        } else {
+          _selectedCaptureIndex = _defaultDeviceIndex(_captureDevices, _selectedCaptureIndex);
+          _selectedPlaybackIndex = _defaultDeviceIndex(_playbackDevices, _selectedPlaybackIndex);
+        }
+        final missingCapture = preserveMissingSelection && _selectedCaptureIndex == null;
+        final missingPlayback = preserveMissingSelection && _selectedPlaybackIndex == null;
+        _deviceDetectionMessage = missingCapture || missingPlayback
+            ? 'Audio endpoints refreshed. A previously selected device is missing; choose a device manually before restarting.'
+            : 'Detected ${_captureDevices.length} input and ${_playbackDevices.length} output endpoints on this computer.';
       });
       _syncSelectedEndpoint();
     } catch (error) {
@@ -413,7 +436,11 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
           _liveError = 'The audio stream stopped unexpectedly. Audio is no longer being processed. Refresh devices, then start the stream again.';
         }
       });
-      if (!isRunning) { _metricsTimer?.cancel(); _metricsTimer = null; }
+      if (!isRunning) {
+        _metricsTimer?.cancel();
+        _metricsTimer = null;
+        if (wasRunning) unawaited(_loadAudioDevices(preserveMissingSelection: true));
+      }
     } catch (error) {
       if (mounted) setState(() => _liveError = 'Live metrics unavailable: $error');
     } finally {
