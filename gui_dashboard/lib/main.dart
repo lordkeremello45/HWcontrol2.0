@@ -22,6 +22,7 @@ import 'fan_curve.dart';
 import 'fan_channels.dart';
 import 'benchmark.dart';
 import 'automation_rules.dart';
+import 'audio_controller_studio.dart';
 import 'model_manager.dart';
 import 'user_data_store.dart';
 import 'game_profile.dart';
@@ -442,6 +443,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       '$executableDir${Platform.pathSeparator}$binaryName',
       '${Directory(executableDir).parent.path}${Platform.pathSeparator}$binaryName',
       '${Directory(Directory(executableDir).parent.path).parent.path}${Platform.pathSeparator}$binaryName',
+      '${Directory(Directory(Directory(executableDir).parent.path).parent.path).parent.path}${Platform.pathSeparator}$binaryName',
       '${Directory.current.path}${Platform.pathSeparator}$binaryName',
       '${Directory.current.path}${Platform.pathSeparator}ai_core${Platform.pathSeparator}$binaryName',
     ];
@@ -1766,10 +1768,156 @@ Attach this archive to a support issue only after reviewing it for personal info
     required int timestamp,
     required String nonce,
     String? target,
+    String? payloadJson,
   }) {
     var payload = '$action\n${value.toStringAsFixed(6)}\n$timestamp\n$nonce';
     if (target != null && target.isNotEmpty) payload = '$payload\n$target';
+    if (payloadJson != null) payload = '$payload\n$payloadJson';
     return Hmac(sha256, utf8.encode(_sharedKey)).convert(utf8.encode(payload)).toString();
+  }
+
+
+
+  Future<String?> _findAudioProbePath() async {
+    final executable = File(Platform.resolvedExecutable);
+    final executableDir = executable.parent.path;
+    final binaryName = Platform.isWindows ? 'hwcontrol_audio_probe.exe' : 'hwcontrol_audio_probe';
+    final candidates = <String>[
+      '$executableDir${Platform.pathSeparator}$binaryName',
+      '${Directory(executableDir).parent.path}${Platform.pathSeparator}$binaryName',
+      '${Directory(Directory(executableDir).parent.path).parent.path}${Platform.pathSeparator}$binaryName',
+      '${Directory(Directory(Directory(executableDir).parent.path).parent.path).parent.path}${Platform.pathSeparator}$binaryName',
+      '${Directory.current.path}${Platform.pathSeparator}$binaryName',
+      '${Directory.current.path}${Platform.pathSeparator}audio_core${Platform.pathSeparator}$binaryName',
+    ];
+    for (final candidate in candidates) {
+      try {
+        if (await File(candidate).exists()) return candidate;
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  String _hexDecodeAudioLabel(String value) {
+    if (value.length.isOdd || value.length > 1024) {
+      throw const FormatException('Invalid audio endpoint label encoding.');
+    }
+    final bytes = <int>[];
+    for (var i = 0; i < value.length; i += 2) {
+      bytes.add(int.parse(value.substring(i, i + 2), radix: 16));
+    }
+    return utf8.decode(bytes, allowMalformed: true);
+  }
+
+  Future<Map<String, dynamic>?> _detectAudioDevices() async {
+    final probePath = await _findAudioProbePath();
+    if (probePath == null) {
+      throw StateError('Native audio device probe was not found beside the application.');
+    }
+    final process = await Process.start(probePath, const ['--json'], runInShell: false);
+    final stdoutFuture = process.stdout.transform(utf8.decoder).join();
+    final stderrDrain = process.stderr.drain<void>();
+    final exitCode = await process.exitCode.timeout(
+      const Duration(seconds: 6),
+      onTimeout: () {
+        process.kill();
+        throw TimeoutException('Native audio endpoint enumeration timed out.');
+      },
+    );
+    final stdout = await stdoutFuture;
+    await stderrDrain;
+    if (exitCode != 0 || stdout.length > 65536) {
+      throw StateError('Native audio endpoint enumeration failed.');
+    }
+    final decoded = jsonDecode(stdout);
+    if (decoded is! Map<String, dynamic>) throw const FormatException('Invalid device probe response.');
+    List<Map<String, dynamic>> parse(Object? raw) {
+      if (raw is! List) throw const FormatException('Invalid device list.');
+      return raw.whereType<Map>().map((entry) {
+        final nameHex = entry['nameHex'];
+        final index = entry['index'];
+        if (nameHex is! String || index is! num) {
+          throw const FormatException('Invalid device metadata.');
+        }
+        return <String, dynamic>{
+          'index': index.toInt(),
+          'name': _hexDecodeAudioLabel(nameHex),
+          'isDefault': entry['isDefault'] == true,
+        };
+      }).toList(growable: false);
+    }
+    return <String, dynamic>{
+      'capture': parse(decoded['capture']),
+      'playback': parse(decoded['playback']),
+      'localOnly': true,
+    };
+  }
+
+  Future<Map<String, dynamic>?> _requestLocalAudioProfile(Map<String, dynamic> profile) async {
+    if (_aiSending) throw StateError('Gemma is currently processing another request.');
+    _aiSending = true;
+    try {
+      await _ensureAiEngine();
+      final process = _aiProcess;
+      final responses = _aiResponses;
+      if (process == null || responses == null) {
+        throw StateError(_aiModelError ?? 'Local Gemma engine is not ready.');
+      }
+      final deviceType = profile['deviceType'];
+      final usage = profile['usage'];
+      final model = profile['model'];
+      final manufacturer = profile['manufacturer'] is String ? profile['manufacturer'] as String : '';
+      final sampleRate = profile['sampleRateHz'];
+      final channels = profile['channels'];
+      if (deviceType is! String || usage is! String || model is! String ||
+          sampleRate is! int || channels is! int ||
+          model.trim().isEmpty || utf8.encode(model).length > 120 || utf8.encode(manufacturer).length > 80 ||
+          sampleRate < 8000 || sampleRate > 192000 || channels < 1 || channels > 8) {
+        throw const FormatException('Audio profile input is outside supported bounds.');
+      }
+      const deviceTypes = {'microphone', 'speaker', 'headphones', 'headset'};
+      const useCases = {'voice', 'gaming', 'music', 'movie', 'meeting', 'streaming'};
+      if (!deviceTypes.contains(deviceType) || !useCases.contains(usage)) {
+        throw const FormatException('Unsupported device type or use case.');
+      }
+      final fields = <String>[
+        'AUDIO',
+        'type=$deviceType',
+        'usage=$usage',
+        'rate=$sampleRate',
+        'channels=$channels',
+        'model_hex=${_hexEncode(model)}',
+        if (manufacturer.isNotEmpty) 'manufacturer_hex=${_hexEncode(manufacturer)}',
+        'verified=${_aiBool(profile['specificationsVerified'])}',
+      ];
+      process.stdin.writeln(fields.join(' '));
+      await process.stdin.flush();
+      final hasResponse = await responses.moveNext().timeout(
+        const Duration(seconds: 90),
+        onTimeout: () {
+          process.kill();
+          _aiProcess = null;
+          _aiResponses = null;
+          unawaited(responses.cancel());
+          throw TimeoutException('Local Gemma audio recommendation timed out.');
+        },
+      );
+      if (!hasResponse) throw StateError('Local Gemma process closed without a response.');
+      final response = responses.current;
+      if (!response.startsWith('AUDIO_OK|')) {
+        throw StateError(response.startsWith('AUDIO_ERROR|') ? response : 'Local Gemma returned an unexpected response.');
+      }
+      return <String, dynamic>{
+        'recommendation': response.substring('AUDIO_OK|'.length).trim(),
+        'localOnly': true,
+        'requiresApproval': true,
+      };
+    } catch (error) {
+      if (mounted) setState(() => _aiStatus = 'Audio advisor: $error');
+      rethrow;
+    } finally {
+      _aiSending = false;
+    }
   }
 
   Future<Map<String, dynamic>?> _requestBridgeData(String action) async {
@@ -1788,7 +1936,7 @@ Attach this archive to a support issue only after reviewing it for personal info
         'auth': auth,
       })}\n');
       final responses = _responses;
-      if (responses == null || !await responses.moveNext().timeout(const Duration(seconds: 4))) return null;
+      if (responses == null || !await responses.moveNext().timeout(const Duration(seconds: 8))) return null;
       final response = jsonDecode(responses.current) as Map<String, dynamic>;
       return response['data'] as Map<String, dynamic>?;
     } catch (_) {
@@ -2997,6 +3145,14 @@ Attach this archive to a support issue only after reviewing it for personal info
     );
   }
 
+  Future<void> _openAudioControllerStudio() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => AudioControllerStudioScreen(onRecommend: _requestLocalAudioProfile, onLoadDevices: _detectAudioDevices),
+      ),
+    );
+  }
+
   Widget _buildHeader() {
     return Row(
       children: [
@@ -3028,6 +3184,11 @@ Attach this archive to a support issue only after reviewing it for personal info
           tooltip: widget.animationsEnabled ? _tr('animationsOn') : _tr('animationsOff'),
           onPressed: () => widget.onAnimationsChanged(!widget.animationsEnabled),
           icon: Icon(widget.animationsEnabled ? Icons.animation : Icons.animation_outlined),
+        ),
+        IconButton(
+          tooltip: 'Audio Controller Studio',
+          onPressed: _openAudioControllerStudio,
+          icon: const Icon(Icons.graphic_eq),
         ),
         IconButton(tooltip: _tr('menu'), onPressed: _openSettingsMenu, icon: const Icon(Icons.menu)),
         _buildConnectionBadge(),

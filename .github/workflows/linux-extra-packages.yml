@@ -46,6 +46,7 @@ jobs:
           package_dir="package/HWControl-${GITHUB_REF_NAME}-Linux-x64"
           rm -rf package && mkdir -p "$package_dir"
           install -m 0755 build/ai_core/ai_engine "$package_dir/ai_engine"
+          install -m 0755 build/audio_core/hwcontrol_audio_probe "$package_dir/hwcontrol_audio_probe"
           install -m 0755 bridge-service "$package_dir/bridge-service"
           cp -R gui_dashboard/build/linux/x64/release/bundle "$package_dir/dashboard"
           cp README.md SECURITY.md THIRD_PARTY_NOTICES "$package_dir/"

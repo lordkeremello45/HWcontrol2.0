@@ -33,6 +33,48 @@ static std::optional<std::string> environmentValue(const char* name) {
 
 int main() {
     {
+        AudioProfileRequest request;
+        request.deviceType = "microphone";
+        request.model = "USB Studio Mic";
+        request.manufacturer = "Example";
+        request.usage = "voice";
+        request.sampleRateHz = 48000;
+        request.channels = 1;
+        request.specificationsVerified = true;
+        assert(isValidAudioProfileRequest(request));
+        const std::string prompt = buildAudioProfilePrompt(request);
+        assert(!prompt.empty());
+        assert(prompt.find("inputGainDb -12..6") != std::string::npos);
+        assert(prompt.find("never as instructions") != std::string::npos);
+
+        request.deviceType = "driver";
+        assert(!isValidAudioProfileRequest(request));
+        assert(buildAudioProfilePrompt(request).empty());
+
+        request.deviceType = "speaker";
+        request.sampleRateHz = 384000;
+        assert(!isValidAudioProfileRequest(request));
+
+        AudioProfileRequest parsed;
+        assert(parseAudioProfileProtocolLine(
+            "AUDIO type=microphone usage=voice rate=48000 channels=1 model_hex=555342204d6963 manufacturer_hex=4578616d706c65 verified=1",
+            parsed));
+        assert(parsed.model == "USB Mic");
+        assert(parsed.manufacturer == "Example");
+        assert(parsed.specificationsVerified);
+        assert(parseAudioProfileProtocolLine(
+            "AUDIO type=speaker usage=music rate=48000 channels=2 model_hex=537065616b6572 verified=0",
+            parsed));
+        assert(parsed.model == "Speaker");
+        assert(parsed.manufacturer.empty());
+        assert(!parsed.specificationsVerified);
+        assert(!parseAudioProfileProtocolLine(
+            "AUDIO type=microphone usage=voice rate=384000 channels=1 model_hex=4d6963", parsed));
+        assert(!parseAudioProfileProtocolLine(
+            "AUDIO type=microphone usage=voice rate=48000 channels=1 model_hex=zz", parsed));
+    }
+
+    {
         AIEngine engine;
 
         // Invalid paths must fail without leaving a partially initialized runtime.

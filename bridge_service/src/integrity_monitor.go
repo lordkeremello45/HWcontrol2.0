@@ -22,11 +22,11 @@ type integrityTarget struct {
 }
 
 type bridgeIntegrityMonitor struct {
-	targets   []integrityTarget
+	targets    []integrityTarget
 	verifyRoot string
-	stopCh   chan struct{}
-	stopOnce sync.Once
-	healthy  atomic.Bool
+	stopCh     chan struct{}
+	stopOnce   sync.Once
+	healthy    atomic.Bool
 }
 
 func newBridgeIntegrityMonitor() (*bridgeIntegrityMonitor, error) {
@@ -85,9 +85,9 @@ func newBridgeIntegrityMonitor() (*bridgeIntegrityMonitor, error) {
 	bridgeIntegrityState.Store(true)
 	bridgeIntegrityTargetCount.Store(int64(len(targets)))
 	m := &bridgeIntegrityMonitor{
-		targets: targets,
+		targets:    targets,
 		verifyRoot: verifyRoot,
-		stopCh: make(chan struct{}),
+		stopCh:     make(chan struct{}),
 	}
 	m.healthy.Store(true)
 	return m, nil
@@ -123,6 +123,14 @@ func criticalIntegrityPaths() []string {
 		aiPath := filepath.Join(base, aiName)
 		if _, err := os.Lstat(aiPath); err == nil {
 			paths = append(paths, aiPath)
+		}
+		probeName := "hwcontrol_audio_probe"
+		if runtime.GOOS == "windows" {
+			probeName += ".exe"
+		}
+		probePath := filepath.Join(base, probeName)
+		if _, err := os.Lstat(probePath); err == nil {
+			paths = append(paths, probePath)
 		}
 	}
 

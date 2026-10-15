@@ -17,25 +17,25 @@ import (
 
 const (
 	csharpHardwareIdentityMaxOutput = 1 << 20
-	csharpHardwareIdentityTimeout  = 5 * time.Second
+	csharpHardwareIdentityTimeout   = 5 * time.Second
 )
 
 type csharpHardwareInventory struct {
-	Collector          string          `json:"collector"`
-	SchemaVersion      int             `json:"schemaVersion"`
-	Platform           string          `json:"platform"`
-	Status             string          `json:"status"`
-	SystemManufacturer string          `json:"systemManufacturer"`
-	SystemModel        string          `json:"systemModel"`
-	SystemFamily       string          `json:"systemFamily"`
-	BiosVendor         string          `json:"biosVendor"`
-	BiosVersion        string          `json:"biosVersion"`
-	MotherboardVendor  string          `json:"motherboardVendor"`
-	MotherboardModel   string          `json:"motherboardModel"`
-	MotherboardVersion string          `json:"motherboardVersion"`
-	Cpus               []csharpCPU     `json:"cpus"`
-	Gpus               []csharpGPU     `json:"gpus"`
-	Warnings           []string        `json:"warnings"`
+	Collector          string      `json:"collector"`
+	SchemaVersion      int         `json:"schemaVersion"`
+	Platform           string      `json:"platform"`
+	Status             string      `json:"status"`
+	SystemManufacturer string      `json:"systemManufacturer"`
+	SystemModel        string      `json:"systemModel"`
+	SystemFamily       string      `json:"systemFamily"`
+	BiosVendor         string      `json:"biosVendor"`
+	BiosVersion        string      `json:"biosVersion"`
+	MotherboardVendor  string      `json:"motherboardVendor"`
+	MotherboardModel   string      `json:"motherboardModel"`
+	MotherboardVersion string      `json:"motherboardVersion"`
+	Cpus               []csharpCPU `json:"cpus"`
+	Gpus               []csharpGPU `json:"gpus"`
+	Warnings           []string    `json:"warnings"`
 }
 
 type csharpCPU struct {

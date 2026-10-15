@@ -20,9 +20,12 @@ public:
     // Full hardware analysis path used by the richer telemetry pipeline.
     std::string processTelemetry(const HardwareTelemetry& telemetry);
 
+    // Local Gemma recommendation only; output must be validated and approved before use.
+    std::string recommendAudioProfile(const AudioProfileRequest& request);
+
 private:
     void release();
-    std::string runInference(const std::string& prompt);
+    std::string runInference(const std::string& prompt, int maxTokens = 96);
 
     llama_model* model;
     llama_context* ctx;

@@ -48,7 +48,6 @@ func TestDiagnosticsSnapshotContract(t *testing.T) {
 	}
 }
 
-
 func TestAppendCrashRecordPersistsRedactedLocalEvent(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "events.jsonl")
 	if err := appendCrashRecord(path, "line1\nline2"); err != nil {

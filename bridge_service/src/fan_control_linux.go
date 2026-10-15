@@ -14,16 +14,16 @@ import (
 )
 
 type linuxFanTarget struct {
-	id                string
-	pwmPath           string
-	fanInput          string
-	name              string
-	supported         bool
-	reason            string
-	fanRPM            float64
-	rpmAvailable      bool
-	fanPercent        float64
-	percentAvailable  bool
+	id               string
+	pwmPath          string
+	fanInput         string
+	name             string
+	supported        bool
+	reason           string
+	fanRPM           float64
+	rpmAvailable     bool
+	fanPercent       float64
+	percentAvailable bool
 }
 
 func canonicalLinuxHwmonDevicePath(devicePath string) string {

@@ -91,6 +91,7 @@ jobs:
           & "package/$root/hwcontrol-hardware-identification.exe" --self-test
           if ($LASTEXITCODE -ne 0) { throw 'Packaged C# hardware identification self-test failed' }
           Copy-Item build-windows/ai_core/Release/ai_engine.exe "package/$root/ai_engine.exe"
+          Copy-Item build-windows/audio_core/Release/hwcontrol_audio_probe.exe "package/$root/hwcontrol_audio_probe.exe"
           Copy-Item -Recurse gui_dashboard/build/windows/x64/runner/Release "package/$root/dashboard"
           Copy-Item gui_dashboard/build/windows/x64/runner/Release/hwcontrol_dashboard.exe "package/$root/HWControl.exe"
           Copy-Item bridge-service.exe "package/$root/bridge-service.exe"
@@ -243,6 +244,7 @@ jobs:
           rm -rf package linux-deb
           mkdir -p "package/$root" linux-deb/DEBIAN linux-deb/opt/hwcontrol linux-deb/usr/bin linux-deb/lib/systemd/system
           install -m 0755 build/ai_core/ai_engine "package/$root/ai_engine"
+          install -m 0755 build/audio_core/hwcontrol_audio_probe "package/$root/hwcontrol_audio_probe"
           install -m 0755 bridge-service "package/$root/bridge-service"
           install -m 0755 security-guardian "package/$root/security-guardian"
           install -m 0440 security/fetch-status/bridger.key "package/$root/security/fetch-status/bridger.key"
@@ -347,6 +349,7 @@ jobs:
           mkdir -p pkg-root/Applications/HWControl dmg-root
           cp -R gui_dashboard/build/macos/Build/Products/Release/HWControl.app pkg-root/Applications/HWControl/
           install -m 0755 build/ai_core/ai_engine pkg-root/Applications/HWControl/ai_engine
+          install -m 0755 build/audio_core/hwcontrol_audio_probe pkg-root/Applications/HWControl/hwcontrol_audio_probe
           install -m 0755 bridge-service pkg-root/Applications/HWControl/bridge-service
           install -m 0755 security-guardian pkg-root/Applications/HWControl/security-guardian
           install -m 0644 deploy/macos/com.hwcontrol.bridge.plist pkg-root/Applications/HWControl/com.hwcontrol.bridge.plist

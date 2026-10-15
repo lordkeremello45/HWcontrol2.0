@@ -8,20 +8,20 @@ import (
 const maxSensorHistorySamples = 300
 
 type SensorHistorySample struct {
-	Timestamp             string  `json:"timestamp"`
-	CPUTemperature        float64 `json:"cpuTemperature,omitempty"`
-	CPUTemperatureSource  string  `json:"cpuTemperatureSource,omitempty"`
-	GPUTemperature        float64 `json:"gpuTemperature,omitempty"`
-	GPUTemperatureSource  string  `json:"gpuTemperatureSource,omitempty"`
-	CPUUsage              float64 `json:"cpuUsage,omitempty"`
-	GPUUsage              float64 `json:"gpuUsage,omitempty"`
-	PowerWatts            float64 `json:"powerWatts,omitempty"`
-	FanRPM                float64 `json:"fanRpm,omitempty"`
-	MemoryUsage           float64 `json:"memoryUsage,omitempty"`
+	Timestamp            string  `json:"timestamp"`
+	CPUTemperature       float64 `json:"cpuTemperature,omitempty"`
+	CPUTemperatureSource string  `json:"cpuTemperatureSource,omitempty"`
+	GPUTemperature       float64 `json:"gpuTemperature,omitempty"`
+	GPUTemperatureSource string  `json:"gpuTemperatureSource,omitempty"`
+	CPUUsage             float64 `json:"cpuUsage,omitempty"`
+	GPUUsage             float64 `json:"gpuUsage,omitempty"`
+	PowerWatts           float64 `json:"powerWatts,omitempty"`
+	FanRPM               float64 `json:"fanRpm,omitempty"`
+	MemoryUsage          float64 `json:"memoryUsage,omitempty"`
 }
 
 type sensorHistoryStore struct {
-	mu sync.RWMutex
+	mu      sync.RWMutex
 	samples []SensorHistorySample
 }
 
@@ -32,16 +32,16 @@ func recordSensorHistory(metrics HardwareMetrics) {
 		return
 	}
 	sample := SensorHistorySample{
-		Timestamp: metrics.MetricsCollectedAt,
-		CPUTemperature: metrics.CPUTemperature,
+		Timestamp:            metrics.MetricsCollectedAt,
+		CPUTemperature:       metrics.CPUTemperature,
 		CPUTemperatureSource: metrics.CPUTemperatureSource,
-		GPUTemperature: metrics.GPUTemperature,
+		GPUTemperature:       metrics.GPUTemperature,
 		GPUTemperatureSource: metrics.GPUTemperatureSource,
-		CPUUsage: metrics.CPUUsage,
-		GPUUsage: metrics.GPUUsage,
-		PowerWatts: metrics.PowerWatts,
-		FanRPM: metrics.FanRPM,
-		MemoryUsage: metrics.MemoryUsage,
+		CPUUsage:             metrics.CPUUsage,
+		GPUUsage:             metrics.GPUUsage,
+		PowerWatts:           metrics.PowerWatts,
+		FanRPM:               metrics.FanRPM,
+		MemoryUsage:          metrics.MemoryUsage,
 	}
 	localSensorHistory.mu.Lock()
 	defer localSensorHistory.mu.Unlock()
@@ -56,11 +56,11 @@ func sensorHistorySnapshot() map[string]any {
 	samples := append([]SensorHistorySample(nil), localSensorHistory.samples...)
 	localSensorHistory.mu.RUnlock()
 	return map[string]any{
-		"localOnly": true,
-		"persistent": false,
-		"capacity": maxSensorHistorySamples,
+		"localOnly":   true,
+		"persistent":  false,
+		"capacity":    maxSensorHistorySamples,
 		"sampleCount": len(samples),
-		"samples": samples,
+		"samples":     samples,
 	}
 }
 

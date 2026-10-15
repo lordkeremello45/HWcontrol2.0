@@ -4,11 +4,11 @@ import "testing"
 
 func TestServiceCatalogContainsSixSecurityBoundedServices(t *testing.T) {
 	expected := map[string]bool{
-		"update": false,
+		"update":       false,
 		"sensorhealth": false,
-		"diagnostics": false,
-		"game": false,
-		"security": false,
+		"diagnostics":  false,
+		"game":         false,
+		"security":     false,
 		"fetch-status": false,
 	}
 	for _, service := range hwcontrolServices {

@@ -66,6 +66,12 @@ bool AIEngine::init(const char* modelPath) {
 }
 
 std::string AIEngine::processData(float temp, float load) {
+    // The legacy API requires both measurements; the richer telemetry API
+    // separately supports partially available hardware sensors.
+    if (!std::isfinite(temp) || !std::isfinite(load)) {
+        return "AI girdisi gecersiz";
+    }
+
     HardwareTelemetry telemetry;
     telemetry.cpuTemperatureC = temp;
     telemetry.cpuLoadPercent = load;
@@ -90,7 +96,18 @@ std::string AIEngine::processTelemetry(const HardwareTelemetry& telemetry) {
     return runInference(prompt);
 }
 
-std::string AIEngine::runInference(const std::string& prompt) {
+std::string AIEngine::recommendAudioProfile(const AudioProfileRequest& request) {
+    const std::string prompt = buildAudioProfilePrompt(request);
+    if (prompt.empty()) {
+        return "Ses profili girdisi gecersiz";
+    }
+    if (!model || !ctx || !sampler) {
+        return "AI motoru hazir degil";
+    }
+    return runInference(prompt, 256);
+}
+
+std::string AIEngine::runInference(const std::string& prompt, int maxTokens) {
     const llama_vocab* vocab = llama_model_get_vocab(model);
     if (!vocab) {
         return "AI vocab bulunamadi";
@@ -115,7 +132,7 @@ std::string AIEngine::runInference(const std::string& prompt) {
     }
 
     std::string response;
-    for (int token_index = 0; token_index < 96; ++token_index) {
+    for (int token_index = 0; token_index < maxTokens; ++token_index) {
         const llama_token sampled_token = llama_sampler_sample(sampler, ctx, -1);
         llama_token token = static_cast<llama_token>(sampled_token);
         if (llama_vocab_is_eog(vocab, token)) {

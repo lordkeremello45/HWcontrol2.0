@@ -3,6 +3,7 @@
 
 #include <limits>
 #include <string>
+#include <cstdint>
 #include <vector>
 
 struct HardwareTelemetry {
@@ -34,6 +35,20 @@ struct HardwareTelemetry {
     std::string gpuVendor;
     std::string gpuName;
 };
+
+struct AudioProfileRequest {
+    std::string deviceType;       // microphone, speaker, headphones, headset
+    std::string model;
+    std::string manufacturer;
+    std::string usage;            // voice, gaming, music, movie, meeting, streaming
+    std::uint32_t sampleRateHz = 48000;
+    std::uint32_t channels = 2;
+    bool specificationsVerified = false;
+};
+
+bool isValidAudioProfileRequest(const AudioProfileRequest& request);
+std::string buildAudioProfilePrompt(const AudioProfileRequest& request);
+bool parseAudioProfileProtocolLine(const std::string& line, AudioProfileRequest& request);
 
 struct RiskAssessment {
     std::string level;
