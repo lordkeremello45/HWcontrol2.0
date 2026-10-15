@@ -36,7 +36,7 @@ A cross-platform audio workstation inside HWcontrol2.0 for microphone processing
 - Input gain, simple noise gate, static-ratio compressor, and peak limiter.
 - Input/output peak and RMS meters, clipped-sample count, processed-frame count.
 - Fixed-size 1024-point Hann-window FFT spectrum analysis on a worker/analysis thread (not the device callback), with peak-frequency and RMS output.
-- Native capture/playback device enumeration and duplex stream lifecycle via pinned miniaudio 0.11.22; monitoring is opt-in to avoid accidental acoustic feedback. Device metrics are published via atomics.
+- Native capture/playback device enumeration and duplex stream lifecycle via pinned miniaudio 0.11.22; monitoring is opt-in to avoid accidental acoustic feedback. Device metrics are published via atomics. The miniaudio stopped-notification callback also clears the public running state when a backend stops unexpectedly (for example, device loss); it never tries to restart or uninitialize a device from the notification callback. A subsequent explicit Start request reinitializes the selected endpoints. Automatic reconnect and a user-visible failure reason are not implemented yet.
 - Unit tests for limiter bounds, gain, gate behavior, EQ response, compression, FFT peak-frequency detection, non-finite sample sanitation, and invalid sample-rate fallback.
 
 The current gate is a basic threshold gate, not AI noise reduction. The compressor is a simple static curve, not a complete studio compressor with attack/release, knee, and sidechain. The limiter is a hard sample-peak clamp, not a look-ahead true-peak limiter. These distinctions are intentional.
