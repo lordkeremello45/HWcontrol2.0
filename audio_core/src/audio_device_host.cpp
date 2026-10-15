@@ -6,15 +6,19 @@
 #include <algorithm>
 #include <array>
 #include <atomic>
+#include <chrono>
 #include <cmath>
 #include <cstring>
 #include <mutex>
+#include <thread>
 #include <utility>
 
 namespace hwcontrol::audio {
 namespace {
 constexpr std::size_t kMaxCallbackFrames = 2048;
 constexpr std::size_t kSamplesPerFrame = kChannelCount;
+constexpr std::size_t kSpectrumQueueSlots = 4;
+constexpr std::size_t kSpectrumSamples = kFftSize * kSamplesPerFrame;
 }
 
 struct AudioDeviceHost::Impl {
@@ -36,6 +40,22 @@ struct AudioDeviceHost::Impl {
   std::atomic<bool> isRunning{false};
   std::mutex lifecycleMutex;
 
+  // Single-producer/single-consumer queue: the real-time callback owns writeIndex
+  // and partialFrame; the worker owns readIndex. A full queue drops a spectrum
+  // frame rather than blocking or delaying the audio callback.
+  std::array<std::array<float, kSpectrumSamples>, kSpectrumQueueSlots> spectrumQueue{};
+  std::array<float, kSpectrumSamples> partialFrame{};
+  std::size_t partialSamples = 0;
+  std::atomic<std::uint64_t> writeIndex{0};
+  std::atomic<std::uint64_t> readIndex{0};
+  std::atomic<bool> analysisStop{false};
+  std::thread analysisThread;
+  std::atomic<double> analysisSampleRateHz{48000.0};
+  std::array<std::atomic<float>, kSpectrumBinCount> spectrumMagnitude{};
+  std::atomic<float> spectrumPeakFrequencyHz{0.0F};
+  std::atomic<float> spectrumRms{0.0F};
+  std::atomic<bool> spectrumAvailable{false};
+
   Impl() {
     contextReady = ma_context_init(nullptr, 0, nullptr, &context) == MA_SUCCESS;
   }
@@ -45,6 +65,58 @@ struct AudioDeviceHost::Impl {
     if (contextReady) ma_context_uninit(&context);
   }
 
+  void startAnalysisWorker() {
+    writeIndex.store(0, std::memory_order_relaxed);
+    readIndex.store(0, std::memory_order_relaxed);
+    partialSamples = 0;
+    analysisStop.store(false, std::memory_order_release);
+    spectrumAvailable.store(false, std::memory_order_release);
+    analysisThread = std::thread([this] {
+      AudioAnalyzer analyzer;
+      SpectrumFrame frame;
+      for (;;) {
+        const std::uint64_t read = readIndex.load(std::memory_order_relaxed);
+        const std::uint64_t write = writeIndex.load(std::memory_order_acquire);
+        if (read == write) {
+          if (analysisStop.load(std::memory_order_acquire)) break;
+          std::this_thread::sleep_for(std::chrono::milliseconds(2));
+          continue;
+        }
+        const auto& samples = spectrumQueue[static_cast<std::size_t>(read % kSpectrumQueueSlots)];
+        if (analyzer.analyze(samples.data(), kFftSize,
+                             analysisSampleRateHz.load(std::memory_order_relaxed), frame)) {
+          for (std::size_t i = 0; i < kSpectrumBinCount; ++i) {
+            spectrumMagnitude[i].store(frame.magnitude[i], std::memory_order_relaxed);
+          }
+          spectrumPeakFrequencyHz.store(frame.peakFrequencyHz, std::memory_order_relaxed);
+          spectrumRms.store(frame.rms, std::memory_order_relaxed);
+          spectrumAvailable.store(true, std::memory_order_release);
+        }
+        readIndex.store(read + 1, std::memory_order_release);
+      }
+    });
+  }
+
+  void stopAnalysisWorker() noexcept {
+    analysisStop.store(true, std::memory_order_release);
+    if (analysisThread.joinable()) analysisThread.join();
+  }
+
+  void enqueueSpectrumSample(float sample) noexcept {
+    partialFrame[partialSamples++] = sample;
+    if (partialSamples != kSpectrumSamples) return;
+
+    const std::uint64_t write = writeIndex.load(std::memory_order_relaxed);
+    const std::uint64_t read = readIndex.load(std::memory_order_acquire);
+    if (write - read < kSpectrumQueueSlots) {
+      auto& slot = spectrumQueue[static_cast<std::size_t>(write % kSpectrumQueueSlots)];
+      std::copy(partialFrame.begin(), partialFrame.end(), slot.begin());
+      writeIndex.store(write + 1, std::memory_order_release);
+    }
+    // Reset even when full; audio must never wait for analysis to catch up.
+    partialSamples = 0;
+  }
+
   void stopLocked() noexcept {
     if (deviceReady) {
       (void)ma_device_stop(&device);
@@ -52,6 +124,7 @@ struct AudioDeviceHost::Impl {
       deviceReady = false;
     }
     isRunning.store(false, std::memory_order_release);
+    stopAnalysisWorker();
   }
 
   static void callback(ma_device* device, void* output, const void* input,
@@ -83,6 +156,7 @@ struct AudioDeviceHost::Impl {
       self->engine.process(scratch.data(), blockFrames);
       for (std::size_t i = 0; i < sampleCount; ++i) {
         const float value = scratch[i];
+        self->enqueueSpectrumSample(value);
         outPeak = std::max(outPeak, std::abs(value));
         outSquares += static_cast<double>(value) * static_cast<double>(value);
         if (out != nullptr) {
@@ -161,15 +235,17 @@ bool AudioDeviceHost::start(std::size_t captureIndex, std::size_t playbackIndex,
     error = "Audio device list is stale or the selected device index is invalid.";
     return false;
   }
-  if (!impl_->engine.configure(config, 48000.0)) {
-    // Invalid sample rate fallback is not expected here; config values are clamped.
-  }
+
   impl_->monitorOutput = monitorOutput;
   impl_->inputPeak.store(0.0F, std::memory_order_relaxed);
   impl_->outputPeak.store(0.0F, std::memory_order_relaxed);
   impl_->inputRms.store(0.0F, std::memory_order_relaxed);
   impl_->outputRms.store(0.0F, std::memory_order_relaxed);
   impl_->processedFrames.store(0, std::memory_order_relaxed);
+  impl_->spectrumPeakFrequencyHz.store(0.0F, std::memory_order_relaxed);
+  impl_->spectrumRms.store(0.0F, std::memory_order_relaxed);
+  for (auto& magnitude : impl_->spectrumMagnitude) magnitude.store(0.0F, std::memory_order_relaxed);
+  impl_->spectrumAvailable.store(false, std::memory_order_release);
 
   ma_device_config deviceConfig = ma_device_config_init(ma_device_type_duplex);
   deviceConfig.capture.pDeviceID = &impl_->captureIds[captureIndex];
@@ -189,6 +265,16 @@ bool AudioDeviceHost::start(std::size_t captureIndex, std::size_t playbackIndex,
     return false;
   }
   impl_->deviceReady = true;
+  const double actualSampleRate = impl_->device.sampleRate > 0
+      ? static_cast<double>(impl_->device.sampleRate) : 48000.0;
+  if (!impl_->engine.configure(config, actualSampleRate)) {
+    error = "Could not configure the DSP engine for the selected sample rate.";
+    impl_->stopLocked();
+    return false;
+  }
+  impl_->analysisSampleRateHz.store(actualSampleRate, std::memory_order_relaxed);
+  impl_->startAnalysisWorker();
+
   const ma_result startResult = ma_device_start(&impl_->device);
   if (startResult != MA_SUCCESS) {
     error = "Could not start the audio stream (miniaudio error " +
@@ -218,6 +304,13 @@ LiveAudioMetrics AudioDeviceHost::metrics() const noexcept {
   result.outputRms = impl_->outputRms.load(std::memory_order_relaxed);
   result.processedFrames = impl_->processedFrames.load(std::memory_order_relaxed);
   result.running = running();
+  result.spectrumAvailable = impl_->spectrumAvailable.load(std::memory_order_acquire);
+  result.spectrumPeakFrequencyHz = impl_->spectrumPeakFrequencyHz.load(std::memory_order_relaxed);
+  result.spectrumRms = impl_->spectrumRms.load(std::memory_order_relaxed);
+  result.sampleRateHz = impl_->analysisSampleRateHz.load(std::memory_order_relaxed);
+  for (std::size_t i = 0; i < kSpectrumBinCount; ++i) {
+    result.spectrumMagnitude[i] = impl_->spectrumMagnitude[i].load(std::memory_order_relaxed);
+  }
   return result;
 }
 
