@@ -166,6 +166,56 @@ void main() {
     expect(statusCalls, 1, reason: 'Polling must stop after the backend reports a stopped stream.');
   });
 
+  testWidgets('does not silently switch devices after a stream disconnect', (tester) async {
+    var deviceLoads = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: AudioControllerStudioScreen(
+        onLoadDevices: () async {
+          deviceLoads++;
+          final disconnected = deviceLoads > 1;
+          return <String, dynamic>{
+            'capture': <Map<String, dynamic>>[
+              <String, dynamic>{
+                'index': 0,
+                'name': disconnected ? 'Replacement Microphone' : 'USB Microphone',
+                'isDefault': true,
+              },
+            ],
+            'playback': <Map<String, dynamic>>[
+              <String, dynamic>{
+                'index': 0,
+                'name': disconnected ? 'Replacement Output' : 'Headphones',
+                'isDefault': true,
+              },
+            ],
+          };
+        },
+        onControl: (action, payload) async {
+          if (action == 'Start Audio Studio') {
+            return <String, dynamic>{'running': true};
+          }
+          if (action == 'Get Audio Studio Status') {
+            return <String, dynamic>{'running': false};
+          }
+          return <String, dynamic>{'running': false};
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Start live processing'));
+    await tester.tap(find.text('Start live processing'));
+    await tester.pumpAndSettle();
+
+    expect(deviceLoads, 2);
+    expect(find.textContaining('A previously selected device is missing'), findsOneWidget);
+    final dropdowns = tester.widgetList<DropdownButtonFormField<int>>(
+      find.byType(DropdownButtonFormField<int>),
+    ).toList(growable: false);
+    expect(dropdowns, hasLength(2));
+    expect(dropdowns[0].initialValue, isNull);
+    expect(dropdowns[1].initialValue, isNull);
+  });
+
   testWidgets('studio preset controls can be selected', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(home: AudioControllerStudioScreen()),
