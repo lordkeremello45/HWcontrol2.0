@@ -458,6 +458,9 @@ func validateCommand(cmd Command) error {
 	if _, err := hex.DecodeString(cmd.Auth); err != nil {
 		return fmt.Errorf("auth must be hexadecimal")
 	}
+	if len(cmd.Target) > 8192 {
+		return fmt.Errorf("command target is too large")
+	}
 	if action == "Set Fan Channel" {
 		if !validFanChannelID(cmd.Target) {
 			return fmt.Errorf("Set Fan Channel requires a valid channel identifier")
@@ -465,8 +468,11 @@ func validateCommand(cmd Command) error {
 		if err := validateFanPercent(cmd.Value); err != nil {
 			return err
 		}
+	} else if action == "Start Audio Studio" {
+		if cmd.Value != 0 { return fmt.Errorf("audio start command value must be zero") }
+		if _, err := decodeAudioStudioStartTarget(cmd.Target); err != nil { return err }
 	} else if cmd.Target != "" {
-		return fmt.Errorf("target is only accepted for Set Fan Channel")
+		return fmt.Errorf("target is only accepted for fan-channel or audio-start commands")
 	}
 	switch action {
 	case "Fan Hızı", "AI İşlem Gücü", "Set Game Mode":
@@ -482,7 +488,7 @@ func validateCommand(cmd Command) error {
 			return fmt.Errorf("read-only command value must be zero")
 		}
 		return nil
-	case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Sensor History", "Get Fan Channels", "Get Fetch Status", "Get Audio Devices":
+	case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Sensor History", "Get Fan Channels", "Get Fetch Status", "Get Audio Devices", "Get Audio Studio Status", "Stop Audio Studio":
 		if cmd.Value != 0 {
 			return fmt.Errorf("read-only command value must be zero")
 		}
@@ -1230,6 +1236,34 @@ func handleConnection(conn net.Conn, secret string) {
 				if err := encoder.Encode(Response{Status: "ERROR", Message: audioErr.Error()}); err != nil { return }
 			} else {
 				if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Native audio endpoints enumerated locally", Data: data}); err != nil { return }
+			}
+			continue
+		}
+		if cmd.Action == "Start Audio Studio" || cmd.Action == "Stop Audio Studio" || cmd.Action == "Get Audio Studio Status" {
+			var control string
+			switch cmd.Action {
+			case "Start Audio Studio":
+				request, requestErr := decodeAudioStudioStartTarget(cmd.Target)
+				if requestErr != nil {
+					_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+					if err := encoder.Encode(Response{Status: "ERROR", Message: requestErr.Error()}); err != nil { return }
+					continue
+				}
+				control = audioStudioStartLine(request)
+			case "Stop Audio Studio":
+				control = "stop"
+			default:
+				control = "status"
+			}
+			data, audioErr := audioProbeControl(control)
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			if audioErr != nil {
+				if err := encoder.Encode(Response{Status: "ERROR", Message: audioErr.Error()}); err != nil { return }
+			} else {
+				message := "Audio studio status retrieved"
+				if cmd.Action == "Start Audio Studio" { message = "Native audio processing started" }
+				if cmd.Action == "Stop Audio Studio" { message = "Native audio processing stopped" }
+				if err := encoder.Encode(Response{Status: "SUCCESS", Message: message, Data: data}); err != nil { return }
 			}
 			continue
 		}
