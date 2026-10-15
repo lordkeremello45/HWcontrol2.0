@@ -196,6 +196,19 @@ void testSpectrumAnalyzerReportsStereoLevelsAndCorrelation() {
           "quiet correlated channels lost their correlation");
   require(spectrum.leftRms > spectrum.rightRms * 1.9F,
           "unequal quiet channel levels were not preserved");
+
+  for (std::size_t frame = 0; frame < hwcontrol::audio::kFftSize; ++frame) {
+    const float tone = 0.1F * std::sin(static_cast<float>(
+        2.0 * 3.14159265358979323846 * frequency *
+        static_cast<double>(frame) / sampleRate));
+    samples[frame * 2] = tone + 0.3F;
+    samples[frame * 2 + 1] = tone * 0.5F - 0.2F;
+  }
+  require(analyzer.analyze(samples.data(), hwcontrol::audio::kFftSize,
+                           sampleRate, spectrum),
+          "stereo analysis rejected a DC-offset frame");
+  require(spectrum.stereoCorrelation > 0.999F,
+          "DC offsets incorrectly dominated stereo correlation");
 }
 
 void testSpectrumAnalyzerRejectsInvalidRatesAndContainsBadSamples() {
