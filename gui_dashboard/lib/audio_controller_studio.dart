@@ -354,8 +354,14 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
           final matchingPlayback = previousPlaybackName == null
               ? <Map<String, dynamic>>[]
               : _playbackDevices.where((device) => device['name'] == previousPlaybackName).toList(growable: false);
-          _selectedCaptureIndex = matchingCapture.isEmpty ? null : matchingCapture.first['index'] as int;
-          _selectedPlaybackIndex = matchingPlayback.isEmpty ? null : matchingPlayback.first['index'] as int;
+          // Names are not stable hardware identifiers. Keep a selection only
+          // when the old name maps to exactly one refreshed endpoint.
+          _selectedCaptureIndex = matchingCapture.length == 1
+              ? matchingCapture.first['index'] as int
+              : null;
+          _selectedPlaybackIndex = matchingPlayback.length == 1
+              ? matchingPlayback.first['index'] as int
+              : null;
         } else {
           _selectedCaptureIndex = _defaultDeviceIndex(_captureDevices, _selectedCaptureIndex);
           _selectedPlaybackIndex = _defaultDeviceIndex(_playbackDevices, _selectedPlaybackIndex);
