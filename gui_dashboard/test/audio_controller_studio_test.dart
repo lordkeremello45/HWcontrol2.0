@@ -95,6 +95,40 @@ void main() {
     expect(find.text('Stopped • no microphone stream is active'), findsOneWidget);
   });
 
+  testWidgets('falls back to a safe sample rate for malformed FFT metrics', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: AudioControllerStudioScreen(
+        onLoadDevices: () async => <String, dynamic>{
+          'capture': <Map<String, dynamic>>[
+            <String, dynamic>{'index': 0, 'name': 'USB Microphone', 'isDefault': true},
+          ],
+          'playback': <Map<String, dynamic>>[
+            <String, dynamic>{'index': 0, 'name': 'Headphones', 'isDefault': true},
+          ],
+        },
+        onControl: (action, payload) async {
+          if (action == 'Start Audio Studio' || action == 'Get Audio Studio Status') {
+            return <String, dynamic>{
+              'running': true,
+              'spectrumAvailable': true,
+              'spectrumPeakFrequencyHz': 1500.0,
+              'sampleRateHz': double.nan,
+              'spectrumMagnitude': List<double>.filled(513, 0.1),
+            };
+          }
+          return <String, dynamic>{'running': false};
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Start live processing'));
+    await tester.tap(find.text('Start live processing'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('12000 Hz'), findsOneWidget);
+    expect(find.text('24000 Hz'), findsOneWidget);
+  });
+
   testWidgets('studio preset controls can be selected', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(home: AudioControllerStudioScreen()),
