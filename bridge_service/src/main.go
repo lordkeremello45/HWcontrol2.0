@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -837,6 +838,168 @@ func audioDeviceSnapshot() (map[string]any, error) {
 	if ctx.Err() != nil { return nil, fmt.Errorf("native audio device enumeration timed out") }
 	if err != nil { return nil, fmt.Errorf("native audio device enumeration failed: %w", err) }
 	return decodeAudioDeviceProbeOutput(output)
+}
+
+
+type audioStudioStartRequest struct {
+	CaptureIndex int `json:"captureIndex"`
+	PlaybackIndex int `json:"playbackIndex"`
+	MonitorOutput bool `json:"monitorOutput"`
+	InputGain float64 `json:"inputGain"`
+	GateThreshold float64 `json:"gateThreshold"`
+	CompressorThreshold float64 `json:"compressorThreshold"`
+	CompressorRatio float64 `json:"compressorRatio"`
+	CompressorAttack float64 `json:"compressorAttack"`
+	CompressorRelease float64 `json:"compressorRelease"`
+	CompressorKnee float64 `json:"compressorKnee"`
+	HighPassFrequency float64 `json:"highPassFrequency"`
+	LimiterCeiling float64 `json:"limiterCeiling"`
+	GateEnabled bool `json:"gateEnabled"`
+	CompressorEnabled bool `json:"compressorEnabled"`
+	HighPassEnabled bool `json:"highPassEnabled"`
+	LimiterEnabled bool `json:"limiterEnabled"`
+	EQGain []float64 `json:"eqGain"`
+	EQFrequency []float64 `json:"eqFrequency"`
+}
+
+var audioProbeSessionMu sync.Mutex
+var audioProbeSessionCmd *exec.Cmd
+var audioProbeSessionInput io.WriteCloser
+var audioProbeSessionOutput *bufio.Reader
+
+func validAudioStudioStartRequest(request audioStudioStartRequest) error {
+	if request.CaptureIndex < 0 || request.CaptureIndex > 1024 || request.PlaybackIndex < 0 || request.PlaybackIndex > 1024 {
+		return fmt.Errorf("audio device index is outside the allowed range")
+	}
+	ranges := []struct { name string; value, min, max float64 }{
+		{"input gain", request.InputGain, -24, 12},
+		{"gate threshold", request.GateThreshold, -90, 0},
+		{"compressor threshold", request.CompressorThreshold, -60, 0},
+		{"compressor ratio", request.CompressorRatio, 1, 20},
+		{"compressor attack", request.CompressorAttack, 0.1, 200},
+		{"compressor release", request.CompressorRelease, 1, 2000},
+		{"compressor knee", request.CompressorKnee, 0, 24},
+		{"high-pass frequency", request.HighPassFrequency, 20, 1000},
+		{"limiter ceiling", request.LimiterCeiling, -24, 0},
+	}
+	for _, item := range ranges {
+		if math.IsNaN(item.value) || math.IsInf(item.value, 0) || item.value < item.min || item.value > item.max {
+			return fmt.Errorf("invalid audio %s", item.name)
+		}
+	}
+	if len(request.EQGain) != 3 || len(request.EQFrequency) != 3 {
+		return fmt.Errorf("audio EQ must contain exactly three bands")
+	}
+	for i := 0; i < 3; i++ {
+		if math.IsNaN(request.EQGain[i]) || math.IsInf(request.EQGain[i], 0) || request.EQGain[i] < -12 || request.EQGain[i] > 12 {
+			return fmt.Errorf("invalid audio EQ gain")
+		}
+		if math.IsNaN(request.EQFrequency[i]) || math.IsInf(request.EQFrequency[i], 0) || request.EQFrequency[i] < 20 || request.EQFrequency[i] > 18000 {
+			return fmt.Errorf("invalid audio EQ frequency")
+		}
+	}
+	return nil
+}
+
+func decodeAudioStudioStartTarget(target string) (audioStudioStartRequest, error) {
+	var request audioStudioStartRequest
+	if target == "" || len(target) > 8192 {
+		return request, fmt.Errorf("audio start configuration is missing or too large")
+	}
+	raw, err := base64.RawURLEncoding.DecodeString(target)
+	if err != nil { return request, fmt.Errorf("invalid audio start configuration encoding") }
+	if err := json.Unmarshal(raw, &request); err != nil { return request, fmt.Errorf("invalid audio start configuration") }
+	if err := validAudioStudioStartRequest(request); err != nil { return request, err }
+	return request, nil
+}
+
+func audioStudioStartLine(request audioStudioStartRequest) string {
+	boolNumber := func(value bool) int { if value { return 1 }; return 0 }
+	values := []float64{
+		request.InputGain, request.GateThreshold, request.CompressorThreshold,
+		request.CompressorRatio, request.CompressorAttack, request.CompressorRelease,
+		request.CompressorKnee, request.HighPassFrequency, request.LimiterCeiling,
+	}
+	for i := 0; i < 3; i++ { values = append(values, request.EQFrequency[i], request.EQGain[i]) }
+	parts := []string{
+		"start", strconv.Itoa(request.CaptureIndex), strconv.Itoa(request.PlaybackIndex),
+		strconv.Itoa(boolNumber(request.MonitorOutput)),
+	}
+	for _, value := range values[:9] { parts = append(parts, strconv.FormatFloat(value, 'f', -1, 64)) }
+	parts = append(parts,
+		strconv.Itoa(boolNumber(request.GateEnabled)),
+		strconv.Itoa(boolNumber(request.CompressorEnabled)),
+		strconv.Itoa(boolNumber(request.HighPassEnabled)),
+		strconv.Itoa(boolNumber(request.LimiterEnabled)))
+	for _, value := range values[9:] { parts = append(parts, strconv.FormatFloat(value, 'f', -1, 64)) }
+	return strings.Join(parts, " ")
+}
+
+func stopAudioProbeSessionLocked() {
+	if audioProbeSessionInput != nil { _ = audioProbeSessionInput.Close() }
+	if audioProbeSessionCmd != nil && audioProbeSessionCmd.Process != nil {
+		_ = audioProbeSessionCmd.Process.Kill()
+		_ = audioProbeSessionCmd.Wait()
+	}
+	audioProbeSessionCmd = nil
+	audioProbeSessionInput = nil
+	audioProbeSessionOutput = nil
+}
+
+func audioProbeControl(command string) (map[string]any, error) {
+	audioProbeSessionMu.Lock()
+	defer audioProbeSessionMu.Unlock()
+	if audioProbeSessionCmd == nil {
+		probe, err := resolveAudioProbePath()
+		if err != nil { return nil, err }
+		cmd := exec.Command(probe, "--server")
+		stdin, err := cmd.StdinPipe()
+		if err != nil { return nil, fmt.Errorf("open native audio control input: %w", err) }
+		stdout, err := cmd.StdoutPipe()
+		if err != nil { _ = stdin.Close(); return nil, fmt.Errorf("open native audio control output: %w", err) }
+		if err := cmd.Start(); err != nil { _ = stdin.Close(); return nil, fmt.Errorf("start native audio control process: %w", err) }
+		audioProbeSessionCmd = cmd
+		audioProbeSessionInput = stdin
+		audioProbeSessionOutput = bufio.NewReaderSize(stdout, 4096)
+	}
+	if _, err := io.WriteString(audioProbeSessionInput, command+"\n"); err != nil {
+		stopAudioProbeSessionLocked()
+		return nil, fmt.Errorf("send native audio command: %w", err)
+	}
+	type readResult struct { line string; err error }
+	result := make(chan readResult, 1)
+	reader := audioProbeSessionOutput
+	go func() { line, err := reader.ReadString('\n'); result <- readResult{line: line, err: err} }()
+	var line string
+	select {
+	case response := <-result:
+		if response.err != nil { stopAudioProbeSessionLocked(); return nil, fmt.Errorf("read native audio response: %w", response.err) }
+		line = response.line
+	case <-time.After(5 * time.Second):
+		stopAudioProbeSessionLocked()
+		return nil, fmt.Errorf("native audio command timed out")
+	}
+	if len(line) > 65536 {
+		stopAudioProbeSessionLocked()
+		return nil, fmt.Errorf("native audio response exceeded the size limit")
+	}
+	var response struct {
+		Status string `json:"status"`
+		Message string `json:"message"`
+		MessageHex string `json:"messageHex"`
+		Data map[string]any `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(line), &response); err != nil {
+		stopAudioProbeSessionLocked()
+		return nil, fmt.Errorf("invalid native audio response")
+	}
+	if response.Status != "SUCCESS" {
+		if response.MessageHex != "" {
+			if raw, err := hex.DecodeString(response.MessageHex); err == nil { response.Message = strings.ToValidUTF8(string(raw), "\\uFFFD") }
+		}
+		return nil, fmt.Errorf("native audio operation failed: %s", strings.ToValidUTF8(response.Message, "\\uFFFD"))
+	}
+	return response.Data, nil
 }
 
 func diagnosticsSnapshot() map[string]any {
