@@ -356,6 +356,39 @@ void main() {
     expect(dropdowns[1].value, isNull);
   });
 
+  testWidgets('shows dropped FFT frame count from native metrics', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: AudioControllerStudioScreen(
+        onLoadDevices: () async => <String, dynamic>{
+          'capture': <Map<String, dynamic>>[
+            <String, dynamic>{'index': 0, 'name': 'USB Microphone', 'isDefault': true},
+          ],
+          'playback': <Map<String, dynamic>>[
+            <String, dynamic>{'index': 0, 'name': 'Headphones', 'isDefault': true},
+          ],
+        },
+        onControl: (action, payload) async {
+          if (action == 'Start Audio Studio') {
+            return <String, dynamic>{'running': true, 'processedFrames': 1200, 'droppedSpectrumFrames': 3};
+          }
+          if (action == 'Get Audio Studio Status') {
+            return <String, dynamic>{'running': true, 'processedFrames': 2400, 'droppedSpectrumFrames': 7};
+          }
+          return <String, dynamic>{'running': false};
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Start live processing'));
+    await tester.tap(find.text('Start live processing'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Dropped FFT frames'), findsOneWidget);
+    expect(find.text('7'), findsOneWidget);
+    expect(find.text('Processed frames'), findsOneWidget);
+    expect(find.text('2400'), findsOneWidget);
+  });
+
   testWidgets('studio preset controls can be selected', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(home: AudioControllerStudioScreen()),

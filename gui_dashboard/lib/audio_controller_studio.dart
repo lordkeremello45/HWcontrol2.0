@@ -469,6 +469,12 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
     }
   }
 
+  String _safeMetricCount(String key) {
+    final value = _liveMetrics[key];
+    if (value is! num || !value.isFinite || value < 0) return '0';
+    return value.toInt().toString();
+  }
+
   String _metricDb(String key) {
     final value = _liveMetrics[key];
     if (value is! num || !value.isFinite || value <= 0) return '−∞ dBFS';
@@ -974,7 +980,8 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
               _metric('Input RMS', _liveRunning ? _metricDb('inputRms') : 'Not connected'),
               _metric('FFT peak', peakLabel),
               _metric('Latency / dropout', 'Not measured'),
-              _metric('Processed frames', _liveRunning ? '${_liveMetrics['processedFrames'] ?? 0}' : 'Not connected'),
+              _metric('Processed frames', _liveRunning ? '${_safeMetricCount('processedFrames')}' : 'Not connected'),
+              _metric('Dropped FFT frames', _liveRunning ? '${_safeMetricCount('droppedSpectrumFrames')}' : 'Not connected'),
             ],
           ),
           const SizedBox(height: 16),
