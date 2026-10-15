@@ -150,6 +150,39 @@ void testSpectrumAnalyzerFindsTone() {
           "wrong FFT frame size accepted");
 }
 
+void testSpectrumAnalyzerReportsStereoLevelsAndCorrelation() {
+  hwcontrol::audio::AudioAnalyzer analyzer;
+  hwcontrol::audio::SpectrumFrame spectrum;
+  std::array<float, hwcontrol::audio::kFftSize * 2> samples{};
+  constexpr double sampleRate = 48000.0;
+  constexpr double frequency = 1500.0;
+  for (std::size_t frame = 0; frame < hwcontrol::audio::kFftSize; ++frame) {
+    const float value = 0.25F * std::sin(static_cast<float>(
+        2.0 * 3.14159265358979323846 * frequency *
+        static_cast<double>(frame) / sampleRate));
+    samples[frame * 2] = value;
+    samples[frame * 2 + 1] = -value;
+  }
+  require(analyzer.analyze(samples.data(), hwcontrol::audio::kFftSize,
+                           sampleRate, spectrum),
+          "stereo analysis rejected a valid frame");
+  require(spectrum.leftRms > 0.15F && spectrum.leftRms < 0.2F,
+          "left-channel RMS incorrect");
+  require(spectrum.rightRms > 0.15F && spectrum.rightRms < 0.2F,
+          "right-channel RMS incorrect");
+  require(spectrum.stereoCorrelation < -0.999F,
+          "inverted stereo channels were not identified as negatively correlated");
+
+  samples.fill(0.0F);
+  require(analyzer.analyze(samples.data(), hwcontrol::audio::kFftSize,
+                           sampleRate, spectrum),
+          "stereo analysis rejected silence");
+  require(spectrum.leftRms == 0.0F && spectrum.rightRms == 0.0F,
+          "silence produced nonzero channel RMS");
+  require(spectrum.stereoCorrelation == 0.0F,
+          "silence should have neutral correlation rather than NaN");
+}
+
 void testSpectrumAnalyzerRejectsInvalidRatesAndContainsBadSamples() {
   hwcontrol::audio::AudioAnalyzer analyzer;
   hwcontrol::audio::SpectrumFrame spectrum;
@@ -226,6 +259,7 @@ int main() {
   testCompressorReducesAboveThresholdLevel();
   testHighPassAttenuatesLowFrequencyTone();
   testSpectrumAnalyzerFindsTone();
+  testSpectrumAnalyzerReportsStereoLevelsAndCorrelation();
   testSpectrumAnalyzerRejectsInvalidRatesAndContainsBadSamples();
   testSpectrumAnalyzerHandlesLargestFiniteSamples();
   testAudioDeviceHostLifecycleWithoutAssumingHardware();
