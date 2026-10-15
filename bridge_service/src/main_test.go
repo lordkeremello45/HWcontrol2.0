@@ -483,3 +483,33 @@ func TestHardwareControlSafetyGateRejectsInvalidSensorValues(t *testing.T) {
 		})
 	}
 }
+
+
+func TestDecodeAudioDeviceProbeOutput(t *testing.T) {
+	data, err := decodeAudioDeviceProbeOutput([]byte(`{"capture":[{"index":0,"nameHex":"555342204d6963726f70686f6e65","isDefault":true}],"playback":[{"index":2,"nameHex":"537065616b657273","isDefault":false}]}`))
+	if err != nil { t.Fatalf("decodeAudioDeviceProbeOutput returned error: %v", err) }
+	capture := data["capture"].([]map[string]any)
+	playback := data["playback"].([]map[string]any)
+	if len(capture) != 1 || capture[0]["name"] != "USB Microphone" || capture[0]["isDefault"] != true {
+		t.Fatalf("unexpected capture endpoints: %#v", capture)
+	}
+	if len(playback) != 1 || playback[0]["index"] != 2 || playback[0]["name"] != "Speakers" {
+		t.Fatalf("unexpected playback endpoints: %#v", playback)
+	}
+	if data["localOnly"] != true { t.Fatalf("audio endpoint response must be marked local-only") }
+}
+
+func TestDecodeAudioDeviceProbeOutputRejectsInvalidNames(t *testing.T) {
+	tests := []struct { name, raw string }{
+		{"invalid hex", `{"capture":[{"index":0,"nameHex":"xyz","isDefault":true}]}`},
+		{"empty name", `{"playback":[{"index":0,"nameHex":"","isDefault":true}]}`},
+		{"negative index", `{"capture":[{"index":-1,"nameHex":"4d6963","isDefault":true}]}`},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if _, err := decodeAudioDeviceProbeOutput([]byte(test.raw)); err == nil {
+				t.Fatal("expected invalid native audio device data to be rejected")
+			}
+		})
+	}
+}
