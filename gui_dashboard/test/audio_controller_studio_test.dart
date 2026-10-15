@@ -208,12 +208,12 @@ void main() {
 
     expect(deviceLoads, 2);
     expect(find.textContaining('A previously selected device is missing'), findsOneWidget);
-    final dropdowns = tester.widgetList<DropdownButtonFormField<int>>(
-      find.byType(DropdownButtonFormField<int>),
+    final dropdowns = tester.widgetList<DropdownButton<int>>(
+      find.byType(DropdownButton<int>),
     ).toList(growable: false);
     expect(dropdowns, hasLength(2));
-    expect(dropdowns[0].initialValue, isNull);
-    expect(dropdowns[1].initialValue, isNull);
+    expect(dropdowns[0].value, isNull);
+    expect(dropdowns[1].value, isNull);
   });
 
   testWidgets('studio preset controls can be selected', (tester) async {
