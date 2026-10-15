@@ -54,7 +54,10 @@ bool AudioAnalyzer::analyze(const float* samples, std::size_t frameCount,
     float right = samples[i * 2 + 1];
     if (!std::isfinite(left)) left = 0.0F;
     if (!std::isfinite(right)) right = 0.0F;
-    const float mono = (left + right) * 0.5F;
+    // Average in double precision so two finite, large float samples do not
+    // overflow during the addition before the FFT's sanitization boundary.
+    const double monoDouble = (static_cast<double>(left) + static_cast<double>(right)) * 0.5;
+    const float mono = std::isfinite(monoDouble) ? static_cast<float>(monoDouble) : 0.0F;
     const double window = 0.5 * (1.0 - std::cos(
         2.0 * kPi * static_cast<double>(i) / static_cast<double>(kFftSize - 1)));
     buffer[i] = std::complex<float>(mono * static_cast<float>(window), 0.0F);
