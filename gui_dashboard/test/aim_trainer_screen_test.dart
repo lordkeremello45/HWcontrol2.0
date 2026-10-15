@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -6,10 +7,21 @@ import 'package:hwcontrol_dashboard/aim_trainer_screen.dart';
 import 'package:hwcontrol_dashboard/user_data_store.dart';
 
 void main() {
+  late Directory temporaryDirectory;
   late HWControlUserDataStore store;
 
-  setUp(() {
-    store = HWControlUserDataStore();
+  setUp(() async {
+    temporaryDirectory =
+        await Directory.systemTemp.createTemp('hwcontrol-aim-test-');
+    store = HWControlUserDataStore(
+      supportDirectoryProvider: () async => temporaryDirectory,
+    );
+  });
+
+  tearDown(() async {
+    if (await temporaryDirectory.exists()) {
+      await temporaryDirectory.delete(recursive: true);
+    }
   });
 
   testWidgets('shows offline trainer and starts a session', (tester) async {
