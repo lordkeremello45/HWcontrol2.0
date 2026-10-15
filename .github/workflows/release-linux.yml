@@ -74,6 +74,7 @@ jobs:
           rm -rf package linux-deb
           mkdir -p "package/$root" linux-deb/DEBIAN linux-deb/opt/hwcontrol linux-deb/usr/bin linux-deb/lib/systemd/system
           install -m 0755 build/ai_core/ai_engine "package/$root/ai_engine"
+          install -m 0755 build/audio_core/hwcontrol_audio_probe "package/$root/hwcontrol_audio_probe"
           install -m 0755 bridge-service "package/$root/bridge-service"
            install -m 0755 security-guardian "package/$root/security-guardian"
           install -m 0440 security/fetch-status/bridger.key "package/$root/security/fetch-status/bridger.key"
@@ -161,6 +162,7 @@ jobs:
           sudo dpkg -i "HWControl-${RELEASE_TAG}-Linux-x64.deb"
           test -x /usr/bin/hwcontrol
           test -x /opt/hwcontrol/bridge-service
+          test -x /opt/hwcontrol/hwcontrol_audio_probe
           test -x /opt/hwcontrol/ai_engine
           test -x /opt/hwcontrol/security-guardian
           test -f /var/lib/hwcontrol/security/canary/bridger.key
