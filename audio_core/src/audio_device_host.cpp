@@ -59,6 +59,9 @@ struct AudioDeviceHost::Impl {
   std::array<std::atomic<float>, kSpectrumBinCount> spectrumMagnitude{};
   std::atomic<float> spectrumPeakFrequencyHz{0.0F};
   std::atomic<float> spectrumRms{0.0F};
+  std::atomic<float> spectrumLeftRms{0.0F};
+  std::atomic<float> spectrumRightRms{0.0F};
+  std::atomic<float> stereoCorrelation{0.0F};
   std::atomic<bool> spectrumAvailable{false};
 
   Impl() {
@@ -99,6 +102,9 @@ struct AudioDeviceHost::Impl {
             }
             spectrumPeakFrequencyHz.store(frame.peakFrequencyHz, std::memory_order_relaxed);
             spectrumRms.store(frame.rms, std::memory_order_relaxed);
+            spectrumLeftRms.store(frame.leftRms, std::memory_order_relaxed);
+            spectrumRightRms.store(frame.rightRms, std::memory_order_relaxed);
+            stereoCorrelation.store(frame.stereoCorrelation, std::memory_order_relaxed);
             spectrumAvailable.store(true, std::memory_order_release);
           }
           readIndex.store(read + 1, std::memory_order_release);
@@ -299,6 +305,9 @@ bool AudioDeviceHost::start(std::size_t captureIndex, std::size_t playbackIndex,
   impl_->callbackBudgetOverruns.store(0, std::memory_order_relaxed);
   impl_->spectrumPeakFrequencyHz.store(0.0F, std::memory_order_relaxed);
   impl_->spectrumRms.store(0.0F, std::memory_order_relaxed);
+  impl_->spectrumLeftRms.store(0.0F, std::memory_order_relaxed);
+  impl_->spectrumRightRms.store(0.0F, std::memory_order_relaxed);
+  impl_->stereoCorrelation.store(0.0F, std::memory_order_relaxed);
   for (auto& magnitude : impl_->spectrumMagnitude) magnitude.store(0.0F, std::memory_order_relaxed);
   impl_->spectrumAvailable.store(false, std::memory_order_release);
 
@@ -372,6 +381,9 @@ LiveAudioMetrics AudioDeviceHost::metrics() const noexcept {
   result.spectrumAvailable = impl_->spectrumAvailable.load(std::memory_order_acquire);
   result.spectrumPeakFrequencyHz = impl_->spectrumPeakFrequencyHz.load(std::memory_order_relaxed);
   result.spectrumRms = impl_->spectrumRms.load(std::memory_order_relaxed);
+  result.spectrumLeftRms = impl_->spectrumLeftRms.load(std::memory_order_relaxed);
+  result.spectrumRightRms = impl_->spectrumRightRms.load(std::memory_order_relaxed);
+  result.stereoCorrelation = impl_->stereoCorrelation.load(std::memory_order_relaxed);
   result.sampleRateHz = impl_->analysisSampleRateHz.load(std::memory_order_relaxed);
   for (std::size_t i = 0; i < kSpectrumBinCount; ++i) {
     result.spectrumMagnitude[i] = impl_->spectrumMagnitude[i].load(std::memory_order_relaxed);
