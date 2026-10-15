@@ -1,7 +1,9 @@
 #pragma once
 
+#include "hwcontrol_audio/audio_analyzer.hpp"
 #include "hwcontrol_audio/audio_engine.hpp"
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -25,11 +27,16 @@ struct LiveAudioMetrics {
   float outputRms = 0.0F;
   std::uint64_t processedFrames = 0;
   bool running = false;
+  bool spectrumAvailable = false;
+  float spectrumPeakFrequencyHz = 0.0F;
+  float spectrumRms = 0.0F;
+  std::array<float, kSpectrumBinCount> spectrumMagnitude{};
+  double sampleRateHz = 0.0;
 };
 
 // Device enumeration and lifecycle live on the control thread. The callback
-// uses fixed stack storage and never sends audio through the Go bridge.
-// Monitoring is opt-in because routing a microphone to speakers can feed back.
+// uses fixed storage and a bounded SPSC queue; FFT work runs on an analysis
+// worker. Audio samples never leave the native process.
 class AudioDeviceHost final {
  public:
   AudioDeviceHost();
