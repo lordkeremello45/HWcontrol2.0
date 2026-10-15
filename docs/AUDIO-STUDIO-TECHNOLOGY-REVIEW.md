@@ -1,8 +1,8 @@
 # Audio Controller Studio: Technology Review and Completion Plan
 
 **Review date:** 2026-10-16  
-**Repository baseline:** `main` at `9598e1f11361769062aa8bd61ef57c6ad61082ea`  
-**Status:** Research complete for the first competitor pass; product implementation remains partial.
+**Repository baseline:** `main` after native audio integration commits on 2026-10-16  
+**Status:** Competitor research complete for the first pass; live native control path and package staging are implemented in source, but CI/runtime validation is pending.
 
 ## Executive finding
 
