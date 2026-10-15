@@ -172,7 +172,9 @@ struct AudioDeviceHost::Impl {
     const auto callbackStarted = std::chrono::steady_clock::now();
     auto* out = static_cast<float*>(output);
     const auto* in = static_cast<const float*>(input);
-    std::array<float, kMaxCallbackFrames * kSamplesPerFrame> scratch{};
+    // Every element is overwritten before use in each block; avoid zeroing
+    // the full 16 KiB scratch buffer on every real-time callback.
+    std::array<float, kMaxCallbackFrames * kSamplesPerFrame> scratch;
     float inPeak = 0.0F;
     float outPeak = 0.0F;
     double inSquares = 0.0;
