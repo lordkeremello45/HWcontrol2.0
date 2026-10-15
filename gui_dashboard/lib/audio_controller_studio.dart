@@ -372,7 +372,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
             ),
           ]),
           if (_endpointOptions.isNotEmpty) DropdownButtonFormField<String>(
-            value: _endpointOptions.any((item) => item['id'] == _selectedEndpointId) ? _selectedEndpointId : null,
+            initialValue: _endpointOptions.any((item) => item['id'] == _selectedEndpointId) ? _selectedEndpointId : null,
             decoration: const InputDecoration(labelText: 'Detected audio endpoint'),
             items: [
               for (final device in _endpointOptions)
@@ -404,7 +404,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
           const SizedBox(height: 8),
           Wrap(spacing: 12, runSpacing: 8, children: [
             SizedBox(width: 220, child: DropdownButtonFormField<String>(
-              value: _deviceType,
+              initialValue: _deviceType,
               decoration: const InputDecoration(labelText: 'Device type'),
               items: const [
                 DropdownMenuItem(value: 'microphone', child: Text('Microphone')),
@@ -419,7 +419,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
               },
             )),
             SizedBox(width: 220, child: DropdownButtonFormField<String>(
-              value: _usage,
+              initialValue: _usage,
               decoration: const InputDecoration(labelText: 'Use case'),
               items: const [
                 DropdownMenuItem(value: 'voice', child: Text('Voice / calls')),
@@ -432,7 +432,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
               onChanged: (value) => setState(() { if (value != null) _usage = value; }),
             )),
             SizedBox(width: 180, child: DropdownButtonFormField<int>(
-              value: _sampleRateHz,
+              initialValue: _sampleRateHz,
               decoration: const InputDecoration(labelText: 'Sample rate (reported)'),
               items: const [
                 DropdownMenuItem(value: 16000, child: Text('16 kHz')),
@@ -444,7 +444,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
               onChanged: (value) => setState(() { if (value != null) _sampleRateHz = value; }),
             )),
             SizedBox(width: 160, child: DropdownButtonFormField<int>(
-              value: _channels,
+              initialValue: _channels,
               decoration: const InputDecoration(labelText: 'Channels (reported)'),
               items: const [
                 DropdownMenuItem(value: 1, child: Text('Mono (1)')),
