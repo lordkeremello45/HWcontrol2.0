@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
+	"encoding/base64"
 	"math"
 	"net"
 	"os"
@@ -511,5 +513,51 @@ func TestDecodeAudioDeviceProbeOutputRejectsInvalidNames(t *testing.T) {
 				t.Fatal("expected invalid native audio device data to be rejected")
 			}
 		})
+	}
+}
+
+
+func TestValidAudioStudioStartRequest(t *testing.T) {
+	request := audioStudioStartRequest{
+		CaptureIndex: 0, PlaybackIndex: 1,
+		InputGain: 0, GateThreshold: -48, CompressorThreshold: -12,
+		CompressorRatio: 2, CompressorAttack: 10, CompressorRelease: 100,
+		CompressorKnee: 6, HighPassFrequency: 80, LimiterCeiling: -1,
+		EQGain: []float64{0, 2, -1}, EQFrequency: []float64{100, 1000, 8000},
+		LimiterEnabled: true,
+	}
+	if err := validAudioStudioStartRequest(request); err != nil {
+		t.Fatalf("valid audio profile rejected: %v", err)
+	}
+	request.EQGain = []float64{0, 2}
+	if err := validAudioStudioStartRequest(request); err == nil {
+		t.Fatal("EQ profile with fewer than three bands must be rejected")
+	}
+	request.EQGain = []float64{0, 2, -1}
+	request.InputGain = math.NaN()
+	if err := validAudioStudioStartRequest(request); err == nil {
+		t.Fatal("non-finite audio parameters must be rejected")
+	}
+}
+
+func TestDecodeAudioStudioStartTarget(t *testing.T) {
+	request := audioStudioStartRequest{
+		CaptureIndex: 0, PlaybackIndex: 0,
+		GateThreshold: -48, CompressorThreshold: -12,
+		CompressorRatio: 2, CompressorAttack: 10, CompressorRelease: 100,
+		CompressorKnee: 6, HighPassFrequency: 80, LimiterCeiling: -1,
+		EQGain: []float64{0, 0, 0}, EQFrequency: []float64{100, 1000, 8000},
+	}
+	raw, err := json.Marshal(request)
+	if err != nil { t.Fatal(err) }
+	target := base64.RawURLEncoding.EncodeToString(raw)
+	decoded, err := decodeAudioStudioStartTarget(target)
+	if err != nil { t.Fatalf("valid encoded profile rejected: %v", err) }
+	line := audioStudioStartLine(decoded)
+	if !strings.HasPrefix(line, "start 0 0 0 ") || !strings.Contains(line, "1000") {
+		t.Fatalf("unexpected native start protocol: %s", line)
+	}
+	if _, err := decodeAudioStudioStartTarget("not-valid-base64"); err == nil {
+		t.Fatal("malformed audio configuration target must be rejected")
 	}
 }
