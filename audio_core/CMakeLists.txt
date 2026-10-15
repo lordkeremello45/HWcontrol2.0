@@ -24,6 +24,7 @@ if(APPLE)
   )
 endif()
 if(WIN32)
+  target_compile_definitions(hwcontrol_audio_core PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
   target_link_libraries(hwcontrol_audio_core PRIVATE ole32 winmm)
 endif()
 set_target_properties(hwcontrol_audio_core PROPERTIES
