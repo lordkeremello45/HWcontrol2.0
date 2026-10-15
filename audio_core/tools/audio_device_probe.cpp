@@ -51,6 +51,7 @@ void writeMetrics(const hwcontrol::audio::LiveAudioMetrics& metrics) {
             << ",\"outputRms\":" << metrics.outputRms
             << ",\"processedFrames\":" << metrics.processedFrames
             << ",\"droppedSpectrumFrames\":" << metrics.droppedSpectrumFrames
+            << ",\"limitedSamples\":" << metrics.limitedSamples
             << ",\"spectrumAvailable\":" << (metrics.spectrumAvailable ? "true" : "false")
             << ",\"spectrumPeakFrequencyHz\":" << metrics.spectrumPeakFrequencyHz
             << ",\"spectrumRms\":" << metrics.spectrumRms

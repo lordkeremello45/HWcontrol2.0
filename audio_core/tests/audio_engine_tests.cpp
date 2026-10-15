@@ -23,7 +23,9 @@ void testLimiterAndMetrics() {
   config.limiterCeilingDb = -1.0F;
   require(engine.configure(config, 48000.0), "valid configuration rejected");
   std::array<float, 8> samples{{0.0F, 0.0F, 0.5F, -0.5F, 2.0F, -2.0F, 0.25F, -0.25F}};
-  engine.process(samples.data(), 4);
+  const auto limitedSamples = engine.process(samples.data(), 4);
+  require(limitedSamples == 2, "limiter engagement count incorrect");
+  require(engine.metrics().clippedSamples == 2, "cumulative limiter engagement count incorrect");
   const float ceiling = std::pow(10.0F, -1.0F / 20.0F);
   for (float sample : samples) {
     require(std::isfinite(sample), "output contains non-finite sample");
