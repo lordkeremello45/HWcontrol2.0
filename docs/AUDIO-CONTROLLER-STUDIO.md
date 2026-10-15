@@ -1,6 +1,6 @@
 # Audio Controller Studio
 
-**Status: PARTIAL / foundation in progress.** The native DSP core, a miniaudio-based capture/playback host, a persistent native control protocol, and a Flutter profile-editor/live-control screen are now committed to `main`. The native host can enumerate and open a selected microphone and playback device, process captured samples, expose atomic metrics, and optionally monitor processed audio. The Flutter UI now calls the authenticated Go bridge for endpoint enumeration and for starting/stopping the native capture/DSP session and polling live peak/RMS/frame metrics. The native probe supports a persistent line-based control mode; the GUI passes a bounded, authenticated profile to the bridge, which validates the parameters before forwarding them. The bridge resolves the helper beside itself, in `native/` or `bin/`, in recognized development build directories, or via an absolute `HWCONTROL_AUDIO_PROBE` path. Windows, Linux, macOS, and beta release workflows now stage the helper beside the bridge; those package changes still require CI and install-smoke validation. System-audio loopback, virtual microphone/output routing, and application-level routing remain unimplemented.
+**Status: PARTIAL / native spectrum plumbing implemented; runtime verification pending.** The native DSP core, miniaudio capture/playback host, persistent control protocol, and Flutter live-control screen are committed to `main`. The host now copies processed stereo samples into a bounded single-producer/single-consumer queue; a dedicated worker performs 1024-point FFT analysis, so FFT work does not run in the real-time audio callback. Spectrum magnitudes, peak frequency, RMS, and sample rate are exposed through the native status JSON and rendered by the Flutter analysis panel. Queue overflow drops an analysis frame rather than blocking audio. Windows, Linux, macOS, and beta workflows stage the helper, but compilation, package/install smoke tests, and physical-device runtime behavior remain unverified. System-audio loopback, virtual microphone/output routing, and application-level routing remain unimplemented.
 
 ## Current endpoint enumeration integration
 
@@ -15,7 +15,7 @@
 - `Start Audio Studio` accepts a base64url-encoded, HMAC-authenticated profile and validates device indices, finite numeric ranges, and exactly three EQ bands before launching a native session.
 - `Stop Audio Studio` and `Get Audio Studio Status` are authenticated bridge actions. Stopping is allowed even when security panic mode is active; starting is not.
 - Processed microphone audio is captured and analyzed locally. Output monitoring is off by default; enabling it routes processed mic audio to the selected output and can cause feedback, so headphones are recommended.
-- The current native host reports peak/RMS and processed-frame metrics. Live FFT/spectrogram, LUFS, clipping totals, loopback, virtual devices, per-application routing, and packaged-helper lifecycle tests remain outstanding.
+- The native host reports peak/RMS/frame metrics plus the latest 1024-point FFT magnitudes and peak frequency. Flutter renders the current spectrum frame (not a scrolling spectrogram history). LUFS, clipping totals, loopback, virtual devices, per-application routing, and packaged-helper lifecycle tests remain outstanding.
 - CI compilation and end-to-end device validation are still required; code presence is not proof of runtime success.
 
 ## Product goals
@@ -24,7 +24,7 @@ A cross-platform audio workstation inside HWcontrol2.0 for microphone processing
 
 ## Architecture
 
-- **Flutter/Dart:** initial profile editor and presets exist; live meters, visual routing graph, and native control integration remain future work. Capability status must remain explicit.
+- **Flutter/Dart:** profile editor, live meters, native start/stop control, and a current-frame FFT visualizer exist in source. A scrolling spectrogram history, visual routing graph, and latency/dropout measurements remain future work. Capability status must remain explicit.
 - **Authenticated Go bridge:** control plane only; device selection, configuration, status, and permissions. Audio buffers must not traverse HTTP/JSON or the bridge.
 - **C++17 DSP core:** bounded, allocation-free processing per audio block; float32 samples; interleaved stereo in the first iteration.
 - **Platform adapters:** the current device host uses miniaudio's platform backends (WASAPI on Windows, ALSA-compatible devices on Linux, Core Audio on macOS). Capture and playback are implemented as a native prototype; system loopback capture, virtual-device creation, and per-application routing are separate unimplemented capabilities.
@@ -56,14 +56,14 @@ The current gate is a basic threshold gate, not AI noise reduction. The compress
 2. Verify release packages install `hwcontrol_audio_probe` and `ai_engine` where the GUI can find them; validate real device discovery and local Gemma inference on each OS.
 3. Connect the live DSP controls and meters to the native device host through a stable, bounded interface; test hot-plug, device loss, sample-rate changes, and long-running streams.
 4. Add platform-specific system-audio capture, virtual-device strategy, and per-application routing. Do not claim system-wide effects from endpoint enumeration alone.
-5. Connect FFT analysis to real input/output taps; then add spectrogram history, validated LUFS/true-peak and channel/phase analysis.
+5. Validate the live FFT worker/JSON/UI path on real devices and add spectrogram history, validated LUFS/true-peak and channel/phase analysis.
 6. Complete the visual effect graph, profile automation, recording/export, and localization.
 7. Add optional microphone calibration and measured-response-aware tuning with explicit consent.
 8. Validate package installation, launch, runtime behavior, and cleanup on supported OS versions and physical audio hardware.
 ## Current branch deliverables
 
 - Dashboard shortcut to Audio Controller Studio.
-- Native miniaudio device-host prototype for microphone capture and playback device selection. The host is not yet connected to the Flutter screen.
+- Native miniaudio device-host prototype for microphone capture and playback device selection, with a bounded worker-thread FFT path exposed to the Flutter analysis panel.
 - Locally persisted profile editor with Neutral, Voice, Gaming, and Broadcast starting presets.
 - UI tests that assert the live-audio limitation is disclosed and preset selection works.
 - Native CTest coverage for limiter bounds, gain, gate, EQ, compressor, non-finite sample sanitation, and invalid sample-rate fallback.
