@@ -80,7 +80,7 @@ void main() {
         store: store,
         sessionSeconds: 5,
         random: () => math.Random(1),
-        onSessionSaved: saved.complete,
+        onSessionSaved: () => saved.complete(),
       ),
     ));
     await tester.pumpAndSettle();
@@ -90,7 +90,7 @@ void main() {
     await tester.pump(const Duration(seconds: 6));
     await tester.pumpAndSettle();
     await tester.runAsync(() async {
-      await saved.future;
+      await saved.future.timeout(const Duration(seconds: 5));
       final preferences = await store.readUiPreferences();
       expect(preferences['aimTrainerHistory'], isA<List>());
       expect((preferences['aimTrainerHistory'] as List), isNotEmpty);
