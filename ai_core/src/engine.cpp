@@ -66,6 +66,12 @@ bool AIEngine::init(const char* modelPath) {
 }
 
 std::string AIEngine::processData(float temp, float load) {
+    // The legacy API requires both measurements; the richer telemetry API
+    // separately supports partially available hardware sensors.
+    if (!std::isfinite(temp) || !std::isfinite(load)) {
+        return "AI girdisi gecersiz";
+    }
+
     HardwareTelemetry telemetry;
     telemetry.cpuTemperatureC = temp;
     telemetry.cpuLoadPercent = load;
