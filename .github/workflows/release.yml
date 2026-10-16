@@ -126,7 +126,9 @@ jobs:
           wix extension add -g WixToolset.Util.wixext/6.0.2
           wix --version
           & "$PWD/deploy/windows/generate-icon.ps1"
-          $version = "${{ env.RELEASE_TAG }}" -replace '^v', '' -replace '-windows$', ''
+          $versionMatch = [regex]::Match($env:RELEASE_TAG, '^v([0-9]+\.[0-9]+\.[0-9]+)')
+          if (-not $versionMatch.Success) { throw "Could not derive numeric MSI version from release tag: $env:RELEASE_TAG" }
+          $version = $versionMatch.Groups[1].Value
           $packageDir = "package/HWControl-${{ env.RELEASE_TAG }}-Windows-x64"
           wix build deploy/windows/HWControl.wxs -arch x64 -d Version=$version -d PackageDir=$packageDir -d IconPath=deploy/windows/HWControl.ico -o "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi"
           if (-not (Test-Path "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi")) { throw 'MSI was not produced' }
