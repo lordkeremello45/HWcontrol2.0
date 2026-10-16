@@ -43,7 +43,7 @@ func classifyStorageDevice(device string) (deviceType, source string, removable 
 	case strings.HasPrefix(value, "/dev/nvme"):
 		return "nvme_ssd", "linux-device-path", false
 	case strings.HasPrefix(value, "/dev/mmcblk"):
-		return "sd_card", "linux-device-path", true
+		return "mmc_storage", "linux-device-path", false
 	case strings.Contains(value, "sdcard") || strings.Contains(value, "sd_card"):
 		return "sd_card", "device-path", true
 	default:
