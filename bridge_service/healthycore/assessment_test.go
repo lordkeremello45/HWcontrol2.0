@@ -36,7 +36,7 @@ func TestThermalStressAndErrorsReduceIndex(t *testing.T) {
 		ThermalThrottleEvents: 2, ObservedErrors: 1,
 	})
 	if err != nil { t.Fatal(err) }
-	if got.ConditionIndex == nil || *got.ConditionIndex >= 100 || got.Status != "needs_attention" {
+	if got.ConditionIndex == nil || *got.ConditionIndex >= 100 || got.Status != "elevated_risk" {
 		t.Fatalf("expected reduced index and attention status, got %#v", got)
 	}
 }
