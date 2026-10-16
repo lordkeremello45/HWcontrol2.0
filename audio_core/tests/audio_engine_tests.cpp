@@ -1,6 +1,7 @@
 #include "hwcontrol_audio/audio_engine.hpp"
 #include "hwcontrol_audio/audio_analyzer.hpp"
 #include "hwcontrol_audio/audio_device_host.hpp"
+#include "hwcontrol_audio/loudness_meter.hpp"
 
 #include <algorithm>
 #include <array>
@@ -342,6 +343,48 @@ void testDspOutputIsIndependentOfBlockPartitioning() {
   }
 }
 
+void testLoudnessMeterGatingAndBlockBoundaries() {
+  hwcontrol::audio::LoudnessMeter meter;
+  require(meter.configure(48000.0), "LUFS meter rejected 48 kHz");
+  auto initial = meter.metrics();
+  require(!initial.momentaryAvailable && !initial.integratedAvailable,
+          "LUFS meter reported values before a complete block");
+
+  constexpr std::size_t frames = 48000;
+  std::array<float, frames * 2> tone{};
+  for (std::size_t frame = 0; frame < frames; ++frame) {
+    const float sample = 0.1F * std::sin(static_cast<float>(
+        2.0 * 3.14159265358979323846 * 1000.0 *
+        static_cast<double>(frame) / 48000.0));
+    tone[frame * 2] = sample;
+    tone[frame * 2 + 1] = sample;
+  }
+  // Split input into irregular chunks to exercise state continuity.
+  std::size_t offset = 0;
+  while (offset < frames) {
+    const std::size_t count = std::min<std::size_t>(733, frames - offset);
+    meter.process(tone.data() + offset * 2, count);
+    offset += count;
+  }
+  const auto measured = meter.metrics();
+  require(measured.momentaryAvailable && measured.integratedAvailable,
+          "LUFS meter did not publish values after complete blocks");
+  require(std::isfinite(measured.momentaryLufs) &&
+              std::isfinite(measured.integratedLufs),
+          "LUFS meter produced non-finite measurements");
+  require(measured.momentaryLufs > -30.0 && measured.momentaryLufs < -5.0,
+          "LUFS meter result for a full-scale-calibrated 1 kHz tone is implausible");
+  require(std::abs(measured.momentaryLufs - measured.integratedLufs) < 0.5,
+          "steady tone momentary and integrated loudness should be close");
+
+  meter.reset();
+  const auto reset = meter.metrics();
+  require(!reset.momentaryAvailable && !reset.integratedAvailable,
+          "reset did not clear LUFS history");
+  require(!meter.configure(std::numeric_limits<double>::quiet_NaN()),
+          "LUFS meter accepted invalid sample rate");
+}
+
 void testInvalidSampleRateFallsBack() {
   hwcontrol::audio::AudioEngine engine;
   hwcontrol::audio::ProcessorConfig config;
@@ -365,6 +408,7 @@ int main() {
   testSpectrumAnalyzerHandlesLargestFiniteSamples();
   testAudioDeviceHostLifecycleWithoutAssumingHardware();
   testDspOutputIsIndependentOfBlockPartitioning();
+  testLoudnessMeterGatingAndBlockBoundaries();
   testInvalidSampleRateFallsBack();
   std::cout << "Audio core tests passed\n";
   return 0;
