@@ -3749,6 +3749,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       'usb_storage' => 'USB storage',
       'sd_card' => 'SD card (SD/microSD not distinguishable)',
       'mmc_storage' => 'MMC storage (media type unknown)',
+      'removable_storage' => 'Removable storage',
       'hdd' => 'HDD',
       'ssd' => 'SSD',
       _ => 'Media type unknown',
