@@ -87,6 +87,10 @@ struct AudioDeviceHost::Impl {
     partialSamples = 0;
     analysisStop.store(false, std::memory_order_release);
     spectrumAvailable.store(false, std::memory_order_release);
+    momentaryLufsAvailable.store(false, std::memory_order_relaxed);
+    momentaryLufs.store(-120.0, std::memory_order_relaxed);
+    integratedLufsAvailable.store(false, std::memory_order_relaxed);
+    integratedLufs.store(-120.0, std::memory_order_relaxed);
     try {
       analysisThread = std::thread([this] {
         AudioAnalyzer analyzer;
