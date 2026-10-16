@@ -18,3 +18,25 @@ func TestStorageDeviceKeyNormalizesNames(t *testing.T) {
 		t.Fatal("storage device key should be case-insensitive")
 	}
 }
+
+func TestClassifyStorageDeviceOnlyClaimsSupportedEvidence(t *testing.T) {
+	tests := []struct {
+		device string
+		wantType string
+		wantRemovable bool
+	}{
+		{"/dev/nvme0n1p1", "nvme_ssd", false},
+		{"/dev/mmcblk0p1", "sd_card", true},
+		{"/dev/disk/by-id/usb-SanDisk_123", "usb_storage", true},
+		{"/dev/sda1", "unknown", false},
+		{"E:", "unknown", false},
+		{"", "unknown", false},
+	}
+	for _, test := range tests {
+		gotType, source, removable := classifyStorageDevice(test.device)
+		if gotType != test.wantType || removable != test.wantRemovable || source == "" {
+			t.Errorf("classifyStorageDevice(%q) = (%q, %q, %v), want type %q removable %v",
+				test.device, gotType, source, removable, test.wantType, test.wantRemovable)
+		}
+	}
+}
