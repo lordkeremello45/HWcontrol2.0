@@ -4,7 +4,7 @@ Healthy Core is an observation-only first implementation for HWcontrol2.0. It pr
 
 ## Current implementation
 
-The deterministic Go package is at `bridge_service/healthycore`. It accepts a device kind, sample count, maximum observed temperature plus a device-specific thermal limit, thermal-throttling event count, observed hardware/driver error count, and an optional trusted vendor health percentage.
+The deterministic Go package is at `bridge_service/healthycore`. The Flutter dashboard now includes a Healthy Core card that summarizes the existing bounded local telemetry history (up to 720 samples) for CPU and GPU, and only shows a score after at least 12 valid temperature samples for that device. The dashboard score is explicitly a thermal-condition indicator, not wear. The Go package accepts a device kind, sample count, maximum observed temperature plus a device-specific thermal limit, thermal-throttling event count, observed hardware/driver error count, and an optional trusted vendor health percentage.
 
 - No usable evidence returns `condition_index: null` and `insufficient_data`, never a fabricated 100/100.
 - Temperature is evaluated only when a device-specific thermal limit is supplied.
