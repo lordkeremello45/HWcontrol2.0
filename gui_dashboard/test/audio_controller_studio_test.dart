@@ -494,4 +494,30 @@ void main() {
     expect(find.textContaining('Recommendation rejected'), findsOneWidget);
     expect(find.text('Apply validated settings'), findsNothing);
   });
+  testWidgets('rejects oversized device metadata before calling Gemma', (tester) async {
+    var recommendationCalls = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: AudioControllerStudioScreen(
+        onLoadDevices: () async => <String, dynamic>{
+          'capture': <dynamic>[],
+          'playback': <dynamic>[],
+        },
+        onRecommend: (_) async {
+          recommendationCalls++;
+          return <String, dynamic>{'recommendation': '{}'};
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Device model / endpoint name'));
+    await tester.enterText(find.byType(TextField).first, 'M' * 161);
+    await tester.ensureVisible(find.text('Ask local Gemma'));
+    await tester.tap(find.text('Ask local Gemma'));
+    await tester.pumpAndSettle();
+
+    expect(recommendationCalls, 0);
+    expect(find.textContaining('unsupported characters or is too long'), findsOneWidget);
+    expect(find.text('Apply validated settings'), findsNothing);
+  });
+
 }
