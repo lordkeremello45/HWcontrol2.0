@@ -1,5 +1,5 @@
-// Package healthycore provides a conservative, evidence-based CPU/GPU condition
-// assessment. It does not claim to measure physical silicon wear or remaining life.
+// Package healthycore provides conservative, evidence-based CPU/GPU/RAM condition
+// assessment. It does not claim to measure physical component wear or remaining life.
 package healthycore
 
 import (
@@ -13,6 +13,7 @@ type DeviceKind string
 const (
 	CPU DeviceKind = "cpu"
 	GPU DeviceKind = "gpu"
+	RAM DeviceKind = "ram"
 )
 
 type Evidence struct {
@@ -25,6 +26,8 @@ type Evidence struct {
 	// VendorHealthPercent is optional and must come from a trusted, device-specific
 	// health source. It is not inferred from temperature or utilization.
 	VendorHealthPercent *float64
+	// MemoryUsagePercent is contextual telemetry only; utilization is not RAM health.
+	MemoryUsagePercent *float64
 }
 
 type Assessment struct {
@@ -42,7 +45,7 @@ var ErrInvalidEvidence = errors.New("invalid Healthy Core evidence")
 // The index is an operational indicator, not a percent of physical wear.
 // Missing or contradictory measurements are rejected or reported as unknown.
 func Evaluate(e Evidence) (Assessment, error) {
-	if e.Device != CPU && e.Device != GPU {
+	if e.Device != CPU && e.Device != GPU && e.Device != RAM {
 		return Assessment{}, fmt.Errorf("%w: unsupported device %q", ErrInvalidEvidence, e.Device)
 	}
 	if e.SampleCount < 0 || e.ThermalThrottleEvents < 0 || e.ObservedErrors < 0 {
@@ -57,7 +60,7 @@ func Evaluate(e Evidence) (Assessment, error) {
 	if e.ThermalLimitC != nil && (!finite(*e.ThermalLimitC) || *e.ThermalLimitC <= 0 || *e.ThermalLimitC > 200) {
 		return Assessment{}, fmt.Errorf("%w: invalid thermal limit", ErrInvalidEvidence)
 	}
-	if e.MaxTemperatureC != nil && e.ThermalLimitC == nil {
+	if e.Device == RAM && e.MaxTemperatureC != nil {\n\t\treturn Assessment{}, fmt.Errorf("%w: RAM does not use CPU/GPU thermal scoring", ErrInvalidEvidence)\n\t}\n\tif e.MaxTemperatureC != nil && e.ThermalLimitC == nil {
 		return Assessment{}, fmt.Errorf("%w: temperature requires a device-specific thermal limit", ErrInvalidEvidence)
 	}
 	if e.MaxTemperatureC != nil && e.ThermalLimitC != nil && *e.MaxTemperatureC > *e.ThermalLimitC+15 {
@@ -76,7 +79,7 @@ func Evaluate(e Evidence) (Assessment, error) {
 		},
 	}
 	// No live samples and no vendor health report means there is no basis for a score.
-	if (e.MaxTemperatureC == nil || e.SampleCount == 0) && e.VendorHealthPercent == nil && e.ObservedErrors == 0 && e.ThermalThrottleEvents == 0 {
+	if (e.Device == RAM || e.MaxTemperatureC == nil || e.SampleCount == 0) && e.VendorHealthPercent == nil && e.ObservedErrors == 0 && e.ThermalThrottleEvents == 0 {
 		result.ConditionIndex = nil
 		result.EvidenceSummary = append(result.EvidenceSummary, "No usable health evidence was supplied.")
 		return result, nil
@@ -84,7 +87,7 @@ func Evaluate(e Evidence) (Assessment, error) {
 
 	score := 100
 	indicators := 0
-	if e.MaxTemperatureC != nil && e.ThermalLimitC != nil && e.SampleCount > 0 {
+	if e.Device != RAM && e.MaxTemperatureC != nil && e.ThermalLimitC != nil && e.SampleCount > 0 {
 		ratio := *e.MaxTemperatureC / *e.ThermalLimitC
 		switch {
 		case ratio >= 1:
@@ -101,7 +104,7 @@ func Evaluate(e Evidence) (Assessment, error) {
 		}
 		indicators++
 	}
-	if e.ThermalThrottleEvents > 0 {
+	if e.Device != RAM && e.ThermalThrottleEvents > 0 {
 		penalty := e.ThermalThrottleEvents * 5
 		if penalty > 20 { penalty = 20 }
 		score -= penalty
@@ -115,7 +118,7 @@ func Evaluate(e Evidence) (Assessment, error) {
 		result.EvidenceSummary = append(result.EvidenceSummary, fmt.Sprintf("%d hardware/driver error(s) were reported.", e.ObservedErrors))
 		indicators++
 	}
-	if e.VendorHealthPercent != nil {
+	if e.Device == RAM && e.MemoryUsagePercent != nil {\n\t\tresult.EvidenceSummary = append(result.EvidenceSummary, fmt.Sprintf("Current RAM utilization is %.1f%%; utilization is not a RAM health or wear measurement.", *e.MemoryUsagePercent))\n\t}\n\tif e.VendorHealthPercent != nil {
 		vendorScore := int(math.Round(*e.VendorHealthPercent))
 		// A trusted device-specific report is authoritative evidence for this
 		// dimension, but not proof of CPU/GPU remaining lifespan.
@@ -137,7 +140,7 @@ func Evaluate(e Evidence) (Assessment, error) {
 	default:
 		result.Status = "elevated_risk"
 	}
-	if e.SampleCount < 12 && e.VendorHealthPercent == nil {
+	if e.Device == RAM && e.ObservedErrors == 0 && e.VendorHealthPercent == nil {\n\t\tresult.ConditionIndex = nil\n\t\tresult.Status = "insufficient_data"\n\t\tresult.Confidence = "low"\n\t\tresult.EvidenceSummary = append(result.EvidenceSummary, "RAM utilization alone cannot establish module health; hardware/ECC error telemetry or a trusted device-specific health report is required.")\n\t\treturn result, nil\n\t}\n\tif e.SampleCount < 12 && e.VendorHealthPercent == nil {
 		result.EvidenceSummary = append(result.EvidenceSummary, "A short observation window limits confidence; collect more samples.")
 	}
 	return result, nil
