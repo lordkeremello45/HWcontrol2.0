@@ -21,7 +21,7 @@ struct LoudnessMetrics {
 class LoudnessMeter final {
  public:
   bool configure(double sampleRateHz) noexcept;
-  void process(const float* interleavedStereo, std::size_t frameCount) noexcept;
+  void process(const float* interleavedStereo, std::size_t frameCount);
   LoudnessMetrics metrics() const noexcept;
   void reset() noexcept;
 
