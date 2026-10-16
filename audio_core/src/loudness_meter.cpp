@@ -10,7 +10,6 @@ constexpr double kLoudnessOffset = -0.691;
 constexpr double kAbsoluteGateLufs = -70.0;
 constexpr double kRelativeGateLufs = -10.0;
 
-void setHighPass(LoudnessMeter::Biquad& filter, double sampleRateHz) = delete;
 }  // namespace
 
 double LoudnessMeter::Biquad::tick(double input, std::size_t channel) noexcept {
@@ -83,7 +82,7 @@ double LoudnessMeter::energyToLufs(double energy) noexcept {
   return kLoudnessOffset + 10.0 * std::log10(energy);
 }
 
-void LoudnessMeter::process(const float* samples, std::size_t frameCount) noexcept {
+void LoudnessMeter::process(const float* samples, std::size_t frameCount) {
   if (samples == nullptr || frameCount == 0) return;
   for (std::size_t frame = 0; frame < frameCount; ++frame) {
     double weightedEnergy = 0.0;
