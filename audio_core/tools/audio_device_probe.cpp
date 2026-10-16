@@ -56,6 +56,10 @@ void writeMetrics(const hwcontrol::audio::LiveAudioMetrics& metrics) {
             << ",\"maxCallbackProcessingTimeUs\":" << metrics.maxCallbackProcessingTimeUs
             << ",\"callbackBudgetOverruns\":" << metrics.callbackBudgetOverruns
             << ",\"spectrumAvailable\":" << (metrics.spectrumAvailable ? "true" : "false")
+            << ",\"momentaryLufsAvailable\":" << (metrics.momentaryLufsAvailable ? "true" : "false")
+            << ",\"momentaryLufs\":" << metrics.momentaryLufs
+            << ",\"integratedLufsAvailable\":" << (metrics.integratedLufsAvailable ? "true" : "false")
+            << ",\"integratedLufs\":" << metrics.integratedLufs
             << ",\"spectrumPeakFrequencyHz\":" << metrics.spectrumPeakFrequencyHz
             << ",\"spectrumRms\":" << metrics.spectrumRms
             << ",\"spectrumLeftRms\":" << metrics.spectrumLeftRms
