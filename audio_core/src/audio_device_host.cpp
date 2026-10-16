@@ -2,6 +2,7 @@
 #include "miniaudio.h"
 
 #include "hwcontrol_audio/audio_device_host.hpp"
+#include "hwcontrol_audio/loudness_meter.hpp"
 
 #include <algorithm>
 #include <array>
@@ -63,6 +64,10 @@ struct AudioDeviceHost::Impl {
   std::atomic<float> spectrumRightRms{0.0F};
   std::atomic<float> stereoCorrelation{0.0F};
   std::atomic<bool> spectrumAvailable{false};
+  std::atomic<bool> momentaryLufsAvailable{false};
+  std::atomic<double> momentaryLufs{-120.0};
+  std::atomic<bool> integratedLufsAvailable{false};
+  std::atomic<double> integratedLufs{-120.0};
 
   Impl() {
     for (auto& magnitude : spectrumMagnitude) {
@@ -86,6 +91,9 @@ struct AudioDeviceHost::Impl {
       analysisThread = std::thread([this] {
         AudioAnalyzer analyzer;
         SpectrumFrame frame;
+        LoudnessMeter loudness;
+        const bool loudnessReady = loudness.configure(analysisSampleRateHz.load(std::memory_order_relaxed));
+        std::uint32_t windowsSinceLoudnessRead = 0;
         for (;;) {
           const std::uint64_t read = readIndex.load(std::memory_order_relaxed);
           const std::uint64_t write = writeIndex.load(std::memory_order_acquire);
@@ -95,6 +103,19 @@ struct AudioDeviceHost::Impl {
             continue;
           }
           const auto& samples = spectrumQueue[static_cast<std::size_t>(read % kSpectrumQueueSlots)];
+          if (loudnessReady) {
+            loudness.process(samples.data(), kFftSize);
+            // Integrated gating scans accumulated blocks; refresh at 10 Hz on
+            // this worker, never on the real-time device callback.
+            if (++windowsSinceLoudnessRead >= 5) {
+              windowsSinceLoudnessRead = 0;
+              const LoudnessMetrics levels = loudness.metrics();
+              momentaryLufsAvailable.store(levels.momentaryAvailable, std::memory_order_relaxed);
+              momentaryLufs.store(levels.momentaryLufs, std::memory_order_relaxed);
+              integratedLufsAvailable.store(levels.integratedAvailable, std::memory_order_relaxed);
+              integratedLufs.store(levels.integratedLufs, std::memory_order_relaxed);
+            }
+          }
           if (analyzer.analyze(samples.data(), kFftSize,
                                analysisSampleRateHz.load(std::memory_order_relaxed), frame)) {
             for (std::size_t i = 0; i < kSpectrumBinCount; ++i) {
@@ -381,6 +402,10 @@ LiveAudioMetrics AudioDeviceHost::metrics() const noexcept {
   result.callbackBudgetOverruns = impl_->callbackBudgetOverruns.load(std::memory_order_relaxed);
   result.running = running();
   result.spectrumAvailable = impl_->spectrumAvailable.load(std::memory_order_acquire);
+  result.momentaryLufsAvailable = impl_->momentaryLufsAvailable.load(std::memory_order_relaxed);
+  result.momentaryLufs = impl_->momentaryLufs.load(std::memory_order_relaxed);
+  result.integratedLufsAvailable = impl_->integratedLufsAvailable.load(std::memory_order_relaxed);
+  result.integratedLufs = impl_->integratedLufs.load(std::memory_order_relaxed);
   result.spectrumPeakFrequencyHz = impl_->spectrumPeakFrequencyHz.load(std::memory_order_relaxed);
   result.spectrumRms = impl_->spectrumRms.load(std::memory_order_relaxed);
   result.spectrumLeftRms = impl_->spectrumLeftRms.load(std::memory_order_relaxed);
