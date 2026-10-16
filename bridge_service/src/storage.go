@@ -1,7 +1,9 @@
 package main
 
 import (
+	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -35,20 +37,72 @@ type StorageVolume struct {
 // SSDs from HDDs or SD from microSD.
 func classifyStorageDevice(device string) (deviceType, source string, removable bool) {
 	value := strings.ToLower(strings.TrimSpace(filepath.ToSlash(device)))
-	switch {
-	case value == "":
+	if value == "" {
 		return "unknown", "unavailable", false
-	case strings.Contains(value, "/disk/by-id/usb-"):
-		return "usb_storage", "linux-device-path", true
-	case strings.HasPrefix(value, "/dev/nvme"):
-		return "nvme_ssd", "linux-device-path", false
-	case strings.HasPrefix(value, "/dev/mmcblk"):
-		return "mmc_storage", "linux-device-path", false
-	case strings.Contains(value, "sdcard") || strings.Contains(value, "sd_card"):
-		return "sd_card", "device-path", true
-	default:
-		return "unknown", "insufficient-device-metadata", false
 	}
+
+	// Linux exposes physical media hints in sysfs. Use them only when the
+	// partition can be mapped to a parent block device; otherwise fail closed.
+	if runtime.GOOS == "linux" && strings.HasPrefix(value, "/dev/") {
+		base := filepath.Base(value)
+		parent := base
+		if strings.HasPrefix(parent, "nvme") || strings.HasPrefix(parent, "mmcblk") {
+			parent = strings.TrimRight(parent, "0123456789")
+			parent = strings.TrimSuffix(parent, "p")
+		} else {
+			parent = strings.TrimRight(parent, "0123456789")
+		}
+		if parent != "" {
+			root := filepath.Join("/sys/class/block", parent)
+			devicePath, _ := filepath.EvalSymlinks(filepath.Join(root, "device"))
+			devicePath = strings.ToLower(filepath.ToSlash(devicePath))
+			removableFlag, _ := os.ReadFile(filepath.Join(root, "removable"))
+			isRemovable := strings.TrimSpace(string(removableFlag)) == "1"
+			rotationalFlag, rotationalErr := os.ReadFile(filepath.Join(root, "queue", "rotational"))
+
+			if strings.Contains(devicePath, "/usb") || strings.Contains(devicePath, "usb") {
+				return "usb_storage", "linux-sysfs", true
+			}
+			if strings.HasPrefix(parent, "nvme") {
+				return "nvme_ssd", "linux-sysfs", isRemovable
+			}
+			if strings.HasPrefix(parent, "mmcblk") {
+				if isRemovable {
+					return "sd_card", "linux-sysfs", true
+				}
+				return "mmc_storage", "linux-sysfs", false
+			}
+			if rotationalErr == nil {
+				switch strings.TrimSpace(string(rotationalFlag)) {
+				case "0":
+					if isRemovable {
+						return "ssd", "linux-sysfs", true
+					}
+					return "ssd", "linux-sysfs", false
+				case "1":
+					if isRemovable {
+						return "hdd", "linux-sysfs", true
+					}
+					return "hdd", "linux-sysfs", false
+				}
+			}
+			if isRemovable {
+				return "removable_storage", "linux-sysfs", true
+			}
+		}
+	}
+
+	// Some Linux by-id links explicitly name USB-attached devices.
+	if strings.Contains(value, "/disk/by-id/usb-") {
+		return "usb_storage", "linux-device-path", true
+	}
+	if strings.HasPrefix(value, "/dev/nvme") {
+		return "nvme_ssd", "linux-device-path", false
+	}
+	if strings.Contains(value, "sdcard") || strings.Contains(value, "sd_card") {
+		return "sd_card", "device-path", true
+	}
+	return "unknown", "insufficient-device-metadata", false
 }
 
 var storageIOState struct {
