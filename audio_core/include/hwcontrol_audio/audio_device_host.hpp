@@ -33,6 +33,10 @@ struct LiveAudioMetrics {
   std::uint64_t callbackBudgetOverruns = 0;
   bool running = false;
   bool spectrumAvailable = false;
+  bool momentaryLufsAvailable = false;
+  double momentaryLufs = -120.0;
+  bool integratedLufsAvailable = false;
+  double integratedLufs = -120.0;
   float spectrumPeakFrequencyHz = 0.0F;
   float spectrumRms = 0.0F;
   float spectrumLeftRms = 0.0F;
