@@ -76,7 +76,7 @@ A generic health percentage is intentionally not fabricated. Storage health is r
 The current storage implementation is therefore:
 - **Implemented:** capacity and filesystem usage;
 - **Implemented:** read/write throughput where OS I/O counters can be mapped to the volume;
-- **Initial media hints:** the dashboard identifies NVMe devices and some Linux USB/MMC paths when the device path is explicit; ambiguous paths remain `unknown` rather than being guessed. SD versus microSD cannot be reliably distinguished from a generic mounted-volume path;
+- **Initial media hints:** the dashboard identifies NVMe devices and some explicit Linux USB/MMC paths; ambiguous paths remain `unknown` rather than being guessed. MMC is not automatically labelled as SD because it may be internal eMMC. SD versus microSD cannot be reliably distinguished from a generic mounted-volume path;
 - **Platform-dependent / not yet integrated:** reliable physical-device enumeration, SMART/NVMe health attributes, wear percentage, temperature, power-on hours, and error counters;
 - **Not implemented:** a universal cross-platform SMART/NVMe health percentage.
 
