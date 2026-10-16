@@ -2788,6 +2788,8 @@ Attach this archive to a support issue only after reviewing it for personal info
                       const SizedBox(height: 18),
                       _buildBatteryHealthCard(),
                       const SizedBox(height: 18),
+                      _buildHealthyCoreCard(),
+                      const SizedBox(height: 18),
                       _buildHistoryCard(),
                       const SizedBox(height: 18),
                       _buildAdvancedTelemetryCard(),
@@ -3330,6 +3332,123 @@ Attach this archive to a support issue only after reviewing it for personal info
           const SizedBox(height: 8),
           Text(_tr('batteryHealthCaveat'),
             style: TextStyle(fontSize: 11, height: 1.4, color: Theme.of(context).colorScheme.onSurface.withAlpha(130))),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHealthyCoreCard() {
+    // This is an operational thermal-condition indicator, not a measurement
+    // of physical silicon wear or remaining useful life.
+    final cpuSamples = _history.where((sample) => sample.cpuTemperature.isFinite && sample.cpuTemperature > 0 && sample.cpuTemperature <= 125).toList(growable: false);
+    final gpuSamples = _history.where((sample) => sample.gpuTemperature.isFinite && sample.gpuTemperature > 0 && sample.gpuTemperature <= 125).toList(growable: false);
+    int? evaluate(List<_MetricSample> samples, bool cpu) {
+      if (samples.length < 12) return null;
+      final threshold = cpu ? 85.0 : 80.0;
+      final temperatures = samples.map((sample) => cpu ? sample.cpuTemperature : sample.gpuTemperature).toList(growable: false);
+      final maximum = temperatures.reduce((a, b) => a > b ? a : b);
+      final hotCount = temperatures.where((value) => value >= threshold).length;
+      final hotRatio = hotCount / temperatures.length;
+      var score = 100;
+      if (maximum >= threshold + 10) {
+        score -= 25;
+      } else if (maximum >= threshold + 5) {
+        score -= 15;
+      } else if (maximum >= threshold) {
+        score -= 8;
+      }
+      if (hotRatio >= 0.5) {
+        score -= 25;
+      } else if (hotRatio >= 0.2) {
+        score -= 15;
+      } else if (hotRatio >= 0.05) {
+        score -= 7;
+      }
+      return score.clamp(0, 100);
+    }
+
+    final cpuScore = evaluate(cpuSamples, true);
+    final gpuScore = evaluate(gpuSamples, false);
+    final hasData = cpuScore != null || gpuScore != null;
+    final colorFor = (int? score) => score == null
+        ? Theme.of(context).colorScheme.onSurface.withAlpha(120)
+        : score >= 85
+            ? const Color(0xFF64D8CB)
+            : score >= 65
+                ? const Color(0xFFFFB454)
+                : const Color(0xFFFF6B6B);
+    Widget scoreRow(String label, int? score, int count, IconData icon) {
+      final color = colorFor(score);
+      return Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface.withAlpha(110),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color.withAlpha(70)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [
+                Icon(icon, size: 18, color: color),
+                const SizedBox(width: 7),
+                Expanded(child: Text(label, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withAlpha(180)))),
+              ]),
+              const SizedBox(height: 8),
+              Text(score == null ? 'N/A' : '$score/100',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: color)),
+              const SizedBox(height: 4),
+              Text(score == null ? '12+ örnek bekleniyor' : '$count ölçüm',
+                style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurface.withAlpha(130))),
+              if (score != null) ...[
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(5),
+                  child: LinearProgressIndicator(value: score / 100, minHeight: 5, color: color),
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+    }
+
+    final cpuMaximum = cpuSamples.isEmpty ? null : cpuSamples.map((sample) => sample.cpuTemperature).reduce((a, b) => a > b ? a : b);
+    final gpuMaximum = gpuSamples.isEmpty ? null : gpuSamples.map((sample) => sample.gpuTemperature).reduce((a, b) => a > b ? a : b);
+    final subtitle = !hasData
+        ? 'Gerçek telemetri toplanıyor; puan için her aygıtta en az 12 geçerli sıcaklık örneği gerekir.'
+        : 'Bu puan yalnızca gözlenen termal koşulları özetler; fiziksel yıpranma yüzdesi veya kalan ömür değildir.';
+    return _Panel(
+      padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.health_and_safety_outlined, size: 25, color: Color(0xFF64D8CB)),
+            const SizedBox(width: 10),
+            Expanded(child: _sectionTitle('Healthy Core', 'CPU ve GPU termal sağlık göstergesi')),
+            Text(hasData ? 'CANLI' : 'VERİ BEKLENİYOR',
+              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 0.7,
+                color: hasData ? const Color(0xFF64D8CB) : Theme.of(context).colorScheme.onSurface.withAlpha(130))),
+          ]),
+          const SizedBox(height: 14),
+          Row(children: [
+            scoreRow('CPU', cpuScore, cpuSamples.length, Icons.memory),
+            const SizedBox(width: 12),
+            scoreRow('GPU', gpuScore, gpuSamples.length, Icons.developer_board),
+          ]),
+          const SizedBox(height: 12),
+          Wrap(spacing: 10, runSpacing: 8, children: [
+            if (cpuMaximum != null) _telemetryChip('CPU en yüksek', '${cpuMaximum.toStringAsFixed(1)} °C'),
+            if (gpuMaximum != null) _telemetryChip('GPU en yüksek', '${gpuMaximum.toStringAsFixed(1)} °C'),
+            _telemetryChip('Geçmiş', '${_history.length}/720 örnek'),
+          ]),
+          const SizedBox(height: 12),
+          Text(subtitle, style: TextStyle(fontSize: 11, height: 1.45, color: Theme.of(context).colorScheme.onSurface.withAlpha(150))),
+          const SizedBox(height: 6),
+          Text('Eşikler genel uyarı eşikleridir; modele özgü üretici sınırlarının yerine geçmez. Sensör verisi olmayan aygıt için puan üretilmez.',
+            style: TextStyle(fontSize: 10, height: 1.4, color: Theme.of(context).colorScheme.onSurface.withAlpha(120))),
         ],
       ),
     );
