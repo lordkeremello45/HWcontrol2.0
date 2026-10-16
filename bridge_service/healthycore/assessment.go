@@ -121,7 +121,9 @@ func Evaluate(e Evidence) (Assessment, error) {
 		result.EvidenceSummary = append(result.EvidenceSummary, fmt.Sprintf("%d hardware/driver error(s) were reported.", e.ObservedErrors))
 		indicators++
 	}
-	if e.Device == RAM && e.MemoryUsagePercent != nil {\n\t\tresult.EvidenceSummary = append(result.EvidenceSummary, fmt.Sprintf("Current RAM utilization is %.1f%%; utilization is not a RAM health or wear measurement.", *e.MemoryUsagePercent))\n\t}\n\tif e.VendorHealthPercent != nil {
+	if e.Device == RAM && e.MemoryUsagePercent != nil {
+		result.EvidenceSummary = append(result.EvidenceSummary, fmt.Sprintf("Current RAM utilization is %.1f%%; utilization is not a RAM health or wear measurement.", *e.MemoryUsagePercent))
+	}\n\tif e.VendorHealthPercent != nil {
 		vendorScore := int(math.Round(*e.VendorHealthPercent))
 		// A trusted device-specific report is authoritative evidence for this
 		// dimension, but not proof of CPU/GPU remaining lifespan.
@@ -143,7 +145,13 @@ func Evaluate(e Evidence) (Assessment, error) {
 	default:
 		result.Status = "elevated_risk"
 	}
-	if e.Device == RAM && e.ObservedErrors == 0 && e.VendorHealthPercent == nil {\n\t\tresult.ConditionIndex = nil\n\t\tresult.Status = "insufficient_data"\n\t\tresult.Confidence = "low"\n\t\tresult.EvidenceSummary = append(result.EvidenceSummary, "RAM utilization alone cannot establish module health; hardware/ECC error telemetry or a trusted device-specific health report is required.")\n\t\treturn result, nil\n\t}\n\tif e.SampleCount < 12 && e.VendorHealthPercent == nil {
+	if e.Device == RAM && e.ObservedErrors == 0 && e.VendorHealthPercent == nil {
+		result.ConditionIndex = nil
+		result.Status = "insufficient_data"
+		result.Confidence = "low"
+		result.EvidenceSummary = append(result.EvidenceSummary, "RAM utilization alone cannot establish module health; hardware/ECC error telemetry or a trusted device-specific health report is required.")
+		return result, nil
+	}\n\tif e.SampleCount < 12 && e.VendorHealthPercent == nil {
 		result.EvidenceSummary = append(result.EvidenceSummary, "A short observation window limits confidence; collect more samples.")
 	}
 	return result, nil
