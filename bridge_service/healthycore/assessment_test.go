@@ -15,6 +15,14 @@ func TestNoEvidenceIsUnknownNotPerfect(t *testing.T) {
 	}
 }
 
+func TestSamplesWithoutSignalsRemainUnknown(t *testing.T) {
+	got, err := Evaluate(Evidence{Device: GPU, SampleCount: 120})
+	if err != nil { t.Fatal(err) }
+	if got.ConditionIndex != nil || got.Status != "insufficient_data" {
+		t.Fatalf("sample count alone must not imply health, got %#v", got)
+	}
+}
+
 func TestCoolStableTelemetryProducesConditionIndex(t *testing.T) {
 	got, err := Evaluate(Evidence{
 		Device: CPU, SampleCount: 60,
