@@ -35,6 +35,8 @@ type HealthSnapshot struct {
 	Warnings          []string                      `json:"warnings,omitempty"`
 	Anomalies         []HardwareAnomaly             `json:"anomalies,omitempty"`
 	Capabilities      map[string]HardwareCapability `json:"capabilities"`
+	CapabilitySchemaVersion int `json:"capabilitySchemaVersion"`
+	DetailedCapabilities []CapabilityRecord `json:"detailedCapabilities"`
 	BridgeVersion     string                        `json:"bridgeVersion"`
 	Platform          string                        `json:"platform"`
 	Architecture      string                        `json:"architecture"`
@@ -228,6 +230,8 @@ func healthSnapshot() HealthSnapshot {
 	return HealthSnapshot{
 		Status: evaluation.Status, SafetyState: evaluation.SafetyState, RecoveryAction: evaluation.RecoveryAction,
 		Checks: checks, Warnings: warnings, Anomalies: evaluation.Anomalies, Capabilities: evaluation.Capabilities,
+		CapabilitySchemaVersion: capabilitySchemaVersion,
+		DetailedCapabilities: detailedCapabilityRecords(evaluation.Capabilities, metrics, runtime.GOOS, bridgeIntegrityHealthy()),
 		BridgeVersion: bridgeVersion, Platform: runtime.GOOS, Architecture: runtime.GOARCH, LocalOnly: true,
 		HardwareControl: metrics.HardwareControlMode, SensorSource: metrics.SensorSource,
 		CPUTemperatureSource: metrics.CPUTemperatureSource, GPUTemperatureSource: metrics.GPUTemperatureSource,
