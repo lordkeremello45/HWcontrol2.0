@@ -60,7 +60,10 @@ func Evaluate(e Evidence) (Assessment, error) {
 	if e.ThermalLimitC != nil && (!finite(*e.ThermalLimitC) || *e.ThermalLimitC <= 0 || *e.ThermalLimitC > 200) {
 		return Assessment{}, fmt.Errorf("%w: invalid thermal limit", ErrInvalidEvidence)
 	}
-	if e.Device == RAM && e.MaxTemperatureC != nil {\n\t\treturn Assessment{}, fmt.Errorf("%w: RAM does not use CPU/GPU thermal scoring", ErrInvalidEvidence)\n\t}\n\tif e.MaxTemperatureC != nil && e.ThermalLimitC == nil {
+	if e.Device == RAM && e.MaxTemperatureC != nil {
+		return Assessment{}, fmt.Errorf("%w: RAM does not use CPU/GPU thermal scoring", ErrInvalidEvidence)
+	}
+	if e.MaxTemperatureC != nil && e.ThermalLimitC == nil {
 		return Assessment{}, fmt.Errorf("%w: temperature requires a device-specific thermal limit", ErrInvalidEvidence)
 	}
 	if e.MaxTemperatureC != nil && e.ThermalLimitC != nil && *e.MaxTemperatureC > *e.ThermalLimitC+15 {
