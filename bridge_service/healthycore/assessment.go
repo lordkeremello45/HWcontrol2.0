@@ -76,7 +76,7 @@ func Evaluate(e Evidence) (Assessment, error) {
 		},
 	}
 	// No live samples and no vendor health report means there is no basis for a score.
-	if e.SampleCount == 0 && e.VendorHealthPercent == nil && e.ObservedErrors == 0 && e.ThermalThrottleEvents == 0 {
+	if e.MaxTemperatureC == nil && e.VendorHealthPercent == nil && e.ObservedErrors == 0 && e.ThermalThrottleEvents == 0 {
 		result.ConditionIndex = nil
 		result.EvidenceSummary = append(result.EvidenceSummary, "No usable health evidence was supplied.")
 		return result, nil
