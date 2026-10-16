@@ -3743,6 +3743,16 @@ Attach this archive to a support issue only after reviewing it for personal info
     final mount = (volume['mountPoint'] as String?)?.trim();
     final device = (volume['device'] as String?)?.trim();
     final fs = (volume['fileSystem'] as String?)?.trim();
+    final rawDeviceType = (volume['deviceType'] as String?) ?? 'unknown';
+    final deviceType = switch (rawDeviceType) {
+      'nvme_ssd' => 'NVMe SSD',
+      'usb_storage' => 'USB storage',
+      'sd_card' => 'SD card (SD/microSD not distinguishable)',
+      'hdd' => 'HDD',
+      'ssd' => 'SSD',
+      _ => 'Media type unknown',
+    };
+    final removable = (volume['removable'] as bool?) ?? false;
     final usage = (volume['usagePercent'] as num?)?.toDouble() ?? 0;
     final free = (volume['freeBytes'] as num?)?.toInt() ?? 0;
     final read = (volume['readBytesPerSec'] as num?)?.toDouble() ?? 0;
@@ -3793,6 +3803,8 @@ Attach this archive to a support issue only after reviewing it for personal info
             spacing: 18,
             runSpacing: 8,
             children: [
+              Text(deviceType, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+              if (removable) const Text('Removable', style: TextStyle(fontSize: 11)),
               Text(AppLocalizations.of(context).freeSpace(bytes(free)),  style: const TextStyle(fontSize: 11)),
               Text(AppLocalizations.of(context).readSpeed(rate(read)),  style: const TextStyle(fontSize: 11)),
               Text(AppLocalizations.of(context).writeSpeed(rate(write)),  style: const TextStyle(fontSize: 11)),
