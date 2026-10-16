@@ -184,7 +184,7 @@ struct AudioDeviceHost::Impl {
     stopAnalysisWorker();
   }
 
-  static void notification(ma_device_notification* notification) {
+  static void notification(const ma_device_notification* notification) {
     if (notification == nullptr || notification->pDevice == nullptr ||
         notification->type != ma_device_notification_type_stopped) {
       return;
