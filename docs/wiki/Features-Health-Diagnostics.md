@@ -76,8 +76,11 @@ A generic health percentage is intentionally not fabricated. Storage health is r
 The current storage implementation is therefore:
 - **Implemented:** capacity and filesystem usage;
 - **Implemented:** read/write throughput where OS I/O counters can be mapped to the volume;
-- **Platform-dependent:** device temperature and health/wear percentage;
+- **Initial media hints:** the dashboard identifies NVMe devices and some Linux USB/MMC paths when the device path is explicit; ambiguous paths remain `unknown` rather than being guessed. SD versus microSD cannot be reliably distinguished from a generic mounted-volume path;
+- **Platform-dependent / not yet integrated:** reliable physical-device enumeration, SMART/NVMe health attributes, wear percentage, temperature, power-on hours, and error counters;
 - **Not implemented:** a universal cross-platform SMART/NVMe health percentage.
+
+USB drives and SD/microSD cards are included in the intended storage scope, but the current implementation does not claim that every removable device has been detected or physically health-tested. Capacity, filesystem status and I/O throughput are not proof of physical-media health. The inventory is read-only: it does not run repair, format, benchmark, or write tests.
 
 ## Existing diagnostics and history
 
