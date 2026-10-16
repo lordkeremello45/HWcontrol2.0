@@ -15,6 +15,14 @@ func TestNoEvidenceIsUnknownNotPerfect(t *testing.T) {
 	}
 }
 
+func TestTemperatureWithoutSamplesRemainsUnknown(t *testing.T) {
+	got, err := Evaluate(Evidence{Device: CPU, MaxTemperatureC: ptr(60), ThermalLimitC: ptr(100)})
+	if err != nil { t.Fatal(err) }
+	if got.ConditionIndex != nil || got.Status != "insufficient_data" {
+		t.Fatalf("temperature without a sample count must remain unknown, got %#v", got)
+	}
+}
+
 func TestSamplesWithoutSignalsRemainUnknown(t *testing.T) {
 	got, err := Evaluate(Evidence{Device: GPU, SampleCount: 120})
 	if err != nil { t.Fatal(err) }
