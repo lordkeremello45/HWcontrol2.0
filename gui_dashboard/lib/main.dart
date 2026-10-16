@@ -3748,6 +3748,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       'nvme_ssd' => 'NVMe SSD',
       'usb_storage' => 'USB storage',
       'sd_card' => 'SD card (SD/microSD not distinguishable)',
+      'mmc_storage' => 'MMC storage (media type unknown)',
       'hdd' => 'HDD',
       'ssd' => 'SSD',
       _ => 'Media type unknown',
