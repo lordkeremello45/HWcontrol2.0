@@ -25,6 +25,7 @@ import 'automation_rules.dart';
 import 'audio_controller_studio.dart';
 import 'model_manager.dart';
 import 'user_data_store.dart';
+import 'ui_preferences.dart';
 import 'game_profile.dart';
 import 'l10n/app_localizations.dart';
 import 'l10n/app_localizations_map.dart';
@@ -72,6 +73,7 @@ class HWControlApp extends StatefulWidget {
 class _HWControlAppState extends State<HWControlApp> {
   bool _darkMode = true;
   bool _animationsEnabled = true;
+  int _accentColorValue = HWControlUiPreferences.defaultAccentColorValue;
   bool _showWelcome = true;
   bool _welcomeSeen = false;
   bool _showSetupWizard = false;
@@ -123,10 +125,12 @@ class _HWControlAppState extends State<HWControlApp> {
       if (!mounted) return;
       final darkMode = preferences['darkMode'];
       final animations = preferences['animationsEnabled'];
+      final accentColor = preferences['accentColor'];
       final welcomeSeen = preferences['welcomeSeen'];
       setState(() {
         if (darkMode is bool) _darkMode = darkMode;
         if (animations is bool) _animationsEnabled = animations;
+        _accentColorValue = HWControlUiPreferences.resolveAccentColor(accentColor);
         if (welcomeSeen is bool) {
           _welcomeSeen = welcomeSeen;
           _showWelcome = !welcomeSeen;
@@ -141,6 +145,7 @@ class _HWControlAppState extends State<HWControlApp> {
     unawaited(_userData.writeUiPreferences(<String, dynamic>{
       'darkMode': _darkMode,
       'animationsEnabled': _animationsEnabled,
+      'accentColor': _accentColorValue,
       'welcomeSeen': _welcomeSeen,
     }));
   }
@@ -190,6 +195,11 @@ class _HWControlAppState extends State<HWControlApp> {
     _saveUiPreferences();
   }
 
+  void _setAccentColor(int value) {
+    setState(() => _accentColorValue = HWControlUiPreferences.resolveAccentColor(value));
+    _saveUiPreferences();
+  }
+
   @override
   Widget build(BuildContext context) {
     final blockedRelease = HWControlAuthenticityGuard.requiresBlock;
@@ -201,7 +211,7 @@ class _HWControlAppState extends State<HWControlApp> {
       ),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      theme: _buildTheme(_darkMode),
+      theme: _buildTheme(_darkMode, _accentColorValue),
       home: blockedRelease
           ? const UnofficialBuildScreen()
           : _showWelcome
@@ -229,19 +239,26 @@ class _HWControlAppState extends State<HWControlApp> {
                   : DashboardScreen(
                   darkMode: _darkMode,
                   animationsEnabled: _animationsEnabled,
+                  accentColorValue: _accentColorValue,
                   onThemeChanged: _setDarkMode,
                   onAnimationsChanged: _setAnimationsEnabled,
+                  onAccentColorChanged: _setAccentColor,
                   onLocaleChanged: (locale) => setState(() => _welcomeLocale = locale),
                 ),
     );
   }
 
-  ThemeData _buildTheme(bool darkMode) {
-    final colors = darkMode
-        ? const ColorScheme.dark(primary: Color(0xFF64D8CB), secondary: Color(0xFFFFB454), surface: Color(0xFF121920))
-        : const ColorScheme.light(primary: Color(0xFF087F78), secondary: Color(0xFFB56800), surface: Color(0xFFFFFFFF));
+  ThemeData _buildTheme(bool darkMode, int accentColorValue) {
+    final brightness = darkMode ? Brightness.dark : Brightness.light;
+    final colors = ColorScheme.fromSeed(
+      seedColor: Color(HWControlUiPreferences.resolveAccentColor(accentColorValue)),
+      brightness: brightness,
+    ).copyWith(
+      secondary: darkMode ? const Color(0xFFFFB454) : const Color(0xFFB56800),
+      surface: darkMode ? const Color(0xFF121920) : const Color(0xFFFFFFFF),
+    );
     return ThemeData(
-      brightness: darkMode ? Brightness.dark : Brightness.light,
+      brightness: brightness,
       colorScheme: colors,
       scaffoldBackgroundColor: darkMode ? const Color(0xFF0A0E12) : const Color(0xFFF0F4F3),
       useMaterial3: true,
@@ -250,12 +267,14 @@ class _HWControlAppState extends State<HWControlApp> {
 }
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key, required this.darkMode, required this.animationsEnabled, required this.onThemeChanged, required this.onAnimationsChanged, required this.onLocaleChanged});
+  const DashboardScreen({super.key, required this.darkMode, required this.animationsEnabled, required this.accentColorValue, required this.onThemeChanged, required this.onAnimationsChanged, required this.onAccentColorChanged, required this.onLocaleChanged});
 
   final bool darkMode;
   final bool animationsEnabled;
+  final int accentColorValue;
   final ValueChanged<bool> onThemeChanged;
   final ValueChanged<bool> onAnimationsChanged;
+  final ValueChanged<int> onAccentColorChanged;
   final ValueChanged<String> onLocaleChanged;
 
   @override
@@ -2187,6 +2206,7 @@ Attach this archive to a support issue only after reviewing it for personal info
   Future<void> _openSettingsMenu() async {
     var notificationsEnabled = _notificationsEnabled;
     var temperatureLimit = _temperatureLimit;
+    var selectedAccentColorValue = HWControlUiPreferences.resolveAccentColor(widget.accentColorValue);
     var selectedLocale = _languagePreference;
     var selectedLanguageStyle = _languageStyle;
     var piperEnabled = _piperTtsEnabled;
@@ -2405,6 +2425,29 @@ Attach this archive to a support issue only after reviewing it for personal info
                   ],
                   const Divider(height: 22),
                   Text(_tr('settings'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(_locale.toLowerCase().startsWith('tr') ? 'Vurgu rengi' : 'Accent colour'),
+                    trailing: DropdownButton<int>(
+                      value: selectedAccentColorValue,
+                      onChanged: (value) {
+                        if (value != null) setDialogState(() => selectedAccentColorValue = value);
+                      },
+                      items: HWControlUiPreferences.accentColorValues.map((value) {
+                        return DropdownMenuItem<int>(
+                          value: value,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(width: 16, height: 16, decoration: BoxDecoration(color: Color(value), shape: BoxShape.circle)),
+                              const SizedBox(width: 8),
+                              Text(HWControlUiPreferences.accentColorLabel(value, turkish: _locale.toLowerCase().startsWith('tr'))),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
                     title: Text(_tr('enableNotifications')),
@@ -2456,6 +2499,7 @@ Attach this archive to a support issue only after reviewing it for personal info
                   _translations = nextTranslations;
                 });
                 widget.onLocaleChanged(_locale);
+                widget.onAccentColorChanged(selectedAccentColorValue);
                 unawaited(_saveSettings());
                 dialogNavigator.pop();
               },
