@@ -68,6 +68,7 @@ struct AudioDeviceHost::Impl {
   std::atomic<double> momentaryLufs{-120.0};
   std::atomic<bool> integratedLufsAvailable{false};
   std::atomic<double> integratedLufs{-120.0};
+  std::atomic<bool> loudnessContiguous{true};
 
   Impl() {
     for (auto& magnitude : spectrumMagnitude) {
@@ -91,6 +92,7 @@ struct AudioDeviceHost::Impl {
     momentaryLufs.store(-120.0, std::memory_order_relaxed);
     integratedLufsAvailable.store(false, std::memory_order_relaxed);
     integratedLufs.store(-120.0, std::memory_order_relaxed);
+    loudnessContiguous.store(true, std::memory_order_relaxed);
     try {
       analysisThread = std::thread([this] {
         AudioAnalyzer analyzer;
@@ -107,7 +109,7 @@ struct AudioDeviceHost::Impl {
             continue;
           }
           const auto& samples = spectrumQueue[static_cast<std::size_t>(read % kSpectrumQueueSlots)];
-          if (loudnessReady) {
+          if (loudnessReady && loudnessContiguous.load(std::memory_order_relaxed)) {
             loudness.process(samples.data(), kFftSize);
             // Integrated gating scans accumulated blocks; refresh at 10 Hz on
             // this worker, never on the real-time device callback.
@@ -159,6 +161,12 @@ struct AudioDeviceHost::Impl {
       writeIndex.store(write + 1, std::memory_order_release);
     } else {
       droppedSpectrumFrames.fetch_add(1, std::memory_order_relaxed);
+      // LUFS integration requires contiguous program audio. Once an analysis
+      // block is lost, suppress loudness values for this session rather than
+      // publishing a deceptively low integrated result.
+      loudnessContiguous.store(false, std::memory_order_relaxed);
+      momentaryLufsAvailable.store(false, std::memory_order_relaxed);
+      integratedLufsAvailable.store(false, std::memory_order_relaxed);
     }
     // Reset even when full; audio must never wait for analysis to catch up.
     partialSamples = 0;
