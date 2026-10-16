@@ -74,13 +74,13 @@ void writeMetrics(const hwcontrol::audio::LiveAudioMetrics& metrics) {
   std::cout << "]}}\n";
 }
 
-bool handleServerCommand(AudioDeviceHost& host, const std::string& line) {
+bool handleServerCommand(hwcontrol::audio::AudioDeviceHost& host, const std::string& line) {
   std::istringstream input(line);
   std::string action;
   input >> action;
   if (action == "devices") {
-    const auto capture = host.enumerate(DeviceDirection::Capture);
-    const auto playback = host.enumerate(DeviceDirection::Playback);
+    const auto capture = host.enumerate(hwcontrol::audio::DeviceDirection::Capture);
+    const auto playback = host.enumerate(hwcontrol::audio::DeviceDirection::Playback);
     std::cout << "{\"status\":\"SUCCESS\",\"data\":{\"capture\":";
     writeDeviceArray(capture);
     std::cout << ",\"playback\":";
@@ -108,7 +108,7 @@ bool handleServerCommand(AudioDeviceHost& host, const std::string& line) {
   long long captureIndex = -1;
   long long playbackIndex = -1;
   int monitor = 0;
-  ProcessorConfig config;
+  hwcontrol::audio::ProcessorConfig config;
   int gateEnabled = 0, compressorEnabled = 0, highPassEnabled = 0, limiterEnabled = 1;
   if (!(input >> captureIndex >> playbackIndex >> monitor
         >> config.inputGainDb >> config.gateThresholdDb
