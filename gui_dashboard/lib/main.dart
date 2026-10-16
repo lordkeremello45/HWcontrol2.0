@@ -3364,7 +3364,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       } else if (hotRatio >= 0.05) {
         score -= 7;
       }
-      return score.clamp(0, 100);
+      return score.clamp(0, 100).toInt();
     }
 
     final cpuScore = evaluate(cpuSamples, true);
