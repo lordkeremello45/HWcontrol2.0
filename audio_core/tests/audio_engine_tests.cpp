@@ -278,6 +278,69 @@ void testAudioDeviceHostLifecycleWithoutAssumingHardware() {
   require(!host.running(), "stop should be idempotent");
 }
 
+void testDspOutputIsIndependentOfBlockPartitioning() {
+  hwcontrol::audio::ProcessorConfig config;
+  config.inputGainDb = 3.0F;
+  config.noiseGateEnabled = true;
+  config.gateThresholdDb = -48.0F;
+  config.highPassEnabled = true;
+  config.highPassFrequencyHz = 65.0F;
+  config.compressorEnabled = true;
+  config.compressorThresholdDb = -18.0F;
+  config.compressorRatio = 3.0F;
+  config.compressorAttackMs = 2.0F;
+  config.compressorReleaseMs = 80.0F;
+  config.compressorKneeDb = 4.0F;
+  config.limiterEnabled = true;
+  config.limiterCeilingDb = -1.0F;
+  config.eq[0] = {120.0F, 3.0F, 0.8F};
+  config.eqEnabled[0] = true;
+  config.eq[1] = {1200.0F, -2.0F, 1.1F};
+  config.eqEnabled[1] = true;
+
+  constexpr std::size_t frames = 8192;
+  std::array<float, frames * hwcontrol::audio::kChannelCount> whole{};
+  std::array<float, frames * hwcontrol::audio::kChannelCount> chunked{};
+  for (std::size_t frame = 0; frame < frames; ++frame) {
+    const float low = 0.35F * std::sin(static_cast<float>(
+        2.0 * 3.14159265358979323846 * 90.0 *
+        static_cast<double>(frame) / 48000.0));
+    const float high = 0.22F * std::sin(static_cast<float>(
+        2.0 * 3.14159265358979323846 * 1700.0 *
+        static_cast<double>(frame) / 48000.0));
+    const float transient = frame % 997U < 8U ? 0.9F : 0.0F;
+    const float sample = low + high + transient;
+    whole[frame * 2] = sample;
+    whole[frame * 2 + 1] = sample * 0.8F;
+  }
+  chunked = whole;
+
+  hwcontrol::audio::AudioEngine oneBlock;
+  hwcontrol::audio::AudioEngine manyBlocks;
+  require(oneBlock.configure(config, 48000.0), "whole-block DSP configuration rejected");
+  require(manyBlocks.configure(config, 48000.0), "chunked DSP configuration rejected");
+  const auto wholeLimited = oneBlock.process(whole.data(), frames);
+  std::uint64_t chunkedLimited = 0;
+  constexpr std::size_t blockFrames = 127;
+  for (std::size_t offset = 0; offset < frames; offset += blockFrames) {
+    const std::size_t count = std::min(blockFrames, frames - offset);
+    chunkedLimited += manyBlocks.process(chunked.data() + offset * 2, count);
+  }
+
+  require(oneBlock.metrics().processedFrames == frames,
+          "whole-block processing frame count incorrect");
+  require(manyBlocks.metrics().processedFrames == frames,
+          "chunked processing frame count incorrect");
+  require(wholeLimited == chunkedLimited,
+          "limiter engagement changed with callback block partitioning");
+  for (std::size_t i = 0; i < whole.size(); ++i) {
+    require(std::isfinite(whole[i]) && std::isfinite(chunked[i]),
+            "partitioning test produced non-finite output");
+    require(std::abs(whole[i] - chunked[i]) < 2.0e-5F,
+            "DSP output changed materially with callback block partitioning");
+  }
+}
+
 void testInvalidSampleRateFallsBack() {
   hwcontrol::audio::AudioEngine engine;
   hwcontrol::audio::ProcessorConfig config;
@@ -300,6 +363,7 @@ int main() {
   testSpectrumAnalyzerRejectsInvalidRatesAndContainsBadSamples();
   testSpectrumAnalyzerHandlesLargestFiniteSamples();
   testAudioDeviceHostLifecycleWithoutAssumingHardware();
+  testDspOutputIsIndependentOfBlockPartitioning();
   testInvalidSampleRateFallsBack();
   std::cout << "Audio core tests passed\n";
   return 0;
