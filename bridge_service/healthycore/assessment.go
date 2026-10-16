@@ -115,7 +115,11 @@ func Evaluate(e Evidence) (Assessment, error) {
 		indicators++
 	}
 	if e.ObservedErrors > 0 {
-		penalty := e.ObservedErrors * 10
+		penaltyPerError := 10
+		if e.Device == RAM {
+			penaltyPerError = 20
+		}
+		penalty := e.ObservedErrors * penaltyPerError
 		if penalty > 30 { penalty = 30 }
 		score -= penalty
 		result.EvidenceSummary = append(result.EvidenceSummary, fmt.Sprintf("%d hardware/driver error(s) were reported.", e.ObservedErrors))
