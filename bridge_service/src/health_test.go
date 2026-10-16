@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"encoding/json"
+	"testing"
+)
 
 func TestEvaluateHardwareHealthCapabilityMatrix(t *testing.T) {
 	bridgeIntegrityState.Store(true)
@@ -228,5 +231,65 @@ func TestEvaluateHardwareHealthDoesNotConfuseFanControlWithFanTelemetry(t *testi
 	}
 	if evaluation.Capabilities["fanRpm"].Available || evaluation.Capabilities["fanPercent"].Available {
 		t.Fatal("fan control support must not imply readable fan telemetry")
+	}
+}
+
+func TestFeatureCapabilityContractReportsRGBAsUnavailable(t *testing.T) {
+	bridgeIntegrityState.Store(true)
+	evaluation := evaluateHardwareHealth(HardwareMetrics{
+		CPUTemperature: 52, CPUTemperatureSource: "test-cpu",
+		MetricsCollectedAt: "2026-10-15T12:00:00Z",
+		ThermalSafetyAvailable: true,
+	})
+	byID := make(map[string]HardwareFeatureCapability, len(evaluation.FeatureCapabilities))
+	for _, capability := range evaluation.FeatureCapabilities {
+		if capability.SchemaVersion != 1 {
+			t.Errorf("capability %q schemaVersion = %d, want 1", capability.ID, capability.SchemaVersion)
+		}
+		if capability.Platform == "" {
+			t.Errorf("capability %q has no platform", capability.ID)
+		}
+		byID[capability.ID] = capability
+	}
+	for _, id := range []string{"lighting.rgb", "mouse.rgb", "keyboard.rgb"} {
+		capability, ok := byID[id]
+		if !ok {
+			t.Fatalf("missing capability %q", id)
+		}
+		if capability.State != "unavailable" {
+			t.Errorf("%s state = %q, want unavailable until a validated adapter exists", id, capability.State)
+		}
+		if capability.Reason == "" {
+			t.Errorf("%s must explain why it is unavailable", id)
+		}
+	}
+	if got := byID["telemetry.cpu-temperature"].State; got != "read-only" {
+		t.Errorf("CPU temperature state = %q, want read-only", got)
+	}
+	if got := byID["cooling.fan-control"].State; got != "unavailable" {
+		t.Errorf("fan control state = %q, want unavailable without validated control telemetry", got)
+	}
+}
+
+func TestHealthSnapshotKeepsLegacyCapabilityMapAndAddsVersionedContract(t *testing.T) {
+	bridgeIntegrityState.Store(true)
+	evaluation := evaluateHardwareHealth(HardwareMetrics{})
+	snapshot := HealthSnapshot{
+		Capabilities: evaluation.Capabilities,
+		FeatureCapabilities: evaluation.FeatureCapabilities,
+	}
+	encoded, err := json.Marshal(snapshot)
+	if err != nil {
+		t.Fatalf("marshal health snapshot: %v", err)
+	}
+	var decoded map[string]json.RawMessage
+	if err := json.Unmarshal(encoded, &decoded); err != nil {
+		t.Fatalf("unmarshal health snapshot: %v", err)
+	}
+	if _, ok := decoded["capabilities"]; !ok {
+		t.Fatal("legacy capabilities field disappeared")
+	}
+	if _, ok := decoded["featureCapabilities"]; !ok {
+		t.Fatal("new featureCapabilities field is missing")
 	}
 }
