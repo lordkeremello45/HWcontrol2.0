@@ -47,8 +47,9 @@ func classifyStorageDevice(device string) (deviceType, source string, removable 
 		base := filepath.Base(value)
 		parent := base
 		if strings.HasPrefix(parent, "nvme") || strings.HasPrefix(parent, "mmcblk") {
-			parent = strings.TrimRight(parent, "0123456789")
-			parent = strings.TrimSuffix(parent, "p")
+			if p := strings.LastIndex(parent, "p"); p > 0 && p < len(parent)-1 && strings.TrimRight(parent[p+1:], "0123456789") == "" {
+				parent = parent[:p]
+			}
 		} else {
 			parent = strings.TrimRight(parent, "0123456789")
 		}
