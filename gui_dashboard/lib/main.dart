@@ -3445,6 +3445,72 @@ Attach this archive to a support issue only after reviewing it for personal info
             _telemetryChip('Geçmiş', '${_history.length}/720 örnek'),
           ]),
           const SizedBox(height: 12),
+          // RAM utilization is not a RAM-wear measurement. Display it as
+          // operational context while hardware error telemetry is unavailable.
+          Builder(builder: (context) {
+            final validRam = _history
+                .map((sample) => sample.memoryUsage)
+                .where((value) => value.isFinite && value >= 0 && value <= 100)
+                .toList(growable: false);
+            final ramAvailable = validRam.length >= 1;
+            final ramPeak = ramAvailable ? validRam.reduce((a, b) => a > b ? a : b) : 0.0;
+            final ramCurrentValid = _memoryUsage.isFinite && _memoryUsage >= 0 && _memoryUsage <= 100;
+            final ramCurrent = ramCurrentValid ? _memoryUsage : (ramAvailable ? validRam.last : 0.0);
+            final ramColor = !ramAvailable
+                ? Theme.of(context).colorScheme.onSurface.withAlpha(120)
+                : ramCurrent >= 90
+                    ? const Color(0xFFFF6B6B)
+                    : ramCurrent >= 75
+                        ? const Color(0xFFFFB454)
+                        : const Color(0xFF64D8CB);
+            return Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface.withAlpha(110),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: ramColor.withAlpha(65)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(children: [
+                    Icon(Icons.memory, color: ramColor, size: 20),
+                    const SizedBox(width: 8),
+                    const Expanded(child: Text('RAM bellek gözlemi', style: TextStyle(fontWeight: FontWeight.w700))),
+                    Text('SAĞLIK: BİLİNMİYOR', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface.withAlpha(150))),
+                  ]),
+                  const SizedBox(height: 10),
+                  Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                    Text(ramAvailable ? '${ramCurrent.toStringAsFixed(1)}%' : 'N/A',
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: ramColor)),
+                    const SizedBox(width: 8),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text('mevcut RAM kullanımı', style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurface.withAlpha(150))),
+                    ),
+                    const Spacer(),
+                    if (ramAvailable) Text('Zirve: ${ramPeak.toStringAsFixed(1)}%', style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurface.withAlpha(150))),
+                  ]),
+                  if (ramAvailable) ...[
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(5),
+                      child: LinearProgressIndicator(value: ramCurrent / 100, minHeight: 5, color: ramColor),
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  Text(
+                    ramAvailable
+                        ? 'Bellek kullanım oranı gösterilir; yüksek kullanım tek başına RAM arızası veya yıpranması anlamına gelmez. ECC/donanım hata sayaçları henüz bu ekrana bağlanmadı.'
+                        : 'RAM kullanım verisi henüz mevcut değil. Sağlık puanı üretilmiyor; ECC ve donanım hata sayaçları desteklenirse ayrıca değerlendirilecek.',
+                    style: TextStyle(fontSize: 10, height: 1.4, color: Theme.of(context).colorScheme.onSurface.withAlpha(145)),
+                  ),
+                ],
+              ),
+            );
+          }),
+          const SizedBox(height: 12),
           Text(subtitle, style: TextStyle(fontSize: 11, height: 1.45, color: Theme.of(context).colorScheme.onSurface.withAlpha(150))),
           const SizedBox(height: 6),
           Text('Eşikler genel uyarı eşikleridir; modele özgü üretici sınırlarının yerine geçmez. Sensör verisi olmayan aygıt için puan üretilmez.',
