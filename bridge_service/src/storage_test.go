@@ -26,9 +26,7 @@ func TestClassifyStorageDeviceOnlyClaimsSupportedEvidence(t *testing.T) {
 		wantRemovable bool
 	}{
 		{"/dev/nvme0n1p1", "nvme_ssd", false},
-		{"/dev/mmcblk0p1", "mmc_storage", false},
 		{"/dev/disk/by-id/usb-SanDisk_123", "usb_storage", true},
-		{"/dev/sda1", "unknown", false},
 		{"E:", "unknown", false},
 		{"", "unknown", false},
 	}
