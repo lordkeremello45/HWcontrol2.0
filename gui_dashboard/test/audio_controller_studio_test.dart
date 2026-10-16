@@ -96,6 +96,8 @@ void main() {
     expect(actions, contains('Start Audio Studio'));
     expect(find.text('LIVE • audio is processed locally'), findsOneWidget);
     expect(find.text('1500 Hz'), findsOneWidget);
+    expect(find.text('Momentary loudness'), findsOneWidget);
+    expect(find.text('Integrated loudness'), findsOneWidget);
     expect(find.text('Limiter-restrained samples'), findsOneWidget);
     expect(find.text('Left channel RMS'), findsOneWidget);
     expect(find.text('Right channel RMS'), findsOneWidget);
