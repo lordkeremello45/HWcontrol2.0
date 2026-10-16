@@ -1008,6 +1008,8 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
               _metric('Output peak', _liveRunning ? _metricDb('outputPeak') : 'Not connected'),
               _metric('Input RMS', _liveRunning ? _metricDb('inputRms') : 'Not connected'),
               _metric('FFT peak', peakLabel),
+              _metric('Momentary loudness', _liveRunning && _liveMetrics['momentaryLufsAvailable'] == true && _liveMetrics['momentaryLufs'] is num && (_liveMetrics['momentaryLufs'] as num).isFinite ? '${(_liveMetrics['momentaryLufs'] as num).toDouble().toStringAsFixed(1)} LUFS' : 'Waiting for data'),
+              _metric('Integrated loudness', _liveRunning && _liveMetrics['integratedLufsAvailable'] == true && _liveMetrics['integratedLufs'] is num && (_liveMetrics['integratedLufs'] as num).isFinite ? '${(_liveMetrics['integratedLufs'] as num).toDouble().toStringAsFixed(1)} LUFS' : 'Waiting for data'),
               _metric('Left channel RMS', spectrumAvailable ? _metricDb('spectrumLeftRms') : 'Waiting for data'),
               _metric('Right channel RMS', spectrumAvailable ? _metricDb('spectrumRightRms') : 'Waiting for data'),
               _metric('Stereo correlation', spectrumAvailable ? _safeCorrelation() : 'Waiting for data'),
