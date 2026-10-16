@@ -912,7 +912,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
             SizedBox(
               width: 320,
               child: DropdownButtonFormField<int>(
-                value: _selectedCaptureIndex,
+                initialValue: _selectedCaptureIndex,
                 decoration: const InputDecoration(labelText: 'Microphone / capture device'),
                 items: [for (final device in _captureDevices) DropdownMenuItem<int>(
                   value: device['index'] as int,
@@ -924,7 +924,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
             SizedBox(
               width: 320,
               child: DropdownButtonFormField<int>(
-                value: _selectedPlaybackIndex,
+                initialValue: _selectedPlaybackIndex,
                 decoration: const InputDecoration(labelText: 'Playback device'),
                 items: [for (final device in _playbackDevices) DropdownMenuItem<int>(
                   value: device['index'] as int,
