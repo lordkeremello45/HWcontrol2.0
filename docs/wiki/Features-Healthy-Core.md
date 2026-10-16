@@ -1,10 +1,10 @@
-# Healthy Core — CPU/GPU condition assessment
+# Healthy Core — CPU/GPU/RAM condition assessment
 
 Healthy Core is an observation-only first implementation for HWcontrol2.0. It provides a conservative **condition index** from evidence the application already knows about. It does **not** claim to measure physical silicon wear, degradation percentage, or remaining useful life.
 
 ## Current implementation
 
-The deterministic Go package is at `bridge_service/healthycore`. The Flutter dashboard now includes a Healthy Core card that summarizes the existing bounded local telemetry history (up to 720 samples) for CPU and GPU, and only shows a score after at least 12 valid temperature samples for that device. The dashboard score is explicitly a thermal-condition indicator, not wear. The Go package accepts a device kind, sample count, maximum observed temperature plus a device-specific thermal limit, thermal-throttling event count, observed hardware/driver error count, and an optional trusted vendor health percentage.
+The deterministic Go package is at `bridge_service/healthycore` and models CPU, GPU, and RAM evidence separately. RAM utilization is contextual only and never produces a RAM health score by itself. The Flutter dashboard now includes a Healthy Core card that summarizes the existing bounded local telemetry history (up to 720 samples) for CPU and GPU, and only shows a score after at least 12 valid temperature samples for that device. It also displays current and peak RAM utilization from available local telemetry, but labels RAM health as unknown until trustworthy hardware/ECC error counters or a vendor health report can be connected. The dashboard score is explicitly a thermal-condition indicator, not wear. The Go package accepts a device kind, sample count, maximum observed temperature plus a device-specific thermal limit, thermal-throttling event count, observed hardware/driver error count, and an optional trusted vendor health percentage.
 
 - No usable evidence returns `condition_index: null` and `insufficient_data`, never a fabricated 100/100.
 - Temperature is evaluated only when a device-specific thermal limit is supplied.
@@ -16,7 +16,7 @@ The deterministic Go package is at `bridge_service/healthycore`. The Flutter das
 
 ## Interpretation
 
-The index is an initial operational risk indicator, not a scientific estimate of wear. A score such as 92 means the current rule set found few concerning signals in the supplied evidence; it does not mean the CPU/GPU is “92% unworn.” Status bands are `no_obvious_concern` (85–100), `needs_attention` (65–84), and `elevated_risk` (0–64). These are conservative product heuristics, not manufacturer-certified thresholds.
+The index is an initial operational risk indicator, not a scientific estimate of wear. The RAM card reports memory utilization, not RAM health; without trustworthy module-health/ECC evidence, RAM health remains unknown. A score such as 92 means the current rule set found few concerning signals in the supplied evidence; it does not mean the CPU/GPU is “92% unworn.” Status bands are `no_obvious_concern` (85–100), `needs_attention` (65–84), and `elevated_risk` (0–64). These are conservative product heuristics, not manufacturer-certified thresholds.
 
 ## Validation
 
