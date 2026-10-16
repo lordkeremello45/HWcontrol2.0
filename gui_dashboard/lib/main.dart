@@ -1797,7 +1797,7 @@ Attach this archive to a support issue only after reviewing it for personal info
         throw const FormatException('Audio profile input is outside supported bounds.');
       }
       const deviceTypes = {'microphone', 'speaker', 'headphones', 'headset'};
-      const useCases = {'voice', 'gaming', 'music', 'movie', 'meeting', 'streaming'};
+      const useCases = {'voice', 'gaming', 'music', 'movie', 'meeting', 'streaming', 'broadcast'};
       if (!deviceTypes.contains(deviceType) || !useCases.contains(usage)) {
         throw const FormatException('Unsupported device type or use case.');
       }
