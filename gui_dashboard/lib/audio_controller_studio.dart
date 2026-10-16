@@ -704,7 +704,11 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
         'specificationsVerified': _specificationsVerified,
       });
       final raw = result?['recommendation'];
-      if (raw is! String) throw const FormatException('Gemma returned no recommendation.');
+      // Bound local-model output before JSON parsing to limit malformed or
+      // unexpectedly large responses from consuming excessive UI-process memory.
+      if (raw is! String || raw.length > 16384) {
+        throw const FormatException('Gemma returned no recommendation or exceeded the 16 KiB response limit.');
+      }
       final decoded = jsonDecode(raw);
       if (decoded is! Map<String, dynamic> || !_isSafeRecommendation(decoded)) {
         throw const FormatException('Gemma output did not match the allowed audio-profile schema.');
