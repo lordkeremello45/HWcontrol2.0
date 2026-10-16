@@ -21,11 +21,11 @@ func TestStorageDeviceKeyNormalizesNames(t *testing.T) {
 
 func TestClassifyStorageDeviceOnlyClaimsSupportedEvidence(t *testing.T) {
 	tests := []struct {
-		device string
-		wantType string
+		device        string
+		wantType      string
 		wantRemovable bool
 	}{
-		{"/dev/nvme0n1p1", "nvme_ssd", false},
+		{"/dev/nvme-test", "nvme_ssd", false},
 		{"/dev/disk/by-id/usb-SanDisk_123", "usb_storage", true},
 		{"E:", "unknown", false},
 		{"", "unknown", false},
