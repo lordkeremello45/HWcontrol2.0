@@ -487,12 +487,14 @@ void main() {
         onRecommend: (_) async => <String, dynamic>{'recommendation': '{"summary":"unsafe"}'},
       ),
     ));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 20));
     await tester.ensureVisible(find.text('Device model / endpoint name'));
     await tester.enterText(find.byType(TextField).first, 'USB Mic');
     await tester.ensureVisible(find.text('Ask local Gemma'));
     await tester.tap(find.text('Ask local Gemma'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 20));
     expect(find.textContaining('Recommendation rejected'), findsOneWidget);
     expect(find.text('Apply validated settings'), findsNothing);
   });
@@ -510,12 +512,14 @@ void main() {
         },
       ),
     ));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 20));
     await tester.ensureVisible(find.text('Device model / endpoint name'));
     await tester.enterText(find.byType(TextField).first, 'M' * 161);
     await tester.ensureVisible(find.text('Ask local Gemma'));
     await tester.tap(find.text('Ask local Gemma'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 20));
 
     expect(recommendationCalls, 0);
     expect(find.textContaining('unsupported characters or is too long'), findsOneWidget);
