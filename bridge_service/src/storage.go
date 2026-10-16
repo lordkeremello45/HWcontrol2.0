@@ -12,6 +12,9 @@ import (
 type StorageVolume struct {
 	MountPoint       string   `json:"mountPoint"`
 	Device           string   `json:"device"`
+	DeviceType       string   `json:"deviceType"`
+	DeviceTypeSource string   `json:"deviceTypeSource,omitempty"`
+	Removable        bool     `json:"removable"`
 	FileSystem       string   `json:"fileSystem"`
 	Options          string   `json:"options"`
 	TotalBytes       uint64   `json:"totalBytes"`
@@ -25,6 +28,27 @@ type StorageVolume struct {
 	HealthStatus     string   `json:"healthStatus"`
 	HealthSource     string   `json:"healthSource,omitempty"`
 	HealthReason     string   `json:"healthReason,omitempty"`
+}
+
+// classifyStorageDevice only assigns a media type when the device path carries
+// a strong naming signal. Mounted-volume paths cannot reliably distinguish SATA
+// SSDs from HDDs or SD from microSD.
+func classifyStorageDevice(device string) (deviceType, source string, removable bool) {
+	value := strings.ToLower(strings.TrimSpace(filepath.ToSlash(device)))
+	switch {
+	case value == "":
+		return "unknown", "unavailable", false
+	case strings.Contains(value, "/disk/by-id/usb-"):
+		return "usb_storage", "linux-device-path", true
+	case strings.HasPrefix(value, "/dev/nvme"):
+		return "nvme_ssd", "linux-device-path", false
+	case strings.HasPrefix(value, "/dev/mmcblk"):
+		return "sd_card", "linux-device-path", true
+	case strings.Contains(value, "sdcard") || strings.Contains(value, "sd_card"):
+		return "sd_card", "device-path", true
+	default:
+		return "unknown", "insufficient-device-metadata", false
+	}
 }
 
 var storageIOState struct {
@@ -102,9 +126,14 @@ func collectStorageVolumes() []StorageVolume {
 			continue
 		}
 
+		device := strings.TrimSpace(partition.Device)
+		deviceType, deviceTypeSource, removable := classifyStorageDevice(device)
 		volume := StorageVolume{
-			MountPoint:   mount,
-			Device:       strings.TrimSpace(partition.Device),
+			MountPoint:       mount,
+			Device:           device,
+			DeviceType:       deviceType,
+			DeviceTypeSource: deviceTypeSource,
+			Removable:        removable,
 			FileSystem:   strings.TrimSpace(partition.Fstype),
 			Options:       strings.TrimSpace(strings.Join(partition.Opts, ",")),
 			TotalBytes:   usage.Total,
