@@ -14,6 +14,7 @@ This section documents the features that are present in the current repository.
 Feature status in this wiki is based on the current source tree; planned functionality is marked explicitly.
 
 - [Telemetry History and Thermal Detection](Features-Telemetry-History.md)
+- [Healthy Core — CPU/GPU Condition Assessment](Features-Healthy-Core.md) (calculation package implemented; live dashboard integration pending)
 
 - [Advanced Control and Automation](Features-Advanced-Control.md)
 - [Hardware Benchmark](Features-Benchmark.md)
