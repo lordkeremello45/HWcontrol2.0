@@ -667,8 +667,25 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
 
   Future<void> _requestDeviceRecommendation() async {
     final model = _deviceModelController.text.trim();
+    final manufacturer = _manufacturerController.text.trim();
+    bool isSafeLabel(String value, int maxLength) =>
+        value.length <= maxLength &&
+        !value.runes.any((rune) => rune < 0x20 || (rune >= 0x7f && rune <= 0x9f));
     if (model.isEmpty || widget.onRecommend == null) {
       setState(() => _advisorError = 'Enter the device model or endpoint name first.');
+      return;
+    }
+    // Device names are untrusted OS/backend metadata. Bound them before they
+    // enter the local model prompt; do not forward control characters or huge labels.
+    if (!isSafeLabel(model, 160) || !isSafeLabel(manufacturer, 100)) {
+      setState(() => _advisorError = 'Device model or manufacturer contains unsupported characters or is too long.');
+      return;
+    }
+    if (_sampleRateHz < 8000 || _sampleRateHz > 192000 ||
+        ![1, 2].contains(_channels) ||
+        !['microphone', 'headset', 'speaker'].contains(_deviceType) ||
+        !['voice', 'gaming', 'music', 'broadcast'].contains(_usage)) {
+      setState(() => _advisorError = 'Device capability inputs are outside the supported range.');
       return;
     }
     setState(() {
@@ -680,7 +697,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
       final result = await widget.onRecommend!({
         'deviceType': _deviceType,
         'model': model,
-        'manufacturer': _manufacturerController.text.trim(),
+        'manufacturer': manufacturer,
         'usage': _usage,
         'sampleRateHz': _sampleRateHz,
         'channels': _channels,
