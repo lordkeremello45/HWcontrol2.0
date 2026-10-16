@@ -1,6 +1,7 @@
 add_library(hwcontrol_audio_core
   src/audio_engine.cpp
   src/audio_analyzer.cpp
+  src/loudness_meter.cpp
   src/audio_device_host.cpp
 )
 add_library(HWControl::AudioCore ALIAS hwcontrol_audio_core)
