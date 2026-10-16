@@ -2,6 +2,7 @@
 #include "hwcontrol_audio/audio_analyzer.hpp"
 #include "hwcontrol_audio/audio_device_host.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdlib>
