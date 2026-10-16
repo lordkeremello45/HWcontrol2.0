@@ -57,6 +57,27 @@ func TestThermalStressAndErrorsReduceIndex(t *testing.T) {
 	}
 }
 
+func TestRAMUtilizationAloneDoesNotClaimHealth(t *testing.T) {
+	got, err := Evaluate(Evidence{Device: RAM, SampleCount: 120, MemoryUsagePercent: ptr(42)})
+	if err != nil { t.Fatal(err) }
+	if got.ConditionIndex != nil || got.Status != "insufficient_data" {
+		t.Fatalf("RAM utilization alone must not imply health, got %#v", got)
+	}
+}
+
+func TestRAMHardwareErrorsProduceConditionAssessment(t *testing.T) {
+	got, err := Evaluate(Evidence{Device: RAM, ObservedErrors: 1, MemoryUsagePercent: ptr(88)})
+	if err != nil { t.Fatal(err) }
+	if got.ConditionIndex == nil || *got.ConditionIndex >= 100 || got.Status != "needs_attention" {
+		t.Fatalf("expected RAM errors to lower condition index, got %#v", got)
+	}
+}
+
+func TestRAMRejectsCPUAndGPUTemperatureEvidence(t *testing.T) {
+	_, err := Evaluate(Evidence{Device: RAM, SampleCount: 10, MaxTemperatureC: ptr(60), ThermalLimitC: ptr(100)})
+	if err == nil { t.Fatal("RAM must not use CPU/GPU thermal scoring") }
+}
+
 func TestVendorHealthIsValidated(t *testing.T) {
 	_, err := Evaluate(Evidence{Device: GPU, VendorHealthPercent: ptr(101)})
 	if err == nil { t.Fatal("expected out-of-range vendor health to be rejected") }
