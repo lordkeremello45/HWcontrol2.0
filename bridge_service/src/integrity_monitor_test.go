@@ -96,10 +96,32 @@ func TestEnvironmentKeyDoesNotDisableIntegrityMonitor(t *testing.T) {
 	}
 	defer m.stop()
 	defer bridgeIntegrityState.Store(true)
+
+	found := false
 	for _, target := range m.targets {
 		if filepath.Clean(target.path) == filepath.Clean(critical) {
-			return
+			found = true
+			break
 		}
 	}
-	t.Fatalf("configured integrity target not monitored")
+	if !found {
+		t.Fatal("configured integrity target not monitored")
+	}
+
+	done := make(chan struct{})
+	m.start(done, nil)
+	if err := os.WriteFile(critical, []byte("modified"), 0600); err != nil {
+		close(done)
+		t.Fatal(err)
+	}
+	deadline := time.Now().Add(bridgeIntegrityPollInterval + time.Second)
+	for time.Now().Before(deadline) {
+		if !m.healthy.Load() {
+			close(done)
+			return
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	close(done)
+	t.Fatal("runtime monitor did not detect the modified target")
 }
