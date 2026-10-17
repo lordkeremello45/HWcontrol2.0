@@ -158,13 +158,13 @@ ai_core/src/bsod_shield.cpp
 
 ## Local security tooling
 
-The repository includes an offline Apache-2.0 security utility at `security/local-audit/`. It can verify SHA-256 digests of security-sensitive local files, reject symlink substitutions, reject non-regular targets, and reject manifest paths that escape the selected audit root. It is intentionally independent of the desktop runtime and can be used locally or from CI.
+The repository includes an offline Apache-2.0 security utility at `security/local-audit/`. It verifies SHA-256 digests against independently trusted values, rejects symlinked path components and non-regular targets, and rejects manifest paths that escape the selected audit root. Missing expected hashes are `UNVERIFIED` and cause failure by default; calculating a digest alone is not integrity verification. The explicit `--allow-unpinned` mode is inventory-only and must not be used as an enforcement gate.
 
 Example:
 
 ```sh
-go test ./security/local-audit
-go run ./security/local-audit --root . --manifest ./security/local-audit/manifest.example.json
+GO111MODULE=off go test ./security/local-audit
+GO111MODULE=off go run ./security/local-audit --root . --manifest ./security/local-audit/manifest.example.json --allow-unpinned
 ```
 
 The tool is a defense-in-depth integrity check. It does not replace platform code signing, release provenance, or an independently trusted manifest.
