@@ -112,19 +112,32 @@ is
       Authorized        : Interfaces.C.unsigned_char)
       return Interfaces.C.unsigned_char
    is
-      Decision : constant Security_Decision :=
-        Validate_Raw_Fan_Command
-          (Integer (Fan_Percent_Value),
-           Telemetry_Valid /= 0,
-           Integer (Temperature_C),
-           Integrity_Healthy /= 0,
-           Authorized /= 0);
    begin
-      if Decision = Allow then
-         return 1;
-      else
+      -- C callers must pass canonical boolean flags. Treat every value other
+      -- than exactly 0 or 1 as malformed and deny rather than interpreting an
+      -- arbitrary nonzero byte as authorization or healthy telemetry.
+      if Telemetry_Valid > 1
+        or else Integrity_Healthy > 1
+        or else Authorized > 1
+      then
          return 0;
       end if;
+
+      declare
+         Decision : constant Security_Decision :=
+           Validate_Raw_Fan_Command
+             (Integer (Fan_Percent_Value),
+              Telemetry_Valid = 1,
+              Integer (Temperature_C),
+              Integrity_Healthy = 1,
+              Authorized = 1);
+      begin
+         if Decision = Allow then
+            return 1;
+         else
+            return 0;
+         end if;
+      end;
    end Validate_Raw_Fan_Command_C;
 
 end HWControl_Security;
