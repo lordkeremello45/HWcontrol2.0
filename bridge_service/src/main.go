@@ -1295,7 +1295,6 @@ func handleConnection(conn net.Conn, secret string) {
 			}
 			continue
 		}
-		invalidRequests = 0
 		if !consumeCommandNonce(cmd.Nonce, time.Now()) {
 			invalidRequests++
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
@@ -1304,6 +1303,7 @@ func handleConnection(conn net.Conn, secret string) {
 			}
 			continue
 		}
+		invalidRequests = 0
 		authFailures = 0
 		if panicModeActive() {
 			switch cmd.Action {
