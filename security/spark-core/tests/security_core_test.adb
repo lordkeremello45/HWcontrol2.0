@@ -102,6 +102,56 @@ begin
          Integrity_Healthy => 1,
          Authorized => 1) = 0);
 
+   -- The C ABI must reject non-canonical flags, not treat arbitrary nonzero
+   -- values as true for telemetry, integrity, or authorization.
+   pragma Assert
+     (Validate_Raw_Fan_Command_C
+        (Fan_Percent_Value => 50,
+         Telemetry_Valid => 2,
+         Temperature_C => 60,
+         Integrity_Healthy => 1,
+         Authorized => 1) = 0);
+
+   pragma Assert
+     (Validate_Raw_Fan_Command_C
+        (Fan_Percent_Value => 50,
+         Telemetry_Valid => 255,
+         Temperature_C => 60,
+         Integrity_Healthy => 1,
+         Authorized => 1) = 0);
+
+   pragma Assert
+     (Validate_Raw_Fan_Command_C
+        (Fan_Percent_Value => 50,
+         Telemetry_Valid => 1,
+         Temperature_C => 60,
+         Integrity_Healthy => 2,
+         Authorized => 1) = 0);
+
+   pragma Assert
+     (Validate_Raw_Fan_Command_C
+        (Fan_Percent_Value => 50,
+         Telemetry_Valid => 1,
+         Temperature_C => 60,
+         Integrity_Healthy => 255,
+         Authorized => 1) = 0);
+
+   pragma Assert
+     (Validate_Raw_Fan_Command_C
+        (Fan_Percent_Value => 50,
+         Telemetry_Valid => 1,
+         Temperature_C => 60,
+         Integrity_Healthy => 1,
+         Authorized => 2) = 0);
+
+   pragma Assert
+     (Validate_Raw_Fan_Command_C
+        (Fan_Percent_Value => 50,
+         Telemetry_Valid => 1,
+         Temperature_C => 60,
+         Integrity_Healthy => 1,
+         Authorized => 255) = 0);
+
 
    pragma Assert
      (Validate_Hardware_Identity
