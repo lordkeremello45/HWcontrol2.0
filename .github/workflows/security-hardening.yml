@@ -43,8 +43,6 @@ jobs:
         with:
           go-version-file: bridge_service/go.mod
           cache: false
-      - name: Format Go sources
-        run: gofmt -w .
       - name: Verify Go formatting
         run: |
           files="$(gofmt -l .)"
