@@ -1783,7 +1783,31 @@ Attach this archive to a support issue only after reviewing it for personal info
       return false;
     }
     final supplied = response['auth'] as String;
-    if (!RegExp(r'^[0-9a-fA-F]{64}
+    if (supplied.length != 64) return false;
+    for (final unit in supplied.codeUnits) {
+      final isDigit = unit >= 48 && unit <= 57;
+      final isLowerHex = unit >= 97 && unit <= 102;
+      final isUpperHex = unit >= 65 && unit <= 70;
+      if (!isDigit && !isLowerHex && !isUpperHex) return false;
+    }
+
+    final payload = <String>[
+      response['requestNonce'] as String,
+      response['status'] as String,
+      response['message'] as String,
+      jsonEncode(response['data']),
+    ].join('\n');
+    final expected = Hmac(sha256, utf8.encode(_sharedKey))
+        .convert(utf8.encode(payload))
+        .toString();
+    // Compare all characters rather than returning at the first mismatch.
+    if (expected.length != supplied.length) return false;
+    var difference = 0;
+    for (var i = 0; i < expected.length; i++) {
+      difference |= expected.codeUnitAt(i) ^ supplied.codeUnitAt(i);
+    }
+    return difference == 0;
+  }
 
   Future<Map<String, dynamic>?> _requestLocalAudioProfile(Map<String, dynamic> profile) async {
     if (_aiSending) throw StateError('Gemma is currently processing another request.');
