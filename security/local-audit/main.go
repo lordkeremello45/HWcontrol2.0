@@ -53,10 +53,23 @@ func auditFile(root string, entry ManifestFile) Result {
 	if strings.TrimSpace(entry.Path) == "" {
 		return Result{Path: entry.Path, Status: "FAIL", Issue: "empty path"}
 	}
-	target := filepath.Join(root, filepath.FromSlash(entry.Path))
-	if !withinRoot(root, target) {
+
+	rootAbs, err := filepath.Abs(root)
+	if err != nil {
+		return Result{Path: entry.Path, Status: "FAIL", Issue: "invalid audit root"}
+	}
+	manifestPath := filepath.FromSlash(entry.Path)
+	if filepath.IsAbs(manifestPath) || filepath.VolumeName(manifestPath) != "" {
+		return Result{Path: entry.Path, Status: "FAIL", Issue: "absolute paths are not accepted"}
+	}
+	target := filepath.Join(rootAbs, manifestPath)
+	if !withinRoot(rootAbs, target) {
 		return Result{Path: entry.Path, Status: "FAIL", Issue: "path escapes audit root"}
 	}
+	if err := rejectSymlinkComponents(rootAbs, target); err != nil {
+		return Result{Path: entry.Path, Status: "FAIL", Issue: err.Error()}
+	}
+
 	digest, err := digestFile(target)
 	if err != nil {
 		return Result{Path: entry.Path, Status: "FAIL", Issue: err.Error()}
@@ -65,6 +78,40 @@ func auditFile(root string, entry ManifestFile) Result {
 		return Result{Path: entry.Path, Status: "FAIL", SHA256: digest, Issue: "SHA-256 mismatch"}
 	}
 	return Result{Path: entry.Path, Status: "PASS", SHA256: digest}
+}
+
+func rejectSymlinkComponents(root, target string) error {
+	rootInfo, err := os.Lstat(root)
+	if err != nil {
+		return fmt.Errorf("inspect audit root: %w", err)
+	}
+	if rootInfo.Mode()&os.ModeSymlink != 0 || !rootInfo.IsDir() {
+		return errors.New("audit root must be a real directory, not a symlink")
+	}
+
+	rel, err := filepath.Rel(root, target)
+	if err != nil || rel == "." || rel == ".." || strings.HasPrefix(rel, ".."+string(os.PathSeparator)) {
+		return errors.New("invalid path relative to audit root")
+	}
+	current := root
+	parts := strings.Split(rel, string(os.PathSeparator))
+	for i, part := range parts {
+		if part == "" || part == "." {
+			continue
+		}
+		current = filepath.Join(current, part)
+		info, err := os.Lstat(current)
+		if err != nil {
+			return fmt.Errorf("inspect path component %q: %w", part, err)
+		}
+		if info.Mode()&os.ModeSymlink != 0 {
+			return errors.New("symlink path component is not accepted")
+		}
+		if i < len(parts)-1 && !info.IsDir() {
+			return errors.New("non-directory path component")
+		}
+	}
+	return nil
 }
 
 func loadManifest(path string) (Manifest, error) {
