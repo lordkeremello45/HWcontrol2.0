@@ -111,9 +111,19 @@ func responsePayload(response Response) ([]byte, error) {
 	}
 	// Encode the data value deterministically using Go's sorted map-key order.
 	// Flutter preserves the order in the received JSON object when decoding.
-	payload := response.RequestNonce + "\n" + response.Status + "\n" +
-		response.Message + "\n" + strings.TrimSuffix(data.String(), "\n")
-	return []byte(payload), nil
+	dataJSON := strings.TrimSuffix(data.String(), "\n")
+	var payload bytes.Buffer
+	for _, field := range []string{response.RequestNonce, response.Status, response.Message, dataJSON} {
+		// Length-prefix each UTF-8 byte sequence so embedded newlines or
+		// delimiter characters cannot create an ambiguous signed payload.
+		if _, err := fmt.Fprintf(&payload, "%d:", len(field)); err != nil {
+			return nil, err
+		}
+		if _, err := payload.WriteString(field); err != nil {
+			return nil, err
+		}
+	}
+	return payload.Bytes(), nil
 }
 
 func signResponse(response Response, secret string) (string, error) {
