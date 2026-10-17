@@ -193,5 +193,25 @@ begin
         (Schema_Valid => 1, Payload_Bounded => 0,
          Counts_Valid => 1, Status_Valid => 1) = 0);
 
+   pragma Assert
+     (Validate_Hardware_Identity_C
+        (Schema_Valid => 255, Payload_Bounded => 1,
+         Counts_Valid => 1, Status_Valid => 1) = 0);
+
+   pragma Assert
+     (Validate_Hardware_Identity_C
+        (Schema_Valid => 1, Payload_Bounded => 255,
+         Counts_Valid => 1, Status_Valid => 1) = 0);
+
+   pragma Assert
+     (Validate_Hardware_Identity_C
+        (Schema_Valid => 1, Payload_Bounded => 1,
+         Counts_Valid => 255, Status_Valid => 1) = 0);
+
+   pragma Assert
+     (Validate_Hardware_Identity_C
+        (Schema_Valid => 1, Payload_Bounded => 1,
+         Counts_Valid => 1, Status_Valid => 255) = 0);
+
    Put_Line ("HWcontrol SPARK security core: PASS");
 end Security_Core_Test;
