@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"math"
 	"net"
 	"os"
@@ -255,6 +256,44 @@ func TestCommandNonceReplayProtection(t *testing.T) {
 	}
 	if consumeCommandNonce(nonce, time.Now()) {
 		t.Fatal("expected replayed nonce to be rejected")
+	}
+}
+
+func TestCommandNonceCacheFailsClosedWhenFull(t *testing.T) {
+	replayMu.Lock()
+	original := replayNonces
+	now := time.Now()
+	replayNonces = make(map[string]time.Time, maxReplayNonces)
+	for i := 0; i < maxReplayNonces; i++ {
+		replayNonces[fmt.Sprintf("%032x", i+1)] = now.Add(time.Minute)
+	}
+	firstNonce := fmt.Sprintf("%032x", 1)
+	replayMu.Unlock()
+
+	t.Cleanup(func() {
+		replayMu.Lock()
+		replayNonces = original
+		replayMu.Unlock()
+	})
+
+	if consumeCommandNonce("ffffffffffffffffffffffffffffffff", now) {
+		t.Fatal("a new nonce must be rejected when the replay cache is saturated")
+	}
+	replayMu.Lock()
+	_, retained := replayNonces[firstNonce]
+	count := len(replayNonces)
+	replayMu.Unlock()
+	if !retained {
+		t.Fatal("a still-valid nonce was evicted from the replay cache")
+	}
+	if count != maxReplayNonces {
+		t.Fatalf("replay cache size = %d, want %d", count, maxReplayNonces)
+	}
+	if consumeCommandNonce(firstNonce, now) {
+		t.Fatal("a previously used nonce became replayable when the cache was full")
+	}
+	if !consumeCommandNonce("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", now.Add(2*time.Minute)) {
+		t.Fatal("expired cache entries should allow new commands after their validity window")
 	}
 }
 
