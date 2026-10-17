@@ -58,13 +58,12 @@ if (-not (Test-Path -LiteralPath $bridgePath -PathType Leaf)) {
 }
 New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
 
-$quotedBridgePath = 'binPath= "' + $bridgePath + '"'
 $existing = Get-Service -Name 'HWControlBridge' -ErrorAction SilentlyContinue
 if ($existing) {
     Stop-Service -Name 'HWControlBridge' -ErrorAction SilentlyContinue
     sc.exe delete HWControlBridge | Out-Null
 }
-sc.exe create HWControlBridge $quotedBridgePath start= auto obj= 'NT AUTHORITY\LocalService' DisplayName= 'HWControl Bridge' | Out-Null
+sc.exe create HWControlBridge binPath= "`"$bridgePath`"" start= auto obj= "NT AUTHORITY\LocalService" DisplayName= "HWControl Bridge" | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'Failed to create HWControl Bridge service.' }
 sc.exe description HWControlBridge 'HWControl local authenticated bridge service' | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'Failed to set HWControl Bridge service description.' }
@@ -77,8 +76,7 @@ if (Test-Path -LiteralPath $guardianPath -PathType Leaf) {
         Stop-Service -Name 'HWControlSecurityGuardian' -ErrorAction SilentlyContinue
         sc.exe delete HWControlSecurityGuardian | Out-Null
     }
-    $quotedGuardianPath = 'binPath= "' + $guardianPath + '"'
-    sc.exe create HWControlSecurityGuardian $quotedGuardianPath start= auto obj= 'NT AUTHORITY\LocalService' DisplayName= 'HWControl Security Guardian' | Out-Null
+        sc.exe create HWControlSecurityGuardian binPath= "`"$guardianPath`"" start= auto obj= "NT AUTHORITY\LocalService" DisplayName= "HWControl Security Guardian" | Out-Null
     if ($LASTEXITCODE -ne 0) { throw 'Failed to create HWControl Security Guardian service.' }
     sc.exe description HWControlSecurityGuardian 'HWControl secondary security guardian and canary monitor' | Out-Null
     if ($LASTEXITCODE -ne 0) { throw 'Failed to set Security Guardian service description.' }
