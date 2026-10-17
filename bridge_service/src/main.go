@@ -1139,18 +1139,11 @@ func consumeCommandNonce(nonce string, now time.Time) bool {
 	if _, exists := replayNonces[nonce]; exists {
 		return false
 	}
+	// Never evict a still-valid nonce to admit a new one: eviction would
+	// make a previously accepted authenticated command replayable. When the
+	// bounded cache is saturated, fail closed until entries expire.
 	if len(replayNonces) >= maxReplayNonces {
-		var oldestNonce string
-		var oldestExpiry time.Time
-		for key, expiresAt := range replayNonces {
-			if oldestNonce == "" || expiresAt.Before(oldestExpiry) {
-				oldestNonce = key
-				oldestExpiry = expiresAt
-			}
-		}
-		if oldestNonce != "" {
-			delete(replayNonces, oldestNonce)
-		}
+		return false
 	}
 	replayNonces[nonce] = now.Add(commandClockSkew)
 	return true
@@ -1221,7 +1214,7 @@ func handleConnection(conn net.Conn, secret string) {
 		}
 		if !consumeCommandNonce(cmd.Nonce, time.Now()) {
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-			if err := encoder.Encode(Response{Status: "ERROR", Message: "replayed command rejected"}); err != nil {
+			if err := encoder.Encode(Response{Status: "ERROR", Message: "nonce rejected by replay protection"}); err != nil {
 				return
 			}
 			continue
