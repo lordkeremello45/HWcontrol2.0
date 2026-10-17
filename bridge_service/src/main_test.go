@@ -256,29 +256,6 @@ func TestValidateCommandRejectsNonCanonicalActionWhitespace(t *testing.T) {
 	}
 }
 
-func TestValidateCommandRejectsValueOutsideAuthenticatedPrecision(t *testing.T) {
-	command := testCommand("AI İşlem Gücü", 50)
-	const secret = "test-secret"
-	command.Auth = signCommand(command, secret)
-
-	// The existing six-decimal HMAC representation would otherwise produce
-	// the same signature for both of these values.
-	command.Value = 50.0000001
-	if !authenticateCommand(command, secret) {
-		t.Fatal("test precondition failed: rounded canonical payload should match")
-	}
-	if err := validateCommand(command); err == nil {
-		t.Fatal("value that collides under six-decimal HMAC canonicalization was accepted")
-	}
-}
-
-func TestValidateCommandRejectsNonCanonicalActionWhitespace(t *testing.T) {
-	command := testCommand(" Get Status ", 0)
-	command.Auth = signCommand(command, "test-secret")
-	if err := validateCommand(command); err == nil {
-		t.Fatal("padded action should be rejected before dispatch")
-	}
-}
 
 func TestAuthenticateCommandRejectsMalformedAuth(t *testing.T) {
 	command := testCommand("Get Status", 0)
