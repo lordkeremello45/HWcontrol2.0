@@ -35,3 +35,34 @@ func TestAuditFileRejectsPathEscape(t *testing.T) {
 	result := auditFile(root, ManifestFile{Path: "../outside"})
 	if result.Status != "FAIL" { t.Fatalf("expected path escape rejection, got %+v", result) }
 }
+
+func TestAuditFileRejectsSymlinkedParent(t *testing.T) {
+	root := t.TempDir()
+	outside := t.TempDir()
+	target := filepath.Join(outside, "secret")
+	if err := os.WriteFile(target, []byte("outside-root"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	parentLink := filepath.Join(root, "linked")
+	if err := os.Symlink(outside, parentLink); err != nil {
+		t.Skipf("symlinks unavailable: %v", err)
+	}
+
+	result := auditFile(root, ManifestFile{Path: filepath.Join("linked", "secret")})
+	if result.Status != "FAIL" {
+		t.Fatalf("expected symlinked parent rejection, got %+v", result)
+	}
+}
+
+func TestAuditFileRejectsAbsoluteManifestPath(t *testing.T) {
+	root := t.TempDir()
+	outside := filepath.Join(t.TempDir(), "secret")
+	if err := os.WriteFile(outside, []byte("outside-root"), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	result := auditFile(root, ManifestFile{Path: outside})
+	if result.Status != "FAIL" {
+		t.Fatalf("expected absolute manifest path rejection, got %+v", result)
+	}
+}
