@@ -30,8 +30,22 @@ func listenBridge() (net.Listener, string, error) {
 	}
 
 	path := bridgeSocketPath()
-	if err := os.MkdirAll(filepath.Dir(path), 0750); err != nil {
+	if !filepath.IsAbs(path) {
+		return nil, path, fmt.Errorf("bridge socket path must be absolute")
+	}
+	directory := filepath.Dir(path)
+	if err := os.MkdirAll(directory, 0750); err != nil {
 		return nil, path, fmt.Errorf("create bridge socket directory: %w", err)
+	}
+	directoryInfo, err := os.Lstat(directory)
+	if err != nil {
+		return nil, path, fmt.Errorf("inspect bridge socket directory: %w", err)
+	}
+	if directoryInfo.Mode()&os.ModeSymlink != 0 || !directoryInfo.IsDir() {
+		return nil, path, fmt.Errorf("bridge socket parent must be a real directory")
+	}
+	if directoryInfo.Mode().Perm()&0022 != 0 {
+		return nil, path, fmt.Errorf("bridge socket parent must not be group- or world-writable")
 	}
 	if info, err := os.Lstat(path); err == nil {
 		if info.Mode()&os.ModeSymlink != 0 {
