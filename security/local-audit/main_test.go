@@ -66,3 +66,48 @@ func TestAuditFileRejectsAbsoluteManifestPath(t *testing.T) {
 		t.Fatalf("expected absolute manifest path rejection, got %+v", result)
 	}
 }
+
+func TestAuditFileMarksMissingExpectedDigestUnverified(t *testing.T) {
+	root := t.TempDir()
+	target := filepath.Join(root, "bridge-service")
+	if err := os.WriteFile(target, []byte("trusted"), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	result := auditFile(root, ManifestFile{Path: "bridge-service"})
+	if result.Status != "UNVERIFIED" {
+		t.Fatalf("expected missing digest to be unverified, got %+v", result)
+	}
+	if result.SHA256 == "" {
+		t.Fatal("expected current file digest to be reported for inventory mode")
+	}
+}
+
+func TestAuditFileRejectsMalformedExpectedDigest(t *testing.T) {
+	root := t.TempDir()
+	target := filepath.Join(root, "bridge-service")
+	if err := os.WriteFile(target, []byte("trusted"), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	result := auditFile(root, ManifestFile{Path: "bridge-service", SHA256: "not-a-digest"})
+	if result.Status != "FAIL" {
+		t.Fatalf("expected malformed expected digest to fail, got %+v", result)
+	}
+}
+
+func TestAuditFileRejectsDigestMismatch(t *testing.T) {
+	root := t.TempDir()
+	target := filepath.Join(root, "bridge-service")
+	if err := os.WriteFile(target, []byte("tampered"), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	result := auditFile(root, ManifestFile{
+		Path:   "bridge-service",
+		SHA256: "a9a089195c68d2adeee23beaa2c3a93b1d4cdf09046e7a9e520b3b166dff3e6a",
+	})
+	if result.Status != "FAIL" {
+		t.Fatalf("expected digest mismatch to fail, got %+v", result)
+	}
+}
