@@ -221,17 +221,24 @@ func TestCommandPayloadIsStable(t *testing.T) {
 func TestAuthenticatedResponseBindsNonceAndPayload(t *testing.T) {
 	const secret = "test-secret"
 	const nonce = "0123456789abcdef0123456789abcdef"
-	response := Response{
-		Status:       "SUCCESS",
-		Message:      "bridge ok",
-		Data:          map[string]any{"zeta": 2, "alpha": "<safe>"},
-		RequestNonce: nonce,
+	unsigned := Response{
+		Status:  "SUCCESS",
+		Message: "bridge ok",
+		Data:    map[string]any{"zeta": 2, "alpha": "<safe>"},
 	}
-	auth, err := signResponse(response, secret)
-	if err != nil {
-		t.Fatalf("sign response: %v", err)
+	var wire strings.Builder
+	encoder := &authenticatedResponseEncoder{
+		encoder:      json.NewEncoder(&wire),
+		secret:       secret,
+		requestNonce: nonce,
 	}
-	response.Auth = auth
+	if err := encoder.Encode(unsigned); err != nil {
+		t.Fatalf("encode signed response: %v", err)
+	}
+	var response Response
+	if err := json.Unmarshal([]byte(wire.String()), &response); err != nil {
+		t.Fatalf("decode signed response: %v", err)
+	}
 	if !authenticateResponse(response, secret, nonce) {
 		t.Fatal("valid response did not authenticate")
 	}
