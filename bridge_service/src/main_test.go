@@ -218,6 +218,39 @@ func TestCommandPayloadIsStable(t *testing.T) {
 	}
 }
 
+func TestAuthenticatedResponseBindsNonceAndPayload(t *testing.T) {
+	const secret = "test-secret"
+	const nonce = "0123456789abcdef0123456789abcdef"
+	response := Response{
+		Status:       "SUCCESS",
+		Message:      "bridge ok",
+		Data:          map[string]any{"zeta": 2, "alpha": "<safe>"},
+		RequestNonce: nonce,
+	}
+	auth, err := signResponse(response, secret)
+	if err != nil {
+		t.Fatalf("sign response: %v", err)
+	}
+	response.Auth = auth
+	if !authenticateResponse(response, secret, nonce) {
+		t.Fatal("valid response did not authenticate")
+	}
+
+	tampered := response
+	tampered.Message = "tampered"
+	if authenticateResponse(tampered, secret, nonce) {
+		t.Fatal("modified response message authenticated")
+	}
+	tampered = response
+	tampered.Data = map[string]any{"zeta": 3, "alpha": "<safe>"}
+	if authenticateResponse(tampered, secret, nonce) {
+		t.Fatal("modified response data authenticated")
+	}
+	if authenticateResponse(response, secret, "fedcba9876543210fedcba9876543210") {
+		t.Fatal("response authenticated for a different request nonce")
+	}
+}
+
 func TestAuthenticateCommand(t *testing.T) {
 	command := testCommand("Fan Hızı", 50)
 	secret := "test-secret"
