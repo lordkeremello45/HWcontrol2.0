@@ -108,6 +108,11 @@ is
       return Interfaces.C.unsigned_char
      with
        Global => null,
+       Post =>
+         (if Telemetry_Valid > 1
+             or else Integrity_Healthy > 1
+             or else Authorized > 1
+          then Validate_Raw_Fan_Command_C'Result = 0),
        Export,
        Convention => C,
        External_Name => "hwcontrol_security_validate_fan_command";
