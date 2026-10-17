@@ -73,6 +73,11 @@ jobs:
         with:
           go-version-file: bridge_service/go.mod
           cache: false
+      - name: Test local security tooling
+        shell: pwsh
+        run: |
+          $env:GO111MODULE = "off"
+          go test -count=1 ./security/local-audit
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -123,6 +128,8 @@ jobs:
         with:
           go-version-file: bridge_service/go.mod
           cache: false
+      - name: Test local security tooling
+        run: GO111MODULE=off go test -count=1 ./security/local-audit
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
