@@ -24,14 +24,6 @@ type smartctlReport struct {
 	NVMeHealth struct {
 		PercentageUsed *float64 `json:"percentage_used"`
 	} `json:"nvme_smart_health_information_log"`
-	ATAAttributes struct {
-		Table []struct {
-			ID  int `json:"id"`
-			Raw struct {
-				Value *float64 `json:"value"`
-			} `json:"raw"`
-		} `json:"table"`
-	} `json:"ata_smart_attributes"`
 }
 
 type storageHealthResult struct {
@@ -106,15 +98,6 @@ func parseSmartctlReport(data []byte) storageHealthResult {
 	var used *float64
 	if report.NVMeHealth.PercentageUsed != nil {
 		used = report.NVMeHealth.PercentageUsed
-	} else {
-		for _, attribute := range report.ATAAttributes.Table {
-			// ATA attribute 202 is commonly "Percent Lifetime Remaining", but
-			// vendor semantics are not universal; only use its raw value when
-			// the normalized attribute name explicitly signals lifetime remaining.
-			// This conservative implementation therefore does not infer a health
-			// percentage from an ID alone.
-			_ = attribute
-		}
 	}
 	if used != nil && *used >= 0 && *used <= 1000 {
 		value := 100 - *used
@@ -152,14 +135,16 @@ func readStorageHealth(device string) storageHealthResult {
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	err := cmd.Run()
+	var result storageHealthResult
 	if ctx.Err() != nil {
-		return storageHealthResult{status: "unknown", source: "smartctl", reason: "SMART query timed out"}
+		result = storageHealthResult{status: "unknown", source: "smartctl", reason: "SMART query timed out"}
+	} else if err != nil && stdout.Len() == 0 {
+		result = storageHealthResult{status: "unknown", source: "smartctl", reason: "smartctl is unavailable or the device cannot be queried; permissions may be required"}
+	} else {
+		result = parseSmartctlReport(stdout.Bytes())
 	}
-	if err != nil && stdout.Len() == 0 {
-		reason := "smartctl is unavailable or the device cannot be queried; permissions may be required"
-		return storageHealthResult{status: "unknown", source: "smartctl", reason: reason}
-	}
-	result := parseSmartctlReport(stdout.Bytes())
+	// Cache failures too, so missing tools or insufficient permissions do not
+	// cause a subprocess to run on every telemetry refresh.
 	storageHealthCache.Lock()
 	storageHealthCache.entries[physical] = struct {
 		at time.Time
