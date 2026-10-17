@@ -38,6 +38,24 @@ The local bridge requires an HMAC-SHA-256 authentication tag for every IPC reque
 
 This is an application-layer defense. Local administrator/root compromise, a compromised desktop user account, or a compromised OS/driver can bypass application-level trust boundaries.
 
+## Layered trust checks at every IPC boundary
+
+The bridge uses ordered, fail-closed checks rather than trusting a single “official” flag. These checks are independent responsibilities, not interchangeable proofs:
+
+1. **Check 1 — transport boundary:** accept only the configured local IPC transport; apply connection deadlines and a strict maximum request size.
+2. **Check 2 — schema boundary:** decode exactly one JSON command and reject unknown fields. The command schema must not silently ignore attacker-supplied fields.
+3. **Check 3 — message authenticity:** verify HMAC-SHA-256 over the canonical command fields using the installation-local bridge secret.
+4. **Check 4 — freshness:** reject missing or stale timestamps and malformed nonces.
+5. **Check 5 — replay resistance:** reject a nonce already consumed within the allowed validity window.
+6. **Check 6 — runtime trust state:** reject commands if integrity monitoring or the Security Guardian has entered a failed state.
+7. **Check 7 — authorization and semantics:** allow only known actions, validate numeric ranges and targets, and require a supported hardware-control backend.
+8. **Check 8 — safety policy:** enforce hardware-specific safety gates before applying control changes.
+9. **Check 9 — execution and observability:** rate-limit commands, fail closed on errors, and log security events without logging secrets.
+
+Each future IPC message type must declare its own schema, authentication coverage, freshness/replay requirements, authorization rules, and failure behavior. Do not treat a UI label, build-time `official` marker, local hash, or a user-supplied certificate name as proof of publisher identity.
+
+**Known boundary:** command authentication currently protects client-to-bridge requests. Do not assume that every bridge-to-client response is independently cryptographically authenticated unless response authentication is implemented and verified end-to-end. Publisher authenticity still requires verification of signed release provenance and platform code signatures; local HMAC is not a substitute for that trust root.
+
 ## Tamper detection and runtime integrity monitoring
 
 HWControl uses a defense-in-depth **Tamper Detection & Integrity Monitoring** layer for security-sensitive runtime state.
