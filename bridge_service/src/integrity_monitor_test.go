@@ -78,3 +78,28 @@ func TestIntegrityFileDigestRejectsSymlink(t *testing.T) {
 		t.Fatal("expected critical integrity target symlink to be rejected")
 	}
 }
+
+
+func TestEnvironmentKeyDoesNotDisableIntegrityMonitor(t *testing.T) {
+	critical := filepath.Join(t.TempDir(), "critical-engine")
+	if err := os.WriteFile(critical, []byte("trusted"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("HWCONTROL_KEY", "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
+	t.Setenv("HWCONTROL_INTEGRITY_FILES", critical)
+	m, err := newBridgeIntegrityMonitor()
+	if err != nil {
+		t.Fatalf("newBridgeIntegrityMonitor: %v", err)
+	}
+	if m == nil {
+		t.Fatal("environment key unexpectedly disabled runtime monitoring")
+	}
+	defer m.stop()
+	defer bridgeIntegrityState.Store(true)
+	for _, target := range m.targets {
+		if filepath.Clean(target.path) == filepath.Clean(critical) {
+			return
+		}
+	}
+	t.Fatalf("configured integrity target not monitored")
+}
