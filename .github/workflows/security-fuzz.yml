@@ -42,7 +42,33 @@ jobs:
         run: go test -run='^$' -fuzz='^FuzzCommandAuthenticationCoversPayload$' -fuzztime=20s ./src
       - name: Fuzz bounded request parsing
         working-directory: bridge_service
-        run: go test -run='^ -fuzz='^FuzzReadBoundedRequest -fuzztime=20s ./src
+        run: go test -run='^
+      - name: Fuzz audio profile decoding
+        working-directory: bridge_service
+        run: go test -run='^
+ -fuzz='^FuzzReadBoundedRequest
+      - name: Fuzz audio profile decoding
+        working-directory: bridge_service
+        run: go test -run='^ -fuzz='^FuzzAudioStudioJSONPayload -fuzztime=20s ./src
+ -fuzztime=20s ./src
+      - name: Fuzz audio profile decoding
+        working-directory: bridge_service
+        run: go test -run='^ -fuzz='^FuzzAudioStudioJSONPayload -fuzztime=20s ./src
+ -fuzz='^FuzzAudioStudioJSONPayload
+ -fuzz='^FuzzReadBoundedRequest
+      - name: Fuzz audio profile decoding
+        working-directory: bridge_service
+        run: go test -run='^ -fuzz='^FuzzAudioStudioJSONPayload -fuzztime=20s ./src
+ -fuzztime=20s ./src
+      - name: Fuzz audio profile decoding
+        working-directory: bridge_service
+        run: go test -run='^ -fuzz='^FuzzAudioStudioJSONPayload -fuzztime=20s ./src
+ -fuzztime=20s ./src
+ -fuzz='^FuzzReadBoundedRequest
+      - name: Fuzz audio profile decoding
+        working-directory: bridge_service
+        run: go test -run='^ -fuzz='^FuzzAudioStudioJSONPayload -fuzztime=20s ./src
+ -fuzztime=20s ./src
       - name: Fuzz audio profile decoding
         working-directory: bridge_service
         run: go test -run='^ -fuzz='^FuzzAudioStudioJSONPayload -fuzztime=20s ./src
