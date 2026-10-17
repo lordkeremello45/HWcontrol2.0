@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"crypto/hmac"
 	"crypto/rand"
@@ -1155,6 +1156,22 @@ func consumeCommandNonce(nonce string, now time.Time) bool {
 	return true
 }
 
+func decodeCommandStrict(line []byte, cmd *Command) error {
+	decoder := json.NewDecoder(bytes.NewReader(line))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(cmd); err != nil {
+		return err
+	}
+	var trailing any
+	if err := decoder.Decode(&trailing); !errors.Is(err, io.EOF) {
+		if err == nil {
+			return errors.New("multiple JSON values are not allowed")
+		}
+		return err
+	}
+	return nil
+}
+
 func handleConnection(conn net.Conn, secret string) {
 	defer conn.Close()
 	defer func() {
@@ -1182,7 +1199,7 @@ func handleConnection(conn net.Conn, secret string) {
 			return
 		}
 		var cmd Command
-		if err := json.Unmarshal(line, &cmd); err != nil {
+		if err := decodeCommandStrict(line, &cmd); err != nil {
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
 			_ = encoder.Encode(Response{Status: "ERROR", Message: "invalid request"})
 			continue
