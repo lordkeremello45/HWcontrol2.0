@@ -18,8 +18,8 @@ This directory is the repository-level home for reusable libraries and curated, 
 |---|---|---|
 | Hardware identification helper | `lib/hardware-identification/` | Windows C# read-only identity collector; platform status and limitations are documented in its README. |
 | Gemma model metadata | `models/gemma-3-1b-it-Q5_K_M.json` | Kept at its current path for compatibility with existing references. It is metadata, not model weights or training data. |
-| Gemma runtime/download manager | `gui_dashboard/lib/model_manager.dart` | Flutter-specific lifecycle, download bounds, and SHA-256 verification. |
-| Piper TTS adapter | `gui_dashboard/lib/services/piper_tts_service.dart` | Flutter-specific local Piper process and WAV playback integration. |
+| Gemma runtime/download manager | `gui_dashboard/lib/services/ai/model_manager.dart` | Flutter-specific lifecycle, download bounds, and SHA-256 verification; located under `services/ai/`. |
+| Piper TTS adapter | `gui_dashboard/lib/services/audio/piper_tts_service.dart` | Flutter-specific local Piper process and WAV playback integration; located under `services/audio/`. |
 | Localization catalogs | `gui_dashboard/lib/l10n/` | ARB/ICU resources belong to the Flutter localization build. |
 | Native AI runtime | `ai_core/` | C++/CMake inference/runtime code; model weights are not committed here. |
 | Audio engine | `audio_core/` | Native audio functionality and platform integration. |
