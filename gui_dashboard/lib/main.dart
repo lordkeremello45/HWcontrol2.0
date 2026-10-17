@@ -2285,7 +2285,7 @@ Attach this archive to a support issue only after reviewing it for personal info
                         tooltip: _tr('browsePiperExecutable'),
                         icon: const Icon(Icons.folder_open),
                         onPressed: () async {
-                          final picked = await FilePicker.platform.pickFiles(type: FileType.any);
+                          final picked = await FilePicker.pickFiles(type: FileType.any);
                           final path = picked?.files.single.path;
                           if (path != null && path.isNotEmpty) {
                             piperExecutableController.text = path;
@@ -2311,7 +2311,7 @@ Attach this archive to a support issue only after reviewing it for personal info
                         tooltip: _tr('browsePiperModel'),
                         icon: const Icon(Icons.folder_open),
                         onPressed: () async {
-                          final picked = await FilePicker.platform.pickFiles(
+                          final picked = await FilePicker.pickFiles(
                             type: FileType.custom,
                             allowedExtensions: ['onnx'],
                           );
