@@ -470,6 +470,42 @@ func TestExecuteHardwareCommandFailsClosed(t *testing.T) {
 	}
 }
 
+func TestConnectionClosesAfterRepeatedMalformedRequests(t *testing.T) {
+	previousIntegrity := bridgeIntegrityHealthy()
+	bridgeIntegrityState.Store(true)
+	t.Cleanup(func() { bridgeIntegrityState.Store(previousIntegrity) })
+
+	server, client := net.Pipe()
+	defer client.Close()
+	if err := client.SetDeadline(time.Now().Add(3 * time.Second)); err != nil {
+		t.Fatal(err)
+	}
+	done := make(chan struct{})
+	go func() {
+		handleConnection(server, "test-secret")
+		close(done)
+	}()
+
+	decoder := json.NewDecoder(client)
+	for i := 0; i < 5; i++ {
+		if _, err := fmt.Fprintln(client, "{invalid-json}"); err != nil {
+			t.Fatalf("write malformed request %d: %v", i+1, err)
+		}
+		var response Response
+		if err := decoder.Decode(&response); err != nil {
+			t.Fatalf("read response %d: %v", i+1, err)
+		}
+		if response.Status != "ERROR" {
+			t.Fatalf("response %d status = %q, want ERROR", i+1, response.Status)
+		}
+	}
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("connection remained open after repeated malformed requests")
+	}
+}
+
 func TestBridgeRequestSizeBound(t *testing.T) {
 	server, client := net.Pipe()
 	defer client.Close()
