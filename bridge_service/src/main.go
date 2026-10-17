@@ -434,11 +434,21 @@ func validateCommand(cmd Command) error {
 	if action == "" {
 		return fmt.Errorf("action is required")
 	}
+	if action != cmd.Action {
+		return fmt.Errorf("action must not contain leading or trailing whitespace")
+	}
 	if len(action) > maxActionLength {
 		return fmt.Errorf("action is too long")
 	}
 	if math.IsNaN(cmd.Value) || math.IsInf(cmd.Value, 0) || cmd.Value < 0 || cmd.Value > 100 {
 		return fmt.Errorf("value must be between 0 and 100")
+	}
+	// HMAC canonicalization follows the Flutter protocol's six-decimal
+	// representation. Reject values that round differently so sub-micro
+	// changes cannot retain the same authentication tag.
+	canonicalValue, err := strconv.ParseFloat(strconv.FormatFloat(cmd.Value, 'f', 6, 64), 64)
+	if err != nil || canonicalValue != cmd.Value {
+		return fmt.Errorf("value precision exceeds authenticated protocol precision")
 	}
 	if cmd.Timestamp <= 0 {
 		return fmt.Errorf("timestamp is required")
@@ -1175,6 +1185,7 @@ func handleConnection(conn net.Conn, secret string) {
 	reader := bufio.NewReaderSize(conn, 4096)
 	encoder := json.NewEncoder(conn)
 	authFailures := 0
+	invalidRequests := 0
 	var lastCommandAt time.Time
 	for {
 		_ = conn.SetReadDeadline(time.Now().Add(connectionTimeout))
@@ -1193,13 +1204,17 @@ func handleConnection(conn net.Conn, secret string) {
 		}
 		var cmd Command
 		if err := decodeCommandStrict(line, &cmd); err != nil {
+			invalidRequests++
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-			_ = encoder.Encode(Response{Status: "ERROR", Message: "invalid request"})
+			if writeErr := encoder.Encode(Response{Status: "ERROR", Message: "invalid request"}); writeErr != nil || invalidRequests >= 5 {
+				return
+			}
 			continue
 		}
 		if err := validateCommand(cmd); err != nil {
+			invalidRequests++
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-			if err := encoder.Encode(Response{Status: "ERROR", Message: err.Error()}); err != nil {
+			if writeErr := encoder.Encode(Response{Status: "ERROR", Message: err.Error()}); writeErr != nil || invalidRequests >= 5 {
 				return
 			}
 			continue
@@ -1212,9 +1227,11 @@ func handleConnection(conn net.Conn, secret string) {
 			}
 			continue
 		}
+		invalidRequests = 0
 		if !consumeCommandNonce(cmd.Nonce, time.Now()) {
+			invalidRequests++
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-			if err := encoder.Encode(Response{Status: "ERROR", Message: "nonce rejected by replay protection"}); err != nil {
+			if err := encoder.Encode(Response{Status: "ERROR", Message: "nonce rejected by replay protection"}); err != nil || invalidRequests >= 5 {
 				return
 			}
 			continue
