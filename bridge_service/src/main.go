@@ -1165,7 +1165,63 @@ func consumeCommandNonce(nonce string, now time.Time) bool {
 	return true
 }
 
+func rejectAmbiguousCommandJSON(line []byte) error {
+	decoder := json.NewDecoder(bytes.NewReader(line))
+	token, err := decoder.Token()
+	if err != nil {
+		return err
+	}
+	if delimiter, ok := token.(json.Delim); !ok || delimiter != '{' {
+		return errors.New("command must be a JSON object")
+	}
+
+	allowed := map[string]struct{}{
+		"action": {}, "value": {}, "target": {},
+		"timestamp": {}, "nonce": {}, "auth": {},
+	}
+	seen := make(map[string]struct{}, len(allowed))
+	for decoder.More() {
+		token, err := decoder.Token()
+		if err != nil {
+			return err
+		}
+		key, ok := token.(string)
+		if !ok {
+			return errors.New("command field name must be a string")
+		}
+		if _, ok := allowed[key]; !ok {
+			return fmt.Errorf("unknown or noncanonical command field")
+		}
+		if _, exists := seen[key]; exists {
+			return fmt.Errorf("duplicate command field")
+		}
+		seen[key] = struct{}{}
+		var value json.RawMessage
+		if err := decoder.Decode(&value); err != nil {
+			return err
+		}
+	}
+	closing, err := decoder.Token()
+	if err != nil {
+		return err
+	}
+	if delimiter, ok := closing.(json.Delim); !ok || delimiter != '}' {
+		return errors.New("command object is not closed")
+	}
+	var trailing any
+	if err := decoder.Decode(&trailing); !errors.Is(err, io.EOF) {
+		if err == nil {
+			return errors.New("multiple JSON values are not allowed")
+		}
+		return err
+	}
+	return nil
+}
+
 func decodeCommandStrict(line []byte, cmd *Command) error {
+	if err := rejectAmbiguousCommandJSON(line); err != nil {
+		return err
+	}
 	decoder := json.NewDecoder(bytes.NewReader(line))
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(cmd); err != nil {
