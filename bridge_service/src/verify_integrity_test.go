@@ -53,3 +53,19 @@ func TestVerifyRecordsDetectModification(t *testing.T) {
 		t.Fatal("expected modified file to change installation inventory")
 	}
 }
+
+func TestCollectVerifyInventoryRejectsSymlink(t *testing.T) {
+	dir := t.TempDir()
+	target := filepath.Join(dir, "trusted.bin")
+	if err := os.WriteFile(target, []byte("trusted"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(dir, "substituted.bin")
+	if err := os.Symlink(target, link); err != nil {
+		t.Skipf("symlinks are unavailable in this test environment: %v", err)
+	}
+
+	if _, err := collectVerifyInventory(dir); err == nil {
+		t.Fatal("expected symlink substitution to fail integrity inventory")
+	}
+}
