@@ -31,19 +31,24 @@ type bridgeIntegrityMonitor struct {
 
 func newBridgeIntegrityMonitor() (*bridgeIntegrityMonitor, error) {
 	bridgeIntegrityTargetCount.Store(0)
-	// Explicit environment provisioning is outside the file-integrity model.
-	// There is no authoritative file to monitor in this mode.
-	if secret := os.Getenv("HWCONTROL_KEY"); secret != "" && secret != "replace-me" {
-		return nil, nil
-	}
 
-	keyPath := defaultKeyFile()
-	if err := validateKeyFilePath(keyPath); err != nil {
-		return nil, err
-	}
-	keyDigest, err := bridgeKeyDigest(keyPath)
-	if err != nil {
-		return nil, fmt.Errorf("establish bridge key integrity baseline: %w", err)
+	// An environment-provided bridge credential has no authoritative key file,
+	// but it must not disable monitoring of the running bridge and configured
+	// critical binaries/libraries.
+	envSecret := strings.TrimSpace(os.Getenv("HWCONTROL_KEY"))
+	fileBackedKey := envSecret == "" || envSecret == "replace-me"
+
+	var keyPath, keyDigest string
+	if fileBackedKey {
+		keyPath = defaultKeyFile()
+		if err := validateKeyFilePath(keyPath); err != nil {
+			return nil, err
+		}
+		var err error
+		keyDigest, err = bridgeKeyDigest(keyPath)
+		if err != nil {
+			return nil, fmt.Errorf("establish bridge key integrity baseline: %w", err)
+		}
 	}
 
 	verifyRoot, err := verifyInstallationRoot()
@@ -54,7 +59,10 @@ func newBridgeIntegrityMonitor() (*bridgeIntegrityMonitor, error) {
 		return nil, fmt.Errorf("verify installation integrity: %w", err)
 	}
 
-	paths := []string{keyPath}
+	paths := make([]string, 0, 5)
+	if fileBackedKey {
+		paths = append(paths, keyPath)
+	}
 	paths = append(paths, criticalIntegrityPaths()...)
 
 	targets := make([]integrityTarget, 0, len(paths))
@@ -70,10 +78,9 @@ func newBridgeIntegrityMonitor() (*bridgeIntegrityMonitor, error) {
 		seen[path] = struct{}{}
 
 		var digest string
-		if path == keyPath {
+		if fileBackedKey && path == keyPath {
 			digest = keyDigest
 		} else {
-			var err error
 			digest, err = integrityFileDigest(path)
 			if err != nil {
 				return nil, fmt.Errorf("establish integrity baseline for %s: %w", filepath.Base(path), err)
@@ -82,6 +89,9 @@ func newBridgeIntegrityMonitor() (*bridgeIntegrityMonitor, error) {
 		targets = append(targets, integrityTarget{path: path, baseline: digest})
 	}
 
+	if len(targets) == 0 {
+		return nil, fmt.Errorf("no runtime integrity targets are available")
+	}
 	bridgeIntegrityState.Store(true)
 	bridgeIntegrityTargetCount.Store(int64(len(targets)))
 	m := &bridgeIntegrityMonitor{
