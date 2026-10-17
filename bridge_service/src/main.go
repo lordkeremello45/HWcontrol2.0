@@ -704,8 +704,14 @@ func validateKeyFilePath(path string) error {
 	if info.Mode()&os.ModeSymlink != 0 {
 		return fmt.Errorf("bridge key file must not be a symlink")
 	}
-	if runtime.GOOS != "windows" && info.Mode().Perm()&0022 != 0 {
-		return fmt.Errorf("bridge key file is writable by group/others")
+	if !info.Mode().IsRegular() {
+		return fmt.Errorf("bridge key file must be a regular file")
+	}
+	// The bridge key grants command-authentication authority. On POSIX it must
+	// not be readable, writable, or executable by group/others; checking only
+	// group/other write bits would silently accept a 0644 key-file disclosure.
+	if runtime.GOOS != "windows" && info.Mode().Perm()&0077 != 0 {
+		return fmt.Errorf("bridge key file permissions must be owner-only")
 	}
 	return nil
 }
