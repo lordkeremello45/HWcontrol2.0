@@ -583,3 +583,34 @@ func TestValidateAudioStudioStartCommand(t *testing.T) {
 		t.Fatal("start command without profile must be rejected")
 	}
 }
+
+func TestDecodeCommandStrictAcceptsKnownFields(t *testing.T) {
+	cmd := testCommand("Get Status", 0)
+	payload, err := json.Marshal(cmd)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var decoded Command
+	if err := decodeCommandStrict(payload, &decoded); err != nil {
+		t.Fatalf("valid command rejected: %v", err)
+	}
+	if decoded.Action != cmd.Action || decoded.Nonce != cmd.Nonce {
+		t.Fatalf("decoded command mismatch: got %+v want %+v", decoded, cmd)
+	}
+}
+
+func TestDecodeCommandStrictRejectsUnknownFields(t *testing.T) {
+	payload := []byte(`{"action":"Get Status","value":0,"timestamp":1,"nonce":"0123456789abcdef0123456789abcdef","auth":"00","trusted":true}`)
+	var decoded Command
+	if err := decodeCommandStrict(payload, &decoded); err == nil {
+		t.Fatal("unknown JSON field was accepted")
+	}
+}
+
+func TestDecodeCommandStrictRejectsMultipleJSONValues(t *testing.T) {
+	payload := []byte(`{"action":"Get Status","value":0,"timestamp":1,"nonce":"0123456789abcdef0123456789abcdef","auth":"00"} {}`)
+	var decoded Command
+	if err := decodeCommandStrict(payload, &decoded); err == nil {
+		t.Fatal("multiple JSON values were accepted")
+	}
+}
