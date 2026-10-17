@@ -79,9 +79,73 @@ func authenticateCommand(cmd Command, secret string) bool {
 }
 
 type Response struct {
-	Status  string `json:"status"`
-	Message string `json:"message"`
-	Data    any    `json:"data,omitempty"`
+	Status      string `json:"status"`
+	Message     string `json:"message"`
+	Data        any    `json:"data,omitempty"`
+	RequestNonce string `json:"requestNonce"`
+	Auth        string `json:"auth"`
+}
+
+type authenticatedResponseEncoder struct {
+	encoder      *json.Encoder
+	secret       string
+	requestNonce string
+}
+
+func (e *authenticatedResponseEncoder) Encode(response Response) error {
+	response.RequestNonce = e.requestNonce
+	auth, err := signResponse(response, e.secret)
+	if err != nil {
+		return err
+	}
+	response.Auth = auth
+	return e.encoder.Encode(response)
+}
+
+func responsePayload(response Response) ([]byte, error) {
+	var data bytes.Buffer
+	encoder := json.NewEncoder(&data)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(response.Data); err != nil {
+		return nil, err
+	}
+	// Encode the data value deterministically using Go's sorted map-key order.
+	// Flutter preserves the order in the received JSON object when decoding.
+	payload := response.RequestNonce + "\n" + response.Status + "\n" +
+		response.Message + "\n" + strings.TrimSuffix(data.String(), "\n")
+	return []byte(payload), nil
+}
+
+func signResponse(response Response, secret string) (string, error) {
+	if secret == "" {
+		return "", fmt.Errorf("response signing secret is empty")
+	}
+	payload, err := responsePayload(response)
+	if err != nil {
+		return "", fmt.Errorf("canonicalize response: %w", err)
+	}
+	digest := hmac.New(sha256.New, []byte(secret))
+	_, _ = digest.Write(payload)
+	return hex.EncodeToString(digest.Sum(nil)), nil
+}
+
+func authenticateResponse(response Response, secret, expectedNonce string) bool {
+	if secret == "" || expectedNonce == "" || response.RequestNonce != expectedNonce {
+		return false
+	}
+	provided, err := hex.DecodeString(response.Auth)
+	if err != nil || len(provided) != sha256.Size {
+		return false
+	}
+	expected, err := signResponse(response, secret)
+	if err != nil {
+		return false
+	}
+	decodedExpected, err := hex.DecodeString(expected)
+	if err != nil {
+		return false
+	}
+	return hmac.Equal(decodedExpected, provided)
 }
 
 type HardwareMetrics struct {
@@ -1251,11 +1315,14 @@ func handleConnection(conn net.Conn, secret string) {
 		}
 	}()
 	reader := bufio.NewReaderSize(conn, 4096)
-	encoder := json.NewEncoder(conn)
+	encoder := &authenticatedResponseEncoder{encoder: json.NewEncoder(conn), secret: secret}
 	authFailures := 0
 	invalidRequests := 0
 	var lastCommandAt time.Time
 	for {
+		// Never bind an error response to the previous request on a persistent
+		// connection. A response is accepted only for the current nonce.
+		encoder.requestNonce = ""
 		_ = conn.SetReadDeadline(time.Now().Add(connectionTimeout))
 		line, err := readBoundedRequest(reader, maxRequestBytes)
 		if err != nil {
@@ -1279,6 +1346,7 @@ func handleConnection(conn net.Conn, secret string) {
 			}
 			continue
 		}
+		encoder.requestNonce = cmd.Nonce
 		if err := validateCommand(cmd); err != nil {
 			invalidRequests++
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
