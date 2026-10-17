@@ -79,11 +79,11 @@ func authenticateCommand(cmd Command, secret string) bool {
 }
 
 type Response struct {
-	Status      string `json:"status"`
-	Message     string `json:"message"`
-	Data        any    `json:"data,omitempty"`
+	Status       string `json:"status"`
+	Message      string `json:"message"`
+	Data         any    `json:"data,omitempty"`
 	RequestNonce string `json:"requestNonce"`
-	Auth        string `json:"auth"`
+	Auth         string `json:"auth"`
 }
 
 type authenticatedResponseEncoder struct {
