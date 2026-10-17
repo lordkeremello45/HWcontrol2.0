@@ -74,7 +74,17 @@ func auditFile(root string, entry ManifestFile) Result {
 	if err != nil {
 		return Result{Path: entry.Path, Status: "FAIL", Issue: err.Error()}
 	}
-	if expected := strings.ToLower(strings.TrimSpace(entry.SHA256)); expected != "" && digest != expected {
+	expected := strings.ToLower(strings.TrimSpace(entry.SHA256))
+	if expected == "" {
+		return Result{Path: entry.Path, Status: "UNVERIFIED", SHA256: digest, Issue: "expected SHA-256 is missing"}
+	}
+	if len(expected) != sha256.Size*2 {
+		return Result{Path: entry.Path, Status: "FAIL", SHA256: digest, Issue: "expected SHA-256 must contain 64 hexadecimal characters"}
+	}
+	if _, err := hex.DecodeString(expected); err != nil {
+		return Result{Path: entry.Path, Status: "FAIL", SHA256: digest, Issue: "expected SHA-256 is not hexadecimal"}
+	}
+	if digest != expected {
 		return Result{Path: entry.Path, Status: "FAIL", SHA256: digest, Issue: "SHA-256 mismatch"}
 	}
 	return Result{Path: entry.Path, Status: "PASS", SHA256: digest}
@@ -124,8 +134,9 @@ func loadManifest(path string) (Manifest, error) {
 
 func main() {
 	root := flag.String("root", ".", "installation or source root to audit")
-	manifestPath := flag.String("manifest", "", "JSON manifest containing files and optional SHA-256 values")
+	manifestPath := flag.String("manifest", "", "JSON manifest containing files and expected SHA-256 values")
 	jsonOutput := flag.Bool("json", false, "emit machine-readable JSON results")
+	allowUnpinned := flag.Bool("allow-unpinned", false, "permit inventory-only entries without expected SHA-256; such entries remain UNVERIFIED")
 	flag.Parse()
 
 	if strings.TrimSpace(*manifestPath) == "" {
@@ -142,7 +153,7 @@ func main() {
 	for _, entry := range manifest.Files {
 		result := auditFile(rootAbs, entry)
 		results = append(results, result)
-		if result.Status != "PASS" { failed = true }
+		if result.Status == "FAIL" || (result.Status == "UNVERIFIED" && !*allowUnpinned) { failed = true }
 	}
 
 	if *jsonOutput {
