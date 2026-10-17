@@ -750,6 +750,12 @@ func loadOrCreateSecret() (string, error) {
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
 	if err != nil {
 		if os.IsExist(err) {
+			// Another instance may have created the key after the initial Lstat.
+			// Revalidate before reading so a concurrently inserted symlink,
+			// directory, or permissively shared file is never trusted.
+			if validateErr := validateKeyFilePath(path); validateErr != nil {
+				return "", validateErr
+			}
 			data, readErr := os.ReadFile(path)
 			if readErr != nil {
 				return "", fmt.Errorf("read concurrently-created bridge key: %w", readErr)
