@@ -1,5 +1,4 @@
 param(
-    [string]$HwControlKey,
     [string]$InstallDir = "$env:ProgramFiles\HWControl"
 )
 
@@ -19,13 +18,6 @@ New-Item -ItemType Directory -Force -Path $bridgeKeyDir, $canaryDir, $stateDir |
 icacls $bridgeKeyDir /inheritance:r /grant:r 'SYSTEM:(OI)(CI)(F)' 'Administrators:(OI)(CI)(F)' 'NT AUTHORITY\LOCAL SERVICE:(OI)(CI)(M)' "$($currentUser):(OI)(CI)(RX)" | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'Failed to secure HWControl bridge-key directory ACL.' }
 
-if ([string]::IsNullOrWhiteSpace($HwControlKey) -or $HwControlKey -eq 'replace-me') {
-    $HwControlKey = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32)).ToLowerInvariant()
-}
-if ($HwControlKey -notmatch '^[0-9a-fA-F]{64}$') {
-    throw 'HwControlKey must be exactly 64 hexadecimal characters.'
-}
-
 if (Test-Path -LiteralPath $bridgeKeyPath) {
     $keyAttributes = [IO.File]::GetAttributes($bridgeKeyPath)
     if (($keyAttributes -band [IO.FileAttributes]::ReparsePoint) -ne 0 -or
@@ -37,6 +29,7 @@ if (Test-Path -LiteralPath $bridgeKeyPath) {
         throw 'Existing bridge.key is invalid; refusing to overwrite it automatically.'
     }
 } else {
+    $HwControlKey = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32)).ToLowerInvariant()
     [IO.File]::WriteAllText($bridgeKeyPath, "$HwControlKey$([Environment]::NewLine)", [Text.Encoding]::ASCII)
 }
 icacls $bridgeKeyPath /inheritance:r /grant:r 'SYSTEM:(F)' 'Administrators:(F)' 'NT AUTHORITY\LOCAL SERVICE:(R)' "$($currentUser):(R)" | Out-Null
