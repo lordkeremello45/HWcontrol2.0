@@ -57,7 +57,10 @@
   <Fragment>
     <Component Id="BridgeDataComponent" Directory="HWCONTROL_DATA">
       <CreateFolder>
-        <util:PermissionEx User="Users" Read="yes" Traverse="yes" Inheritable="yes" />
+        <!-- Keep the shared bridge key readable by interactive desktop users,
+             but do not inherit the default ProgramData ACL. Security state and
+             canary directories below use protected, narrower DACLs. -->
+        <PermissionEx Sddl="D:P(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;OICI;FA;;;LS)(A;OICI;GRGX;;;IU)" />
       </CreateFolder>
       <RemoveFile Id="RemoveBridgeKey" Name="bridge.key" On="uninstall" />
       <Environment Id="RemoveHWControlKey" Name="HWCONTROL_KEY" Action="remove" System="yes" />
@@ -65,6 +68,9 @@
     </Component>
 
     <Component Id="SecurityCanaryComponent" Directory="SECURITY_CANARY_DATA">
+      <CreateFolder>
+        <PermissionEx Sddl="D:P(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;OICI;GRGX;;;LS)" />
+      </CreateFolder>
       <File Id="BridgerCanaryFile" Source="$(var.PackageDir)\security\fetch-status\bridger.key" KeyPath="yes">
         <util:PermissionEx User="NT AUTHORITY\LocalService" Read="yes" ReadAttributes="yes" ReadPermission="yes" />
       </File>
@@ -72,7 +78,7 @@
 
     <Component Id="SecurityStateComponent" Directory="SECURITY_STATE_DATA">
       <CreateFolder>
-        <util:PermissionEx User="NT AUTHORITY\LocalService" Read="yes" Write="yes" CreateFile="yes" DeleteChild="yes" Traverse="yes" Inheritable="yes" />
+        <PermissionEx Sddl="D:P(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;OICI;FA;;;LS)" />
       </CreateFolder>
       <RemoveFile Id="ResetVerifyStateOnInstall" Name="verify.state" On="install" />
       <RemoveFile Id="RemoveVerifyStateOnUninstall" Name="verify.state" On="uninstall" />
