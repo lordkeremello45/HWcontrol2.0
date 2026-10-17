@@ -218,6 +218,17 @@ func collectStorageVolumes() []StorageVolume {
 			volume.HealthReason = "I/O counters available; device health percentage requires a platform-specific reliability backend"
 		}
 
+		// SMART is read-only and optional. Unknown remains unknown when the
+		// utility, permissions, or a trustworthy device health indicator is absent.
+		if runtime.GOOS == "linux" {
+			health := readStorageHealth(device)
+			volume.HealthStatus = health.status
+			volume.HealthSource = health.source
+			volume.HealthReason = health.reason
+			volume.TemperatureC = health.temperature
+			volume.HealthPercent = health.healthPercent
+		}
+
 		volumes = append(volumes, volume)
 	}
 	return volumes
