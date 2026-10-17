@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hwcontrol_dashboard/services/piper_tts_service.dart';
+import 'package:hwcontrol_dashboard/services/audio/piper_tts_service.dart';
 
 void main() {
   group('PiperTtsService local configuration', () {

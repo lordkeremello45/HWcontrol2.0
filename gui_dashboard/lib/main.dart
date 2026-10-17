@@ -23,7 +23,7 @@ import 'fan_channels.dart';
 import 'benchmark.dart';
 import 'automation_rules.dart';
 import 'audio_controller_studio.dart';
-import 'model_manager.dart';
+import 'services/ai/model_manager.dart';
 import 'user_data_store.dart';
 import 'game_profile.dart';
 import 'l10n/app_localizations.dart';
@@ -31,7 +31,7 @@ import 'l10n/app_localizations_map.dart';
 import 'welcome_screen.dart';
 import 'services/language_service.dart';
 import 'services/localization_style_service.dart';
-import 'services/piper_tts_service.dart';
+import 'services/audio/piper_tts_service.dart';
 import 'security/authenticity_guard.dart';
 
 void main() {
