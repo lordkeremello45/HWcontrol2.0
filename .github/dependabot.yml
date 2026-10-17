@@ -78,3 +78,16 @@ updates:
         update-types:
           - "minor"
           - "patch"
+
+  - package-ecosystem: "nuget"
+    directory: "/lib/hardware-identification"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    groups:
+      hardware-identification-nuget-minor-patch:
+        applies-to: "version-updates"
+        update-types:
+          - "minor"
+          - "patch"
