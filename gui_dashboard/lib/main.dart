@@ -1791,12 +1791,16 @@ Attach this archive to a support issue only after reviewing it for personal info
       if (!isDigit && !isLowerHex && !isUpperHex) return false;
     }
 
-    final payload = <String>[
+    final payloadFields = <String>[
       response['requestNonce'] as String,
       response['status'] as String,
       response['message'] as String,
       jsonEncode(response['data']),
-    ].join('\n');
+    ];
+    final payload = payloadFields.map((field) {
+      final byteLength = utf8.encode(field).length;
+      return byteLength.toString() + ':' + field;
+    }).join();
     final expected = Hmac(sha256, utf8.encode(_sharedKey))
         .convert(utf8.encode(payload))
         .toString();
