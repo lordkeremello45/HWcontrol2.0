@@ -38,6 +38,23 @@ func FuzzCommandAuthenticationCoversPayload(f *testing.F) {
 	})
 }
 
+// FuzzDecodeCommandStrict ensures that arbitrary IPC payloads cannot panic the
+// strict schema parser. Inputs are bounded to the production request size.
+func FuzzDecodeCommandStrict(f *testing.F) {
+	f.Add(`{"action":"Get Status","value":0,"timestamp":1,"nonce":"0123456789abcdef0123456789abcdef","auth":"0000000000000000000000000000000000000000000000000000000000000000"}`)
+	f.Add(`{"action":"Get Status","action":"Fan Hızı"}`)
+	f.Add(`{"Action":"Get Status"}`)
+	f.Add(`null`)
+	f.Add(`{}`)
+	f.Fuzz(func(t *testing.T, raw string) {
+		if len(raw) > maxRequestBytes {
+			return
+		}
+		var cmd Command
+		_ = decodeCommandStrict([]byte(raw), &cmd)
+	})
+}
+
 // FuzzReadBoundedRequest asserts that arbitrary input cannot make the bridge
 // request reader return an oversized successful request or a partial line as
 // a complete request.
