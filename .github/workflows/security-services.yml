@@ -42,6 +42,15 @@ jobs:
           fi
       - name: Test bridge services
         run: go test -race -count=1 ./src
+      - name: Go static analysis
+        run: go vet ./src ./security_guardian
+      - name: Windows amd64 cross-build
+        env:
+          GOOS: windows
+          GOARCH: amd64
+        run: |
+          go build -trimpath -o "$RUNNER_TEMP/hwcontrol-bridge.exe" ./src
+          go build -trimpath -o "$RUNNER_TEMP/hwcontrol-security-guardian.exe" ./security_guardian
       - name: Build security guardian
         run: go build -trimpath -o security-guardian ./security_guardian
       - name: Smoke-test guardian build
