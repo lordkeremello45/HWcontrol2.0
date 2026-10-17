@@ -93,6 +93,12 @@ is
       return Interfaces.C.unsigned_char
      with
        Global => null,
+       Post =>
+         (if Schema_Valid > 1
+             or else Payload_Bounded > 1
+             or else Counts_Valid > 1
+             or else Status_Valid > 1
+          then Validate_Hardware_Identity_C'Result = 0),
        Export,
        Convention => C,
        External_Name => "hwcontrol_security_validate_hardware_identity";
