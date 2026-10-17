@@ -40,3 +40,26 @@ func TestListenBridgeUnixSocket(t *testing.T) {
 		t.Fatalf("socket still exists after cleanup: %v", err)
 	}
 }
+
+func TestListenBridgeRejectsRelativeSocketPath(t *testing.T) {
+	t.Setenv("HWCONTROL_SOCKET", "relative/bridge.sock")
+	t.Setenv("HWCONTROL_TCP_COMPAT", "")
+	if _, _, err := listenBridge(); err == nil {
+		t.Fatal("relative Unix socket path must be rejected")
+	}
+}
+
+func TestListenBridgeRejectsWritableSocketParent(t *testing.T) {
+	directory := t.TempDir()
+	if err := os.Chmod(directory, 0777); err != nil {
+		t.Fatalf("chmod socket parent: %v", err)
+	}
+	t.Setenv("HWCONTROL_SOCKET", filepath.Join(directory, "bridge.sock"))
+	t.Setenv("HWCONTROL_TCP_COMPAT", "")
+	if _, _, err := listenBridge(); err == nil {
+		t.Fatal("group/world-writable Unix socket parent must be rejected")
+	}
+	if err := os.Chmod(directory, 0700); err != nil {
+		t.Fatalf("restore socket parent permissions: %v", err)
+	}
+}
