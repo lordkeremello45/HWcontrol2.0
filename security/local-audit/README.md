@@ -6,7 +6,9 @@ This standalone utility provides a local, offline integrity check for security-s
 
 ## Checks
 
-- SHA-256 digests when expected values are supplied.
+- SHA-256 digest comparison against an expected, independently trusted value.
+- Missing expected hashes are reported as `UNVERIFIED` and fail by default; a calculated digest is not proof of integrity.
+- `--allow-unpinned` is an explicit inventory-only mode for discovering current digests. It does not turn those entries into verified files and must not be used as a security gate.
 - Missing or unreadable files.
 - Symlink substitution.
 - Non-regular file targets.
@@ -28,10 +30,12 @@ The utility does not establish a cryptographic root of trust by itself. Use sign
 
 From the repository root:
 
-    go test ./security/local-audit
-    go run ./security/local-audit --root . --manifest ./security/local-audit/manifest.example.json
+    GO111MODULE=off go test ./security/local-audit
+    GO111MODULE=off go run ./security/local-audit --root . --manifest ./security/local-audit/manifest.example.json --allow-unpinned
 
-Use --json for machine-readable output.
+The example manifest has no trusted reference hashes, so `--allow-unpinned` is only for inventory collection. For verification, populate each `sha256` from an independently trusted source and omit that flag. Use `--json` for machine-readable output.
+
+In PowerShell, set `$env:GO111MODULE = "off"` before running the same `go test` or `go run` commands.
 
 ## License scope
 
