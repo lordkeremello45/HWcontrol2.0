@@ -116,7 +116,9 @@ configure_runtime(){
     $SUDO chown "$SUDO_USER:$desktop_group" "$(dirname "$KEY_FILE")"
     $SUDO chmod 2750 "$(dirname "$KEY_FILE")"
     $SUDO chown "$SUDO_USER:$desktop_group" "$KEY_FILE"
-    $SUDO chmod 0640 "$KEY_FILE"
+    # The service runs as root, so the desktop user can own a private 0600 key
+    # without exposing it to every other member of the user's primary group.
+    $SUDO chmod 0600 "$KEY_FILE"
   else
     $SUDO chown root:root "$(dirname "$KEY_FILE")"
     $SUDO chmod 0750 "$(dirname "$KEY_FILE")"
