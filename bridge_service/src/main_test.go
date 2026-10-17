@@ -28,6 +28,44 @@ func testCommand(action string, value float64) Command {
 	return cmd
 }
 
+func TestDecodeCommandStrictRejectsAmbiguousJSON(t *testing.T) {
+	valid := `{"action":"Get Status","value":0,"timestamp":1,"nonce":"0123456789abcdef0123456789abcdef","auth":"0000000000000000000000000000000000000000000000000000000000000000"}`
+	var command Command
+	if err := decodeCommandStrict([]byte(valid), &command); err != nil {
+		t.Fatalf("canonical command JSON should decode: %v", err)
+	}
+
+	tests := []struct {
+		name string
+		raw  string
+	}{
+		{
+			name: "duplicate action",
+			raw:  `{"action":"Get Status","action":"Fan Hızı","value":0,"timestamp":1,"nonce":"0123456789abcdef0123456789abcdef","auth":"0000000000000000000000000000000000000000000000000000000000000000"}`,
+		},
+		{
+			name: "case variant field",
+			raw:  `{"Action":"Get Status","value":0,"timestamp":1,"nonce":"0123456789abcdef0123456789abcdef","auth":"0000000000000000000000000000000000000000000000000000000000000000"}`,
+		},
+		{
+			name: "unknown field",
+			raw:  `{"action":"Get Status","value":0,"timestamp":1,"nonce":"0123456789abcdef0123456789abcdef","auth":"0000000000000000000000000000000000000000000000000000000000000000","admin":true}`,
+		},
+		{
+			name: "multiple objects",
+			raw:  valid + ` {}`,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var parsed Command
+			if err := decodeCommandStrict([]byte(test.raw), &parsed); err == nil {
+				t.Fatal("ambiguous or noncanonical command JSON was accepted")
+			}
+		})
+	}
+}
+
 func TestValidateCommand(t *testing.T) {
 	tests := []struct {
 		name    string
