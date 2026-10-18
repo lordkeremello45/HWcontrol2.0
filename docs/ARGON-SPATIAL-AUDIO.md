@@ -4,7 +4,7 @@
 
 ## Implemented in this branch
 
-The C++17 SpatialAudioProcessor accepts mono point-source audio and produces interleaved stereo output with equal-power azimuth positioning, a small interaural time difference using fixed-size delay buffers, a simple far-ear high-frequency shadow approximation, distance attenuation, configurable wet mix, finite-sample sanitation, and bounded parameter/sample-rate validation. The process method does not allocate or take locks.
+The C++17 SpatialAudioProcessor accepts mono point-source audio and produces interleaved stereo output with equal-power azimuth positioning (strongest lateralization at -90/+90 degrees), a small interaural time difference using fixed-size delay buffers, a simple far-ear high-frequency shadow approximation, distance attenuation, configurable wet mix, finite-sample sanitation, and bounded parameter/sample-rate validation. The process method does not allocate or take locks. The current model does not distinguish front from rear, so it is not full 360-degree localization.
 
 ## Limitations
 
