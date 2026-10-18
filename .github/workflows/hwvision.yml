@@ -1,0 +1,50 @@
+name: HWVision
+
+on:
+  pull_request:
+    paths:
+      - "hwvision/**"
+      - ".github/workflows/hwvision.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "hwvision/**"
+      - ".github/workflows/hwvision.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hwvision-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze-and-test:
+    name: Flutter analyze and test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: hwvision
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Report Flutter version
+        run: flutter --version
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Static analysis
+        run: flutter analyze --fatal-infos
+
+      - name: Unit tests
+        run: flutter test --reporter expanded
