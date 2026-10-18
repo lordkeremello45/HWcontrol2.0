@@ -5,7 +5,7 @@
 namespace hwcontrol_audio {
 // Real-time-safe parametric binaural approximation, not a measured HRTF renderer.
 struct SpatialAudioParams {
-  float azimuth_degrees = 0.0F;   // -180 = left, 0 = front, +180 = right
+  float azimuth_degrees = 0.0F;   // -90 = left, 0 = front/center, +90 = right; rear/front disambiguation is not modeled
   float elevation_degrees = 0.0F; // Validated; elevation filter profiles are future work.
   float distance_meters = 1.0F;
   float wet_mix = 1.0F;
