@@ -1075,6 +1075,8 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
         _CapabilityRow('Noise reduction / echo cancellation', 'PLANNED', Icons.spatial_audio_off),
         Divider(),
         _CapabilityRow('Spatial audio (parametric binaural)', 'CORE ONLY', Icons.surround_sound),
+        Divider(),
+        _CapabilityRow('ARGON Competitive FPS headphone preset', 'PRESET CORE ONLY', Icons.headphones),
       ],
     ),
   );
