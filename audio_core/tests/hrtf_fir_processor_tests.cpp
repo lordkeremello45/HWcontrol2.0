@@ -39,6 +39,21 @@ int main() {
   for (float sample : sanitized) require(std::isfinite(sample), "bad input contained");
   require(!processor.set_sample_rate(1000), "invalid sample rate rejected");
   require(processor.sample_rate() == 48000, "invalid rate preserves previous rate");
+  const std::array<float, 1> next_left{{0.25F}};
+  const std::array<float, 1> next_right{{0.75F}};
+  require(processor.request_configuration(next_left.data(), next_right.data(), 1),
+          "valid runtime HRIR update queued");
+  require(!processor.request_configuration(left.data(), right.data(), left.size()),
+          "second pending update rejected instead of racing the callback");
+  std::array<float, HrtfFirProcessor::kProfileCrossfadeFrames + 8> steady_input{};
+  steady_input.fill(0.1F);
+  std::array<float, steady_input.size() * 2U> transitioned{};
+  processor.process(steady_input.data(), transitioned.data(), steady_input.size());
+  require(std::abs(transitioned[(HrtfFirProcessor::kProfileCrossfadeFrames - 1U) * 2U] - 0.025F) < 1.0e-5F,
+          "runtime HRIR update crossfades to the new left filter");
+  require(std::abs(transitioned[(HrtfFirProcessor::kProfileCrossfadeFrames - 1U) * 2U + 1U] - 0.075F) < 1.0e-5F,
+          "runtime HRIR update crossfades to the new right filter");
+  require(processor.tap_count() == 1, "runtime configuration applied at block boundary");
   require(processor.set_sample_rate(96000), "valid sample rate accepted");
   std::cout << "HRTF FIR processor tests passed\n";
   return 0;
