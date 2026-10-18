@@ -45,9 +45,10 @@ int main() {
           "valid runtime HRIR update queued");
   require(!processor.request_configuration(left.data(), right.data(), left.size()),
           "second pending update rejected instead of racing the callback");
-  std::array<float, HrtfFirProcessor::kProfileCrossfadeFrames + 8> steady_input{};
+  constexpr std::size_t transitionFrames = HrtfFirProcessor::kProfileCrossfadeFrames + 8;
+  std::array<float, transitionFrames> steady_input{};
   steady_input.fill(0.1F);
-  std::array<float, steady_input.size() * 2U> transitioned{};
+  std::array<float, transitionFrames * 2U> transitioned{};
   processor.process(steady_input.data(), transitioned.data(), steady_input.size());
   require(std::abs(transitioned[(HrtfFirProcessor::kProfileCrossfadeFrames - 1U) * 2U] - 0.025F) < 1.0e-5F,
           "runtime HRIR update crossfades to the new left filter");
