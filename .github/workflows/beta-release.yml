@@ -3,7 +3,7 @@ name: Beta Application Release
 on:
   push:
     tags:
-      - 'v*-beta.*'
+      - 'v*-beta*'
   workflow_dispatch:
     inputs:
       tag:
@@ -36,7 +36,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]]; then
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta(\.[0-9]+|-(windows|linux|macos))$ ]]; then
             echo "Invalid beta release tag format: $RELEASE_TAG" >&2
             exit 1
           fi
@@ -111,7 +111,7 @@ jobs:
           $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
           wix extension add -g WixToolset.Util.wixext/6.0.2
           & "$PWD/deploy/windows/generate-icon.ps1"
-          $version = $env:RELEASE_TAG -replace '^v','' -replace '-beta\.\d+$',''
+          $version = $env:RELEASE_TAG -replace '^v','' -replace '-beta([.-].*)$',''
           wix build deploy/windows/HWControl.wxs -arch x64 -d Version=$version -d PackageDir="package/HWControl-$env:RELEASE_TAG-Windows-x64" -d IconPath=deploy/windows/HWControl.ico -o "HWControl-$env:RELEASE_TAG-Windows-x64.msi"
           if (-not (Test-Path "HWControl-$env:RELEASE_TAG-Windows-x64.msi")) { throw 'MSI was not produced' }
       - name: Smoke-test MSI
@@ -150,7 +150,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
-          $version = $env:RELEASE_TAG -replace '^v','' -replace '-beta\.\d+$',''
+          $version = $env:RELEASE_TAG -replace '^v','' -replace '-beta([.-].*)$',''
           wix build deploy/windows/HWControl-Setup.wxs -ext WixToolset.BootstrapperApplications.wixext -arch x64 -d Version=$version -d MsiPath="$PWD/HWControl-$env:RELEASE_TAG-Windows-x64.msi" -o "HWControl-$env:RELEASE_TAG-Windows-x64-Setup.exe"
           if (-not (Test-Path "HWControl-$env:RELEASE_TAG-Windows-x64-Setup.exe")) { throw 'Setup.exe was not produced' }
       - name: Build unsigned MSIX beta package
@@ -158,7 +158,7 @@ jobs:
         working-directory: gui_dashboard
         run: |
           $ErrorActionPreference = 'Stop'
-          $version = $env:RELEASE_TAG -replace '^v','' -replace '-beta\.\d+$',''
+          $version = $env:RELEASE_TAG -replace '^v','' -replace '-beta([.-].*)$',''
           dart run msix:create `
             --build-windows false `
             --display-name 'HWControl' `
@@ -240,7 +240,7 @@ jobs:
         run: |
           set -euo pipefail
           tag="$RELEASE_TAG"
-          version="${tag#v}"; version="${version%-beta.*}"
+          version="${tag#v}"; version="${version%-beta*}"
           root="HWControl-${tag}-Linux-x64"
           rm -rf package linux-deb
           mkdir -p "package/$root" linux-deb/DEBIAN linux-deb/opt/hwcontrol linux-deb/usr/bin linux-deb/lib/systemd/system
@@ -345,7 +345,7 @@ jobs:
         run: |
           set -euo pipefail
           tag="$RELEASE_TAG"
-          version="${tag#v}"; version="${version%-beta.*}"
+          version="${tag#v}"; version="${version%-beta*}"
           rm -rf pkg-root dmg-root
           mkdir -p pkg-root/Applications/HWControl dmg-root
           cp -R gui_dashboard/build/macos/Build/Products/Release/HWControl.app pkg-root/Applications/HWControl/
