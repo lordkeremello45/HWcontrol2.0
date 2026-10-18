@@ -131,7 +131,7 @@ func FuzzAudioStudioJSONPayload(f *testing.F) {
 			t.Fatalf("decoder accepted a request that fails domain validation: %v", err)
 		}
 		line := audioStudioStartLine(decoded)
-		if strings.ContainsAny(line, "\\r\\n") {
+		if strings.ContainsAny(line, "\r\n") {
 			t.Fatal("validated configuration introduced a line break into the native protocol")
 		}
 		if fields := strings.Fields(line); len(fields) != 23 {
