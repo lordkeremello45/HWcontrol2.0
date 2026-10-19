@@ -41,5 +41,26 @@ int main() {
     }
 
     enhancer.reset();
+
+    // Disabled enhancement must be a transparent pass-through, including
+    // full-scale samples, so existing audio paths can opt out safely.
+    EnhancementSettings bypass;
+    bypass.enabled = false;
+    assert(enhancer.set_settings(bypass) == ProcessStatus::success);
+    std::array<float, 6> bypassSamples{0.99F, -0.99F, 0.25F, -0.25F, 1.0F, -1.0F};
+    const auto original = bypassSamples;
+    assert(enhancer.process_stereo(bypassSamples.data(), 3) == ProcessStatus::success);
+    assert(bypassSamples == original);
+
+    // Enabling non-unity output gain must measurably affect ordinary samples.
+    EnhancementSettings gain;
+    gain.output_gain = 0.5F;
+    assert(enhancer.set_settings(gain) == ProcessStatus::success);
+    std::array<float, 2> gainSamples{0.2F, -0.2F};
+    assert(enhancer.process_stereo(gainSamples.data(), 1) == ProcessStatus::success);
+    assert(std::abs(gainSamples[0] - 0.1F) < 0.01F);
+    assert(std::abs(gainSamples[1] + 0.1F) < 0.01F);
+
+    enhancer.reset();
     return 0;
 }
