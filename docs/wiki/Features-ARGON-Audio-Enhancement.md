@@ -2,9 +2,9 @@
 
 ## Status
 
-**PARTIAL — DSP prototype only.** The native audio core now contains an allocation-free stereo processing block with low-frequency and high-frequency enhancement, output gain, finite-value handling, and a soft limiter. A CTest target covers basic bounds and invalid configuration behavior.
+**PARTIAL — native DSP is connected to the existing audio host API; system-wide routing is not implemented.** The native audio core contains an allocation-free stereo processing block with low-frequency and high-frequency enhancement, output gain, finite-value handling, and a soft limiter. The explicit `AudioDeviceHost::start(..., EnhancementSettings, ...)` overload configures this block before the stream starts, and the real-time callback runs it after the general processor and before analysis/output routing. The legacy overload disables the enhancement block to preserve existing behavior.
 
-This is not an operating-system virtual audio driver, does not create a selectable system playback device, and is not yet wired into the existing playback/capture graph or ARGON Audio UI. Build and test results must be checked in CI before treating the prototype as verified.
+A CTest target covers bounds, invalid configuration, bypass transparency, and gain behavior. This is not an operating-system virtual audio driver and does not create a selectable system playback device. The new settings overload is native API only; Go Bridge and ARGON Audio UI controls are not yet wired to it. Build and test results must be checked in CI before treating the integration as verified.
 
 ## Intended architecture
 
@@ -40,8 +40,8 @@ A virtual endpoint must not be described as available until it can be installed,
 
 ## Next steps
 
-1. Run native build and CTest in CI and fix any real failures.
-2. Add a callback-level integration point to the existing audio host without blocking or allocating on the realtime thread.
-3. Add configurable EQ bands, device/profile persistence, bypass and level-matched A/B testing.
+1. Verify native build and CTest on Linux and Windows; address any remaining failures.
+2. Add validated settings transport from the Go Bridge and ARGON UI, with explicit enable/bypass controls.
+3. Add configurable profiles and level-matched A/B testing.
 4. Implement a separate OS virtual endpoint beginning with Windows or Linux after selecting the primary target.
-5. Validate install, device selection, app routing, latency, uninstall and recovery before exposing it as a supported feature.
+5. Validate installation, device selection, real application routing, latency, uninstall and recovery before exposing system-wide routing as a supported feature.
