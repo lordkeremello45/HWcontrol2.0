@@ -18,6 +18,12 @@ This page describes the current implementation, not the long-term feature target
 - The benchmark is a repeatable CPU microbenchmark, not a game FPS benchmark and not a before/after hardware-profile comparison. It does not change clocks, voltage, power limits, or fan settings.
 - Existing dashboard thermal-throttling analysis is explicitly a suspicion heuristic based on temperature, utilization and observed clock drops. It is not equivalent to a hardware-reported throttle flag.
 
+## Versioned feature capability contract
+
+The bridge adds an additive `featureCapabilities` array to the `Get Health` response. Each entry has a schema version, stable ID, domain, state, platform, backend, optional evidence/timestamp, and a reason when unavailable. The existing `capabilities` map remains present for compatibility with older dashboard clients.
+
+The initial contract exposes CPU/GPU temperature as read-only when validated sources are present and fan control as writable only when the current validated backend supports it. RGB lighting, mouse RGB, and keyboard RGB are explicitly `unavailable` until a real adapter can discover the device and safely apply settings. This contract is a status report, not an RGB implementation.
+
 ## Explicitly unavailable until a validated backend exists
 
 The health capability matrix intentionally reports these as unavailable:
