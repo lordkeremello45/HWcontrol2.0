@@ -765,6 +765,27 @@ func TestDecodeAudioStudioStartTarget(t *testing.T) {
 }
 
 
+func TestLegacyAudioProfileGetsNeutralArgonDefaults(t *testing.T) {
+	request := audioStudioStartRequest{
+		CaptureIndex: 0, PlaybackIndex: 0,
+		GateThreshold: -48, CompressorThreshold: -12,
+		CompressorRatio: 2, CompressorAttack: 10, CompressorRelease: 100,
+		CompressorKnee: 6, HighPassFrequency: 80, LimiterCeiling: -1,
+		EQGain: []float64{0, 0, 0}, EQFrequency: []float64{100, 1000, 8000},
+	}
+	raw, err := json.Marshal(request)
+	if err != nil { t.Fatal(err) }
+	decoded, err := decodeAudioStudioStartTarget(base64.RawURLEncoding.EncodeToString(raw))
+	if err != nil { t.Fatalf("legacy profile rejected: %v", err) }
+	if decoded.ArgonEnabled || decoded.ArgonOutputGain != 1 || decoded.ArgonBassGain != 1 ||
+		decoded.ArgonTrebleGain != 1 || decoded.ArgonLimiterThreshold != 0.98 {
+		t.Fatalf("legacy profile did not receive neutral disabled defaults: %+v", decoded)
+	}
+	if line := audioStudioStartLine(decoded); !strings.HasSuffix(line, "0 1 1 1 0.98") {
+		t.Fatalf("legacy native command is not neutral: %s", line)
+	}
+}
+
 func TestValidateAudioStudioStartCommand(t *testing.T) {
 	request := audioStudioStartRequest{
 		CaptureIndex: 0, PlaybackIndex: 0,
