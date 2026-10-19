@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hwcontrol_audio/argon_enhancer.hpp"
 #include "hwcontrol_audio/audio_analyzer.hpp"
 #include "hwcontrol_audio/audio_engine.hpp"
 
@@ -60,6 +61,11 @@ class AudioDeviceHost final {
   bool start(std::size_t captureIndex, std::size_t playbackIndex,
              const ProcessorConfig& config, bool monitorOutput,
              std::string& error);
+  // Explicit ARGON enhancement settings are configured before the stream starts.
+  // The overload without settings preserves the legacy processing behavior.
+  bool start(std::size_t captureIndex, std::size_t playbackIndex,
+             const ProcessorConfig& config, const EnhancementSettings& enhancement,
+             bool monitorOutput, std::string& error);
   void stop() noexcept;
   bool running() const noexcept;
   LiveAudioMetrics metrics() const noexcept;
