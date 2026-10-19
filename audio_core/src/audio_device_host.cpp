@@ -2,6 +2,7 @@
 #include "miniaudio.h"
 
 #include "hwcontrol_audio/audio_device_host.hpp"
+#include "hwcontrol_audio/argon_enhancer.hpp"
 #include "hwcontrol_audio/loudness_meter.hpp"
 
 #include <algorithm>
@@ -29,6 +30,7 @@ struct AudioDeviceHost::Impl {
   bool deviceReady = false;
   bool monitorOutput = false;
   AudioEngine engine;
+  ArgonEnhancer enhancer;
   std::vector<AudioDeviceInfo> captureDevices;
   std::vector<AudioDeviceInfo> playbackDevices;
   std::vector<ma_device_id> captureIds;
@@ -229,6 +231,9 @@ struct AudioDeviceHost::Impl {
 
       const std::uint64_t limitedInBlock = self->engine.process(scratch.data(), blockFrames);
       self->limitedSamples.fetch_add(limitedInBlock, std::memory_order_relaxed);
+      // ARGON enhancement runs after the general-purpose processor and before
+      // output routing/analysis. It uses fixed state and does not allocate or lock.
+      (void)self->enhancer.process_stereo(scratch.data(), blockFrames);
       for (std::size_t i = 0; i < sampleCount; ++i) {
         const float value = scratch[i];
         self->enqueueSpectrumSample(value);
@@ -315,6 +320,15 @@ std::vector<AudioDeviceInfo> AudioDeviceHost::enumerate(DeviceDirection directio
 bool AudioDeviceHost::start(std::size_t captureIndex, std::size_t playbackIndex,
                             const ProcessorConfig& config, bool monitorOutput,
                             std::string& error) {
+  EnhancementSettings enhancement;
+  enhancement.enabled = false;
+  return start(captureIndex, playbackIndex, config, enhancement, monitorOutput, error);
+}
+
+bool AudioDeviceHost::start(std::size_t captureIndex, std::size_t playbackIndex,
+                            const ProcessorConfig& config,
+                            const EnhancementSettings& enhancement,
+                            bool monitorOutput, std::string& error) {
   std::lock_guard<std::mutex> lock(impl_->lifecycleMutex);
   impl_->stopLocked();
   if (!impl_->contextReady) {
@@ -369,6 +383,13 @@ bool AudioDeviceHost::start(std::size_t captureIndex, std::size_t playbackIndex,
       ? static_cast<double>(impl_->device.sampleRate) : 48000.0;
   if (!impl_->engine.configure(config, actualSampleRate)) {
     error = "Could not configure the DSP engine for the selected sample rate.";
+    impl_->stopLocked();
+    return false;
+  }
+  const auto enhancerSampleRate = static_cast<std::uint32_t>(actualSampleRate);
+  impl_->enhancer = ArgonEnhancer(enhancerSampleRate);
+  if (impl_->enhancer.set_settings(enhancement) != ProcessStatus::success) {
+    error = "Could not configure ARGON enhancement settings.";
     impl_->stopLocked();
     return false;
   }
