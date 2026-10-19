@@ -2,9 +2,11 @@
 
 ## Status
 
-**PARTIAL — native DSP is connected to the existing audio host API; system-wide routing is not implemented.** The native audio core contains an allocation-free stereo processing block with low-frequency and high-frequency enhancement, output gain, finite-value handling, and a soft limiter. The explicit `AudioDeviceHost::start(..., EnhancementSettings, ...)` overload configures this block before the stream starts, and the real-time callback runs it after the general processor and before analysis/output routing. The legacy overload disables the enhancement block to preserve existing behavior.
+**PARTIAL — native DSP, authenticated Go Bridge settings transport, and opt-in Flutter controls are implemented in this branch; system-wide routing is not implemented.** The native audio core contains an allocation-free stereo processing block with low-frequency and high-frequency enhancement, output gain, finite-value handling, and a soft limiter. The explicit `AudioDeviceHost::start(..., EnhancementSettings, ...)` overload configures this block before the stream starts, and the real-time callback runs it after the general processor and before analysis/output routing. The legacy overload disables the enhancement block to preserve existing behavior.
 
-A CTest target covers bounds, invalid configuration, bypass transparency, and gain behavior. This is not an operating-system virtual audio driver and does not create a selectable system playback device. The new settings overload is native API only; Go Bridge and ARGON Audio UI controls are not yet wired to it. Build and test results must be checked in CI before treating the integration as verified.
+Flutter persists the opt-in toggle and bounded controls in the local audio profile. The authenticated Go Bridge validates these values and appends them to the existing native helper protocol; older profiles are normalized to a neutral, disabled configuration. The C++ helper validates them again before starting the stream. A CTest target covers bounds, invalid configuration, bypass transparency, and gain behavior, while Go and Flutter tests cover protocol validation and safe defaults.
+
+This is not an operating-system virtual audio driver and does not create a selectable system playback device. It currently affects only the existing microphone capture → processing → optional monitor output path, not game/system playback. Build and test results must be checked in CI before treating the integration as verified.
 
 ## Intended architecture
 
@@ -40,8 +42,8 @@ A virtual endpoint must not be described as available until it can be installed,
 
 ## Next steps
 
-1. Verify native build and CTest on Linux and Windows; address any remaining failures.
-2. Add validated settings transport from the Go Bridge and ARGON UI, with explicit enable/bypass controls.
-3. Add configurable profiles and level-matched A/B testing.
+1. Verify native build and CTest on Linux and Windows, plus Go and Flutter tests; fix remaining failures.
+2. Add measured, level-matched A/B tests and verify that the enhancer does not cause callback budget overruns.
+3. Add persistent named ARGON enhancement profiles and clear bypass/restore behavior.
 4. Implement a separate OS virtual endpoint beginning with Windows or Linux after selecting the primary target.
 5. Validate installation, device selection, real application routing, latency, uninstall and recovery before exposing system-wide routing as a supported feature.
