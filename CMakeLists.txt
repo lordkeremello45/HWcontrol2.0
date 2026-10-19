@@ -53,5 +53,6 @@ endif()
 
 add_subdirectory(ai_core)
 add_subdirectory(audio_core)
+add_subdirectory(hw_game_core)
 
 message(STATUS "HWControl 2.0 configuration completed successfully.")
