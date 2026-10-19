@@ -703,6 +703,7 @@ func TestValidAudioStudioStartRequest(t *testing.T) {
 		CompressorKnee: 6, HighPassFrequency: 80, LimiterCeiling: -1,
 		EQGain: []float64{0, 2, -1}, EQFrequency: []float64{100, 1000, 8000},
 		LimiterEnabled: true,
+		ArgonOutputGain: 1, ArgonBassGain: 1, ArgonTrebleGain: 1, ArgonLimiterThreshold: 0.98,
 	}
 	if err := validAudioStudioStartRequest(request); err != nil {
 		t.Fatalf("valid audio profile rejected: %v", err)
@@ -715,6 +716,29 @@ func TestValidAudioStudioStartRequest(t *testing.T) {
 	request.InputGain = math.NaN()
 	if err := validAudioStudioStartRequest(request); err == nil {
 		t.Fatal("non-finite audio parameters must be rejected")
+	}
+}
+
+func TestArgonEnhancementSettingsAreValidatedAndSerialized(t *testing.T) {
+	request := audioStudioStartRequest{
+		CaptureIndex: 0, PlaybackIndex: 0,
+		GateThreshold: -48, CompressorThreshold: -12,
+		CompressorRatio: 2, CompressorAttack: 10, CompressorRelease: 100,
+		CompressorKnee: 6, HighPassFrequency: 80, LimiterCeiling: -1,
+		EQGain: []float64{0, 0, 0}, EQFrequency: []float64{100, 1000, 8000},
+		ArgonEnabled: true, ArgonOutputGain: 1.2, ArgonBassGain: 1.1,
+		ArgonTrebleGain: 1.05, ArgonLimiterThreshold: 0.95,
+	}
+	if err := validAudioStudioStartRequest(request); err != nil {
+		t.Fatalf("valid ARGON settings rejected: %v", err)
+	}
+	line := audioStudioStartLine(request)
+	if !strings.HasSuffix(line, "1 1.2 1.1 1.05 0.95") {
+		t.Fatalf("ARGON settings missing from native protocol: %s", line)
+	}
+	request.ArgonBassGain = 9
+	if err := validAudioStudioStartRequest(request); err == nil {
+		t.Fatal("out-of-range ARGON gain must be rejected")
 	}
 }
 
