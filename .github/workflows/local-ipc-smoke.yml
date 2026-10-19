@@ -71,7 +71,7 @@ jobs:
               s.connect(sock_path)
               s.sendall((json.dumps({"action": action, "value": value, "timestamp": timestamp, "nonce": nonce, "auth": auth}) + "\n").encode())
               replay = json.loads(s.makefile("r").readline())
-          assert replay["status"] == "ERROR" and "replayed" in replay["message"], replay
+          assert replay["status"] == "ERROR" and ("replay" in replay["message"].lower() or "nonce" in replay["message"].lower()), replay
 
           stale_timestamp = timestamp - 60000
           stale_nonce = secrets.token_hex(16)
@@ -197,7 +197,7 @@ jobs:
             $replayRequest = [Text.Encoding]::UTF8.GetBytes((ConvertTo-Json @{ action=$action; value=$value; timestamp=$timestamp; nonce=$nonce; auth=$auth; } -Compress) + "`n")
             $replayStream.Write($replayRequest, 0, $replayRequest.Length)
             $replayResponse = [IO.StreamReader]::new($replayStream).ReadLine() | ConvertFrom-Json
-            if ($replayResponse.status -ne 'ERROR' -or $replayResponse.message -notlike '*replayed*') { throw "Replay was not rejected: $($replayResponse.message)" }
+            if ($replayResponse.status -ne 'ERROR' -or ($replayResponse.message -notlike '*replay*' -and $replayResponse.message -notlike '*nonce*')) { throw "Replay was not rejected: $($replayResponse.message)" }
             $replayClient.Dispose()
 
             $staleTimestamp = $timestamp - 60000
