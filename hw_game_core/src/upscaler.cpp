@@ -58,9 +58,12 @@ UpscaleResult upscale_bilinear_rgba8(Rgba8ImageView source,
         return result;
     }
 
+    if (multiply_overflows(static_cast<std::size_t>(output_width), channels)) {
+        result.status = UpscaleStatus::size_overflow;
+        return result;
+    }
     const std::size_t output_row_bytes = static_cast<std::size_t>(output_width) * channels;
-    if (multiply_overflows(static_cast<std::size_t>(output_width), channels) ||
-        multiply_overflows(output_row_bytes, static_cast<std::size_t>(output_height))) {
+    if (multiply_overflows(output_row_bytes, static_cast<std::size_t>(output_height))) {
         result.status = UpscaleStatus::size_overflow;
         return result;
     }
