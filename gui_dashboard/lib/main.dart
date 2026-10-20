@@ -1799,7 +1799,7 @@ Attach this archive to a support issue only after reviewing it for personal info
     ];
     final payload = payloadFields.map((field) {
       final byteLength = utf8.encode(field).length;
-      return byteLength.toString() + ':' + field;
+      return '$byteLength:$field';
     }).join();
     final expected = Hmac(sha256, utf8.encode(_sharedKey))
         .convert(utf8.encode(payload))
@@ -3418,7 +3418,7 @@ Attach this archive to a support issue only after reviewing it for personal info
     final cpuScore = evaluate(cpuSamples, true);
     final gpuScore = evaluate(gpuSamples, false);
     final hasData = cpuScore != null || gpuScore != null;
-    final colorFor = (int? score) => score == null
+    Color colorFor(int? score) => score == null
         ? Theme.of(context).colorScheme.onSurface.withAlpha(120)
         : score >= 85
             ? const Color(0xFF64D8CB)
@@ -3500,7 +3500,7 @@ Attach this archive to a support issue only after reviewing it for personal info
                 .map((sample) => sample.memoryUsage)
                 .where((value) => value.isFinite && value >= 0 && value <= 100)
                 .toList(growable: false);
-            final ramAvailable = validRam.length >= 1;
+            final ramAvailable = validRam.isNotEmpty;
             final ramPeak = ramAvailable ? validRam.reduce((a, b) => a > b ? a : b) : 0.0;
             final ramCurrentValid = _memoryUsage.isFinite && _memoryUsage >= 0 && _memoryUsage <= 100;
             final ramCurrent = ramCurrentValid ? _memoryUsage : (ramAvailable ? validRam.last : 0.0);
