@@ -758,7 +758,9 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
         !numberIn('compressorRatio', 1, 4) ||
         !numberIn('limiterCeilingDb', -6, -0.5)) return false;
     for (final key in ['highPassEnabled', 'noiseGateEnabled', 'compressorEnabled', 'limiterEnabled']) {
-      if (value[key] is! bool) return false;
+      if (value[key] is! bool) {
+        return false;
+      }
     }
     final bands = value['eqBands'];
     if (bands is! List || bands.length > 3) return false;
