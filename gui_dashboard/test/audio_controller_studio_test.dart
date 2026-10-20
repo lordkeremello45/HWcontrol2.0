@@ -1,10 +1,22 @@
 import 'dart:convert';
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hwcontrol_dashboard/audio_controller_studio.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      (call) async => Directory.systemTemp.path,
+    );
+  });
   testWidgets('studio exposes live controls and starts in a safe stopped state', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(home: AudioControllerStudioScreen()),
