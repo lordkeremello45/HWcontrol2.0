@@ -1799,7 +1799,7 @@ Attach this archive to a support issue only after reviewing it for personal info
     ];
     final payload = payloadFields.map((field) {
       final byteLength = utf8.encode(field).length;
-      return '$byteLength:$field';
+      return '${byteLength}:$field';
     }).join();
     final expected = Hmac(sha256, utf8.encode(_sharedKey))
         .convert(utf8.encode(payload))
