@@ -1,10 +1,22 @@
 import 'dart:convert';
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hwcontrol_dashboard/audio_controller_studio.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      (call) async => Directory.systemTemp.path,
+    );
+  });
   testWidgets('studio exposes live controls and starts in a safe stopped state', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(home: AudioControllerStudioScreen()),
@@ -14,6 +26,7 @@ void main() {
     expect(find.text('Audio Controller Studio'), findsOneWidget);
     expect(find.text('Parametric equalizer'), findsOneWidget);
     expect(find.text('Dynamics and safety'), findsOneWidget);
+    expect(find.text('ARGON tonal enhancement'), findsOneWidget);
     expect(find.text('Analysis laboratory'), findsOneWidget);
     expect(find.text('Microphone capture / playback'), findsOneWidget);
     expect(find.text('NATIVE PROTOTYPE'), findsOneWidget);
@@ -43,6 +56,11 @@ void main() {
             expect(payload?['captureIndex'], 0);
             expect(payload?['playbackIndex'], 2);
             expect(payload?['monitorOutput'], false);
+            expect(payload?['argonEnabled'], false, reason: 'ARGON enhancement must be opt-in by default.');
+            expect(payload?['argonOutputGain'], 1);
+            expect(payload?['argonBassGain'], 1);
+            expect(payload?['argonTrebleGain'], 1);
+            expect(payload?['argonLimiterThreshold'], 0.98);
             expect(payload?['eqGain'], hasLength(3));
             return <String, dynamic>{
               'running': true,

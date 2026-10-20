@@ -1,8 +1,9 @@
-add_library(hwcontrol_audio_core
+add_library(hwcontrol_audio_core STATIC
   src/audio_engine.cpp
   src/audio_analyzer.cpp
   src/loudness_meter.cpp
   src/audio_device_host.cpp
+  src/argon_enhancer.cpp
 )
 add_library(HWControl::AudioCore ALIAS hwcontrol_audio_core)
 
@@ -50,6 +51,11 @@ if(BUILD_TESTING)
   add_executable(hwcontrol_audio_core_tests tests/audio_engine_tests.cpp)
   target_link_libraries(hwcontrol_audio_core_tests PRIVATE HWControl::AudioCore)
   add_test(NAME hwcontrol_audio_core_tests COMMAND hwcontrol_audio_core_tests)
+
+  add_executable(argon_enhancer_tests tests/argon_enhancer_tests.cpp)
+  target_link_libraries(argon_enhancer_tests PRIVATE HWControl::AudioCore)
+  target_compile_features(argon_enhancer_tests PRIVATE cxx_std_17)
+  add_test(NAME argon_enhancer_tests COMMAND argon_enhancer_tests)
   if(HWCONTROL_BUILD_AUDIO_PROBE)
     add_test(NAME hwcontrol_audio_probe_json COMMAND hwcontrol_audio_probe --json)
   endif()

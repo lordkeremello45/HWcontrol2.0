@@ -963,6 +963,11 @@ type audioStudioStartRequest struct {
 	LimiterEnabled bool `json:"limiterEnabled"`
 	EQGain []float64 `json:"eqGain"`
 	EQFrequency []float64 `json:"eqFrequency"`
+	ArgonEnabled bool `json:"argonEnabled"`
+	ArgonOutputGain float64 `json:"argonOutputGain"`
+	ArgonBassGain float64 `json:"argonBassGain"`
+	ArgonTrebleGain float64 `json:"argonTrebleGain"`
+	ArgonLimiterThreshold float64 `json:"argonLimiterThreshold"`
 }
 
 var audioProbeSessionMu sync.Mutex
@@ -984,6 +989,10 @@ func validAudioStudioStartRequest(request audioStudioStartRequest) error {
 		{"compressor knee", request.CompressorKnee, 0, 24},
 		{"high-pass frequency", request.HighPassFrequency, 20, 1000},
 		{"limiter ceiling", request.LimiterCeiling, -24, 0},
+		{"ARGON output gain", request.ArgonOutputGain, 0, 4},
+		{"ARGON bass gain", request.ArgonBassGain, 0, 4},
+		{"ARGON treble gain", request.ArgonTrebleGain, 0, 4},
+		{"ARGON limiter threshold", request.ArgonLimiterThreshold, 0.1, 1},
 	}
 	for _, item := range ranges {
 		if math.IsNaN(item.value) || math.IsInf(item.value, 0) || item.value < item.min || item.value > item.max {
@@ -1012,6 +1021,15 @@ func decodeAudioStudioStartTarget(target string) (audioStudioStartRequest, error
 	raw, err := base64.RawURLEncoding.DecodeString(target)
 	if err != nil { return request, fmt.Errorf("invalid audio start configuration encoding") }
 	if err := json.Unmarshal(raw, &request); err != nil { return request, fmt.Errorf("invalid audio start configuration") }
+	// Older saved profiles omit ARGON settings. Preserve their behavior by
+	// supplying a neutral, disabled configuration at the protocol boundary.
+	if !request.ArgonEnabled && request.ArgonOutputGain == 0 && request.ArgonBassGain == 0 &&
+		request.ArgonTrebleGain == 0 && request.ArgonLimiterThreshold == 0 {
+		request.ArgonOutputGain = 1
+		request.ArgonBassGain = 1
+		request.ArgonTrebleGain = 1
+		request.ArgonLimiterThreshold = 0.98
+	}
 	if err := validAudioStudioStartRequest(request); err != nil { return request, err }
 	return request, nil
 }
@@ -1035,6 +1053,12 @@ func audioStudioStartLine(request audioStudioStartRequest) string {
 		strconv.Itoa(boolNumber(request.HighPassEnabled)),
 		strconv.Itoa(boolNumber(request.LimiterEnabled)))
 	for _, value := range values[9:] { parts = append(parts, strconv.FormatFloat(value, 'f', -1, 64)) }
+	parts = append(parts,
+		strconv.Itoa(boolNumber(request.ArgonEnabled)),
+		strconv.FormatFloat(request.ArgonOutputGain, 'f', -1, 64),
+		strconv.FormatFloat(request.ArgonBassGain, 'f', -1, 64),
+		strconv.FormatFloat(request.ArgonTrebleGain, 'f', -1, 64),
+		strconv.FormatFloat(request.ArgonLimiterThreshold, 'f', -1, 64))
 	return strings.Join(parts, " ")
 }
 

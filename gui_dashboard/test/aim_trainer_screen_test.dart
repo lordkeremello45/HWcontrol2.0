@@ -2,12 +2,24 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hwcontrol_dashboard/aim_trainer_screen.dart';
 import 'package:hwcontrol_dashboard/user_data_store.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      (call) async => Directory.systemTemp.path,
+    );
+  });
   late Directory temporaryDirectory;
   late HWControlUserDataStore store;
 

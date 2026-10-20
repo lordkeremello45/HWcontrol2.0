@@ -89,7 +89,7 @@ func FuzzReadBoundedRequest(f *testing.F) {
 
 // FuzzAudioStudioJSONPayload exercises the JSON-to-native-audio boundary with
 // valid and mutated JSON. Accepted inputs must still satisfy all domain limits
-// and serialize to the exact fixed-width helper protocol.
+// and serialize to the exact fixed-width helper protocol, including the five ARGON fields.
 func FuzzAudioStudioJSONPayload(f *testing.F) {
 	request := audioStudioStartRequest{
 		CaptureIndex: 0,
@@ -131,11 +131,11 @@ func FuzzAudioStudioJSONPayload(f *testing.F) {
 			t.Fatalf("decoder accepted a request that fails domain validation: %v", err)
 		}
 		line := audioStudioStartLine(decoded)
-		if strings.ContainsAny(line, "\\r\\n") {
+		if strings.ContainsAny(line, "\r\n") {
 			t.Fatal("validated configuration introduced a line break into the native protocol")
 		}
-		if fields := strings.Fields(line); len(fields) != 23 {
-			t.Fatalf("native audio protocol has %d fields, want 23", len(fields))
+		if fields := strings.Fields(line); len(fields) != 28 {
+			t.Fatalf("native audio protocol has %d fields, want 28", len(fields))
 		}
 	})
 }

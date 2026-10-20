@@ -58,6 +58,11 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
   bool _compressorEnabled = false;
   bool _highPassEnabled = false;
   bool _limiterEnabled = true;
+  bool _argonEnhancementEnabled = false;
+  double _argonOutputGain = 1;
+  double _argonBassGain = 1;
+  double _argonTrebleGain = 1;
+  double _argonLimiterThreshold = 0.98;
   bool _loading = true;
   bool _saving = false;
   String _preset = 'Neutral';
@@ -99,6 +104,11 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
           _compressorEnabled = raw['compressorEnabled'] == true;
           _highPassEnabled = raw['highPassEnabled'] == true;
           _limiterEnabled = raw['limiterEnabled'] != false;
+          _argonEnhancementEnabled = raw['argonEnabled'] == true;
+          _argonOutputGain = _number(raw['argonOutputGain'], 1).clamp(0, 4).toDouble();
+          _argonBassGain = _number(raw['argonBassGain'], 1).clamp(0, 4).toDouble();
+          _argonTrebleGain = _number(raw['argonTrebleGain'], 1).clamp(0, 4).toDouble();
+          _argonLimiterThreshold = _number(raw['argonLimiterThreshold'], 0.98).clamp(0.1, 1).toDouble();
           _preset = raw['preset'] is String ? raw['preset'] as String : 'Custom';
           final gains = raw['eqGain'];
           final frequencies = raw['eqFrequency'];
@@ -142,6 +152,11 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
     'gateEnabled': _gateEnabled,
     'compressorEnabled': _compressorEnabled,
     'limiterEnabled': _limiterEnabled,
+    'argonEnabled': _argonEnhancementEnabled,
+    'argonOutputGain': _argonOutputGain,
+    'argonBassGain': _argonBassGain,
+    'argonTrebleGain': _argonTrebleGain,
+    'argonLimiterThreshold': _argonLimiterThreshold,
     'eqGain': List<double>.from(_eqGain),
     'eqFrequency': List<double>.from(_eqFrequency),
   };
@@ -272,6 +287,8 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
                                 Expanded(flex: 2, child: _buildDynamicsPanel()),
                               ],
                             ),
+                          const SizedBox(height: 16),
+                          _buildArgonEnhancementPanel(),
                           const SizedBox(height: 16),
                           _buildLiveControlPanel(),
                           const SizedBox(height: 16),
@@ -739,9 +756,13 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
         !numberIn('highPassHz', 20, 300) ||
         !numberIn('noiseGateThresholdDb', -90, -20) ||
         !numberIn('compressorRatio', 1, 4) ||
-        !numberIn('limiterCeilingDb', -6, -0.5)) return false;
+        !numberIn('limiterCeilingDb', -6, -0.5)) {
+      return false;
+    }
     for (final key in ['highPassEnabled', 'noiseGateEnabled', 'compressorEnabled', 'limiterEnabled']) {
-      if (value[key] is! bool) return false;
+      if (value[key] is! bool) {
+        return false;
+      }
     }
     final bands = value['eqBands'];
     if (bands is! List || bands.length > 3) return false;
@@ -900,6 +921,38 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
   );
 
 
+  Widget _buildArgonEnhancementPanel() => _panel(
+    title: 'ARGON tonal enhancement',
+    subtitle: 'Original C++ DSP prototype • optional, disabled by default',
+    icon: Icons.graphic_eq,
+    child: Column(
+      children: [
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Enable ARGON enhancement'),
+          subtitle: const Text('Adds low/high-frequency shaping and a soft output limiter to the processed microphone stream.'),
+          value: _argonEnhancementEnabled,
+          onChanged: _liveRunning || _liveBusy ? null : (value) => setState(() {
+            _argonEnhancementEnabled = value;
+            _preset = 'Custom';
+          }),
+        ),
+        _slider('ARGON output gain', _argonOutputGain, 0, 4,
+            (value) => setState(() { _argonOutputGain = value; _preset = 'Custom'; }), suffix: '×'),
+        _slider('ARGON bass gain', _argonBassGain, 0, 4,
+            (value) => setState(() { _argonBassGain = value; _preset = 'Custom'; }), suffix: '×'),
+        _slider('ARGON treble gain', _argonTrebleGain, 0, 4,
+            (value) => setState(() { _argonTrebleGain = value; _preset = 'Custom'; }), suffix: '×'),
+        _slider('ARGON soft-limiter threshold', _argonLimiterThreshold, 0.1, 1,
+            (value) => setState(() { _argonLimiterThreshold = value; _preset = 'Custom'; }), suffix: 'peak'),
+        const Align(
+          alignment: Alignment.centerLeft,
+          child: Text('This affects the native microphone processing path only. It does not create a system-wide virtual playback device or apply effects to game audio.'),
+        ),
+      ],
+    ),
+  );
+
   Widget _buildLiveControlPanel() => _panel(
     title: 'Live audio engine',
     subtitle: 'Microphone capture → native DSP → selected output; recording is disabled',
@@ -1019,10 +1072,10 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
               _metric('Stereo correlation', spectrumAvailable ? _safeCorrelation() : 'Waiting for data'),
               _metric('Callback processing', _liveRunning ? '${_safeMetricDecimal('callbackProcessingTimeUs')} µs' : 'Not connected'),
               _metric('Worst callback', _liveRunning ? '${_safeMetricDecimal('maxCallbackProcessingTimeUs')} µs' : 'Not connected'),
-              _metric('Callback budget overruns', _liveRunning ? '${_safeMetricCount('callbackBudgetOverruns')}' : 'Not connected'),
-              _metric('Processed frames', _liveRunning ? '${_safeMetricCount('processedFrames')}' : 'Not connected'),
-              _metric('Dropped FFT frames', _liveRunning ? '${_safeMetricCount('droppedSpectrumFrames')}' : 'Not connected'),
-              _metric('Limiter-restrained samples', _liveRunning ? '${_safeMetricCount('limitedSamples')}' : 'Not connected'),
+              _metric('Callback budget overruns', _liveRunning ? _safeMetricCount('callbackBudgetOverruns') : 'Not connected'),
+              _metric('Processed frames', _liveRunning ? _safeMetricCount('processedFrames') : 'Not connected'),
+              _metric('Dropped FFT frames', _liveRunning ? _safeMetricCount('droppedSpectrumFrames') : 'Not connected'),
+              _metric('Limiter-restrained samples', _liveRunning ? _safeMetricCount('limitedSamples') : 'Not connected'),
             ],
           ),
           const SizedBox(height: 16),

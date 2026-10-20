@@ -103,12 +103,15 @@ bool handleServerCommand(hwcontrol::audio::AudioDeviceHost& host, const std::str
   }
 
   // Refresh both endpoint maps in this process before resolving the supplied indices.
-  (void)host.enumerate(DeviceDirection::Capture);
-  (void)host.enumerate(DeviceDirection::Playback);
+  (void)host.enumerate(hwcontrol::audio::DeviceDirection::Capture);
+  (void)host.enumerate(hwcontrol::audio::DeviceDirection::Playback);
   long long captureIndex = -1;
   long long playbackIndex = -1;
   int monitor = 0;
   hwcontrol::audio::ProcessorConfig config;
+  hwcontrol::audio::EnhancementSettings enhancement;
+  enhancement.enabled = false;
+  int enhancementEnabled = 0;
   int gateEnabled = 0, compressorEnabled = 0, highPassEnabled = 0, limiterEnabled = 1;
   if (!(input >> captureIndex >> playbackIndex >> monitor
         >> config.inputGainDb >> config.gateThresholdDb
@@ -125,6 +128,19 @@ bool handleServerCommand(hwcontrol::audio::AudioDeviceHost& host, const std::str
       || highPassEnabled < 0 || highPassEnabled > 1 || limiterEnabled < 0 || limiterEnabled > 1) {
     std::cout << "{\"status\":\"ERROR\",\"message\":\"invalid audio start request\"}\n";
     return true;
+  }
+  // Backward-compatible optional trailing fields:
+  // enhancementEnabled outputGain bassGain trebleGain limiterThreshold
+  input >> std::ws;
+  if (!input.eof()) {
+    if (!(input >> enhancementEnabled >> enhancement.output_gain
+                >> enhancement.bass_gain >> enhancement.treble_gain
+                >> enhancement.limiter_threshold) ||
+        enhancementEnabled < 0 || enhancementEnabled > 1) {
+      std::cout << "{\"status\":\"ERROR\",\"message\":\"invalid ARGON enhancement settings\"}\n";
+      return true;
+    }
+    enhancement.enabled = enhancementEnabled != 0;
   }
   const float values[] = {config.inputGainDb, config.gateThresholdDb,
     config.compressorThresholdDb, config.compressorRatio, config.compressorAttackMs,
@@ -146,7 +162,8 @@ bool handleServerCommand(hwcontrol::audio::AudioDeviceHost& host, const std::str
   }
   std::string error;
   if (!host.start(static_cast<std::size_t>(captureIndex),
-                  static_cast<std::size_t>(playbackIndex), config, monitor != 0, error)) {
+                  static_cast<std::size_t>(playbackIndex), config, enhancement,
+                  monitor != 0, error)) {
     std::cout << "{\"status\":\"ERROR\",\"messageHex\":\"" << hexEncode(error) << "\"}\n";
     return true;
   }
