@@ -756,7 +756,9 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
         !numberIn('highPassHz', 20, 300) ||
         !numberIn('noiseGateThresholdDb', -90, -20) ||
         !numberIn('compressorRatio', 1, 4) ||
-        !numberIn('limiterCeilingDb', -6, -0.5)) return false;
+        !numberIn('limiterCeilingDb', -6, -0.5)) {
+      return false;
+    }
     for (final key in ['highPassEnabled', 'noiseGateEnabled', 'compressorEnabled', 'limiterEnabled']) {
       if (value[key] is! bool) {
         return false;
