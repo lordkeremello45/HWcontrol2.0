@@ -24,6 +24,17 @@ int main() {
         assert(prompt.find("GPU_memory=97.0%") != std::string::npos);
         assert(prompt.find("RISK_ENGINE=yuksek") != std::string::npos);
         assert(prompt.find("değer uydurma") != std::string::npos);
+        assert(prompt.find("HWCONTROL_PRODUCT_CONTEXT=v2026-10") != std::string::npos);
+        assert(prompt.find("Smart Fan Curve") != std::string::npos);
+        assert(prompt.find("Game Mode") != std::string::npos);
+        assert(prompt.find("battery-capacity health") != std::string::npos);
+        assert(prompt.find("Game Mode does not change process priority") != std::string::npos);
+        assert(prompt.find("automatic macOS power-profile switching is unavailable") != std::string::npos);
+        assert(prompt.find("does not issue hardware commands") != std::string::npos);
+        assert(prompt.find("GEMMA_SYSTEM_INSTRUCTIONS") != std::string::npos);
+        assert(prompt.find("Never invent hardware") != std::string::npos);
+        assert(prompt.find("HWCONTROL_PRODUCT_CONTEXT=v2026-10") != std::string::npos);
+        assert(prompt.find("Game Mode does not change process priority") != std::string::npos);
     }
 
     {
