@@ -1,5 +1,9 @@
 # HWcontrol2.0
 
+**HWcontrol2.0 is a cross-platform PC hardware monitoring and control application** for Windows 10/11, Linux, and macOS 14+ Apple Silicon. It is designed to report CPU/GPU temperatures, memory and storage telemetry, fan speeds and other sensors when the operating system and hardware expose them; supported devices can also use safety-gated fan and performance controls.
+
+It is a desktop PC utility—not an industrial automation/SCADA product, a serial hardware-flow-control protocol, or a DAW/mixer controller. Its architecture is Flutter/Dart desktop GUI → authenticated localhost Go bridge → native C++/CMake engine → platform-specific hardware APIs. **Hardware support varies by device, driver, operating system, and available permissions; this project is in Beta.**
+
 [![HWControl Website](https://img.shields.io/badge/HWControl-Website-111827?style=for-the-badge&logo=googlechrome&logoColor=white)](https://lordkeremello45.github.io/HWcontrol2.0/)
 [![GitHub Releases](https://img.shields.io/github/v/release/lordkeremello45/HWcontrol2.0?display_name=tag&style=for-the-badge)](https://github.com/lordkeremello45/HWcontrol2.0/releases)
 [![GitLab Mirror](https://img.shields.io/badge/GitLab-Mirror-FCA326?style=for-the-badge&logo=gitlab&logoColor=white)](https://gitlab.com/lordkeremello45/HWcontrol2.0)
