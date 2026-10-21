@@ -101,6 +101,8 @@ bool AudioEngine::configure(const ProcessorConfig& requested,
   config_.compressorKneeDb = std::clamp(finiteOr(config_.compressorKneeDb, 6.0F), 0.0F, 24.0F);
   config_.highPassFrequencyHz = std::clamp(finiteOr(config_.highPassFrequencyHz, 80.0F),
       20.0F, static_cast<float>(sampleRateHz_ * 0.40));
+  config_.deClickThreshold = std::clamp(finiteOr(config_.deClickThreshold, 0.18F),
+                                        0.01F, 1.0F);
   compressorAttackCoefficient_ = static_cast<float>(std::exp(
       -1.0 / (static_cast<double>(config_.compressorAttackMs) * 0.001 * sampleRateHz_)));
   compressorReleaseCoefficient_ = static_cast<float>(std::exp(
@@ -143,6 +145,34 @@ std::uint64_t AudioEngine::process(float* samples, std::size_t frameCount) noexc
       if (!std::isfinite(value)) value = 0.0F;
       inputPeak = std::max(inputPeak, std::abs(value));
       inputSquares += static_cast<double>(value) * static_cast<double>(value);
+
+      // Preserve the sanitized current sample before the look-ahead state
+      // replaces `value` with the pending output sample.
+      const float currentSample = value;
+      // A one-frame look-ahead lets us distinguish an isolated impulse from
+      // an ordinary edge. This state is retained across callback blocks.
+      if (config_.deClickEnabled) {
+        if (!deClickPendingValid_) {
+          deClickPending_[channel] = value;
+          value = 0.0F;
+        } else {
+          float candidate = deClickPending_[channel];
+          const float previous = deClickPrevious_[channel];
+          const float localInterpolation = 0.5F * (previous + value);
+          const float threshold = config_.deClickThreshold;
+          if (std::abs(candidate - localInterpolation) >= threshold &&
+              std::abs(candidate - previous) >= threshold &&
+              std::abs(candidate - value) >= threshold) {
+            candidate = localInterpolation;
+          }
+          value = candidate;
+          deClickPrevious_[channel] = candidate;
+          deClickPending_[channel] = currentSample;
+        }
+        if (channel + 1 == kChannelCount && !deClickPendingValid_) {
+          deClickPendingValid_ = true;
+        }
+      }
 
       value *= gain;
       if (config_.noiseGateEnabled && std::abs(value) < gate) value = 0.0F;
@@ -200,6 +230,9 @@ void AudioEngine::reset() noexcept {
   for (auto& filter : filters_) filter.clear();
   highPassFilter_.clear();
   compressorEnvelope_.fill(0.0F);
+  deClickPrevious_.fill(0.0F);
+  deClickPending_.fill(0.0F);
+  deClickPendingValid_ = false;
   metrics_ = AudioMetrics{};
 }
 
