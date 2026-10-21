@@ -23,8 +23,7 @@ void testLimiterAndMetrics() {
   hwcontrol::audio::ProcessorConfig config;
   config.limiterEnabled = true;
   config.limiterCeilingDb = -1.0F;
-  config.deClickEnabled = true;
-  config.deClickThreshold = 0.18F;
+  config.deClickEnabled = false;  // Keep this test focused on limiter behavior.
   require(engine.configure(config, 48000.0), "valid configuration rejected");
   std::array<float, 8> samples{{0.0F, 0.0F, 0.5F, -0.5F, 2.0F, -2.0F, 0.25F, -0.25F}};
   const auto limitedSamples = engine.process(samples.data(), 4);
