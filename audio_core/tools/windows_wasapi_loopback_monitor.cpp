@@ -72,9 +72,9 @@ void captureCallback(ma_device* device, void*, const void* input, ma_uint32 fram
       destination[1] = block[frame * kChannels + 1];
       peakOut = std::max(peakOut, std::max(std::abs(destination[0]), std::abs(destination[1])));
       ++write;
-      state->ring.writeFrame.store(write, std::memory_order_release);
       ++captured;
     }
+    state->ring.writeFrame.store(write, std::memory_order_release);
     offset += frames;
   }
 
