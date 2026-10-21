@@ -32,7 +32,7 @@ struct ProcessorConfig {
   float limiterCeilingDb = -1.0F;
   bool noiseGateEnabled = false;
   bool highPassEnabled = false;
-  bool deClickEnabled = false;
+  bool deClickEnabled = true;
   bool compressorEnabled = false;
   bool limiterEnabled = true;
   std::array<EqBand, kEqBandCount> eq{{
