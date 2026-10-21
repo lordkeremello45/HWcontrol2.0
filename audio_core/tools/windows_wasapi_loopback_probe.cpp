@@ -9,8 +9,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
-#include <limits>
 #include <string>
+#include <thread>
 
 namespace {
 constexpr std::size_t kMaxFramesPerBlock = 2048;
@@ -36,7 +36,7 @@ void dataCallback(ma_device* device, void*, const void* input, ma_uint32 frameCo
   float peakOut = 0.0F;
   double squaresIn = 0.0;
   double squaresOut = 0.0;
-  std::uint64_t seen = 0;
+  std::uint64_t seenSamples = 0;
 
   std::size_t offset = 0;
   while (offset < static_cast<std::size_t>(frameCount)) {
@@ -51,27 +51,29 @@ void dataCallback(ma_device* device, void*, const void* input, ma_uint32 frameCo
       }
       block[i] = value;
       peakIn = std::max(peakIn, std::abs(value));
-      squaresIn += static_cast<double>(value) * value;
+      squaresIn += static_cast<double>(value) * static_cast<double>(value);
     }
 
     (void)state->engine.process(block.data(), frames);
     for (std::size_t i = 0; i < samples; ++i) {
       const float value = block[i];
       peakOut = std::max(peakOut, std::abs(value));
-      squaresOut += static_cast<double>(value) * value;
+      squaresOut += static_cast<double>(value) * static_cast<double>(value);
     }
-    seen += static_cast<std::uint64_t>(samples);
+    seenSamples += static_cast<std::uint64_t>(samples);
     offset += frames;
   }
 
-  if (seen != 0) {
+  if (seenSamples != 0) {
+    const double denominator = static_cast<double>(seenSamples);
     state->inputPeak.store(peakIn, std::memory_order_relaxed);
     state->processedPeak.store(peakOut, std::memory_order_relaxed);
-    state->inputRms.store(static_cast<float>(std::sqrt(squaresIn / seen)),
+    state->inputRms.store(static_cast<float>(std::sqrt(squaresIn / denominator)),
                            std::memory_order_relaxed);
-    state->processedRms.store(static_cast<float>(std::sqrt(squaresOut / seen)),
+    state->processedRms.store(static_cast<float>(std::sqrt(squaresOut / denominator)),
                                std::memory_order_relaxed);
-    state->processedFrames.fetch_add(frameCount, std::memory_order_relaxed);
+    state->processedFrames.fetch_add(static_cast<std::uint64_t>(frameCount),
+                                     std::memory_order_relaxed);
   }
 }
 }  // namespace
@@ -83,7 +85,6 @@ int main() {
 #else
   ProbeState state;
   hwcontrol::audio::ProcessorConfig processorConfig;
-  // Keep the initial pass neutral except for the core's safe default limiter.
   (void)state.engine.configure(processorConfig, 48000.0);
 
   ma_backend backends[] = {ma_backend_wasapi};
@@ -115,14 +116,21 @@ int main() {
     return 1;
   }
 
+  std::atomic<bool> stopRequested{false};
+  std::thread inputThread([&stopRequested] {
+    std::string line;
+    std::getline(std::cin, line);
+    stopRequested.store(true, std::memory_order_release);
+  });
+
   std::cout << "Windows WASAPI loopback capture + native DSP isolation probe\n"
             << "Play audio in any application. No file is written and samples are not transmitted.\n"
-            << "This probe measures the processed loopback stream; it does NOT reroute system output.\n"
+            << "This measures the processed loopback stream; it does NOT reroute system output.\n"
             << "Press Enter to stop.\n";
 
   auto lastReport = std::chrono::steady_clock::now();
   std::uint64_t previousFrames = 0;
-  while (std::cin.peek() == std::char_traits<char>::eof()) {
+  while (!stopRequested.load(std::memory_order_acquire)) {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     const auto now = std::chrono::steady_clock::now();
     if (now - lastReport < std::chrono::seconds(1)) continue;
@@ -144,6 +152,7 @@ int main() {
 
   (void)ma_device_stop(&device);
   ma_device_uninit(&device);
+  if (inputThread.joinable()) inputThread.join();
   return 0;
 #endif
 }
