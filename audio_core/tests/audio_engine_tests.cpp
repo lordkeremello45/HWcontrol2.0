@@ -23,6 +23,8 @@ void testLimiterAndMetrics() {
   hwcontrol::audio::ProcessorConfig config;
   config.limiterEnabled = true;
   config.limiterCeilingDb = -1.0F;
+  config.deClickEnabled = true;
+  config.deClickThreshold = 0.18F;
   require(engine.configure(config, 48000.0), "valid configuration rejected");
   std::array<float, 8> samples{{0.0F, 0.0F, 0.5F, -0.5F, 2.0F, -2.0F, 0.25F, -0.25F}};
   const auto limitedSamples = engine.process(samples.data(), 4);
@@ -280,6 +282,29 @@ void testAudioDeviceHostLifecycleWithoutAssumingHardware() {
   require(!host.running(), "stop should be idempotent");
 }
 
+
+void testDeClickerSuppressesIsolatedImpulse() {
+  hwcontrol::audio::AudioEngine engine;
+  hwcontrol::audio::ProcessorConfig config;
+  config.deClickEnabled = true;
+  config.deClickThreshold = 0.18F;
+  config.limiterEnabled = false;
+  require(engine.configure(config, 48000.0), "de-clicker configuration rejected");
+
+  std::array<float, 20> samples{};
+  samples[10] = 0.9F;
+  samples[11] = 0.9F;
+  // A single-frame impulse in both channels should be interpolated away.
+  samples[10] = 0.9F;
+  samples[11] = 0.9F;
+  engine.process(samples.data(), samples.size() / 2);
+  require(std::abs(samples[10]) < 1.0e-5F && std::abs(samples[11]) < 1.0e-5F,
+          "de-clicker did not suppress an isolated stereo impulse");
+  for (float sample : samples) {
+    require(std::isfinite(sample), "de-clicker produced a non-finite sample");
+  }
+}
+
 void testDspOutputIsIndependentOfBlockPartitioning() {
   hwcontrol::audio::ProcessorConfig config;
   config.inputGainDb = 3.0F;
@@ -407,6 +432,7 @@ int main() {
   testSpectrumAnalyzerRejectsInvalidRatesAndContainsBadSamples();
   testSpectrumAnalyzerHandlesLargestFiniteSamples();
   testAudioDeviceHostLifecycleWithoutAssumingHardware();
+  testDeClickerSuppressesIsolatedImpulse();
   testDspOutputIsIndependentOfBlockPartitioning();
   testLoudnessMeterGatingAndBlockBoundaries();
   testInvalidSampleRateFallsBack();
