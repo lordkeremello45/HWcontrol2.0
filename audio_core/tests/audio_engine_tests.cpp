@@ -295,10 +295,8 @@ void testDeClickerSuppressesIsolatedImpulse() {
   samples[10] = 0.9F;
   samples[11] = 0.9F;
   // A single-frame impulse in both channels should be interpolated away.
-  samples[10] = 0.9F;
-  samples[11] = 0.9F;
   engine.process(samples.data(), samples.size() / 2);
-  require(std::abs(samples[10]) < 1.0e-5F && std::abs(samples[11]) < 1.0e-5F,
+  require(std::abs(samples[12]) < 1.0e-5F && std::abs(samples[13]) < 1.0e-5F,
           "de-clicker did not suppress an isolated stereo impulse");
   for (float sample : samples) {
     require(std::isfinite(sample), "de-clicker produced a non-finite sample");
