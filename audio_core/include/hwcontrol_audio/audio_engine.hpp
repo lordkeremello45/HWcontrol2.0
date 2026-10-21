@@ -26,8 +26,8 @@ struct ProcessorConfig {
   float compressorReleaseMs = 100.0F;
   float compressorKneeDb = 6.0F;
   float highPassFrequencyHz = 80.0F;
-  // Removes isolated single-frame impulses using one frame of look-ahead.
-  // Disabled by default to preserve transient detail unless explicitly enabled.
+  // Replaces isolated single-frame impulses with local interpolation using one
+  // frame of look-ahead. Enabled by default; validate for audible transient loss.
   float deClickThreshold = 0.18F;
   float limiterCeilingDb = -1.0F;
   bool noiseGateEnabled = false;
