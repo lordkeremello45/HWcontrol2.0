@@ -146,6 +146,9 @@ std::uint64_t AudioEngine::process(float* samples, std::size_t frameCount) noexc
       inputPeak = std::max(inputPeak, std::abs(value));
       inputSquares += static_cast<double>(value) * static_cast<double>(value);
 
+      // Preserve the sanitized current sample before the look-ahead state
+      // replaces `value` with the pending output sample.
+      const float currentSample = value;
       // A one-frame look-ahead lets us distinguish an isolated impulse from
       // an ordinary edge. This state is retained across callback blocks.
       if (config_.deClickEnabled) {
@@ -164,7 +167,7 @@ std::uint64_t AudioEngine::process(float* samples, std::size_t frameCount) noexc
           }
           value = candidate;
           deClickPrevious_[channel] = candidate;
-          deClickPending_[channel] = samples[index];
+          deClickPending_[channel] = currentSample;
         }
         if (channel + 1 == kChannelCount && !deClickPendingValid_) {
           deClickPendingValid_ = true;
