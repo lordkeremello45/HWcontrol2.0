@@ -1376,7 +1376,7 @@ func handleConnection(conn net.Conn, secret string) {
 		if !consumeCommandNonce(cmd.Nonce, time.Now()) {
 			invalidRequests++
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-			if err := encoder.Encode(Response{Status: "ERROR", Message: "nonce rejected by replay protection"}); err != nil || invalidRequests >= 5 {
+			if err := encoder.Encode(Response{Status: "ERROR", Message: "nonce replayed and rejected by replay protection"}); err != nil || invalidRequests >= 5 {
 				return
 			}
 			continue

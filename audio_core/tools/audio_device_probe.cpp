@@ -103,8 +103,8 @@ bool handleServerCommand(hwcontrol::audio::AudioDeviceHost& host, const std::str
   }
 
   // Refresh both endpoint maps in this process before resolving the supplied indices.
-  (void)host.enumerate(DeviceDirection::Capture);
-  (void)host.enumerate(DeviceDirection::Playback);
+  (void)host.enumerate(hwcontrol::audio::DeviceDirection::Capture);
+  (void)host.enumerate(hwcontrol::audio::DeviceDirection::Playback);
   long long captureIndex = -1;
   long long playbackIndex = -1;
   int monitor = 0;
@@ -174,8 +174,8 @@ int main(int argc, char** argv) {
     host.stop();
     return 0;
   }
-  const auto capture = host.enumerate(DeviceDirection::Capture);
-  const auto playback = host.enumerate(DeviceDirection::Playback);
+  const auto capture = host.enumerate(hwcontrol::audio::DeviceDirection::Capture);
+  const auto playback = host.enumerate(hwcontrol::audio::DeviceDirection::Playback);
 
   if (argc >= 2 && std::string(argv[1]) == "--json") {
     std::cout << "{\"capture\":";

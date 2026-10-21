@@ -3,6 +3,9 @@ add_library(hwcontrol_audio_core
   src/audio_analyzer.cpp
   src/loudness_meter.cpp
   src/audio_device_host.cpp
+  src/spatial_audio.cpp
+  src/hrtf_fir_processor.cpp
+  src/headphone_profiles.cpp
 )
 add_library(HWControl::AudioCore ALIAS hwcontrol_audio_core)
 
@@ -50,6 +53,15 @@ if(BUILD_TESTING)
   add_executable(hwcontrol_audio_core_tests tests/audio_engine_tests.cpp)
   target_link_libraries(hwcontrol_audio_core_tests PRIVATE HWControl::AudioCore)
   add_test(NAME hwcontrol_audio_core_tests COMMAND hwcontrol_audio_core_tests)
+  add_executable(hwcontrol_spatial_audio_tests tests/spatial_audio_tests.cpp)
+  target_link_libraries(hwcontrol_spatial_audio_tests PRIVATE HWControl::AudioCore)
+  add_test(NAME hwcontrol_spatial_audio_tests COMMAND hwcontrol_spatial_audio_tests)
+  add_executable(hwcontrol_hrtf_fir_processor_tests tests/hrtf_fir_processor_tests.cpp)
+  target_link_libraries(hwcontrol_hrtf_fir_processor_tests PRIVATE HWControl::AudioCore)
+  add_test(NAME hwcontrol_hrtf_fir_processor_tests COMMAND hwcontrol_hrtf_fir_processor_tests)
+  add_executable(hwcontrol_headphone_profiles_tests tests/headphone_profiles_tests.cpp)
+  target_link_libraries(hwcontrol_headphone_profiles_tests PRIVATE HWControl::AudioCore)
+  add_test(NAME hwcontrol_headphone_profiles_tests COMMAND hwcontrol_headphone_profiles_tests)
   if(HWCONTROL_BUILD_AUDIO_PROBE)
     add_test(NAME hwcontrol_audio_probe_json COMMAND hwcontrol_audio_probe --json)
   endif()
