@@ -20,6 +20,23 @@ cmake --build build --config Release --target hwcontrol_windows_wasapi_loopback_
 
 Depending on the generator, the executable may be under a different build subdirectory. Play audio in another application and check that `frames_last_second` increases and the RMS/peak values respond. Press Enter to stop.
 
+## Processed playback monitor (separate output endpoint)
+
+To listen to the DSP-processed system audio, build the second diagnostic target:
+
+```powershell
+cmake --build build --config Release --target hwcontrol_windows_wasapi_loopback_monitor
+.\\build\\audio_core\\Release\\hwcontrol_windows_wasapi_loopback_monitor.exe
+```
+
+The program lists Windows playback endpoints and captures the default endpoint. Select a **different** endpoint index as the processed output:
+
+```powershell
+.\\build\\audio_core\\Release\\hwcontrol_windows_wasapi_loopback_monitor.exe 1
+```
+
+Replace `1` with the actual index of a distinct endpoint shown by the program. It deliberately refuses to capture and play to the same endpoint to avoid an audio feedback loop. The monitor uses a bounded lock-free single-producer/single-consumer ring buffer; monitor underruns and dropped input frames are reported when it stops. Stop other apps or use a spare headset/USB output for the first test. This is a listening/latency diagnostic, not transparent system-wide routing: the source apps still play to the original default endpoint, while the processed copy is heard on the selected second endpoint.
+
 ## Click/crackle mitigation limits
 
 - `ProcessorConfig::deClickEnabled` defaults to `true`; `deClickThreshold` defaults to `0.18` in normalized float amplitude and is clamped to `0.01..1.0`.
