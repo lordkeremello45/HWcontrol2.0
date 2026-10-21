@@ -44,6 +44,7 @@ void testGainAndGate() {
   hwcontrol::audio::AudioEngine engine;
   hwcontrol::audio::ProcessorConfig config;
   config.inputGainDb = 6.0F;
+  config.deClickEnabled = false;  // Test gain independently of look-ahead latency.
   config.limiterEnabled = false;
   require(engine.configure(config, 48000.0), "valid configuration rejected");
   std::array<float, 4> samples{{0.1F, -0.1F, 0.2F, -0.2F}};
