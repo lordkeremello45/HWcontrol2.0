@@ -26,7 +26,7 @@ To listen to the DSP-processed system audio, build the second diagnostic target:
 
 ```powershell
 cmake --build build --config Release --target hwcontrol_windows_wasapi_loopback_monitor
-.\\build\\audio_core\\Release\\hwcontrol_windows_wasapi_loopback_monitor.exe
+.\build\audio_core\Release\hwcontrol_windows_wasapi_loopback_monitor.exe
 ```
 
 The program lists Windows playback endpoints and captures the default endpoint. Select a **different** endpoint index as the processed output:
