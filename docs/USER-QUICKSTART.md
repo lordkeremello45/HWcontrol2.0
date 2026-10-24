@@ -18,7 +18,7 @@ If the release provides a SHA-256 manifest, calculate the file digest locally an
 
 PowerShell:
 
-    Get-FileHash .\<downloaded-file> -Algorithm SHA256
+    Get-FileHash .\\<downloaded-file> -Algorithm SHA256
 
 Linux:
 
@@ -42,9 +42,20 @@ Use only the Apple Silicon build for the documented target. If macOS cannot veri
 
 ### Debian/Ubuntu-family Linux
 
-For a compatible DEB package, use the desktop package installer or the distribution's package manager with the exact downloaded filename. Review any dependency or permission prompts before confirming. A portable archive is not interchangeable with a DEB package.
+1. Download the HWControl-<release-tag>-Linux-x64.deb asset from the official [GitHub Releases page](https://github.com/lordkeremello45/HWcontrol2.0/releases).
+2. Open a terminal in the directory containing the downloaded file and install it using its exact filename:
 
-Uninstall using the package's normal mechanism and review the release-specific instructions for any service or configuration cleanup. Do not manually delete system files based on guesses.
+       sudo apt install ./HWControl-<release-tag>-Linux-x64.deb
+
+   Replace <release-tag> with the tag shown on the release page. For example, a tag named v0.3.0-beta-linux produces an asset named HWControl-v0.3.0-beta-linux-Linux-x64.deb. The ./ prefix tells APT to install a local package file and resolve its dependencies.
+3. The Debian package name is currently hwcontrol. After installation, the launcher is hwcontrol; the package name is not automatically an APT repository entry, so sudo apt install hwcontrol2.0 will not work unless a repository publishing that package is configured.
+4. To remove the installed package, run:
+
+       sudo apt remove hwcontrol
+
+   Use sudo apt purge hwcontrol only if you intentionally want the package's purge script to remove its /var/lib/hwcontrol state. Review the release-specific cleanup instructions before removing application state.
+
+A portable archive is not interchangeable with a DEB package. Review any dependency or permission prompts before confirming.
 
 ## 4. First-run checklist
 
