@@ -57,6 +57,16 @@
 
 - [x] Reproduce the format-only failure through the security-services job log; retain the existing check.
 - [x] Use the standard Go formatter, not hand-written whitespace edits.
-- [ ] Verify the formatter leaves the tree clean with `gofmt -l bridge_service`.
+- [x] Standard `gofmt` repair committed as `ddbc04405b3a11105d6c153f400e5c40c3f68323`; normal security-services verification still pending.
 - [ ] Verify `go vet ./...` and `go test -race -count=1 ./...` on the formatted tree.
 - [ ] Remove the one-time formatting workflow and verify the normal CI workflow on the resulting `main` commit.
+
+
+### Task 5: Correct the audio-protocol fuzz assertion
+
+**Files:** Modify `bridge_service/src/security_fuzz_test.go`.
+
+- [x] Reproduce the failure in the scheduled fuzz run: a valid seed fails the check that claims to detect line breaks.
+- [x] Root cause: `strings.ContainsAny(line, "\\r\\n")` examines literal backslash, `r`, and `n`, so it rejects ordinary protocol text containing those letters (including the `start` command) instead of checking carriage-return/newline bytes.
+- [x] Correct the assertion to `strings.ContainsAny(line, "\r\n")`, preserving the intended CR/LF injection safety property.
+- [ ] Re-run `FuzzAudioStudioJSONPayload` and the full fuzz job; report the real result.
