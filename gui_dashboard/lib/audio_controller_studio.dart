@@ -537,6 +537,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
             ),
           ]),
           if (_endpointOptions.isNotEmpty) DropdownButtonFormField<String>(
+              isExpanded: true,
             initialValue: _endpointOptions.any((item) => item['id'] == _selectedEndpointId) ? _selectedEndpointId : null,
             decoration: const InputDecoration(labelText: 'Detected audio endpoint'),
             items: [
@@ -569,6 +570,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
           const SizedBox(height: 8),
           Wrap(spacing: 12, runSpacing: 8, children: [
             SizedBox(width: 220, child: DropdownButtonFormField<String>(
+              isExpanded: true,
               initialValue: _deviceType,
               decoration: const InputDecoration(labelText: 'Device type'),
               items: const [
@@ -584,6 +586,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
               },
             )),
             SizedBox(width: 220, child: DropdownButtonFormField<String>(
+              isExpanded: true,
               initialValue: _usage,
               decoration: const InputDecoration(labelText: 'Use case'),
               items: const [
@@ -597,6 +600,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
               onChanged: (value) => setState(() { if (value != null) _usage = value; }),
             )),
             SizedBox(width: 180, child: DropdownButtonFormField<int>(
+              isExpanded: true,
               initialValue: _sampleRateHz,
               decoration: const InputDecoration(labelText: 'Sample rate (reported)'),
               items: const [
@@ -609,6 +613,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
               onChanged: (value) => setState(() { if (value != null) _sampleRateHz = value; }),
             )),
             SizedBox(width: 160, child: DropdownButtonFormField<int>(
+              isExpanded: true,
               initialValue: _channels,
               decoration: const InputDecoration(labelText: 'Channels (reported)'),
               items: const [
@@ -918,6 +923,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
             SizedBox(
               width: 320,
               child: DropdownButtonFormField<int>(
+              isExpanded: true,
                 initialValue: _selectedCaptureIndex,
                 decoration: const InputDecoration(labelText: 'Microphone / capture device'),
                 items: [for (final device in _captureDevices) DropdownMenuItem<int>(
@@ -930,6 +936,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
             SizedBox(
               width: 320,
               child: DropdownButtonFormField<int>(
+              isExpanded: true,
                 initialValue: _selectedPlaybackIndex,
                 decoration: const InputDecoration(labelText: 'Playback device'),
                 items: [for (final device in _playbackDevices) DropdownMenuItem<int>(
