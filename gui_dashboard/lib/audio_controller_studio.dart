@@ -559,12 +559,12 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
           ),
           TextField(
             controller: _deviceModelController,
-            maxLength: 120,
+            maxLength: 200,
             decoration: const InputDecoration(labelText: 'Device model / endpoint name', hintText: 'e.g. USB Audio Device'),
           ),
           TextField(
             controller: _manufacturerController,
-            maxLength: 80,
+            maxLength: 120,
             decoration: const InputDecoration(labelText: 'Manufacturer (optional)'),
           ),
           const SizedBox(height: 8),
