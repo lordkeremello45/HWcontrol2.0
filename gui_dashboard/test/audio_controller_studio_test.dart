@@ -443,7 +443,7 @@ void main() {
 
   testWidgets('studio preset controls can be selected', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(home: AudioControllerStudioScreen(store: store, )),
+      MaterialApp(home: AudioControllerStudioScreen(store: store)),
     );
     await _pumpUi(tester);
 
