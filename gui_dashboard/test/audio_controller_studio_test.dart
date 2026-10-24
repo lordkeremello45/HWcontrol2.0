@@ -262,9 +262,9 @@ void main() {
     final dropdowns = tester.widgetList<DropdownButton<int>>(
       find.byType(DropdownButton<int>),
     ).toList(growable: false);
-    expect(dropdowns, hasLength(2));
-    expect(dropdowns[0].value, isNull);
-    expect(dropdowns[1].value, isNull);
+    expect(dropdowns, hasLength(4));
+    expect(dropdowns[2].value, isNull);
+    expect(dropdowns[3].value, isNull);
   });
 
   testWidgets('clears device selections when refresh fails after disconnect', (tester) async {
@@ -304,9 +304,9 @@ void main() {
     final dropdowns = tester.widgetList<DropdownButton<int>>(
       find.byType(DropdownButton<int>),
     ).toList(growable: false);
-    expect(dropdowns, hasLength(2));
-    expect(dropdowns[0].value, isNull);
-    expect(dropdowns[1].value, isNull);
+    expect(dropdowns, hasLength(4));
+    expect(dropdowns[2].value, isNull);
+    expect(dropdowns[3].value, isNull);
   });
 
   testWidgets('preserves selected devices when enumeration order changes', (tester) async {
@@ -349,9 +349,9 @@ void main() {
     final dropdowns = tester.widgetList<DropdownButton<int>>(
       find.byType(DropdownButton<int>),
     ).toList(growable: false);
-    expect(dropdowns, hasLength(2));
-    expect(dropdowns[0].value, 1);
-    expect(dropdowns[1].value, 1);
+    expect(dropdowns, hasLength(4));
+    expect(dropdowns[2].value, 1);
+    expect(dropdowns[3].value, 1);
   });
 
   testWidgets('leaves ambiguous same-name endpoints unselected', (tester) async {
@@ -402,9 +402,9 @@ void main() {
     final dropdowns = tester.widgetList<DropdownButton<int>>(
       find.byType(DropdownButton<int>),
     ).toList(growable: false);
-    expect(dropdowns, hasLength(2));
-    expect(dropdowns[0].value, isNull);
-    expect(dropdowns[1].value, isNull);
+    expect(dropdowns, hasLength(4));
+    expect(dropdowns[2].value, isNull);
+    expect(dropdowns[3].value, isNull);
   });
 
   testWidgets('shows dropped FFT frame count from native metrics', (tester) async {
