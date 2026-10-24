@@ -6,6 +6,8 @@ The project currently publishes a Debian package named `hwcontrol`; that DEB is 
 
 The current release workflow and available validation do not establish that the C++ engine, Go bridge, Flutter dashboard, service integration, and hardware APIs build and run on FreeBSD. This document intentionally does not provide a pretend install command.
 
+Repository metadata generation is scaffolded in `scripts/build-freebsd-pkg-repository.sh`. It must run on FreeBSD with a dedicated RSA signing key and already-built `.pkg` files; it does not build HWcontrol itself or prove FreeBSD compatibility. The resulting repository has not been generated or published.
+
 To unblock publication:
 1. Add a FreeBSD CI runner/VM build for the actual application and its dependencies.
 2. Fix compile/runtime failures and add install, launch, and uninstall tests on FreeBSD.
