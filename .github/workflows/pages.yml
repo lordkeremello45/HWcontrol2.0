@@ -7,6 +7,7 @@ on:
       - "website/**"
       - "scripts/generate-release-manifest.py"
       - "scripts/website-release-test.mjs"
+      - "scripts/build-apt-repository.sh"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
