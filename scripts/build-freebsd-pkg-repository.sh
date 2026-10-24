@@ -33,7 +33,7 @@ done
 [ "$found" -eq 1 ] || { echo "No tested .pkg artifacts found in $packages_dir" >&2; exit 1; }
 
 # The signing key is used only to sign repository metadata; it is never copied.
-pkg repo -o "$output_dir" "$output_dir" "$PKG_REPO_RSA_KEY_FILE"
+pkg repo "$output_dir" "$PKG_REPO_RSA_KEY_FILE"
 openssl rsa -in "$PKG_REPO_RSA_KEY_FILE" -pubout -out "$output_dir/hwcontrol-repo.pub"
 chmod 0644 "$output_dir/hwcontrol-repo.pub"
 echo "Generated signed FreeBSD pkg repository metadata. Validate it on a clean FreeBSD client before publication."
