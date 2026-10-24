@@ -64,6 +64,20 @@ jobs:
           python3 -m json.tool website/public/release.json >/dev/null
           node scripts/website-release-test.mjs website/public/release.json
 
+      - name: Build signed APT repository when signing key is configured
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APT_GPG_PRIVATE_KEY: ${{ secrets.APT_GPG_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${APT_GPG_PRIVATE_KEY}" ]; then
+            echo 'APT repository not published: configure the APT_GPG_PRIVATE_KEY Actions secret and rerun this workflow.'
+            exit 0
+          fi
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends dpkg-dev apt-utils gnupg
+          bash scripts/build-apt-repository.sh website/public/apt
+
       - name: Reject legacy source HTML
         working-directory: website
         run: |
