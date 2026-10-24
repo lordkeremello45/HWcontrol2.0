@@ -8,18 +8,19 @@ import 'user_data_store.dart';
 /// DSP host. System-audio loopback, virtual devices, and per-application routing
 /// remain unavailable until their platform-specific adapters are implemented.
 class AudioControllerStudioScreen extends StatefulWidget {
-  const AudioControllerStudioScreen({super.key, this.onRecommend, this.onLoadDevices, this.onControl});
+  const AudioControllerStudioScreen({super.key, this.onRecommend, this.onLoadDevices, this.onControl, this.store});
 
   final Future<Map<String, dynamic>?> Function(Map<String, dynamic> profile)? onRecommend;
   final Future<Map<String, dynamic>?> Function()? onLoadDevices;
   final Future<Map<String, dynamic>?> Function(String action, Map<String, dynamic>? payload)? onControl;
+  final HWControlUserDataStore? store;
 
   @override
   State<AudioControllerStudioScreen> createState() => _AudioControllerStudioScreenState();
 }
 
 class _AudioControllerStudioScreenState extends State<AudioControllerStudioScreen> {
-  final HWControlUserDataStore _store = HWControlUserDataStore();
+  late final HWControlUserDataStore _store;
   final TextEditingController _deviceModelController = TextEditingController();
   final TextEditingController _manufacturerController = TextEditingController();
   String _deviceType = 'microphone';
@@ -76,6 +77,7 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
   @override
   void initState() {
     super.initState();
+    _store = widget.store ?? HWControlUserDataStore();
     unawaited(_load());
     unawaited(_loadAudioDevices());
   }
