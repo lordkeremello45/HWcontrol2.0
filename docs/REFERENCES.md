@@ -63,6 +63,8 @@ References answer **where a design decision came from**. They do not replace imp
 
 ## Security and secure development
 
+- Go Security — Fuzzing: https://go.dev/doc/security/fuzz/
+- OSV-Scanner documentation: https://google.github.io/osv-scanner/
 - NIST SP 800-218 — Secure Software Development Framework (SSDF): https://csrc.nist.gov/pubs/sp/800/218/final
 - CISA Secure by Design: https://www.cisa.gov/securebydesign
 - OWASP: https://owasp.org/
@@ -76,6 +78,8 @@ References answer **where a design decision came from**. They do not replace imp
 ## Release integrity and software supply chain
 
 - GitHub Actions: https://docs.github.com/actions
+- `actions/setup-go` official action inputs and usage: https://github.com/actions/setup-go#usage
+- `actions/setup-node` official action inputs and usage: https://github.com/actions/setup-node#usage
 - GitHub Artifact Attestations: https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations
 - GitHub Dependabot: https://docs.github.com/en/code-security/dependabot
 - GitHub CodeQL: https://codeql.github.com/docs/
