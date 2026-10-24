@@ -55,3 +55,9 @@ The Windows loopback smoke test showed the backend correctly rejecting a reused 
 - IPC boundary fuzzing: https://github.com/lordkeremello45/HWcontrol2.0/actions/runs/40079657142 — all four fuzz targets passed after correcting the false-positive CR/LF assertion.
 - OSV scan: https://github.com/lordkeremello45/HWcontrol2.0/actions/runs/40079678138 — full-repository and npm scan jobs passed at last observation; remaining language-specific jobs were still running.
 - IPC smoke suite: https://github.com/lordkeremello45/HWcontrol2.0/actions/runs/40079893921 — Linux passed; macOS and Windows were in progress at last observation.
+
+
+## Additional compile/analyze findings
+
+- Flutter's installer entry point imported `model_manager.dart` from the library root although `HWControlModelManager` is implemented in `services/ai/model_manager.dart`. This caused `flutter analyze` errors and Windows MSIX dashboard tests to fail. The import now references the existing module; behavior was not duplicated.
+- `audio_device_probe.cpp` used unqualified `DeviceDirection` in `handleServerCommand`; the locally scoped using-declaration in `main` does not apply to that function. Both calls are now explicitly qualified as `hwcontrol::audio::DeviceDirection`.

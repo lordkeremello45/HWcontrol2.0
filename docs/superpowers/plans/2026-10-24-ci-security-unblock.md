@@ -87,3 +87,20 @@
 - [x] Logs confirmed the bridge correctly rejects a reused nonce with `nonce rejected by replay protection`; the smoke assertion incorrectly required the word `replayed`.
 - [x] Linux and Windows assertions now require an error and the semantic token `replay`, without changing or bypassing replay rejection.
 - [ ] Verify Linux, macOS and Windows smoke jobs on https://github.com/lordkeremello45/HWcontrol2.0/actions/runs/40079893921.
+
+
+### Task 8: Fix the installer model-manager import
+
+**Files:** Modify `gui_dashboard/lib/installer_main.dart`.
+
+- [x] Flutter analyze and the MSIX dashboard test run identified `import 'model_manager.dart'`, but the existing class is under `services/ai/model_manager.dart`.
+- [x] Correct the URI to the existing source module; keep the installer's model-ready/download behavior intact.
+- [ ] Verify Flutter analysis and dashboard tests on the resulting commit.
+
+### Task 9: Fix the native audio probe compile error
+
+**Files:** Modify `audio_core/tools/audio_device_probe.cpp`.
+
+- [x] Linux CMake build showed two unqualified `DeviceDirection` references inside `handleServerCommand`, outside the function scope where a local using-declaration exists.
+- [x] Use the enum's declared `hwcontrol::audio` namespace in both references; keep audio behavior unchanged.
+- [ ] Verify native Linux/macOS and Windows C++ builds on the resulting commit.
