@@ -19,10 +19,10 @@ Once the signed repository is published and its fingerprint is independently ver
 
 ```sh
 sudo install -d -m 0755 /etc/apt/keyrings
-curl -fsSL https://lordkerem45.github.io/HWcontrol2.0/apt/hwcontrol-archive-keyring.gpg \
+curl -fsSL https://lordkeremello45.github.io/HWcontrol2.0/apt/hwcontrol-archive-keyring.gpg \
   | sudo tee /etc/apt/keyrings/hwcontrol-archive-keyring.gpg >/dev/null
 sudo chmod 0644 /etc/apt/keyrings/hwcontrol-archive-keyring.gpg
-echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/hwcontrol-archive-keyring.gpg] https://lordkerem45.github.io/HWcontrol2.0/apt stable main" \
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/hwcontrol-archive-keyring.gpg] https://lordkeremello45.github.io/HWcontrol2.0/apt stable main" \
   | sudo tee /etc/apt/sources.list.d/hwcontrol.list
 sudo apt update
 sudo apt install hwcontrol
