@@ -13,6 +13,10 @@ Restore existing automated security controls that are failing before their check
 - OSV dependency scan run: https://github.com/lordkeremello45/HWcontrol2.0/actions/runs/39932085878 — Pub and NuGet scans passed; website npm dependency scanning stopped at `actions/setup-node` with `Caching for 'false' is not supported`.
 - The same invalid Go action revision appears in `.github/workflows/security-services.yml`.
 
+## Additional finding
+
+After the Go action pin was repaired, the security-services workflow began and exposed a pre-existing formatting failure: `gofmt -l src security_guardian` reported more than 30 Go source/test files. This is a quality-gate failure, not evidence of a security vulnerability. The formatter must be applied mechanically; the gate must remain enabled.
+
 ## Goals
 
 - Correct the action reference using the known-good pinned revision already used by other workflows in this repository.

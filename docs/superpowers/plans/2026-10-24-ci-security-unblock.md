@@ -50,3 +50,13 @@
 - [x] Add official setup-go/setup-node, Go fuzzing and OSV-Scanner sources.
 - [ ] Inspect the resulting commit and fresh CI evidence; list any pending/failed follow-up.
 
+
+### Task 4: Normalize existing Go formatting
+
+**Files:** All tracked `bridge_service/**/*.go` files reported by the existing formatter gate.
+
+- [x] Reproduce the format-only failure through the security-services job log; retain the existing check.
+- [x] Use the standard Go formatter, not hand-written whitespace edits.
+- [ ] Verify the formatter leaves the tree clean with `gofmt -l bridge_service`.
+- [ ] Verify `go vet ./...` and `go test -race -count=1 ./...` on the formatted tree.
+- [ ] Remove the one-time formatting workflow and verify the normal CI workflow on the resulting `main` commit.

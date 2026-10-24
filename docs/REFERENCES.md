@@ -53,6 +53,7 @@ References answer **where a design decision came from**. They do not replace imp
 - Flutter: https://flutter.dev/
 - Dart: https://dart.dev/
 - Go: https://go.dev/
+- Go formatter (`gofmt`): https://pkg.go.dev/cmd/gofmt
 - Rust: https://www.rust-lang.org/
 - C++: https://isocpp.org/
 - CMake: https://cmake.org/documentation/
