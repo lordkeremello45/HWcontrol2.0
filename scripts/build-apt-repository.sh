@@ -34,9 +34,11 @@ while IFS= read -r deb; do
   [[ "$architecture" == "amd64" ]] || { echo "Unexpected architecture: $architecture" >&2; exit 1; }
 done < <(find "$repo_root/pool/main/h/hwcontrol" -maxdepth 1 -type f -name '*.deb' -print)
 
-dpkg-scanpackages --arch amd64 pool /dev/null > "$repo_root/dists/stable/main/binary-amd64/Packages"
-gzip -9 -n -c "$repo_root/dists/stable/main/binary-amd64/Packages" > "$repo_root/dists/stable/main/binary-amd64/Packages.gz"
-apt-ftparchive release "$repo_root/dists/stable" > "$repo_root/dists/stable/Release"
+pushd "$repo_root" >/dev/null
+dpkg-scanpackages --arch amd64 pool /dev/null > dists/stable/main/binary-amd64/Packages
+gzip -9 -n -c dists/stable/main/binary-amd64/Packages > dists/stable/main/binary-amd64/Packages.gz
+apt-ftparchive release dists/stable > dists/stable/Release
+popd >/dev/null
 
 gnupg_home="$work_dir/gnupg"
 mkdir -m 0700 "$gnupg_home"
@@ -51,4 +53,5 @@ gpg --batch --yes --local-user "$fingerprint" --clearsign --output "$repo_root/d
 gpg --batch --yes --local-user "$fingerprint" --armor --detach-sign --output "$repo_root/dists/stable/Release.gpg" "$repo_root/dists/stable/Release"
 gpg --batch --export "$fingerprint" > "$repo_root/hwcontrol-archive-keyring.gpg"
 printf '%s\n' "$fingerprint" > "$repo_root/KEY-FINGERPRINT.txt"
+popd >/dev/null
 echo "Built signed APT repository from release $tag (key fingerprint: $fingerprint)."
