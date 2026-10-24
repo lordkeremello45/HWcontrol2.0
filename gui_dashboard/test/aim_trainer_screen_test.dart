@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -7,22 +6,24 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hwcontrol_dashboard/aim_trainer_screen.dart';
 import 'package:hwcontrol_dashboard/user_data_store.dart';
 
+class _MemoryUserDataStore extends HWControlUserDataStore {
+  Map<String, dynamic> _preferences = <String, dynamic>{};
+
+  @override
+  Future<Map<String, dynamic>> readUiPreferences() async =>
+      Map<String, dynamic>.from(_preferences);
+
+  @override
+  Future<void> writeUiPreferences(Map<String, dynamic> values) async {
+    _preferences = Map<String, dynamic>.from(values);
+  }
+}
+
 void main() {
-  late Directory temporaryDirectory;
-  late HWControlUserDataStore store;
+  late _MemoryUserDataStore store;
 
-  setUp(() async {
-    temporaryDirectory =
-        await Directory.systemTemp.createTemp('hwcontrol-aim-test-');
-    store = HWControlUserDataStore(
-      supportDirectoryProvider: () async => temporaryDirectory,
-    );
-  });
-
-  tearDown(() async {
-    if (await temporaryDirectory.exists()) {
-      await temporaryDirectory.delete(recursive: true);
-    }
+  setUp(() {
+    store = _MemoryUserDataStore();
   });
 
   testWidgets('shows offline trainer and starts a session', (tester) async {
