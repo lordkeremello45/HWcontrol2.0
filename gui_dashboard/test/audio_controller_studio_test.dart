@@ -3,13 +3,37 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hwcontrol_dashboard/audio_controller_studio.dart';
+import 'package:hwcontrol_dashboard/user_data_store.dart';
+
+class _MemoryUserDataStore extends HWControlUserDataStore {
+  Map<String, dynamic> _preferences = <String, dynamic>{};
+
+  @override
+  Future<Map<String, dynamic>> readUiPreferences() async =>
+      Map<String, dynamic>.from(_preferences);
+
+  @override
+  Future<void> writeUiPreferences(Map<String, dynamic> values) async {
+    _preferences = Map<String, dynamic>.from(values);
+  }
+}
+
+Future<void> _pumpUi(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 20));
+}
 
 void main() {
+  late _MemoryUserDataStore store;
+
+  setUp(() {
+    store = _MemoryUserDataStore();
+  });
   testWidgets('studio exposes live controls and starts in a safe stopped state', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(home: AudioControllerStudioScreen()),
+      MaterialApp(home: AudioControllerStudioScreen(store: store)),
     );
-    await tester.pumpAndSettle();
+    await _pumpUi(tester);
 
     expect(find.text('Audio Controller Studio'), findsOneWidget);
     expect(find.text('Parametric equalizer'), findsOneWidget);
@@ -28,7 +52,7 @@ void main() {
   testWidgets('starts and stops the native live session through the control callback', (tester) async {
     final actions = <String>[];
     await tester.pumpWidget(MaterialApp(
-      home: AudioControllerStudioScreen(
+      home: AudioControllerStudioScreen(store: store, 
         onLoadDevices: () async => <String, dynamic>{
           'capture': <Map<String, dynamic>>[
             <String, dynamic>{'index': 0, 'name': 'USB Microphone', 'isDefault': true},
@@ -89,10 +113,10 @@ void main() {
         },
       ),
     ));
-    await tester.pumpAndSettle();
+    await _pumpUi(tester);
     await tester.ensureVisible(find.text('Start live processing'));
     await tester.tap(find.text('Start live processing'));
-    await tester.pumpAndSettle();
+    await _pumpUi(tester);
     expect(actions, contains('Start Audio Studio'));
     expect(find.text('LIVE • audio is processed locally'), findsOneWidget);
     expect(find.text('1500 Hz'), findsOneWidget);
@@ -117,14 +141,14 @@ void main() {
 
     await tester.ensureVisible(find.text('Stop'));
     await tester.tap(find.text('Stop'));
-    await tester.pumpAndSettle();
+    await _pumpUi(tester);
     expect(actions, contains('Stop Audio Studio'));
     expect(find.text('Stopped • no microphone stream is active'), findsOneWidget);
   });
 
   testWidgets('falls back to a safe sample rate for malformed FFT metrics', (tester) async {
     await tester.pumpWidget(MaterialApp(
-      home: AudioControllerStudioScreen(
+      home: AudioControllerStudioScreen(store: store, 
         onLoadDevices: () async => <String, dynamic>{
           'capture': <Map<String, dynamic>>[
             <String, dynamic>{'index': 0, 'name': 'USB Microphone', 'isDefault': true},
@@ -147,10 +171,10 @@ void main() {
         },
       ),
     ));
-    await tester.pumpAndSettle();
+    await _pumpUi(tester);
     await tester.ensureVisible(find.text('Start live processing'));
     await tester.tap(find.text('Start live processing'));
-    await tester.pumpAndSettle();
+    await _pumpUi(tester);
 
     expect(find.text('12000 Hz'), findsOneWidget);
     expect(find.text('24000 Hz'), findsOneWidget);
@@ -159,7 +183,7 @@ void main() {
   testWidgets('reports an unexpected native stream stop and cancels polling', (tester) async {
     var statusCalls = 0;
     await tester.pumpWidget(MaterialApp(
-      home: AudioControllerStudioScreen(
+      home: AudioControllerStudioScreen(store: store, 
         onLoadDevices: () async => <String, dynamic>{
           'capture': <Map<String, dynamic>>[
             <String, dynamic>{'index': 0, 'name': 'USB Microphone', 'isDefault': true},
@@ -180,10 +204,10 @@ void main() {
         },
       ),
     ));
-    await tester.pumpAndSettle();
+    await _pumpUi(tester);
     await tester.ensureVisible(find.text('Start live processing'));
     await tester.tap(find.text('Start live processing'));
-    await tester.pumpAndSettle();
+    await _pumpUi(tester);
 
     expect(statusCalls, 1);
     expect(find.textContaining('The audio stream stopped unexpectedly.'), findsOneWidget);
@@ -196,7 +220,7 @@ void main() {
   testWidgets('does not silently switch devices after a stream disconnect', (tester) async {
     var deviceLoads = 0;
     await tester.pumpWidget(MaterialApp(
-      home: AudioControllerStudioScreen(
+      home: AudioControllerStudioScreen(store: store, 
         onLoadDevices: () async {
           deviceLoads++;
           final disconnected = deviceLoads > 1;
@@ -228,10 +252,10 @@ void main() {
         },
       ),
     ));
-    await tester.pumpAndSettle();
+    await _pumpUi(tester);
     await tester.ensureVisible(find.text('Start live processing'));
     await tester.tap(find.text('Start live processing'));
-    await tester.pumpAndSettle();
+    await _pumpUi(tester);
 
     expect(deviceLoads, 2);
     expect(find.textContaining('A previously selected device is missing'), findsOneWidget);
@@ -246,7 +270,7 @@ void main() {
   testWidgets('clears device selections when refresh fails after disconnect', (tester) async {
     var deviceLoads = 0;
     await tester.pumpWidget(MaterialApp(
-      home: AudioControllerStudioScreen(
+      home: AudioControllerStudioScreen(store: store, 
         onLoadDevices: () async {
           deviceLoads++;
           if (deviceLoads > 1) throw StateError('device enumeration failed');
@@ -270,10 +294,10 @@ void main() {
         },
       ),
     ));
-    await tester.pumpAndSettle();
+    await _pumpUi(tester);
     await tester.ensureVisible(find.text('Start live processing'));
     await tester.tap(find.text('Start live processing'));
-    await tester.pumpAndSettle();
+    await _pumpUi(tester);
 
     expect(deviceLoads, 2);
     expect(find.textContaining('Device refresh failed after the stream stopped'), findsOneWidget);
@@ -288,7 +312,7 @@ void main() {
   testWidgets('preserves selected devices when enumeration order changes', (tester) async {
     var deviceLoads = 0;
     await tester.pumpWidget(MaterialApp(
-      home: AudioControllerStudioScreen(
+      home: AudioControllerStudioScreen(store: store, 
         onLoadDevices: () async {
           deviceLoads++;
           if (deviceLoads == 1) {
@@ -316,10 +340,10 @@ void main() {
         },
       ),
     ));
-    await tester.pumpAndSettle();
+    await _pumpUi(tester);
     await tester.ensureVisible(find.text('Refresh devices'));
     await tester.tap(find.text('Refresh devices'));
-    await tester.pumpAndSettle();
+    await _pumpUi(tester);
 
     expect(deviceLoads, 2);
     final dropdowns = tester.widgetList<DropdownButton<int>>(
@@ -333,7 +357,7 @@ void main() {
   testWidgets('leaves ambiguous same-name endpoints unselected', (tester) async {
     var deviceLoads = 0;
     await tester.pumpWidget(MaterialApp(
-      home: AudioControllerStudioScreen(
+      home: AudioControllerStudioScreen(store: store, 
         onLoadDevices: () async {
           deviceLoads++;
           if (deviceLoads == 1) {
@@ -368,10 +392,10 @@ void main() {
         },
       ),
     ));
-    await tester.pumpAndSettle();
+    await _pumpUi(tester);
     await tester.ensureVisible(find.text('Start live processing'));
     await tester.tap(find.text('Start live processing'));
-    await tester.pumpAndSettle();
+    await _pumpUi(tester);
 
     expect(deviceLoads, 2);
     expect(find.textContaining('A previously selected device is missing'), findsOneWidget);
@@ -385,7 +409,7 @@ void main() {
 
   testWidgets('shows dropped FFT frame count from native metrics', (tester) async {
     await tester.pumpWidget(MaterialApp(
-      home: AudioControllerStudioScreen(
+      home: AudioControllerStudioScreen(store: store, 
         onLoadDevices: () async => <String, dynamic>{
           'capture': <Map<String, dynamic>>[
             <String, dynamic>{'index': 0, 'name': 'USB Microphone', 'isDefault': true},
@@ -405,7 +429,7 @@ void main() {
         },
       ),
     ));
-    await tester.pumpAndSettle();
+    await _pumpUi(tester);
     await tester.ensureVisible(find.text('Start live processing'));
     await tester.tap(find.text('Start live processing'));
     await tester.pump();
@@ -419,12 +443,12 @@ void main() {
 
   testWidgets('studio preset controls can be selected', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(home: AudioControllerStudioScreen()),
+      const MaterialApp(home: AudioControllerStudioScreen(store: store, )),
     );
-    await tester.pumpAndSettle();
+    await _pumpUi(tester);
 
     await tester.tap(find.widgetWithText(ChoiceChip, 'Voice'));
-    await tester.pumpAndSettle();
+    await _pumpUi(tester);
 
     final voiceChip = tester.widget<ChoiceChip>(
       find.widgetWithText(ChoiceChip, 'Voice'),
@@ -434,7 +458,7 @@ void main() {
 
   testWidgets('detects endpoints and applies only validated Gemma suggestions', (tester) async {
     await tester.pumpWidget(MaterialApp(
-      home: AudioControllerStudioScreen(
+      home: AudioControllerStudioScreen(store: store, 
         onLoadDevices: () async => <String, dynamic>{
           'capture': <Map<String, dynamic>>[
             <String, dynamic>{'index': 0, 'name': 'USB Microphone', 'isDefault': true},
@@ -466,23 +490,23 @@ void main() {
         },
       ),
     ));
-    await tester.pumpAndSettle();
+    await _pumpUi(tester);
 
     expect(find.textContaining('Detected 1 input and 1 output endpoints'), findsOneWidget);
     await tester.ensureVisible(find.text('Ask local Gemma'));
     await tester.tap(find.text('Ask local Gemma'));
-    await tester.pumpAndSettle();
+    await _pumpUi(tester);
 
     expect(find.text('Conservative voice profile'), findsOneWidget);
     await tester.ensureVisible(find.text('Apply validated settings'));
     await tester.tap(find.text('Apply validated settings'));
-    await tester.pumpAndSettle();
+    await _pumpUi(tester);
     expect(find.textContaining('Validated Gemma settings applied'), findsOneWidget);
   });
 
   testWidgets('rejects malformed Gemma recommendation output', (tester) async {
     await tester.pumpWidget(MaterialApp(
-      home: AudioControllerStudioScreen(
+      home: AudioControllerStudioScreen(store: store, 
         onLoadDevices: () async => <String, dynamic>{'capture': <dynamic>[], 'playback': <dynamic>[]},
         onRecommend: (_) async => <String, dynamic>{'recommendation': '{"summary":"unsafe"}'},
       ),
@@ -501,7 +525,7 @@ void main() {
   testWidgets('rejects oversized device metadata before calling Gemma', (tester) async {
     var recommendationCalls = 0;
     await tester.pumpWidget(MaterialApp(
-      home: AudioControllerStudioScreen(
+      home: AudioControllerStudioScreen(store: store, 
         onLoadDevices: () async => <String, dynamic>{
           'capture': <dynamic>[],
           'playback': <dynamic>[],
