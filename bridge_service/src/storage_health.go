@@ -27,21 +27,21 @@ type smartctlReport struct {
 }
 
 type storageHealthResult struct {
-	status string
-	source string
-	reason string
-	temperature *float64
+	status        string
+	source        string
+	reason        string
+	temperature   *float64
 	healthPercent *float64
 }
 
 var storageHealthCache = struct {
 	sync.Mutex
 	entries map[string]struct {
-		at time.Time
+		at     time.Time
 		result storageHealthResult
 	}
 }{entries: make(map[string]struct {
-	at time.Time
+	at     time.Time
 	result storageHealthResult
 })}
 
@@ -147,7 +147,7 @@ func readStorageHealth(device string) storageHealthResult {
 	// cause a subprocess to run on every telemetry refresh.
 	storageHealthCache.Lock()
 	storageHealthCache.entries[physical] = struct {
-		at time.Time
+		at     time.Time
 		result storageHealthResult
 	}{at: now, result: result}
 	storageHealthCache.Unlock()

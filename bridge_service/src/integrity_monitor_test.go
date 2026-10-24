@@ -79,7 +79,6 @@ func TestIntegrityFileDigestRejectsSymlink(t *testing.T) {
 	}
 }
 
-
 func TestEnvironmentKeyDoesNotDisableIntegrityMonitor(t *testing.T) {
 	critical := filepath.Join(t.TempDir(), "critical-engine")
 	if err := os.WriteFile(critical, []byte("trusted"), 0600); err != nil {

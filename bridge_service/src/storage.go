@@ -108,7 +108,7 @@ func classifyStorageDevice(device string) (deviceType, source string, removable 
 
 var storageIOState struct {
 	sync.Mutex
-	At time.Time
+	At       time.Time
 	Counters map[string]disk.IOCountersStat
 }
 
@@ -195,8 +195,8 @@ func collectStorageVolumes() []StorageVolume {
 			UsedBytes:        usage.Used,
 			FreeBytes:        usage.Free,
 			UsagePercent:     usage.UsedPercent,
-			HealthStatus: "unknown",
-			HealthReason: "No platform-specific storage health source is currently configured",
+			HealthStatus:     "unknown",
+			HealthReason:     "No platform-specific storage health source is currently configured",
 		}
 
 		if previousAt.IsZero() {

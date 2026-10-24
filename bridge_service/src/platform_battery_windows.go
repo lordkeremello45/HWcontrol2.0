@@ -11,12 +11,12 @@ import (
 )
 
 type windowsBatteryPayload struct {
-	Present bool   `json:"present"`
-	Status  string `json:"status"`
-	Design  float64 `json:"designCapacity"`
-	Full    float64 `json:"fullChargeCapacity"`
-	Cycles  int    `json:"cycleCount"`
-	HasCycle bool  `json:"hasCycleCount"`
+	Present  bool    `json:"present"`
+	Status   string  `json:"status"`
+	Design   float64 `json:"designCapacity"`
+	Full     float64 `json:"fullChargeCapacity"`
+	Cycles   int     `json:"cycleCount"`
+	HasCycle bool    `json:"hasCycleCount"`
 }
 
 // WMI values are read-only. The fixed script collects no serial numbers or other

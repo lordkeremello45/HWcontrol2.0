@@ -18,14 +18,14 @@ type powerModeGUID struct {
 }
 
 var (
-	powerEfficiencyGUID = powerModeGUID{Data1: 0x961cc777, Data2: 0x2547, Data3: 0x4f9d, Data4: [8]byte{0x81, 0x74, 0x7d, 0x86, 0x18, 0x1b, 0x8a, 0x7a}}
-	powerBalancedGUID   = powerModeGUID{}
+	powerEfficiencyGUID  = powerModeGUID{Data1: 0x961cc777, Data2: 0x2547, Data3: 0x4f9d, Data4: [8]byte{0x81, 0x74, 0x7d, 0x86, 0x18, 0x1b, 0x8a, 0x7a}}
+	powerBalancedGUID    = powerModeGUID{}
 	powerPerformanceGUID = powerModeGUID{Data1: 0xded574b5, Data2: 0x45a0, Data3: 0x4f42, Data4: [8]byte{0x87, 0x37, 0x46, 0x34, 0x5c, 0x09, 0xc2, 0x38}}
-	powerProfileDLL = windows.NewLazySystemDLL("powrprof.dll")
-	getACPowerMode = powerProfileDLL.NewProc("PowerGetUserConfiguredACPowerMode")
-	getDCPowerMode = powerProfileDLL.NewProc("PowerGetUserConfiguredDCPowerMode")
-	setACPowerMode = powerProfileDLL.NewProc("PowerSetUserConfiguredACPowerMode")
-	setDCPowerMode = powerProfileDLL.NewProc("PowerSetUserConfiguredDCPowerMode")
+	powerProfileDLL      = windows.NewLazySystemDLL("powrprof.dll")
+	getACPowerMode       = powerProfileDLL.NewProc("PowerGetUserConfiguredACPowerMode")
+	getDCPowerMode       = powerProfileDLL.NewProc("PowerGetUserConfiguredDCPowerMode")
+	setACPowerMode       = powerProfileDLL.NewProc("PowerSetUserConfiguredACPowerMode")
+	setDCPowerMode       = powerProfileDLL.NewProc("PowerSetUserConfiguredDCPowerMode")
 )
 
 func powerModeGUIDForValue(value float64) (powerModeGUID, error) {

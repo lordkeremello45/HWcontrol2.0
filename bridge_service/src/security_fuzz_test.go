@@ -86,24 +86,23 @@ func FuzzReadBoundedRequest(f *testing.F) {
 	})
 }
 
-
 // FuzzAudioStudioJSONPayload exercises the JSON-to-native-audio boundary with
 // valid and mutated JSON. Accepted inputs must still satisfy all domain limits
 // and serialize to the exact fixed-width helper protocol.
 func FuzzAudioStudioJSONPayload(f *testing.F) {
 	request := audioStudioStartRequest{
-		CaptureIndex: 0,
-		PlaybackIndex: 0,
-		GateThreshold: -48,
+		CaptureIndex:        0,
+		PlaybackIndex:       0,
+		GateThreshold:       -48,
 		CompressorThreshold: -12,
-		CompressorRatio: 2,
-		CompressorAttack: 10,
-		CompressorRelease: 100,
-		CompressorKnee: 6,
-		HighPassFrequency: 80,
-		LimiterCeiling: -1,
-		EQGain: []float64{0, 0, 0},
-		EQFrequency: []float64{100, 1000, 8000},
+		CompressorRatio:     2,
+		CompressorAttack:    10,
+		CompressorRelease:   100,
+		CompressorKnee:      6,
+		HighPassFrequency:   80,
+		LimiterCeiling:      -1,
+		EQGain:              []float64{0, 0, 0},
+		EQFrequency:         []float64{100, 1000, 8000},
 	}
 	raw, err := json.Marshal(request)
 	if err != nil {

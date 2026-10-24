@@ -15,15 +15,15 @@ type FanControlInfo struct {
 // FanChannel is a capability report for one independently addressable fan
 // output. ID is an opaque, validated identifier; it is never a filesystem path.
 type FanChannel struct {
-	ID              string  `json:"id"`
-	Name            string  `json:"name"`
-	Backend         string  `json:"backend"`
-	Supported       bool    `json:"supported"`
-	FanRPM          float64 `json:"fanRpm"`
-	RPMAvailable    bool    `json:"rpmAvailable"`
-	FanPercent      float64 `json:"fanPercent"`
-	PercentAvailable bool   `json:"percentAvailable"`
-	Reason          string  `json:"reason,omitempty"`
+	ID               string  `json:"id"`
+	Name             string  `json:"name"`
+	Backend          string  `json:"backend"`
+	Supported        bool    `json:"supported"`
+	FanRPM           float64 `json:"fanRpm"`
+	RPMAvailable     bool    `json:"rpmAvailable"`
+	FanPercent       float64 `json:"fanPercent"`
+	PercentAvailable bool    `json:"percentAvailable"`
+	Reason           string  `json:"reason,omitempty"`
 }
 
 func fanControlUnavailable(reason string) FanControlInfo {

@@ -130,9 +130,9 @@ func TestMaxNvidiaGPUTemperatureRejectsMissingOrInvalidSamples(t *testing.T) {
 
 func TestFanChannelCommandRequiresValidatedTarget(t *testing.T) {
 	for _, test := range []struct {
-		name  string
+		name   string
 		target string
-		valid bool
+		valid  bool
 	}{
 		{name: "missing target", target: "", valid: false},
 		{name: "path is not a channel id", target: "/sys/class/hwmon/hwmon0/pwm1", valid: false},
@@ -295,7 +295,6 @@ func TestValidateCommandRejectsNonCanonicalActionWhitespace(t *testing.T) {
 		t.Fatal("padded action should be rejected before dispatch")
 	}
 }
-
 
 func TestAuthenticateCommandRejectsMalformedAuth(t *testing.T) {
 	command := testCommand("Get Status", 0)
@@ -641,11 +640,11 @@ func TestBridgeKeyLifecycleUsesAtomicFile(t *testing.T) {
 func TestHardwareControlSafetyGateRejectsInvalidSensorValues(t *testing.T) {
 	base := HardwareMetrics{
 		ThermalSafetyAvailable: true,
-		CPUTemperature: 60,
-		GPUTemperature: 65,
+		CPUTemperature:         60,
+		GPUTemperature:         65,
 	}
 	for _, test := range []struct {
-		name string
+		name   string
 		mutate func(*HardwareMetrics)
 	}{
 		{"CPU over sensor range", func(m *HardwareMetrics) { m.CPUTemperature = 150 }},
@@ -664,10 +663,11 @@ func TestHardwareControlSafetyGateRejectsInvalidSensorValues(t *testing.T) {
 	}
 }
 
-
 func TestDecodeAudioDeviceProbeOutput(t *testing.T) {
 	data, err := decodeAudioDeviceProbeOutput([]byte(`{"capture":[{"index":0,"nameHex":"555342204d6963726f70686f6e65","isDefault":true}],"playback":[{"index":2,"nameHex":"537065616b657273","isDefault":false}]}`))
-	if err != nil { t.Fatalf("decodeAudioDeviceProbeOutput returned error: %v", err) }
+	if err != nil {
+		t.Fatalf("decodeAudioDeviceProbeOutput returned error: %v", err)
+	}
 	capture := data["capture"].([]map[string]any)
 	playback := data["playback"].([]map[string]any)
 	if len(capture) != 1 || capture[0]["name"] != "USB Microphone" || capture[0]["isDefault"] != true {
@@ -676,11 +676,13 @@ func TestDecodeAudioDeviceProbeOutput(t *testing.T) {
 	if len(playback) != 1 || playback[0]["index"] != 2 || playback[0]["name"] != "Speakers" {
 		t.Fatalf("unexpected playback endpoints: %#v", playback)
 	}
-	if data["localOnly"] != true { t.Fatalf("audio endpoint response must be marked local-only") }
+	if data["localOnly"] != true {
+		t.Fatalf("audio endpoint response must be marked local-only")
+	}
 }
 
 func TestDecodeAudioDeviceProbeOutputRejectsInvalidNames(t *testing.T) {
-	tests := []struct { name, raw string }{
+	tests := []struct{ name, raw string }{
 		{"invalid hex", `{"capture":[{"index":0,"nameHex":"xyz","isDefault":true}]}`},
 		{"empty name", `{"playback":[{"index":0,"nameHex":"","isDefault":true}]}`},
 		{"negative index", `{"capture":[{"index":-1,"nameHex":"4d6963","isDefault":true}]}`},
@@ -693,7 +695,6 @@ func TestDecodeAudioDeviceProbeOutputRejectsInvalidNames(t *testing.T) {
 		})
 	}
 }
-
 
 func TestValidAudioStudioStartRequest(t *testing.T) {
 	request := audioStudioStartRequest{
@@ -727,10 +728,14 @@ func TestDecodeAudioStudioStartTarget(t *testing.T) {
 		EQGain: []float64{0, 0, 0}, EQFrequency: []float64{100, 1000, 8000},
 	}
 	raw, err := json.Marshal(request)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	target := base64.RawURLEncoding.EncodeToString(raw)
 	decoded, err := decodeAudioStudioStartTarget(target)
-	if err != nil { t.Fatalf("valid encoded profile rejected: %v", err) }
+	if err != nil {
+		t.Fatalf("valid encoded profile rejected: %v", err)
+	}
 	line := audioStudioStartLine(decoded)
 	if !strings.HasPrefix(line, "start 0 0 0 ") || !strings.Contains(line, "1000") {
 		t.Fatalf("unexpected native start protocol: %s", line)
@@ -739,7 +744,6 @@ func TestDecodeAudioStudioStartTarget(t *testing.T) {
 		t.Fatal("malformed audio configuration target must be rejected")
 	}
 }
-
 
 func TestValidateAudioStudioStartCommand(t *testing.T) {
 	request := audioStudioStartRequest{
@@ -750,7 +754,9 @@ func TestValidateAudioStudioStartCommand(t *testing.T) {
 		EQGain: []float64{0, 0, 0}, EQFrequency: []float64{100, 1000, 8000},
 	}
 	raw, err := json.Marshal(request)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	cmd := testCommand("Start Audio Studio", 0)
 	cmd.Target = base64.RawURLEncoding.EncodeToString(raw)
 	if err := validateCommand(cmd); err != nil {

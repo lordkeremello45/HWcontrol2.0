@@ -24,11 +24,11 @@ func TestMakeBatteryMetricsCalculatesHealthAndPreservesCycles(t *testing.T) {
 
 func TestMakeBatteryMetricsFailsClosedForMissingOrInvalidCapacity(t *testing.T) {
 	cases := []struct {
-		name string
+		name    string
 		present bool
-		design float64
-		full float64
-		unit string
+		design  float64
+		full    float64
+		unit    string
 	}{
 		{name: "not present", present: false, design: 60000, full: 48000, unit: "mWh"},
 		{name: "zero design", present: true, design: 0, full: 48000, unit: "mWh"},

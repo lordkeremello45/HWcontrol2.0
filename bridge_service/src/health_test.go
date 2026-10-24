@@ -25,17 +25,17 @@ func TestEvaluateHardwareHealthCapabilityMatrix(t *testing.T) {
 func TestEvaluateHardwareHealthRecognizesIndividualFanControl(t *testing.T) {
 	bridgeIntegrityState.Store(true)
 	evaluation := evaluateHardwareHealth(HardwareMetrics{
-		CPUTemperature: 55,
-		CPUTemperatureSource: "test-cpu",
+		CPUTemperature:         55,
+		CPUTemperatureSource:   "test-cpu",
 		ThermalSafetyAvailable: true,
-		FanControlSupported: false,
-		FanControlBackend: "monitor-only",
+		FanControlSupported:    false,
+		FanControlBackend:      "monitor-only",
 		FanChannels: []FanChannel{{
-			ID: "0123456789abcdef",
-			Name: "Test PWM 1",
-			Backend: "linux-hwmon",
-			Supported: true,
-			FanRPM: 1200,
+			ID:           "0123456789abcdef",
+			Name:         "Test PWM 1",
+			Backend:      "linux-hwmon",
+			Supported:    true,
+			FanRPM:       1200,
 			RPMAvailable: true,
 		}},
 	})
@@ -52,13 +52,13 @@ func TestEvaluateHardwareHealthRecognizesIndividualFanControl(t *testing.T) {
 func TestEvaluateHardwareHealthUsesEmergencyCoolingForSupportedFanChannel(t *testing.T) {
 	bridgeIntegrityState.Store(true)
 	evaluation := evaluateHardwareHealth(HardwareMetrics{
-		CPUTemperature: 96,
-		CPUTemperatureSource: "test-cpu",
+		CPUTemperature:         96,
+		CPUTemperatureSource:   "test-cpu",
 		ThermalSafetyAvailable: true,
 		FanChannels: []FanChannel{{
-			ID: "0123456789abcdef",
-			Name: "Test PWM 1",
-			Backend: "linux-hwmon",
+			ID:        "0123456789abcdef",
+			Name:      "Test PWM 1",
+			Backend:   "linux-hwmon",
 			Supported: true,
 		}},
 	})
@@ -113,12 +113,11 @@ func TestEvaluateHardwareHealthDetectsFanStallRisk(t *testing.T) {
 	}
 }
 
-
 func TestEvaluateHardwareHealthFlagsNearlyFullStorage(t *testing.T) {
 	bridgeIntegrityState.Store(true)
 	evaluation := evaluateHardwareHealth(HardwareMetrics{
 		ThermalSafetyAvailable: true,
-		StorageVolumes: []StorageVolume{{MountPoint: "E:", UsagePercent: 96}},
+		StorageVolumes:         []StorageVolume{{MountPoint: "E:", UsagePercent: 96}},
 	})
 	found := false
 	for _, anomaly := range evaluation.Anomalies {
@@ -153,7 +152,7 @@ func TestEvaluateHardwareHealthWarnsOnDegradedBatteryCapacity(t *testing.T) {
 	bridgeIntegrityState.Store(true)
 	evaluation := evaluateHardwareHealth(HardwareMetrics{
 		ThermalSafetyAvailable: true,
-		Battery: BatteryMetrics{Present: true, DataAvailable: true, HealthPercent: 45},
+		Battery:                BatteryMetrics{Present: true, DataAvailable: true, HealthPercent: 45},
 	})
 	found := false
 	for _, anomaly := range evaluation.Anomalies {
@@ -205,8 +204,8 @@ func TestEvaluateHardwareHealthDoesNotAdvertiseUnimplementedWriteControls(t *tes
 func TestEvaluateHardwareHealthDoesNotAdvertiseTemperatureWithoutSource(t *testing.T) {
 	bridgeIntegrityState.Store(true)
 	evaluation := evaluateHardwareHealth(HardwareMetrics{
-		CPUTemperature: 55,
-		GPUTemperature: 60,
+		CPUTemperature:         55,
+		GPUTemperature:         60,
 		ThermalSafetyAvailable: true,
 	})
 	if evaluation.Capabilities["cpuTemperature"].Available || evaluation.Capabilities["gpuTemperature"].Available {
@@ -217,10 +216,10 @@ func TestEvaluateHardwareHealthDoesNotAdvertiseTemperatureWithoutSource(t *testi
 func TestEvaluateHardwareHealthDoesNotConfuseFanControlWithFanTelemetry(t *testing.T) {
 	bridgeIntegrityState.Store(true)
 	evaluation := evaluateHardwareHealth(HardwareMetrics{
-		FanControlSupported: true,
-		FanControlBackend: "linux-hwmon",
-		FanRPM: 0,
-		FanPercent: 0,
+		FanControlSupported:    true,
+		FanControlBackend:      "linux-hwmon",
+		FanRPM:                 0,
+		FanPercent:             0,
 		ThermalSafetyAvailable: true,
 	})
 	if !evaluation.Capabilities["fanControl"].Available {

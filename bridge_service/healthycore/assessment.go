@@ -17,12 +17,12 @@ const (
 )
 
 type Evidence struct {
-	Device             DeviceKind
-	SampleCount        int
-	MaxTemperatureC    *float64
-	ThermalLimitC      *float64
+	Device                DeviceKind
+	SampleCount           int
+	MaxTemperatureC       *float64
+	ThermalLimitC         *float64
 	ThermalThrottleEvents int
-	ObservedErrors     int
+	ObservedErrors        int
 	// VendorHealthPercent is optional and must come from a trusted, device-specific
 	// health source. It is not inferred from temperature or utilization.
 	VendorHealthPercent *float64
@@ -31,12 +31,12 @@ type Evidence struct {
 }
 
 type Assessment struct {
-	Device             DeviceKind `json:"device"`
-	ConditionIndex     *int       `json:"condition_index"`
-	Status             string     `json:"status"`
-	Confidence         string     `json:"confidence"`
-	EvidenceSummary    []string   `json:"evidence_summary"`
-	Limitations        []string   `json:"limitations"`
+	Device          DeviceKind `json:"device"`
+	ConditionIndex  *int       `json:"condition_index"`
+	Status          string     `json:"status"`
+	Confidence      string     `json:"confidence"`
+	EvidenceSummary []string   `json:"evidence_summary"`
+	Limitations     []string   `json:"limitations"`
 }
 
 var ErrInvalidEvidence = errors.New("invalid Healthy Core evidence")
@@ -71,9 +71,9 @@ func Evaluate(e Evidence) (Assessment, error) {
 	}
 
 	result := Assessment{
-		Device: e.Device,
-		Status: "insufficient_data",
-		Confidence: "low",
+		Device:          e.Device,
+		Status:          "insufficient_data",
+		Confidence:      "low",
 		EvidenceSummary: []string{},
 		Limitations: []string{
 			"This index is not a physical-wear percentage or a remaining-life estimate.",
@@ -109,7 +109,9 @@ func Evaluate(e Evidence) (Assessment, error) {
 	}
 	if e.Device != RAM && e.ThermalThrottleEvents > 0 {
 		penalty := e.ThermalThrottleEvents * 5
-		if penalty > 20 { penalty = 20 }
+		if penalty > 20 {
+			penalty = 20
+		}
 		score -= penalty
 		result.EvidenceSummary = append(result.EvidenceSummary, fmt.Sprintf("%d thermal-throttling event(s) were reported.", e.ThermalThrottleEvents))
 		indicators++
@@ -120,7 +122,9 @@ func Evaluate(e Evidence) (Assessment, error) {
 			penaltyPerError = 20
 		}
 		penalty := e.ObservedErrors * penaltyPerError
-		if penalty > 30 { penalty = 30 }
+		if penalty > 30 {
+			penalty = 30
+		}
 		score -= penalty
 		result.EvidenceSummary = append(result.EvidenceSummary, fmt.Sprintf("%d hardware/driver error(s) were reported.", e.ObservedErrors))
 		indicators++
@@ -136,8 +140,12 @@ func Evaluate(e Evidence) (Assessment, error) {
 		result.EvidenceSummary = append(result.EvidenceSummary, "A device-specific vendor health percentage was supplied.")
 		indicators++
 	}
-	if score < 0 { score = 0 }
-	if score > 100 { score = 100 }
+	if score < 0 {
+		score = 0
+	}
+	if score > 100 {
+		score = 100
+	}
 	result.ConditionIndex = &score
 	if indicators >= 2 && e.SampleCount >= 12 {
 		result.Confidence = "medium"

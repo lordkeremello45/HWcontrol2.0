@@ -159,8 +159,8 @@ func TestSetLinuxFanControlChannelRejectsUnsafeRequests(t *testing.T) {
 		t.Fatalf("discovery returned %d targets, want 1", len(targets))
 	}
 	for _, test := range []struct {
-		name string
-		id string
+		name    string
+		id      string
 		percent float64
 	}{
 		{name: "invalid identifier", id: "/sys/class/hwmon/hwmon0/pwm1", percent: 60},

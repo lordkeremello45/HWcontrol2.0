@@ -337,7 +337,7 @@ func collectMetrics() HardwareMetrics {
 	}
 	metrics.ThermalSafetyAvailable =
 		(metrics.CPUTemperatureSource != "" && isValidTemperature(metrics.CPUTemperature) && metrics.CPUTemperature > 0) ||
-		(metrics.GPUTemperatureSource != "" && isValidTemperature(metrics.GPUTemperature) && metrics.GPUTemperature > 0)
+			(metrics.GPUTemperatureSource != "" && isValidTemperature(metrics.GPUTemperature) && metrics.GPUTemperature > 0)
 	game := collectGameModeState()
 	metrics.GameModeEnabled = game.Enabled
 	metrics.GameDetected = game.GameDetected
@@ -554,8 +554,12 @@ func validateCommand(cmd Command) error {
 			return err
 		}
 	} else if action == "Start Audio Studio" {
-		if cmd.Value != 0 { return fmt.Errorf("audio start command value must be zero") }
-		if _, err := decodeAudioStudioStartTarget(cmd.Target); err != nil { return err }
+		if cmd.Value != 0 {
+			return fmt.Errorf("audio start command value must be zero")
+		}
+		if _, err := decodeAudioStudioStartTarget(cmd.Target); err != nil {
+			return err
+		}
 	} else if cmd.Target != "" {
 		return fmt.Errorf("target is only accepted for fan-channel or audio-start commands")
 	}
@@ -858,7 +862,6 @@ func loadOrCreateSecret() (string, error) {
 	return secret, nil
 }
 
-
 type audioProbeDevice struct {
 	Index     int    `json:"index"`
 	NameHex   string `json:"nameHex"`
@@ -896,9 +899,13 @@ func decodeAudioDeviceProbeOutput(raw []byte) (map[string]any, error) {
 		return result, nil
 	}
 	capture, err := convert(output.Capture)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	playback, err := convert(output.Playback)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	return map[string]any{"capture": capture, "playback": playback, "localOnly": true}, nil
 }
 
@@ -908,14 +915,22 @@ func resolveAudioProbePath() (string, error) {
 			return "", fmt.Errorf("HWCONTROL_AUDIO_PROBE must be an absolute path")
 		}
 		info, err := os.Stat(configured)
-		if err != nil { return "", fmt.Errorf("inspect configured audio probe: %w", err) }
-		if !info.Mode().IsRegular() { return "", fmt.Errorf("configured audio probe is not a regular file") }
+		if err != nil {
+			return "", fmt.Errorf("inspect configured audio probe: %w", err)
+		}
+		if !info.Mode().IsRegular() {
+			return "", fmt.Errorf("configured audio probe is not a regular file")
+		}
 		return configured, nil
 	}
 	executable, err := os.Executable()
-	if err != nil { return "", fmt.Errorf("resolve bridge executable: %w", err) }
+	if err != nil {
+		return "", fmt.Errorf("resolve bridge executable: %w", err)
+	}
 	name := "hwcontrol_audio_probe"
-	if runtime.GOOS == "windows" { name += ".exe" }
+	if runtime.GOOS == "windows" {
+		name += ".exe"
+	}
 	dir := filepath.Dir(executable)
 	for _, candidate := range []string{
 		filepath.Join(dir, name),
@@ -926,43 +941,50 @@ func resolveAudioProbePath() (string, error) {
 		filepath.Join(dir, "..", "build-windows", "audio_core", name),
 	} {
 		info, statErr := os.Stat(candidate)
-		if statErr == nil && info.Mode().IsRegular() { return candidate, nil }
+		if statErr == nil && info.Mode().IsRegular() {
+			return candidate, nil
+		}
 	}
 	return "", fmt.Errorf("native audio probe is not packaged; build hwcontrol_audio_probe and place it beside the bridge or set HWCONTROL_AUDIO_PROBE")
 }
 
 func audioDeviceSnapshot() (map[string]any, error) {
 	probe, err := resolveAudioProbePath()
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	command := exec.CommandContext(ctx, probe, "--json")
 	output, err := command.Output()
-	if ctx.Err() != nil { return nil, fmt.Errorf("native audio device enumeration timed out") }
-	if err != nil { return nil, fmt.Errorf("native audio device enumeration failed: %w", err) }
+	if ctx.Err() != nil {
+		return nil, fmt.Errorf("native audio device enumeration timed out")
+	}
+	if err != nil {
+		return nil, fmt.Errorf("native audio device enumeration failed: %w", err)
+	}
 	return decodeAudioDeviceProbeOutput(output)
 }
 
-
 type audioStudioStartRequest struct {
-	CaptureIndex int `json:"captureIndex"`
-	PlaybackIndex int `json:"playbackIndex"`
-	MonitorOutput bool `json:"monitorOutput"`
-	InputGain float64 `json:"inputGain"`
-	GateThreshold float64 `json:"gateThreshold"`
-	CompressorThreshold float64 `json:"compressorThreshold"`
-	CompressorRatio float64 `json:"compressorRatio"`
-	CompressorAttack float64 `json:"compressorAttack"`
-	CompressorRelease float64 `json:"compressorRelease"`
-	CompressorKnee float64 `json:"compressorKnee"`
-	HighPassFrequency float64 `json:"highPassFrequency"`
-	LimiterCeiling float64 `json:"limiterCeiling"`
-	GateEnabled bool `json:"gateEnabled"`
-	CompressorEnabled bool `json:"compressorEnabled"`
-	HighPassEnabled bool `json:"highPassEnabled"`
-	LimiterEnabled bool `json:"limiterEnabled"`
-	EQGain []float64 `json:"eqGain"`
-	EQFrequency []float64 `json:"eqFrequency"`
+	CaptureIndex        int       `json:"captureIndex"`
+	PlaybackIndex       int       `json:"playbackIndex"`
+	MonitorOutput       bool      `json:"monitorOutput"`
+	InputGain           float64   `json:"inputGain"`
+	GateThreshold       float64   `json:"gateThreshold"`
+	CompressorThreshold float64   `json:"compressorThreshold"`
+	CompressorRatio     float64   `json:"compressorRatio"`
+	CompressorAttack    float64   `json:"compressorAttack"`
+	CompressorRelease   float64   `json:"compressorRelease"`
+	CompressorKnee      float64   `json:"compressorKnee"`
+	HighPassFrequency   float64   `json:"highPassFrequency"`
+	LimiterCeiling      float64   `json:"limiterCeiling"`
+	GateEnabled         bool      `json:"gateEnabled"`
+	CompressorEnabled   bool      `json:"compressorEnabled"`
+	HighPassEnabled     bool      `json:"highPassEnabled"`
+	LimiterEnabled      bool      `json:"limiterEnabled"`
+	EQGain              []float64 `json:"eqGain"`
+	EQFrequency         []float64 `json:"eqFrequency"`
 }
 
 var audioProbeSessionMu sync.Mutex
@@ -974,7 +996,10 @@ func validAudioStudioStartRequest(request audioStudioStartRequest) error {
 	if request.CaptureIndex < 0 || request.CaptureIndex > 1024 || request.PlaybackIndex < 0 || request.PlaybackIndex > 1024 {
 		return fmt.Errorf("audio device index is outside the allowed range")
 	}
-	ranges := []struct { name string; value, min, max float64 }{
+	ranges := []struct {
+		name            string
+		value, min, max float64
+	}{
 		{"input gain", request.InputGain, -24, 12},
 		{"gate threshold", request.GateThreshold, -90, 0},
 		{"compressor threshold", request.CompressorThreshold, -60, 0},
@@ -1010,36 +1035,55 @@ func decodeAudioStudioStartTarget(target string) (audioStudioStartRequest, error
 		return request, fmt.Errorf("audio start configuration is missing or too large")
 	}
 	raw, err := base64.RawURLEncoding.DecodeString(target)
-	if err != nil { return request, fmt.Errorf("invalid audio start configuration encoding") }
-	if err := json.Unmarshal(raw, &request); err != nil { return request, fmt.Errorf("invalid audio start configuration") }
-	if err := validAudioStudioStartRequest(request); err != nil { return request, err }
+	if err != nil {
+		return request, fmt.Errorf("invalid audio start configuration encoding")
+	}
+	if err := json.Unmarshal(raw, &request); err != nil {
+		return request, fmt.Errorf("invalid audio start configuration")
+	}
+	if err := validAudioStudioStartRequest(request); err != nil {
+		return request, err
+	}
 	return request, nil
 }
 
 func audioStudioStartLine(request audioStudioStartRequest) string {
-	boolNumber := func(value bool) int { if value { return 1 }; return 0 }
+	boolNumber := func(value bool) int {
+		if value {
+			return 1
+		}
+		return 0
+	}
 	values := []float64{
 		request.InputGain, request.GateThreshold, request.CompressorThreshold,
 		request.CompressorRatio, request.CompressorAttack, request.CompressorRelease,
 		request.CompressorKnee, request.HighPassFrequency, request.LimiterCeiling,
 	}
-	for i := 0; i < 3; i++ { values = append(values, request.EQFrequency[i], request.EQGain[i]) }
+	for i := 0; i < 3; i++ {
+		values = append(values, request.EQFrequency[i], request.EQGain[i])
+	}
 	parts := []string{
 		"start", strconv.Itoa(request.CaptureIndex), strconv.Itoa(request.PlaybackIndex),
 		strconv.Itoa(boolNumber(request.MonitorOutput)),
 	}
-	for _, value := range values[:9] { parts = append(parts, strconv.FormatFloat(value, 'f', -1, 64)) }
+	for _, value := range values[:9] {
+		parts = append(parts, strconv.FormatFloat(value, 'f', -1, 64))
+	}
 	parts = append(parts,
 		strconv.Itoa(boolNumber(request.GateEnabled)),
 		strconv.Itoa(boolNumber(request.CompressorEnabled)),
 		strconv.Itoa(boolNumber(request.HighPassEnabled)),
 		strconv.Itoa(boolNumber(request.LimiterEnabled)))
-	for _, value := range values[9:] { parts = append(parts, strconv.FormatFloat(value, 'f', -1, 64)) }
+	for _, value := range values[9:] {
+		parts = append(parts, strconv.FormatFloat(value, 'f', -1, 64))
+	}
 	return strings.Join(parts, " ")
 }
 
 func stopAudioProbeSessionLocked() {
-	if audioProbeSessionInput != nil { _ = audioProbeSessionInput.Close() }
+	if audioProbeSessionInput != nil {
+		_ = audioProbeSessionInput.Close()
+	}
 	if audioProbeSessionCmd != nil && audioProbeSessionCmd.Process != nil {
 		_ = audioProbeSessionCmd.Process.Kill()
 		_ = audioProbeSessionCmd.Wait()
@@ -1054,13 +1098,23 @@ func audioProbeControl(command string) (map[string]any, error) {
 	defer audioProbeSessionMu.Unlock()
 	if audioProbeSessionCmd == nil {
 		probe, err := resolveAudioProbePath()
-		if err != nil { return nil, err }
+		if err != nil {
+			return nil, err
+		}
 		cmd := exec.Command(probe, "--server")
 		stdin, err := cmd.StdinPipe()
-		if err != nil { return nil, fmt.Errorf("open native audio control input: %w", err) }
+		if err != nil {
+			return nil, fmt.Errorf("open native audio control input: %w", err)
+		}
 		stdout, err := cmd.StdoutPipe()
-		if err != nil { _ = stdin.Close(); return nil, fmt.Errorf("open native audio control output: %w", err) }
-		if err := cmd.Start(); err != nil { _ = stdin.Close(); return nil, fmt.Errorf("start native audio control process: %w", err) }
+		if err != nil {
+			_ = stdin.Close()
+			return nil, fmt.Errorf("open native audio control output: %w", err)
+		}
+		if err := cmd.Start(); err != nil {
+			_ = stdin.Close()
+			return nil, fmt.Errorf("start native audio control process: %w", err)
+		}
 		audioProbeSessionCmd = cmd
 		audioProbeSessionInput = stdin
 		audioProbeSessionOutput = bufio.NewReaderSize(stdout, 4096)
@@ -1069,14 +1123,20 @@ func audioProbeControl(command string) (map[string]any, error) {
 		stopAudioProbeSessionLocked()
 		return nil, fmt.Errorf("send native audio command: %w", err)
 	}
-	type readResult struct { line string; err error }
+	type readResult struct {
+		line string
+		err  error
+	}
 	result := make(chan readResult, 1)
 	reader := audioProbeSessionOutput
 	go func() { line, err := reader.ReadString('\n'); result <- readResult{line: line, err: err} }()
 	var line string
 	select {
 	case response := <-result:
-		if response.err != nil { stopAudioProbeSessionLocked(); return nil, fmt.Errorf("read native audio response: %w", response.err) }
+		if response.err != nil {
+			stopAudioProbeSessionLocked()
+			return nil, fmt.Errorf("read native audio response: %w", response.err)
+		}
 		line = response.line
 	case <-time.After(5 * time.Second):
 		stopAudioProbeSessionLocked()
@@ -1087,10 +1147,10 @@ func audioProbeControl(command string) (map[string]any, error) {
 		return nil, fmt.Errorf("native audio response exceeded the size limit")
 	}
 	var response struct {
-		Status string `json:"status"`
-		Message string `json:"message"`
-		MessageHex string `json:"messageHex"`
-		Data map[string]any `json:"data"`
+		Status     string         `json:"status"`
+		Message    string         `json:"message"`
+		MessageHex string         `json:"messageHex"`
+		Data       map[string]any `json:"data"`
 	}
 	if err := json.Unmarshal([]byte(line), &response); err != nil {
 		stopAudioProbeSessionLocked()
@@ -1098,7 +1158,9 @@ func audioProbeControl(command string) (map[string]any, error) {
 	}
 	if response.Status != "SUCCESS" {
 		if response.MessageHex != "" {
-			if raw, err := hex.DecodeString(response.MessageHex); err == nil { response.Message = strings.ToValidUTF8(string(raw), "\\uFFFD") }
+			if raw, err := hex.DecodeString(response.MessageHex); err == nil {
+				response.Message = strings.ToValidUTF8(string(raw), "\\uFFFD")
+			}
 		}
 		return nil, fmt.Errorf("native audio operation failed: %s", strings.ToValidUTF8(response.Message, "\\uFFFD"))
 	}
@@ -1126,9 +1188,9 @@ func diagnosticsSnapshot() map[string]any {
 		"goVersion":              runtime.Version(),
 		"keyFileConfigured":      strings.TrimSpace(os.Getenv("HWCONTROL_KEY_FILE")) != "",
 		"keyConfigured":          strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "" && strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) != "replace-me",
-		"bridgeIntegrityHealthy":  bridgeIntegrityHealthy(),
-		"bridgeIntegrityMonitor":  strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) == "" || strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) == "replace-me",
-		"bridgeIntegrityTargets":  bridgeIntegrityTargetCount.Load(),
+		"bridgeIntegrityHealthy": bridgeIntegrityHealthy(),
+		"bridgeIntegrityMonitor": strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) == "" || strings.TrimSpace(os.Getenv("HWCONTROL_KEY")) == "replace-me",
+		"bridgeIntegrityTargets": bridgeIntegrityTargetCount.Load(),
 		"modelPathConfigured":    modelPath != "",
 		"modelState":             modelState,
 		"modelSha256":            modelDigest(),
@@ -1139,30 +1201,30 @@ func diagnosticsSnapshot() map[string]any {
 		"hardwareControl":        hasValidatedFanControl(metrics),
 		"fanControlBackend":      metrics.FanControlBackend,
 		"hardwareControlMode":    metrics.HardwareControlMode,
-		"fanChannels":             metrics.FanChannels,
+		"fanChannels":            metrics.FanChannels,
 		"thermalSafetyAvailable": metrics.ThermalSafetyAvailable,
 		"localOnly":              true,
 		"listenAddress":          bridgeEndpoint(),
 		"uptimeSeconds":          metrics.UptimeSeconds,
-		"healthStatus":            health.Status,
-		"safetyState":              health.SafetyState,
-		"recoveryAction":           health.RecoveryAction,
-		"hardwareCapabilities":     health.Capabilities,
-		"hardwareAnomalies":        health.Anomalies,
-		"services":                 serviceCatalogSnapshot(),
-		"fetchStatus":              fetchStatusSnapshot(),
-		"diagnosticService":        diagnosticServiceSnapshot(),
-		"panicMode":                panicModeActive(),
+		"healthStatus":           health.Status,
+		"safetyState":            health.SafetyState,
+		"recoveryAction":         health.RecoveryAction,
+		"hardwareCapabilities":   health.Capabilities,
+		"hardwareAnomalies":      health.Anomalies,
+		"services":               serviceCatalogSnapshot(),
+		"fetchStatus":            fetchStatusSnapshot(),
+		"diagnosticService":      diagnosticServiceSnapshot(),
+		"panicMode":              panicModeActive(),
 		"gameMode": func() map[string]any {
 			state := collectGameModeState()
 			return map[string]any{
-				"enabled": state.Enabled,
-				"gameDetected": state.GameDetected,
-				"processName": state.ProcessName,
-				"pid": state.PID,
-				"detectedAt": state.DetectedAt,
+				"enabled":                state.Enabled,
+				"gameDetected":           state.GameDetected,
+				"processName":            state.ProcessName,
+				"pid":                    state.PID,
+				"detectedAt":             state.DetectedAt,
 				"sessionDurationSeconds": state.SessionDurationSeconds,
-				"optimizationMode": state.OptimizationMode,
+				"optimizationMode":       state.OptimizationMode,
 			}
 		}(),
 
@@ -1389,7 +1451,9 @@ func handleConnection(conn net.Conn, secret string) {
 				// Read-only diagnostics remain available so the user can see why the system entered panic mode.
 			default:
 				_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-				if err := encoder.Encode(Response{Status: "ERROR", Message: "security panic mode active; hardware-control request denied"}); err != nil { return }
+				if err := encoder.Encode(Response{Status: "ERROR", Message: "security panic mode active; hardware-control request denied"}); err != nil {
+					return
+				}
 				continue
 			}
 		}
@@ -1406,9 +1470,13 @@ func handleConnection(conn net.Conn, secret string) {
 			data, audioErr := audioDeviceSnapshot()
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
 			if audioErr != nil {
-				if err := encoder.Encode(Response{Status: "ERROR", Message: audioErr.Error()}); err != nil { return }
+				if err := encoder.Encode(Response{Status: "ERROR", Message: audioErr.Error()}); err != nil {
+					return
+				}
 			} else {
-				if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Native audio endpoints enumerated locally", Data: data}); err != nil { return }
+				if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Native audio endpoints enumerated locally", Data: data}); err != nil {
+					return
+				}
 			}
 			continue
 		}
@@ -1419,7 +1487,9 @@ func handleConnection(conn net.Conn, secret string) {
 				request, requestErr := decodeAudioStudioStartTarget(cmd.Target)
 				if requestErr != nil {
 					_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-					if err := encoder.Encode(Response{Status: "ERROR", Message: requestErr.Error()}); err != nil { return }
+					if err := encoder.Encode(Response{Status: "ERROR", Message: requestErr.Error()}); err != nil {
+						return
+					}
 					continue
 				}
 				control = audioStudioStartLine(request)
@@ -1431,35 +1501,51 @@ func handleConnection(conn net.Conn, secret string) {
 			data, audioErr := audioProbeControl(control)
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
 			if audioErr != nil {
-				if err := encoder.Encode(Response{Status: "ERROR", Message: audioErr.Error()}); err != nil { return }
+				if err := encoder.Encode(Response{Status: "ERROR", Message: audioErr.Error()}); err != nil {
+					return
+				}
 			} else {
 				message := "Audio studio status retrieved"
-				if cmd.Action == "Start Audio Studio" { message = "Native audio processing started" }
-				if cmd.Action == "Stop Audio Studio" { message = "Native audio processing stopped" }
-				if err := encoder.Encode(Response{Status: "SUCCESS", Message: message, Data: data}); err != nil { return }
+				if cmd.Action == "Start Audio Studio" {
+					message = "Native audio processing started"
+				}
+				if cmd.Action == "Stop Audio Studio" {
+					message = "Native audio processing stopped"
+				}
+				if err := encoder.Encode(Response{Status: "SUCCESS", Message: message, Data: data}); err != nil {
+					return
+				}
 			}
 			continue
 		}
 		if cmd.Action == "Get Update" {
 			status := checkForUpdates(context.Background())
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Update Service durumu alındı", Data: status}); err != nil { return }
+			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Update Service durumu alındı", Data: status}); err != nil {
+				return
+			}
 			continue
 		}
 		if cmd.Action == "Get Sensor Health" {
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "SensorHealth durumu alındı", Data: sensorHealthSnapshot()}); err != nil { return }
+			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "SensorHealth durumu alındı", Data: sensorHealthSnapshot()}); err != nil {
+				return
+			}
 			continue
 		}
 		if cmd.Action == "Get Sensor History" {
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Yerel sensör geçmişi alındı", Data: sensorHistorySnapshot()}); err != nil { return }
+			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Yerel sensör geçmişi alındı", Data: sensorHistorySnapshot()}); err != nil {
+				return
+			}
 			continue
 		}
 		if cmd.Action == "Get Fetch Status" {
 			checkDecoyIntegrity()
 			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
-			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Fetch Status durumu alındı", Data: fetchStatusSnapshot()}); err != nil { return }
+			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Fetch Status durumu alındı", Data: fetchStatusSnapshot()}); err != nil {
+				return
+			}
 			continue
 		}
 		if cmd.Action == "Get Fan Channels" {
@@ -1468,7 +1554,7 @@ func handleConnection(conn net.Conn, secret string) {
 				Status:  "SUCCESS",
 				Message: "Fan channel capabilities retrieved",
 				Data: map[string]any{
-					"channels": listFanChannels(),
+					"channels":  listFanChannels(),
 					"localOnly": true,
 				},
 			}); err != nil {
@@ -1512,8 +1598,8 @@ func handleConnection(conn net.Conn, secret string) {
 				"bridgeIntegrity":   bridgeIntegrityHealthy(),
 				"modelSha256":       modelDigest(),
 				"keyFileConfigured": strings.TrimSpace(os.Getenv("HWCONTROL_KEY_FILE")) != "",
-				"panicMode":          panicModeActive(),
-				"services":           serviceCatalogSnapshot(),
+				"panicMode":         panicModeActive(),
+				"services":          serviceCatalogSnapshot(),
 			}}); err != nil {
 				return
 			}

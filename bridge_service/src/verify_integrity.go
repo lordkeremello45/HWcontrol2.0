@@ -23,9 +23,9 @@ type verifyFileRecord struct {
 }
 
 type verifyState struct {
-	Version int               `json:"version"`
+	Version int                `json:"version"`
 	Files   []verifyFileRecord `json:"files"`
-	MAC     string            `json:"mac"`
+	MAC     string             `json:"mac"`
 }
 
 func verifyInstallationRoot() (string, error) {
@@ -90,8 +90,8 @@ func verifyFileDigest(path string) (verifyFileRecord, error) {
 		return verifyFileRecord{}, err
 	}
 	return verifyFileRecord{
-		Path: filepath.ToSlash(path),
-		Size: info.Size(),
+		Path:   filepath.ToSlash(path),
+		Size:   info.Size(),
 		SHA256: hex.EncodeToString(hasher.Sum(nil)),
 	}, nil
 }

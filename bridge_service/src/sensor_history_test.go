@@ -17,8 +17,8 @@ func TestSensorHistoryIsBoundedAndLocal(t *testing.T) {
 	base := time.Date(2026, 10, 13, 12, 0, 0, 0, time.UTC)
 	for i := 0; i < maxSensorHistorySamples+7; i++ {
 		recordSensorHistory(HardwareMetrics{
-			MetricsCollectedAt: base.Add(time.Duration(i) * time.Second).Format(time.RFC3339Nano),
-			CPUTemperature: float64(40 + i%20),
+			MetricsCollectedAt:   base.Add(time.Duration(i) * time.Second).Format(time.RFC3339Nano),
+			CPUTemperature:       float64(40 + i%20),
 			CPUTemperatureSource: "test-sensor",
 		})
 	}
@@ -49,12 +49,12 @@ func TestSensorHistoryIgnoresMissingTimestamp(t *testing.T) {
 
 func TestSensorHistoryAgeRejectsInvalidOrFutureTimestamp(t *testing.T) {
 	now := time.Date(2026, 10, 13, 12, 0, 0, 0, time.UTC)
-	for _, timestamp := range []string{"invalid", now.Add(2*time.Second).Format(time.RFC3339Nano)} {
+	for _, timestamp := range []string{"invalid", now.Add(2 * time.Second).Format(time.RFC3339Nano)} {
 		if _, ok := sensorHistoryAge(SensorHistorySample{Timestamp: timestamp}, now); ok {
 			t.Fatalf("expected invalid/future timestamp %q to be rejected", timestamp)
 		}
 	}
-	age, ok := sensorHistoryAge(SensorHistorySample{Timestamp: now.Add(-5*time.Second).Format(time.RFC3339Nano)}, now)
+	age, ok := sensorHistoryAge(SensorHistorySample{Timestamp: now.Add(-5 * time.Second).Format(time.RFC3339Nano)}, now)
 	if !ok || age != 5*time.Second {
 		t.Fatalf("age = %v, valid = %v; want 5s, true", age, ok)
 	}
