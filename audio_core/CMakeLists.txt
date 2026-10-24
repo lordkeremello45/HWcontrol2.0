@@ -1,4 +1,4 @@
-add_library(hwcontrol_audio_core
+add_library(hwcontrol_audio_core STATIC
   src/audio_engine.cpp
   src/audio_analyzer.cpp
   src/loudness_meter.cpp
