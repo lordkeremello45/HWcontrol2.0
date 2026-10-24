@@ -8,6 +8,7 @@ on:
       - "scripts/generate-release-manifest.py"
       - "scripts/website-release-test.mjs"
       - "scripts/build-apt-repository.sh"
+      - "scripts/build-freebsd-pkg-repository.sh"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
