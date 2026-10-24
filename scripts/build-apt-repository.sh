@@ -38,7 +38,6 @@ pushd "$repo_root" >/dev/null
 dpkg-scanpackages --arch amd64 pool /dev/null > dists/stable/main/binary-amd64/Packages
 gzip -9 -n -c dists/stable/main/binary-amd64/Packages > dists/stable/main/binary-amd64/Packages.gz
 apt-ftparchive release dists/stable > dists/stable/Release
-popd >/dev/null
 
 gnupg_home="$work_dir/gnupg"
 mkdir -m 0700 "$gnupg_home"
