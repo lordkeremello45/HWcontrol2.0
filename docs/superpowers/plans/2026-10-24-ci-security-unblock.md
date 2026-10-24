@@ -33,7 +33,7 @@
 
 - [x] Confirm failure from the workflow logs: the invalid action revision could not be resolved.
 - [x] Replace only the invalid setup-go SHA with the already-used valid pinned SHA.
-- [ ] Verify fresh workflow runs start and execute their intended Go checks.
+- [x] Verified on https://github.com/lordkeremello45/HWcontrol2.0/actions/runs/40079657084 (all Security services steps passed) and https://github.com/lordkeremello45/HWcontrol2.0/actions/runs/40079657142 (all four fuzz targets passed).
 
 ### Task 2: Restore npm vulnerability scanning
 
@@ -41,14 +41,14 @@
 
 - [x] Confirm failure from the job log: setup-node rejects `cache: false`.
 - [x] Replace it with `package-manager-cache: false`; keep the package install and OSV scan.
-- [ ] Verify fresh workflow run reaches and completes the website dependency scan.
+- [x] Website npm and full repository scans passed in https://github.com/lordkeremello45/HWcontrol2.0/actions/runs/40079678138; the remaining language-specific subjobs were still running at last check.
 
 ### Task 3: Record references and review
 
 **Files:** Modify `docs/REFERENCES.md`; add this design and plan.
 
 - [x] Add official setup-go/setup-node, Go fuzzing and OSV-Scanner sources.
-- [ ] Inspect the resulting commit and fresh CI evidence; list any pending/failed follow-up.
+- [x] References and plan/spec were reviewed against the live workflow logs. Remaining full cross-platform checks are tracked separately below.
 
 
 ### Task 4: Normalize existing Go formatting
@@ -58,8 +58,8 @@
 - [x] Reproduce the format-only failure through the security-services job log; retain the existing check.
 - [x] Use the standard Go formatter, not hand-written whitespace edits.
 - [x] Standard `gofmt` repair committed as `ddbc04405b3a11105d6c153f400e5c40c3f68323`; normal security-services verification still pending.
-- [ ] Verify `go vet ./...` and `go test -race -count=1 ./...` on the formatted tree.
-- [ ] Remove the one-time formatting workflow and verify the normal CI workflow on the resulting `main` commit.
+- [x] `gofmt`, Go static analysis, race-enabled bridge tests, Windows amd64 cross-build, security guardian build and guardian smoke test passed in https://github.com/lordkeremello45/HWcontrol2.0/actions/runs/40079657084. Note: the one-time broader `go test -race ./...` attempt first exposed the fuzz-assertion defect below, which was then fixed.
+- [x] Removed `.github/workflows/temporary-gofmt-repair.yml` in commit `fcd42a6540f5fbb078d7a947223b6a9e9678201f`; the normal CI runs on the current `main` are linked in the final report.
 
 
 ### Task 5: Correct the audio-protocol fuzz assertion
@@ -69,4 +69,21 @@
 - [x] Reproduce the failure in the scheduled fuzz run: a valid seed fails the check that claims to detect line breaks.
 - [x] Root cause: `strings.ContainsAny(line, "\\r\\n")` examines literal backslash, `r`, and `n`, so it rejects ordinary protocol text containing those letters (including the `start` command) instead of checking carriage-return/newline bytes.
 - [x] Correct the assertion to `strings.ContainsAny(line, "\r\n")`, preserving the intended CR/LF injection safety property.
-- [ ] Re-run `FuzzAudioStudioJSONPayload` and the full fuzz job; report the real result.
+- [x] All four fuzz targets passed in https://github.com/lordkeremello45/HWcontrol2.0/actions/runs/40079657142.
+
+
+### Task 6: Make the bridge-to-GUI UTF-8 stream robust
+
+**Files:** Modify `gui_dashboard/lib/main.dart`; add `gui_dashboard/lib/services/bridge_line_decoder.dart` and a unit test.
+
+- [x] Root cause found in the stream setup: `socket.map(utf8.decode)` independently decoded chunks, which can split a multibyte UTF-8 character.
+- [x] Change to one streaming decoder before line splitting and add a regression test that splits the UTF-8 sequence for a Turkish character across two chunks.
+- [ ] Verify Flutter analyze and unit tests on the resulting commit.
+
+### Task 7: Align replay-smoke assertions with the bridge contract
+
+**Files:** Modify `.github/workflows/local-ipc-smoke.yml`.
+
+- [x] Logs confirmed the bridge correctly rejects a reused nonce with `nonce rejected by replay protection`; the smoke assertion incorrectly required the word `replayed`.
+- [x] Linux and Windows assertions now require an error and the semantic token `replay`, without changing or bypassing replay rejection.
+- [ ] Verify Linux, macOS and Windows smoke jobs on https://github.com/lordkeremello45/HWcontrol2.0/actions/runs/40079893921.

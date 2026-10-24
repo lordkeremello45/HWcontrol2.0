@@ -24,6 +24,7 @@ import 'benchmark.dart';
 import 'automation_rules.dart';
 import 'audio_controller_studio.dart';
 import 'services/ai/model_manager.dart';
+import 'services/bridge_line_decoder.dart';
 import 'user_data_store.dart';
 import 'game_profile.dart';
 import 'l10n/app_localizations.dart';
@@ -2529,7 +2530,7 @@ Attach this archive to a support issue only after reviewing it for personal info
       _socket?.destroy();
       _responses?.cancel();
       _socket = socket;
-      _responses = StreamIterator(socket.map(utf8.decode).transform(const LineSplitter()));
+      _responses = StreamIterator(decodeUtf8Lines(socket));
       socket.done.whenComplete(() {
         if (!mounted || generation != _connectionGeneration) return;
         setState(() {

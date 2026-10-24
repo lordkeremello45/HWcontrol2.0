@@ -54,6 +54,8 @@ References answer **where a design decision came from**. They do not replace imp
 - Dart: https://dart.dev/
 - Go: https://go.dev/
 - Go formatter (`gofmt`): https://pkg.go.dev/cmd/gofmt
+- Dart UTF-8 streaming decoder: https://api.dart.dev/dart-convert/Utf8Decoder-class.html
+- Dart stream transforms: https://api.dart.dev/dart-async/Stream/transform.html
 - Rust: https://www.rust-lang.org/
 - C++: https://isocpp.org/
 - CMake: https://cmake.org/documentation/
