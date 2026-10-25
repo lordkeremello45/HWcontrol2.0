@@ -1,0 +1,45 @@
+MEET PULSAR
+============
+
+Pulsar is the friendly visual mascot associated with HWcontrol2.0, an open-source desktop application for PC hardware monitoring and supported hardware control.
+
+WHO IS PULSAR?
+--------------
+Pulsar is a small, recognizable guide for the HWcontrol2.0 experience. The mascot is intended to make technical information, diagnostics, and system status feel more approachable without making the application look childish or less professional.
+
+VISUAL IDENTITY
+---------------
+The design direction is a clean, minimal 2D four-point star with a wide silhouette. Its center features a simple "> -" symbol. Smooth gradients may be used to give the mark depth and energy while keeping the overall shape easy to recognize at different sizes.
+
+The visual style should remain:
+- Minimal and distinctive
+- Professional and friendly
+- Readable at small sizes
+- Consistent with HWcontrol2.0's modern desktop interface
+- Accessible, with sufficient contrast and without relying on color alone to communicate status
+
+PERSONALITY AND ROLE
+--------------------
+Pulsar should feel calm, helpful, curious, and technically minded. It can serve as a visual guide in onboarding, help pages, diagnostics, and informational messages.
+
+Pulsar is a mascot, not a security authority. The character must not imply that a system is safe, a threat has been detected, or a hardware operation succeeded unless the application has reliable evidence for that statement. Real status, warnings, and diagnostic results must come from the software's actual checks.
+
+VOICE AND ACCESSIBILITY
+-----------------------
+Offline text-to-speech using Piper has been considered as part of the broader project experience. Voice support should only be described as available in a particular build when that build actually includes and enables it. Important information must also remain available as text, and users should be able to control or disable spoken output.
+
+RELATIONSHIP TO HWCONTROL2.0
+----------------------------
+HWcontrol2.0 is designed to bring available PC hardware telemetry, diagnostics, and supported controls into one desktop application. Pulsar represents the approachable, user-facing side of that goal; it does not replace the underlying monitoring engine, bridge, platform APIs, security checks, or test evidence.
+
+DESIGN PRINCIPLES
+-----------------
+1. Keep the silhouette simple and recognizable.
+2. Use motion and gradients sparingly; do not distract from telemetry or warnings.
+3. Pair mascot expressions and colors with clear text labels and accessible status indicators.
+4. Never use the mascot as proof that a feature is implemented, hardware is compatible, or a security check passed.
+5. Keep the character's appearance consistent across documentation, the website, and the application.
+
+IN SHORT
+--------
+Pulsar is HWcontrol2.0's minimal, four-point-star mascot: a friendly visual guide that gives the project a recognizable identity while keeping technical accuracy, accessibility, and user trust first.
