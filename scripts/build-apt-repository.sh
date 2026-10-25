@@ -35,7 +35,7 @@ while IFS= read -r deb; do
 done < <(find "$repo_root/pool/main/h/hwcontrol" -maxdepth 1 -type f -name '*.deb' -print)
 
 pushd "$repo_root" >/dev/null
-dpkg-scanpackages --arch amd64 pool /dev/null > dists/stable/main/binary-amd64/Packages
+dpkg-scanpackages --arch amd64 pool/main/h/hwcontrol /dev/null pool > dists/stable/main/binary-amd64/Packages
 gzip -9 -n -c dists/stable/main/binary-amd64/Packages > dists/stable/main/binary-amd64/Packages.gz
 apt-ftparchive release dists/stable > dists/stable/Release
 
@@ -48,8 +48,8 @@ if [[ -z "$fingerprint" ]]; then
   echo "Could not determine the APT signing key fingerprint." >&2
   exit 1
 fi
-gpg --batch --yes --local-user "$fingerprint" --clearsign --output "$repo_root/dists/stable/InRelease" "$repo_root/dists/stable/Release"
-gpg --batch --yes --local-user "$fingerprint" --armor --detach-sign --output "$repo_root/dists/stable/Release.gpg" "$repo_root/dists/stable/Release"
+gpg --batch --yes --local-user "$fingerprint" --clearsign --output "dists/stable/InRelease" "dists/stable/Release"
+gpg --batch --yes --local-user "$fingerprint" --armor --detach-sign --output "dists/stable/Release.gpg" "dists/stable/Release"
 gpg --batch --export "$fingerprint" > "$repo_root/hwcontrol-archive-keyring.gpg"
 printf '%s\n' "$fingerprint" > "$repo_root/KEY-FINGERPRINT.txt"
 popd >/dev/null
