@@ -30,8 +30,14 @@ while IFS= read -r deb; do
   dpkg-deb --info "$deb" >/dev/null
   package_name="$(dpkg-deb -f "$deb" Package)"
   architecture="$(dpkg-deb -f "$deb" Architecture)"
+  version="$(dpkg-deb -f "$deb" Version)"
   [[ "$package_name" == "hwcontrol" ]] || { echo "Unexpected package name: $package_name" >&2; exit 1; }
   [[ "$architecture" == "amd64" ]] || { echo "Unexpected architecture: $architecture" >&2; exit 1; }
+  [[ "$version" =~ ^[A-Za-z0-9.+:~_-]+$ ]] || { echo "Unsafe Debian package version: $version" >&2; exit 1; }
+  canonical_deb="$repo_root/pool/main/h/hwcontrol/hwcontrol_${version}_amd64.deb"
+  if [[ "$deb" != "$canonical_deb" ]]; then
+    mv -- "$deb" "$canonical_deb"
+  fi
 done < <(find "$repo_root/pool/main/h/hwcontrol" -maxdepth 1 -type f -name '*.deb' -print)
 
 pushd "$repo_root" >/dev/null
