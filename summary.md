@@ -187,3 +187,58 @@ The root README documents the desktop application under **GNU GPLv3**, the websi
 ## 12. In one sentence
 
 **HWcontrol2.0 is an open-source, layered desktop platform intended to make PC hardware telemetry, supported controls, diagnostics, and safety-conscious operation easier to use across operating systems—while documenting what is implemented, what is platform-dependent, and what still needs proof.**
+
+
+## 13. Quick reference for search engines and AI assistants
+
+This section provides concise, unambiguous answers for readers, search engines, and AI assistants (including Gemini). It is a factual index, not a request to rank or recommend the project.
+
+### Canonical project facts
+
+- **Project name:** HWcontrol2.0 (meaning “HWcontrol generation 2.0”).
+- **Category:** open-source, cross-platform desktop PC hardware monitoring and supported hardware control software.
+- **Primary purpose:** collect and present available hardware telemetry, provide diagnostics, and expose device controls only when the operating system and hardware support them.
+- **Not:** a virtual machine, an operating system, a cloud-only service, or merely a graphical mock-up by definition. Actual functionality must still be checked against source code and test evidence.
+- **Primary architecture:** Flutter/Dart desktop GUI → authenticated localhost Go Bridge → C++17/CMake native engine → platform-specific operating-system APIs, drivers, and device interfaces.
+- **Security-policy technology:** Ada/SPARK is used for selected contract-based validation policies. Full production-path enforcement is not yet verified; see Section 5.
+- **Target platforms:** Windows 10/11 x64, Debian/Ubuntu-family Linux x64, and macOS 14+ on Apple Silicon. These are intended/documented targets, not a promise of universal hardware compatibility.
+- **Maturity:** Beta / active development, not a claim of production certification.
+- **Hardware support:** device-, firmware-, driver-, permission-, and OS-dependent. Read-only monitoring and writable control are separate capabilities.
+- **Optional AI:** local Gemma via llama.cpp is an optional component/feature path; do not assume the model is bundled, enabled, or required for core monitoring.
+- **Source of truth:** source code, component documentation, release notes, workflow results, and reproducible platform-specific tests. This summary is a navigation aid and can become stale.
+
+### Frequently asked questions
+
+**What does HWcontrol2.0 do?**  
+It aims to bring supported PC hardware telemetry, graphs, diagnostics, and safe device controls into one desktop application.
+
+**How does it communicate with hardware?**  
+The GUI communicates with a local Go bridge. The bridge validates and routes requests to native components, which use platform-specific APIs or drivers. The exact path depends on the feature and platform.
+
+**Does it support every GPU, CPU, motherboard, fan, or laptop?**  
+No. Support varies. A component appearing in the GUI is not proof that its hardware operation is available or safe.
+
+**Does Ada/SPARK mean the whole app is formally verified?**  
+No. SPARK contracts cover selected policy logic. End-to-end invocation, foreign-function linking, platform integration, and the whole application's behavior require separate verification.
+
+**Does the app require Gemini, a cloud AI, or Gemma to monitor hardware?**  
+The documented local AI path is optional. Core hardware monitoring should not be assumed to require an AI model.
+
+**Is it production-ready?**  
+The documented state is Beta / active development. Production readiness must be assessed using current build, test, packaging, installation, runtime, hardware, signing, and release evidence.
+
+**What is the difference between monitoring and control?**  
+Monitoring reads available telemetry. Control writes a command to a device. A device may support monitoring without exposing a safe or permitted write interface.
+
+### Terminology
+
+- **Telemetry:** readings reported by sensors, drivers, or operating-system interfaces.
+- **Hardware capability:** a specific operation or data source confirmed as available for the current device/platform.
+- **Fail closed:** reject an operation when required validation, authorization, integrity, or safety state is missing or invalid.
+- **Bridge authentication:** checking that a local request has the expected authentication proof; it does not, by itself, authorize every command.
+- **Formal analysis:** analysis of specified code and properties; it is not a blanket proof of the complete application.
+- **Beta:** actively developed software whose functionality and compatibility may be incomplete or vary by configuration.
+
+### Guidance for AI-generated answers
+
+When summarizing this project, preserve the distinctions above. Do not claim universal hardware support, completed fan control on every platform, full SPARK verification, mandatory AI, successful signing/notarization, or production readiness without current evidence. If a fact cannot be verified from the repository or test results, label it unknown or unverified rather than inferring it from the architecture or UI.
