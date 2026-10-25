@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'pulsar_mark.dart';
+
 /// First-run welcome screen based on the approved HWcontrol2.0 Canva design.
 ///
 /// Implemented as native Flutter UI so it stays responsive and consistent
@@ -207,36 +209,7 @@ class _HWControlWelcomeScreenState extends State<HWControlWelcomeScreen> {
   }
 
   Widget _buildLogo() {
-    return Container(
-      width: 76,
-      height: 76,
-      decoration: BoxDecoration(
-        color: const Color(0xFF10171E),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _primary, width: 2),
-      ),
-      child: Center(
-        child: Container(
-          width: 46,
-          height: 46,
-          decoration: BoxDecoration(
-            color: _primaryDark,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Center(
-            child: Text(
-              'H',
-              style: TextStyle(
-                color: _mint,
-                fontSize: 30,
-                fontWeight: FontWeight.w800,
-                height: 1,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+    return const PulsarMark(size: 96, animate: true);
   }
 
   Widget _buildSystemPreview() {
