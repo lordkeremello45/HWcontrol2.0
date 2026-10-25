@@ -35,7 +35,10 @@ while IFS= read -r deb; do
 done < <(find "$repo_root/pool/main/h/hwcontrol" -maxdepth 1 -type f -name '*.deb' -print)
 
 pushd "$repo_root" >/dev/null
-dpkg-scanpackages --arch amd64 pool/main/h/hwcontrol /dev/null > dists/stable/main/binary-amd64/Packages
+echo "APT package files found:"
+find pool -type f -name '*.deb' -print
+# Scan from the pool root so package paths are indexed relative to the repository root.
+dpkg-scanpackages --arch amd64 pool /dev/null > dists/stable/main/binary-amd64/Packages
 if ! grep -q '^Package: hwcontrol$' dists/stable/main/binary-amd64/Packages; then
   echo "APT package index is empty or does not contain hwcontrol." >&2
   exit 1
