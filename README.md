@@ -106,6 +106,15 @@ Checksums and attestations provide integrity/provenance evidence; they are **not
 
 See [SECURITY.md](SECURITY.md) and the [security documentation](https://github.com/lordkeremello45/HWcontrol2.0/wiki/Security-and-Signing).
 
+## Ada/SPARK security core
+
+HWcontrol2.0 includes an Ada package using **SPARK** (`security/spark-core/src/hwcontrol_security.ads`) for contract-based validation of safety-sensitive fan commands. The core defines sensor-temperature bounds and checks command authorization, telemetry validity, integrity state, and critical-temperature conditions before returning an allow/deny decision.
+
+- SPARK source: [`security/spark-core/`](security/spark-core/)
+- CI workflow: [SPARK security core](.github/workflows/spark-security-core.yml), configured to build, test, and run formal verification.
+- Scope: this is a security-policy component; it does **not** by itself prove that every GUI/Go Bridge/native-engine command is routed through it at runtime.
+- Verification status: consult the linked GitHub Actions runs for the current result. The presence of SPARK contracts or a workflow is not, on its own, evidence that formal proof passed or that end-to-end enforcement has been validated.
+
 ## Architecture
 
 Flutter / Dart GUI → Authenticated localhost Go Bridge → Native C++ / CMake Engine → Platform-specific hardware APIs
