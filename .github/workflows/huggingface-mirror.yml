@@ -47,6 +47,8 @@ jobs:
           git -C "${RUNNER_TEMP}/hf-mirror" remote set-url origin "https://huggingface.co/lordkeremello45/Hwcontrol2.0"
 
       - name: Sync working tree (no source Git history)
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           set -euo pipefail
           destination="${RUNNER_TEMP}/hf-mirror"
@@ -60,4 +62,19 @@ jobs:
             exit 0
           fi
           git -C "${destination}" commit -m "Mirror GitHub main: ${GITHUB_SHA}"
-          git -C "${destination}" push origin HEAD:main
+
+          # Authenticate only for this push; keep the token out of the remote URL/config.
+          cat > "${RUNNER_TEMP}/hf-askpass.sh" <<'ASKPASS'
+          #!/usr/bin/env bash
+          case "$1" in
+            *Username*) printf '%s\\n' 'user' ;;
+            *Password*) printf '%s\\n' "$HF_TOKEN" ;;
+            *) exit 1 ;;
+          esac
+          ASKPASS
+          chmod 700 "${RUNNER_TEMP}/hf-askpass.sh"
+          trap 'rm -f "${RUNNER_TEMP}/hf-askpass.sh"' EXIT
+
+          GIT_ASKPASS="${RUNNER_TEMP}/hf-askpass.sh" \
+          GIT_TERMINAL_PROMPT=0 \
+            git -C "${destination}" push origin HEAD:main
