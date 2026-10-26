@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Register the official HWcontrol2.0 APT repository on Debian/Ubuntu amd64.
+# Register the HWcontrol2.0 APT repository on Debian/Ubuntu amd64.
 set -euo pipefail
 
 readonly REPO_BASE="https://lordkeremello45.github.io/HWcontrol2.0/apt"
@@ -12,17 +12,17 @@ if [[ "$(id -u)" -ne 0 ]]; then
   exit 1
 fi
 
+for command in id dpkg curl gpg awk install mktemp chmod apt-get; do
+  if ! command -v "$command" >/dev/null 2>&1; then
+    echo "Required command is missing: $command" >&2
+    exit 1
+  fi
+done
+
 if [[ "$(dpkg --print-architecture)" != "amd64" ]]; then
   echo "HWcontrol APT repository currently supports amd64 only." >&2
   exit 1
 fi
-
-for command in curl gpg dpkg apt-get install; do
-  if ! command -v "${command%% *}" >/dev/null 2>&1; then
-    echo "Required command is missing: ${command%% *}" >&2
-    exit 1
-  fi
-done
 
 tmp_key="$(mktemp)"
 trap 'rm -f "$tmp_key"' EXIT
