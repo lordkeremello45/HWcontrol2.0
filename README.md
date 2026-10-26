@@ -8,6 +8,7 @@ It is a desktop PC utility—not an industrial automation/SCADA product, a seria
 [![GitHub Releases](https://img.shields.io/github/v/release/lordkeremello45/HWcontrol2.0?display_name=tag&style=for-the-badge)](https://github.com/lordkeremello45/HWcontrol2.0/releases)
 [![GitLab Mirror](https://img.shields.io/badge/GitLab-Mirror-FCA326?style=for-the-badge&logo=gitlab&logoColor=white)](https://gitlab.com/lordkeremello45/HWcontrol2.0)
 [![Codeberg Mirror](https://img.shields.io/badge/Codeberg-Mirror-2185D0?style=for-the-badge&logo=codeberg&logoColor=white)](https://codeberg.org/lordkeremelllo45/HWcontrol2.0)
+[![Hugging Face Mirror](https://img.shields.io/badge/%F0%9F%A4%97-Hugging%20Face%20Mirror-yellow?style=for-the-badge)](https://huggingface.co/lordkeremello45/Hwcontrol2.0)
 
 HWcontrol2.0 is an open-source, cross-platform hardware monitoring, control, health and diagnostics platform built around a Flutter/Dart dashboard, an authenticated localhost Go bridge, and a native C++/CMake engine.
 
