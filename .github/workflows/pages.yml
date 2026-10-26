@@ -104,7 +104,7 @@ jobs:
           test -s dist/robots.txt
           test -s dist/sitemap.xml
           test -s dist/privacy/index.html
-          grep -q 'HWControl 2.0' dist/index.html
+          grep -qi 'HWcontrol2.0' dist/index.html
           grep -q 'app.js' dist/index.html
 
       - name: Configure Pages
