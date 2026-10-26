@@ -33,7 +33,6 @@ class _HWControlWelcomeScreenState extends State<HWControlWelcomeScreen> {
   static const _ink = Color(0xFF17202A);
   static const _panel = Color(0xFF1E2933);
   static const _primary = Color(0xFF176B63);
-  static const _primaryDark = Color(0xFF0E4F4A);
   static const _mint = Color(0xFFEEF7F5);
   static const _muted = Color(0xFF9BA6B0);
   static const _line = Color(0xFF33404B);
