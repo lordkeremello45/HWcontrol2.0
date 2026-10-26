@@ -38,6 +38,7 @@ while IFS= read -r deb; do
   if [[ "$deb" != "$canonical_deb" ]]; then
     mv -- "$deb" "$canonical_deb"
   fi
+  [[ -s "$canonical_deb" ]] || { echo "Normalized DEB is missing or empty: $canonical_deb" >&2; exit 1; }
 done < <(find "$repo_root/pool/main/h/hwcontrol" -maxdepth 1 -type f -name '*.deb' -print)
 
 pushd "$repo_root" >/dev/null
@@ -45,8 +46,32 @@ echo "APT package files found:"
 find pool -type f -name '*.deb' -print
 # dpkg-scanpackages is not recursive: point it directly at the directory containing the .deb.
 dpkg-scanpackages --arch amd64 pool/main/h/hwcontrol /dev/null > dists/stable/main/binary-amd64/Packages
-if ! grep -q '^Package: hwcontrol$' dists/stable/main/binary-amd64/Packages; then
+if ! grep -q '^Package: hwcontrolgzip -9 -n -c dists/stable/main/binary-amd64/Packages > dists/stable/main/binary-amd64/Packages.gz
+apt-ftparchive release dists/stable > dists/stable/Release
+
+gnupg_home="$work_dir/gnupg"
+mkdir -m 0700 "$gnupg_home"
+export GNUPGHOME="$gnupg_home"
+printf '%s' "$APT_GPG_PRIVATE_KEY" | gpg --batch --import
+fingerprint="$(gpg --batch --with-colons --list-secret-keys | awk -F: '$1 == "fpr" {print $10; exit}')"
+if [[ -z "$fingerprint" ]]; then
+  echo "Could not determine the APT signing key fingerprint." >&2
+  exit 1
+fi
+gpg --batch --yes --local-user "$fingerprint" --clearsign --output "dists/stable/InRelease" "dists/stable/Release"
+gpg --batch --yes --local-user "$fingerprint" --armor --detach-sign --output "dists/stable/Release.gpg" "dists/stable/Release"
+gpg --batch --export "$fingerprint" > "hwcontrol-archive-keyring.gpg"
+printf '%s\n' "$fingerprint" > "KEY-FINGERPRINT.txt"
+popd >/dev/null
+echo "Built signed APT repository from release $tag (key fingerprint: $fingerprint)."
+ dists/stable/main/binary-amd64/Packages; then
   echo "APT package index is empty or does not contain hwcontrol." >&2
+  echo "Indexed package directory contents:" >&2
+  find pool/main/h/hwcontrol -maxdepth 1 -type f -printf '%f (%s bytes)\\n' >&2
+  exit 1
+fi
+if ! grep -q '^Filename: pool/main/h/hwcontrol/hwcontrol_' dists/stable/main/binary-amd64/Packages; then
+  echo "APT index does not reference the normalized hwcontrol DEB path." >&2
   exit 1
 fi
 gzip -9 -n -c dists/stable/main/binary-amd64/Packages > dists/stable/main/binary-amd64/Packages.gz
