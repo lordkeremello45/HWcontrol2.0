@@ -70,6 +70,28 @@ Use the Apple Silicon PKG or DMG from the macOS Beta release.
 
 Use the DEB on Debian/Ubuntu-family systems, or the portable TAR package when appropriate.
 
+#### Debian/Ubuntu APT repository (amd64)
+
+HWcontrol2.0 also publishes a signed APT repository through GitHub Pages. The repository setup script pins the archive signing-key fingerprint and refuses to install a key that does not match it.
+
+Download and inspect the setup script, then register the repository:
+
+```bash
+curl --fail --location --proto '=https' --tlsv1.2 \
+  https://raw.githubusercontent.com/lordkeremello45/HWcontrol2.0/main/scripts/setup-apt-repository.sh \
+  --output setup-hwcontrol-apt.sh
+less setup-hwcontrol-apt.sh
+sudo bash setup-hwcontrol-apt.sh
+```
+
+After the script finishes successfully, install or update HWcontrol with:
+
+```bash
+sudo apt install hwcontrol
+```
+
+The setup script installs the repository key into `/usr/share/keyrings/`, writes `/etc/apt/sources.list.d/hwcontrol.sources`, and runs `apt-get update`. It supports Debian/Ubuntu-family amd64 systems only. The APT repository currently selects **stable** GitHub Releases; Beta-only builds are not automatically published to this channel. Repository registration does not guarantee that a package is available: if no stable Linux DEB release is published, installation will fail until one is available.
+
 For detailed platform instructions, see the [Wiki](https://github.com/lordkeremello45/HWcontrol2.0/wiki). For a careful first install, checksum guidance and issue-reporting checklist, use the [Beta Quickstart](docs/USER-QUICKSTART.md).
 
 ## Why this project — and an honest status report
