@@ -1,0 +1,63 @@
+name: Hugging Face main-branch mirror
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: huggingface-main-mirror
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    name: Sync main to Hugging Face
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout GitHub main
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+          fetch-depth: 1
+          lfs: true
+          persist-credentials: false
+
+      - name: Configure Git LFS
+        run: |
+          git lfs install
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Clone Hugging Face destination
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${HF_TOKEN}" ]]; then
+            echo "::error::Repository secret HF_TOKEN is missing."
+            exit 1
+          fi
+          git clone "https://user:${HF_TOKEN}@huggingface.co/lordkeremello45/Hwcontrol2.0.git" "${RUNNER_TEMP}/hf-mirror"
+          # Do not retain the credential in the destination repository's remote config.
+          git -C "${RUNNER_TEMP}/hf-mirror" remote set-url origin "https://huggingface.co/lordkeremello45/Hwcontrol2.0"
+
+      - name: Sync working tree (no source Git history)
+        run: |
+          set -euo pipefail
+          destination="${RUNNER_TEMP}/hf-mirror"
+          rsync -a --delete \
+            --exclude='/.git/' \
+            --exclude='/.git' \
+            ./ "${destination}/"
+          git -C "${destination}" add --all
+          if git -C "${destination}" diff --cached --quiet; then
+            echo "Hugging Face mirror is already up to date."
+            exit 0
+          fi
+          git -C "${destination}" commit -m "Mirror GitHub main: ${GITHUB_SHA}"
+          git -C "${destination}" push origin HEAD:main
