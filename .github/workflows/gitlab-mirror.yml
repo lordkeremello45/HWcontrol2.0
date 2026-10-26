@@ -41,4 +41,29 @@ jobs:
 
           git push --mirror gitlab
 
+          # Give the GitLab mirror a platform-specific README: its own badge becomes GitHub.
+          cd "${RUNNER_TEMP}"
+          git clone "https://oauth2:${GITLAB_TOKEN}@gitlab.com/lordkeremello45/HWcontrol2.0.git" gitlab-readme
+          cd gitlab-readme
+          git remote set-url origin "https://gitlab.com/lordkeremello45/HWcontrol2.0.git"
+          if sed -i 's|^\[!\[GitLab Mirror\].*|[![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge\&logo=github\&logoColor=white)](https://github.com/lordkeremello45/HWcontrol2.0)|' README.md && ! git diff --quiet -- README.md; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add README.md
+            git commit -m "Customize README for GitLab mirror"
+
+            askpass="${RUNNER_TEMP}/gitlab-askpass.sh"
+            cat > "${askpass}" <<'ASKPASS'
+          #!/usr/bin/env bash
+          case "$1" in
+            *Username*) printf '%s\\n' 'oauth2' ;;
+            *Password*) printf '%s\\n' "$GITLAB_TOKEN" ;;
+            *) exit 1 ;;
+          esac
+          ASKPASS
+            chmod 700 "${askpass}"
+            GIT_ASKPASS="${askpass}" GIT_TERMINAL_PROMPT=0 git push origin HEAD:main
+            rm -f "${askpass}"
+          fi
+
           echo "GitHub → GitLab mirror completed successfully."
