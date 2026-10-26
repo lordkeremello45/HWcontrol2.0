@@ -67,8 +67,8 @@ jobs:
           cat > "${RUNNER_TEMP}/hf-askpass.sh" <<'ASKPASS'
           #!/usr/bin/env bash
           case "$1" in
-            *Username*) printf '%s\\n' 'user' ;;
-            *Password*) printf '%s\\n' "$HF_TOKEN" ;;
+            *Username*) printf '%s\n' 'user' ;;
+            *Password*) printf '%s\n' "$HF_TOKEN" ;;
             *) exit 1 ;;
           esac
           ASKPASS
