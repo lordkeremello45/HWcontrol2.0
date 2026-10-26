@@ -46,7 +46,17 @@ echo "APT package files found:"
 find pool -type f -name '*.deb' -print
 # dpkg-scanpackages is not recursive: point it directly at the directory containing the .deb.
 dpkg-scanpackages --arch amd64 pool/main/h/hwcontrol /dev/null > dists/stable/main/binary-amd64/Packages
-if ! grep -q '^Package: hwcontrolgzip -9 -n -c dists/stable/main/binary-amd64/Packages > dists/stable/main/binary-amd64/Packages.gz
+if ! grep -q '^Package: hwcontrol$' dists/stable/main/binary-amd64/Packages; then
+  echo "APT package index is empty or does not contain hwcontrol." >&2
+  echo "Indexed package directory contents:" >&2
+  find pool/main/h/hwcontrol -maxdepth 1 -type f -printf '%f (%s bytes)\\n' >&2
+  exit 1
+fi
+if ! grep -q '^Filename: pool/main/h/hwcontrol/hwcontrol_' dists/stable/main/binary-amd64/Packages; then
+  echo "APT index does not reference the normalized hwcontrol DEB path." >&2
+  exit 1
+fi
+gzip -9 -n -c dists/stable/main/binary-amd64/Packages > dists/stable/main/binary-amd64/Packages.gz
 apt-ftparchive release dists/stable > dists/stable/Release
 
 gnupg_home="$work_dir/gnupg"
