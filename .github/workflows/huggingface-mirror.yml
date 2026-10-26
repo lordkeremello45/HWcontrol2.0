@@ -57,7 +57,7 @@ jobs:
             --exclude='/.git' \
             ./ "${destination}/"
           # On the Hugging Face mirror, replace its own mirror badge with the canonical GitHub link.
-          sed -i 's|^\[!\[Hugging Face Mirror\].*|[![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge\&logo=github\&logoColor=white)](https://github.com/lordkeremello45/HWcontrol2.0)|' README.md
+          sed -i 's|^\[!\[Hugging Face Mirror\].*|[![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge\&logo=github\&logoColor=white)](https://github.com/lordkeremello45/HWcontrol2.0)|' "${destination}/README.md"
           git -C "${destination}" add --all
           if git -C "${destination}" diff --cached --quiet; then
             echo "Hugging Face mirror is already up to date."
