@@ -144,6 +144,25 @@ Flutter / Dart GUI → Authenticated localhost Go Bridge → Native C++ / CMake 
 
 The native engine provides the low-level hardware integration layer; the overall project covers monitoring, control, health, diagnostics, safety and release integrity.
 
+## NVIDIA GPU development
+
+The Go bridge can use `nvidia-smi` for NVIDIA GPU telemetry when the installed driver exposes the requested fields. This is separate from GPU-accelerated inference.
+
+The native `llama.cpp` build supports an **opt-in CUDA configuration** for local AI development. CUDA is disabled by default so ordinary cross-platform builds do not require the CUDA toolkit. On a supported NVIDIA development machine with a compatible CUDA toolkit installed:
+
+```bash
+cmake -S . -B build-cuda -DHWCONTROL_ENABLE_CUDA=ON
+cmake --build build-cuda --config Release
+```
+
+This option has been added to the build configuration, but CUDA-enabled builds and runtime performance must still be validated on actual supported NVIDIA hardware before claiming release support. Standard release artifacts should not be assumed to use CUDA.
+
+Official references:
+- NVIDIA Developer: https://developer.nvidia.com/
+- CUDA Toolkit: https://developer.nvidia.com/cuda-toolkit
+- NVIDIA documentation: https://docs.nvidia.com/
+- NVIDIA Skills catalog: https://github.com/NVIDIA/skills
+
 ## Development
 
 The repository validates the native engine, Go bridge, Flutter dashboard, packaging paths and release integrity through GitHub Actions.
