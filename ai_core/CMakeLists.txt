@@ -11,6 +11,14 @@ add_executable(ai_engine
 target_link_libraries(ai_engine PRIVATE llama)
 target_include_directories(ai_engine PRIVATE include)
 
+if(UNIX AND NOT APPLE)
+    set_target_properties(ai_engine PROPERTIES INSTALL_RPATH "$ORIGIN/lib")
+    foreach(runtime_target IN ITEMS llama ggml ggml-base ggml-cpu)
+        set_target_properties(${runtime_target} PROPERTIES INSTALL_RPATH "$ORIGIN")
+    endforeach()
+    install(TARGETS ai_engine RUNTIME DESTINATION .)
+endif()
+
 function(hwcontrol_harden_native_target target)
     if(MSVC)
         target_compile_options(${target} PRIVATE /GS /sdl /guard:cf)
