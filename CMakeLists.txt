@@ -5,12 +5,16 @@ project(HWControl2_0 C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Keep the build tree outside the source tree. CMake owns the build directory
-# selected by the caller (-B build, -B build-windows, etc.).
-set(GGML_CUDA OFF CACHE BOOL "" FORCE)
+# CUDA acceleration for llama.cpp is opt-in so default cross-platform builds
+# remain usable without the CUDA toolkit. Enable with -DHWCONTROL_ENABLE_CUDA=ON
+# on a supported NVIDIA/CUDA development machine.
+option(HWCONTROL_ENABLE_CUDA "Enable CUDA acceleration for the local AI engine" OFF)
+set(GGML_CUDA ${HWCONTROL_ENABLE_CUDA} CACHE BOOL "Build llama.cpp with CUDA support" FORCE)
 set(GGML_METAL OFF CACHE BOOL "" FORCE)
 set(GGML_NATIVE OFF CACHE BOOL "" FORCE)
 
+# Keep the build tree outside the source tree. CMake owns the build directory
+# selected by the caller (-B build, -B build-windows, etc.).
 # The model is a runtime asset. Do not create source-tree directories or
 # download/copy large model files during configuration.
 set(MODEL_PATH "${CMAKE_SOURCE_DIR}/ai_core/models/gemma-3-1b-it-Q5_K_M.gguf")
