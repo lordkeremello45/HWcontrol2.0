@@ -22,12 +22,12 @@ permissions:
 env:
   FLUTTER_VERSION: 3.47.2
   RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
-  SOURCE_REF: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || github.ref_name }}
+  SOURCE_REF: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || github.sha }}
 
 jobs:
   build-windows:
     permissions:
-      contents: read
+      contents: write
       id-token: write
       attestations: write
     runs-on: windows-2022
@@ -150,6 +150,14 @@ jobs:
           if (-not (Test-Path "$env:ProgramFiles\HWControl\hwcontrol-hardware-identification.exe")) { throw 'C# hardware identification helper was not installed' }
           & "$env:ProgramFiles\HWControl\hwcontrol-hardware-identification.exe" --self-test
           if ($LASTEXITCODE -ne 0) { throw 'Installed C# hardware identification self-test failed' }
+          $shortcutPath = Join-Path $env:PUBLIC 'Desktop\HWControl.lnk'
+          if (-not (Test-Path $shortcutPath)) { throw 'HWControl desktop shortcut was not installed' }
+          $shell = New-Object -ComObject WScript.Shell
+          $shortcut = $shell.CreateShortcut($shortcutPath)
+          $expectedTarget = [IO.Path]::GetFullPath("$env:ProgramFiles\HWControl\HWControl.exe")
+          $actualTarget = [IO.Path]::GetFullPath($shortcut.TargetPath)
+          if ($actualTarget -ne $expectedTarget) { throw "Desktop shortcut target mismatch: $actualTarget" }
+          if ([string]::IsNullOrWhiteSpace($shortcut.IconLocation)) { throw 'HWControl desktop shortcut has no icon location' }
           if (-not (Test-Path "$env:ProgramData\HWControl\security\canary\bridger.key")) { throw 'bridger.key canary was not installed' }
           $service = Get-Service -Name HWControlBridge -ErrorAction Stop
           if ($service.Status -ne 'Running') { throw "HWControlBridge is not running: $($service.Status)" }
@@ -166,6 +174,7 @@ jobs:
           if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge still exists after MSI uninstall' }
           if (Get-Service -Name HWControlSecurityGuardian -ErrorAction SilentlyContinue) { throw 'HWControlSecurityGuardian still exists after MSI uninstall' }
           if (Test-Path "$env:ProgramFiles\HWControl") { throw 'Program Files\HWControl still exists after MSI uninstall' }
+          if (Test-Path (Join-Path $env:PUBLIC 'Desktop\HWControl.lnk')) { throw 'HWControl desktop shortcut still exists after MSI uninstall' }
           if (Test-Path "$env:ProgramData\HWControl\bridge.key") { throw 'bridge.key still exists after MSI uninstall' }
           if (Test-Path "$env:ProgramData\HWControl\security") { throw 'security canary state still exists after MSI uninstall' }
           $leftover = Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' -Name HWCONTROL_KEY -ErrorAction SilentlyContinue
@@ -258,3 +267,28 @@ jobs:
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64-Setup.exe
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64.7z
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64.sha256
+
+      - name: Publish assets to GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $assets = @(
+            "HWControl-$($env:RELEASE_TAG)-Windows-x64.zip",
+            "HWControl-$($env:RELEASE_TAG)-Windows-x64.msi",
+            "HWControl-$($env:RELEASE_TAG)-Windows-x64-Setup.exe",
+            "HWControl-$($env:RELEASE_TAG)-Windows-x64.7z",
+            "HWControl-$($env:RELEASE_TAG)-Windows-x64.sha256"
+          )
+          foreach ($asset in $assets) {
+            if (-not (Test-Path $asset)) { throw "Cannot publish missing asset: $asset" }
+          }
+          gh release view $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY 2>$null
+          $releaseExists = $LASTEXITCODE -eq 0
+          if (-not $releaseExists) {
+            gh release create $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY --title $env:RELEASE_TAG --generate-notes --prerelease --latest=false
+            if ($LASTEXITCODE -ne 0) { throw "Could not create GitHub prerelease $env:RELEASE_TAG" }
+          }
+          gh release upload $env:RELEASE_TAG @assets --repo $env:GITHUB_REPOSITORY --clobber
+          if ($LASTEXITCODE -ne 0) { throw "Could not upload Windows assets to GitHub Release $env:RELEASE_TAG" }

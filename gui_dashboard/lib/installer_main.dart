@@ -139,11 +139,14 @@ class _InstallerWizardState extends State<InstallerWizard> {
       final marker = File(
         '${_stateDirectory!.path}${Platform.pathSeparator}setup.complete',
       );
+      // Resolve companion binaries relative to the installed application, not
+      // the process working directory (which differs for Desktop shortcuts).
+      final executableDirectory = File(Platform.resolvedExecutable).parent;
       final executable = File(
-        '${Directory.current.path}${Platform.pathSeparator}bridge-service',
+        '${executableDirectory.path}${Platform.pathSeparator}bridge-service',
       );
       final executableWin = File(
-        '${Directory.current.path}${Platform.pathSeparator}bridge-service.exe',
+        '${executableDirectory.path}${Platform.pathSeparator}bridge-service.exe',
       );
       final bridgePresent = await executable.exists() || await executableWin.exists();
       final completed = await marker.exists();

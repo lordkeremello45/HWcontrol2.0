@@ -132,7 +132,7 @@ jobs:
         run: GO111MODULE=off go test -count=1 ./security/local-audit
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          flutter-version: 3.41.9 # Flutter 3.47.x Dart AOT regression: flutter/flutter#191575.
           cache: true
           architecture: ARM64
       - name: Build and test native engine
