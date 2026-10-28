@@ -22,7 +22,7 @@
 
     <Component Id="MainExecutableComponent" Directory="INSTALLFOLDER">
       <File Id="HWControlExe" Source="$(var.PackageDir)\HWControl.exe" KeyPath="yes">
-        <Shortcut Id="DesktopShortcut" Name="HWControl" Directory="DesktopFolder" WorkingDirectory="INSTALLFOLDER" Icon="HWControlIcon" />
+        <Shortcut Id="DesktopShortcut" Name="HWControl" Directory="CommonDesktopFolder" WorkingDirectory="INSTALLFOLDER" Icon="HWControlIcon" />
       </File>
     </Component>
 
@@ -40,7 +40,7 @@
   </Package>
 
   <Fragment>
-    <StandardDirectory Id="DesktopFolder" />
+    <StandardDirectory Id="CommonDesktopFolder" />
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="INSTALLFOLDER" Name="HWControl" />
     </StandardDirectory>
@@ -76,7 +76,7 @@
       </File>
     </Component>
 
-    <Component Id="SecurityStateComponent" Directory="SECURITY_STATE_DATA">
+    <Component Id="SecurityStateComponent" Directory="SECURITY_STATE_DATA" Guid="CDEB4E35-23F2-4E5C-9C32-7F3A6C16EFA9">
       <CreateFolder>
         <PermissionEx Sddl="D:P(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;OICI;FA;;;LS)" />
       </CreateFolder>
