@@ -177,13 +177,17 @@ jobs:
           & "$env:ProgramFiles\HWControl\hwcontrol-hardware-identification.exe" --self-test
           if ($LASTEXITCODE -ne 0) { throw 'Installed C# hardware identification self-test failed' }
           $shortcutPath = Join-Path $env:PUBLIC 'Desktop\HWControl.lnk'
-          if (-not (Test-Path $shortcutPath)) { throw 'HWControl desktop shortcut was not installed' }
+          $startMenuShortcutPath = Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk'
+          if (-not (Test-Path $shortcutPath)) { throw 'HWControl desktop shortcut was not installed by MSI' }
+          if (-not (Test-Path $startMenuShortcutPath)) { throw 'HWControl Start Menu shortcut was not installed by MSI' }
           $shell = New-Object -ComObject WScript.Shell
-          $shortcut = $shell.CreateShortcut($shortcutPath)
           $expectedTarget = [IO.Path]::GetFullPath("$env:ProgramFiles\HWControl\HWControl.exe")
-          $actualTarget = [IO.Path]::GetFullPath($shortcut.TargetPath)
-          if ($actualTarget -ne $expectedTarget) { throw "Desktop shortcut target mismatch: $actualTarget" }
-          if ([string]::IsNullOrWhiteSpace($shortcut.IconLocation)) { throw 'HWControl desktop shortcut has no icon location' }
+          foreach ($shortcutFile in @($shortcutPath, $startMenuShortcutPath)) {
+            $shortcut = $shell.CreateShortcut($shortcutFile)
+            $actualTarget = [IO.Path]::GetFullPath($shortcut.TargetPath)
+            if ($actualTarget -ne $expectedTarget) { throw "Shortcut target mismatch for $shortcutFile : $actualTarget" }
+            if ([string]::IsNullOrWhiteSpace($shortcut.IconLocation)) { throw "HWControl shortcut has no icon location: $shortcutFile" }
+          }
           if (-not (Test-Path "$env:ProgramData\HWControl\security\canary\bridger.key")) { throw 'bridger.key canary was not installed' }
           $service = Get-Service -Name HWControlBridge -ErrorAction Stop
           if ($service.Status -ne 'Running') { throw "HWControlBridge is not running: $($service.Status)" }
@@ -201,6 +205,7 @@ jobs:
           if (Get-Service -Name HWControlSecurityGuardian -ErrorAction SilentlyContinue) { throw 'HWControlSecurityGuardian still exists after MSI uninstall' }
           if (Test-Path "$env:ProgramFiles\HWControl") { throw 'Program Files\HWControl still exists after MSI uninstall' }
           if (Test-Path (Join-Path $env:PUBLIC 'Desktop\HWControl.lnk')) { throw 'HWControl desktop shortcut still exists after MSI uninstall' }
+          if (Test-Path (Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk')) { throw 'HWControl Start Menu shortcut still exists after MSI uninstall' }
           if (Test-Path "$env:ProgramData\HWControl\bridge.key") { throw 'bridge.key still exists after MSI uninstall' }
           if (Test-Path "$env:ProgramData\HWControl\security") { throw 'security canary state still exists after MSI uninstall' }
           $leftover = Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' -Name HWCONTROL_KEY -ErrorAction SilentlyContinue
@@ -237,6 +242,42 @@ jobs:
           wix build deploy/windows/HWControl-Setup.wxs -arch x64 -d Version=$version -d MsiPath=$msi -o $setup
           if (-not (Test-Path $setup)) { throw 'WiX bundle Setup EXE was not produced' }
           if ((Get-Item $setup).Length -lt 4096) { throw 'Setup EXE is unexpectedly small' }
+
+      - name: Smoke test Setup EXE install, shortcuts and uninstall
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $setup = (Resolve-Path "HWControl-$($env:RELEASE_TAG)-Windows-x64-Setup.exe").Path
+          $root = Join-Path $env:RUNNER_TEMP 'HWControl-Setup-Validation'
+          New-Item -ItemType Directory -Force -Path $root | Out-Null
+          $installLog = Join-Path $root 'bundle-install.log'
+          $uninstallLog = Join-Path $root 'bundle-uninstall.log'
+
+          & $setup /install /quiet /norestart /log $installLog
+          if ($LASTEXITCODE -ne 0) { throw "Setup EXE install failed with exit code $LASTEXITCODE; see $installLog" }
+
+          $exe = Join-Path $env:ProgramFiles 'HWControl\HWControl.exe'
+          if (-not (Test-Path $exe)) { throw "Setup EXE did not install the app: $exe" }
+          $desktopShortcut = Join-Path $env:PUBLIC 'Desktop\HWControl.lnk'
+          $startMenuShortcut = Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk'
+          foreach ($shortcutFile in @($desktopShortcut, $startMenuShortcut)) {
+            if (-not (Test-Path $shortcutFile)) { throw "Setup EXE install did not create expected shortcut: $shortcutFile" }
+            $shell = New-Object -ComObject WScript.Shell
+            $shortcut = $shell.CreateShortcut($shortcutFile)
+            $actualTarget = [IO.Path]::GetFullPath($shortcut.TargetPath)
+            $expectedTarget = [IO.Path]::GetFullPath($exe)
+            if ($actualTarget -ne $expectedTarget) { throw "Setup shortcut target mismatch for $shortcutFile : $actualTarget" }
+            if ([string]::IsNullOrWhiteSpace($shortcut.IconLocation)) { throw "Setup shortcut has no icon location: $shortcutFile" }
+          }
+
+          & $setup /uninstall /quiet /norestart /log $uninstallLog
+          if ($LASTEXITCODE -ne 0) { throw "Setup EXE uninstall failed with exit code $LASTEXITCODE; see $uninstallLog" }
+          if (Test-Path $exe) { throw 'HWControl.exe remains after Setup EXE uninstall' }
+          if (Test-Path $desktopShortcut) { throw 'Desktop shortcut remains after Setup EXE uninstall' }
+          if (Test-Path $startMenuShortcut) { throw 'Start Menu shortcut remains after Setup EXE uninstall' }
+          if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge remains after Setup EXE uninstall' }
+          if (Get-Service -Name HWControlSecurityGuardian -ErrorAction SilentlyContinue) { throw 'HWControlSecurityGuardian remains after Setup EXE uninstall' }
+          Write-Host 'Setup EXE install, desktop/Start Menu shortcut targets, and uninstall smoke test passed.'
 
       - name: Package 7-Zip archive
         shell: pwsh
