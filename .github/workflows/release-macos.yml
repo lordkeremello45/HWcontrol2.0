@@ -89,7 +89,9 @@ jobs:
           app="pkg-root/Applications/HWControl/HWControl.app"
           archive="HWControl-${RELEASE_TAG}-macOS-AppleSilicon-app.zip"
           test -d "$app/Contents/MacOS"
-          test -x "$app/Contents/MacOS/HWControl"
+          executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Contents/Info.plist")"
+          test -n "$executable"
+          test -x "$app/Contents/MacOS/$executable"
           ditto -c -k --sequesterRsrc --keepParent "$app" "$archive"
           unzip -t "$archive"
           unzip -Z1 "$archive" | grep -Fq 'HWControl.app/Contents/Info.plist'
@@ -171,4 +173,5 @@ jobs:
           files: |
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.pkg
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.dmg
+            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon-app.zip
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.sha256
