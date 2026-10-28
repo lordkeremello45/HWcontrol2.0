@@ -40,6 +40,7 @@ jobs:
           persist-credentials: false
 
       - name: Resolve main-branch package version
+        id: resolve-main-tag
         if: github.ref == 'refs/heads/main'
         shell: bash
         run: |
@@ -48,6 +49,7 @@ jobs:
           [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Could not read numeric application version from pubspec.yaml" >&2; exit 1; }
           tag="v${version}-main-${GITHUB_SHA}-macos"
           echo "RELEASE_TAG=$tag" >> "$GITHUB_ENV"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "Main-branch package tag: $tag"
 
       - name: Install tooling
@@ -162,10 +164,10 @@ jobs:
         uses: actions/attest@v4
         with:
           subject-path: |
-            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.pkg
-            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.dmg
-            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon-app-bundle.zip
-            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.sha256
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-macOS-AppleSilicon.pkg
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-macOS-AppleSilicon.dmg
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-macOS-AppleSilicon-app-bundle.zip
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-macOS-AppleSilicon.sha256
 
       - name: Upload macOS main-branch packages
         if: github.ref == 'refs/heads/main'
@@ -173,10 +175,10 @@ jobs:
         with:
           name: HWControl-main-${{ github.sha }}-macOS-AppleSilicon
           path: |
-            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.pkg
-            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.dmg
-            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon-app-bundle.zip
-            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.sha256
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-macOS-AppleSilicon.pkg
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-macOS-AppleSilicon.dmg
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-macOS-AppleSilicon-app-bundle.zip
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-macOS-AppleSilicon.sha256
           if-no-files-found: error
           retention-days: 14
 
@@ -204,7 +206,7 @@ jobs:
           generate_release_notes: true
           prerelease: ${{ contains(env.RELEASE_TAG, '-beta') }}
           files: |
-            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.pkg
-            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.dmg
-            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon-app-bundle.zip
-            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.sha256
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-macOS-AppleSilicon.pkg
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-macOS-AppleSilicon.dmg
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-macOS-AppleSilicon-app-bundle.zip
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-macOS-AppleSilicon.sha256
