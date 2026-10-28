@@ -48,6 +48,7 @@ jobs:
           ref: ${{ env.SOURCE_REF }}
 
       - name: Resolve main-branch package version
+        id: resolve-main-tag
         if: github.ref == 'refs/heads/main'
         shell: pwsh
         run: |
@@ -266,13 +267,13 @@ jobs:
       - name: Upload Windows release artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: HWControl-${{ env.RELEASE_TAG }}-Windows-x64
+          name: HWControl-${{ github.ref == 'refs/heads/main' && github.sha || env.RELEASE_TAG }}-Windows-x64
           path: |
-            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.zip
-            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi
-            HWControl-${{ env.RELEASE_TAG }}-Windows-x64-Setup.exe
-            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.7z
-            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.sha256
+            HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Windows-x64.zip
+            HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Windows-x64.msi
+            HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Windows-x64-Setup.exe
+            HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Windows-x64.7z
+            HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Windows-x64.sha256
 
       - name: Publish assets to GitHub Release
         if: github.ref != 'refs/heads/main'
@@ -813,6 +814,7 @@ jobs:
           $version = $match.Matches[0].Groups[1].Value
           $tag = "v$version-main-$env:GITHUB_SHA-windows"
           "RELEASE_TAG=$tag" >> $env:GITHUB_ENV
+          "tag=$tag" >> $env:GITHUB_OUTPUT
           Write-Host "Main-branch package tag: $tag"
 
       - name: Setup Go
