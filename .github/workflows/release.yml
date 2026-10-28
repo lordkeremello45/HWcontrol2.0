@@ -187,18 +187,56 @@ jobs:
           if (-not (Test-Path "verify-zip/hwcontrol-hardware-identification.exe")) { throw 'C# hardware identification helper missing from ZIP' }
           if (-not (Test-Path "verify-zip/security/fetch-status/bridger.key")) { throw 'bridger.key missing from ZIP' }
 
+      - name: Build Windows Setup EXE bundle
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $env:PATH = "$env:USERPROFILE\\.dotnet\\tools;$env:PATH"
+          wix extension add -g WixToolset.Bal.wixext/6.0.2
+          $versionMatch = [regex]::Match($env:RELEASE_TAG, '^v([0-9]+\\.[0-9]+\\.[0-9]+)')
+          if (-not $versionMatch.Success) { throw "Could not derive numeric setup version from release tag: $env:RELEASE_TAG" }
+          $version = $versionMatch.Groups[1].Value
+          $msi = "HWControl-$($env:RELEASE_TAG)-Windows-x64.msi"
+          $setup = "HWControl-$($env:RELEASE_TAG)-Windows-x64-Setup.exe"
+          if (-not (Test-Path $msi)) { throw "Required MSI is missing: $msi" }
+          wix build deploy/windows/HWControl-Setup.wxs -arch x64 -d Version=$version -d MsiPath=$msi -o $setup
+          if (-not (Test-Path $setup)) { throw 'WiX bundle Setup EXE was not produced' }
+          if ((Get-Item $setup).Length -lt 4096) { throw 'Setup EXE is unexpectedly small' }
+
+      - name: Package 7-Zip archive
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          choco install 7zip --yes --no-progress
+          $sevenZip = @(
+            "$env:ProgramFiles\\7-Zip\\7z.exe",
+            "${env:ProgramFiles(x86)}\\7-Zip\\7z.exe"
+          ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $sevenZip) { throw '7-Zip executable was not found after installation' }
+          $packageDir = "package/HWControl-$($env:RELEASE_TAG)-Windows-x64"
+          $archive = "HWControl-$($env:RELEASE_TAG)-Windows-x64.7z"
+          & $sevenZip a -t7z -mx=7 $archive "$packageDir\\*"
+          if ($LASTEXITCODE -ne 0) { throw '7-Zip archive creation failed' }
+          & $sevenZip t $archive
+          if ($LASTEXITCODE -ne 0) { throw '7-Zip archive integrity test failed' }
+          $listing = & $sevenZip l $archive
+          if (-not ($listing -match 'HWControl.exe')) { throw 'HWControl.exe is missing from 7-Zip archive' }
+
       - name: Generate checksums
         shell: pwsh
         run: |
           $zip = "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.zip"
           $msi = "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi"
-          $zipHash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
-          $msiHash = (Get-FileHash $msi -Algorithm SHA256).Hash.ToLowerInvariant()
-          Set-Content "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.sha256" @(
-            "$zipHash  $zip",
-            "$msiHash  $msi"
-          )
-          if ((Get-Content "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.sha256").Count -ne 2) { throw 'Invalid checksum manifest' }
+          $setup = "HWControl-${{ env.RELEASE_TAG }}-Windows-x64-Setup.exe"
+          $sevenZip = "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.7z"
+          $assets = @($zip, $msi, $setup, $sevenZip)
+          $lines = foreach ($asset in $assets) {
+            if (-not (Test-Path $asset)) { throw "Release asset missing: $asset" }
+            $hash = (Get-FileHash $asset -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $asset"
+          }
+          Set-Content "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.sha256" $lines
+          if ((Get-Content "HWControl-${{ env.RELEASE_TAG }}-Windows-x64.sha256").Count -ne $assets.Count) { throw 'Invalid checksum manifest' }
 
       - name: Generate package provenance
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
@@ -206,6 +244,8 @@ jobs:
           subject-path: |
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64.zip
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64-Setup.exe
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.7z
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64.sha256
 
       - name: Upload Windows release artifact
