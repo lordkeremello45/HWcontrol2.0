@@ -255,4 +255,6 @@ jobs:
           path: |
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64.zip
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64-Setup.exe
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.7z
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64.sha256
