@@ -19,6 +19,34 @@ func TestParseCSharpHardwareInventory(t *testing.T) {
 	}
 }
 
+func TestPreferredCSharpGPUSelectsDiscreteVendorBeforeIntegratedIntel(t *testing.T) {
+	gpus := []csharpGPU{
+		{Manufacturer: "Intel Corporation", Model: "Intel(R) UHD Graphics", VendorFamily: "Intel"},
+		{Manufacturer: "NVIDIA", Model: "NVIDIA GeForce RTX 5090", VendorFamily: "NVIDIA", DriverProvider: "NVIDIA", DriverVersion: "1.2"},
+	}
+	got := preferredCSharpGPU(gpus)
+	if got.Manufacturer != "NVIDIA" || got.Model != "NVIDIA GeForce RTX 5090" {
+		t.Fatalf("preferred GPU = %+v, want NVIDIA GeForce RTX 5090", got)
+	}
+}
+
+func TestPreferredCSharpGPUDoesNotPreferGenericDisplayAdapter(t *testing.T) {
+	gpus := []csharpGPU{
+		{Manufacturer: "Microsoft", Model: "Microsoft Basic Display Adapter"},
+		{Manufacturer: "Intel Corporation", Model: "Intel Arc Graphics", VendorFamily: "Intel"},
+	}
+	got := preferredCSharpGPU(gpus)
+	if got.Model != "Intel Arc Graphics" {
+		t.Fatalf("preferred GPU = %+v, want Intel Arc Graphics", got)
+	}
+}
+
+func TestPreferredCSharpGPUHandlesEmptyInventory(t *testing.T) {
+	if got := preferredCSharpGPU(nil); got.Model != "" {
+		t.Fatalf("empty inventory returned %+v", got)
+	}
+}
+
 func TestParseCSharpHardwareInventoryRejectsInvalidInput(t *testing.T) {
 	oversizedModel := `{"schemaVersion":1,"platform":"windows","status":"partial","systemModel":"` + strings.Repeat("x", 513) + `"}`
 	tests := []struct {

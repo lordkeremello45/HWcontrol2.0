@@ -113,7 +113,10 @@ func collectHardwareIdentityWithCSharp() (HardwareIdentity, bool) {
 		}
 	}
 	if len(inventory.Gpus) > 0 {
-		gpu := inventory.Gpus[0]
+		// WMI commonly reports integrated graphics before a discrete adapter.
+		// Choose the most informative vendor/model for the legacy single-GPU
+		// summary while retaining the complete inventory for future multi-GPU UI.
+		gpu := preferredCSharpGPU(inventory.Gpus)
 		id.GPUVendor = safeHardwareText(gpu.Manufacturer)
 		id.GPUModel = safeHardwareText(gpu.Model)
 		id.GPUDriver = safeHardwareText(gpu.DriverProvider)
@@ -126,6 +129,48 @@ func collectHardwareIdentityWithCSharp() (HardwareIdentity, bool) {
 		id.DetectionStatus = "partial"
 	}
 	return id, true
+}
+
+func preferredCSharpGPU(gpus []csharpGPU) csharpGPU {
+	if len(gpus) == 0 {
+		return csharpGPU{}
+	}
+	best := gpus[0]
+	bestScore := csharpGPUPreferenceScore(best)
+	for _, gpu := range gpus[1:] {
+		score := csharpGPUPreferenceScore(gpu)
+		if score > bestScore {
+			best, bestScore = gpu, score
+		}
+	}
+	return best
+}
+
+func csharpGPUPreferenceScore(gpu csharpGPU) int {
+	vendor := strings.ToLower(strings.TrimSpace(gpu.Manufacturer + " " + gpu.VendorFamily))
+	model := strings.ToLower(strings.TrimSpace(gpu.Model))
+	score := 0
+	switch {
+	case strings.Contains(vendor, "nvidia") || strings.Contains(model, "geforce") || strings.Contains(model, "quadro"):
+		score = 40
+	case strings.Contains(vendor, "amd") || strings.Contains(vendor, "ati") ||
+		strings.Contains(model, "radeon") || strings.Contains(model, "firepro"):
+		score = 30
+	case strings.Contains(vendor, "intel") || strings.Contains(model, "intel"):
+		score = 20
+	default:
+		score = 10
+	}
+	if strings.Contains(model, "microsoft basic display") || strings.Contains(model, "remote display") {
+		score -= 20
+	}
+	if strings.TrimSpace(gpu.DriverProvider) != "" {
+		score++
+	}
+	if strings.TrimSpace(gpu.DriverVersion) != "" {
+		score++
+	}
+	return score
 }
 
 func parseCSharpHardwareInventory(output []byte) (csharpHardwareInventory, error) {
