@@ -23,6 +23,7 @@
     <Component Id="MainExecutableComponent" Directory="INSTALLFOLDER">
       <File Id="HWControlExe" Source="$(var.PackageDir)\HWControl.exe" KeyPath="yes">
         <Shortcut Id="DesktopShortcut" Name="HWControl" Directory="CommonDesktopFolder" WorkingDirectory="INSTALLFOLDER" Icon="HWControlIcon" />
+        <Shortcut Id="StartMenuShortcut" Name="HWControl" Directory="HWControlProgramMenuFolder" WorkingDirectory="INSTALLFOLDER" Icon="HWControlIcon" />
       </File>
     </Component>
 
@@ -41,6 +42,9 @@
 
   <Fragment>
     <StandardDirectory Id="CommonDesktopFolder" />
+    <StandardDirectory Id="CommonProgramsFolder">
+      <Directory Id="HWControlProgramMenuFolder" Name="HWControl" />
+    </StandardDirectory>
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="INSTALLFOLDER" Name="HWControl" />
     </StandardDirectory>
