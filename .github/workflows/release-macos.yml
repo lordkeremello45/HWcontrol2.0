@@ -52,6 +52,15 @@ jobs:
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "Main-branch package tag: $tag"
 
+      - name: Validate app version against package tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          app_version="$(sed -nE 's/^version: ([0-9]+\.[0-9]+\.[0-9]+)$/\1/p' gui_dashboard/pubspec.yaml | head -n1)"
+          tag_version="${RELEASE_TAG#v}"
+          tag_version="${tag_version%%-*}"
+          [[ "$app_version" == "$tag_version" ]] || { echo "Package tag version $tag_version does not match app version $app_version" >&2; exit 1; }
+
       - name: Install tooling
         run: brew install zstd
 
