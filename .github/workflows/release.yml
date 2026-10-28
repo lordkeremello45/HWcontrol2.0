@@ -270,6 +270,7 @@ jobs:
             if ([string]::IsNullOrWhiteSpace($shortcut.IconLocation)) { throw "Setup shortcut has no icon location: $shortcutFile" }
           }
 
+          Get-Process -Name 'HWControl' -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
           & $setup /uninstall /quiet /norestart /log $uninstallLog
           if ($LASTEXITCODE -ne 0) { throw "Setup EXE uninstall failed with exit code $LASTEXITCODE; see $uninstallLog" }
           if (Test-Path $exe) { throw 'HWControl.exe remains after Setup EXE uninstall' }
