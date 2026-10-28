@@ -91,7 +91,7 @@ jobs:
         run: |
           set -euo pipefail
           tag="$RELEASE_TAG"
-          version="${tag#v}"; version="${version%-macos}"
+          version="${tag#v}"; version="${version%-macos}"; version="${version%-main-*}"
           rm -rf pkg-root dmg-root
           mkdir -p pkg-root/Applications/HWControl dmg-root
           cp -R gui_dashboard/build/macos/Build/Products/Release/HWControl.app pkg-root/Applications/HWControl/
