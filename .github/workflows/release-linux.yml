@@ -2,6 +2,8 @@ name: Publish Linux release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*-linux'
   workflow_dispatch:
@@ -24,7 +26,7 @@ permissions:
 env:
   FLUTTER_VERSION: 3.47.2
   RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
-  SOURCE_REF: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || github.ref_name }}
+  SOURCE_REF: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || github.sha }}
 
 jobs:
   build-linux:
@@ -37,6 +39,17 @@ jobs:
         with:
           persist-credentials: false
           ref: ${{ env.SOURCE_REF }}
+
+      - name: Resolve main-branch package version
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(sed -nE 's/^version: ([0-9]+\.[0-9]+\.[0-9]+)$/\1/p' gui_dashboard/pubspec.yaml | head -n1)"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Could not read numeric application version from pubspec.yaml" >&2; exit 1; }
+          tag="v${version}-main-${GITHUB_SHA}-linux"
+          echo "RELEASE_TAG=$tag" >> "$GITHUB_ENV"
+          echo "Main-branch package tag: $tag"
 
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev zstd dpkg-dev zip unzip
@@ -124,8 +137,22 @@ jobs:
             HWControl-${{ env.RELEASE_TAG }}-Linux-x64.zip
             HWControl-${{ env.RELEASE_TAG }}-Linux-x64.sha256
 
+      - name: Upload Linux main-branch packages
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: HWControl-main-${{ github.sha }}-Linux-x64
+          path: |
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.deb
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.gz
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.zst
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.zip
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.sha256
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Replace existing beta release assets
-        if: contains(env.RELEASE_TAG, '-beta')
+        if: contains(env.RELEASE_TAG, '-beta') && github.ref != 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -140,6 +167,7 @@ jobs:
           fi
 
       - name: Publish Linux release
+        if: github.ref != 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ startsWith(env.RELEASE_TAG, 'v0.3.0-') && 'HWcontrol2.0 Beta — Linux' || format('HWControl {0}', env.RELEASE_TAG) }}
