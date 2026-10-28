@@ -86,15 +86,21 @@ jobs:
       - name: Package and validate standalone macOS app archive
         run: |
           set -euo pipefail
-          app="pkg-root/Applications/HWControl/HWControl.app"
-          archive="HWControl-${RELEASE_TAG}-macOS-AppleSilicon-app.zip"
+          app_root="pkg-root/Applications/HWControl"
+          app="$app_root/HWControl.app"
+          archive="HWControl-${RELEASE_TAG}-macOS-AppleSilicon-app-bundle.zip"
           test -d "$app/Contents/MacOS"
           executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Contents/Info.plist")"
           test -n "$executable"
           test -x "$app/Contents/MacOS/$executable"
-          ditto -c -k --sequesterRsrc --keepParent "$app" "$archive"
+          test -x "$app_root/ai_engine"
+          test -x "$app_root/hwcontrol_audio_probe"
+          test -x "$app_root/bridge-service"
+          test -x "$app_root/security-guardian"
+          ditto -c -k --sequesterRsrc --keepParent "$app_root" "$archive"
           unzip -t "$archive"
-          unzip -Z1 "$archive" | grep -Fq 'HWControl.app/Contents/Info.plist'
+          unzip -Z1 "$archive" | grep -Fq 'HWControl/HWControl.app/Contents/Info.plist'
+          unzip -Z1 "$archive" | grep -Fq 'HWControl/bridge-service'
 
       - name: Smoke-test PKG install and uninstall
         run: |
@@ -136,7 +142,7 @@ jobs:
       - name: Verify package hashes
         run: |
           set -euo pipefail
-          shasum -a 256 "HWControl-${RELEASE_TAG}-macOS-AppleSilicon.pkg" "HWControl-${RELEASE_TAG}-macOS-AppleSilicon.dmg" "HWControl-${RELEASE_TAG}-macOS-AppleSilicon-app.zip" > "HWControl-${RELEASE_TAG}-macOS-AppleSilicon.sha256"
+          shasum -a 256 "HWControl-${RELEASE_TAG}-macOS-AppleSilicon.pkg" "HWControl-${RELEASE_TAG}-macOS-AppleSilicon.dmg" "HWControl-${RELEASE_TAG}-macOS-AppleSilicon-app-bundle.zip" > "HWControl-${RELEASE_TAG}-macOS-AppleSilicon.sha256"
           shasum -a 256 -c "HWControl-${RELEASE_TAG}-macOS-AppleSilicon.sha256"
 
       - name: Attest release artifacts
@@ -145,7 +151,7 @@ jobs:
           subject-path: |
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.pkg
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.dmg
-            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon-app.zip
+            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon-app-bundle.zip
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.sha256
 
       - name: Replace existing beta release assets
@@ -173,5 +179,5 @@ jobs:
           files: |
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.pkg
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.dmg
-            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon-app.zip
+            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon-app-bundle.zip
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.sha256
