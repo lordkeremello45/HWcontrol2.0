@@ -285,7 +285,7 @@ jobs:
             HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Windows-x64.sha256
 
       - name: Publish assets to GitHub Release
-        if: github.ref != 'refs/heads/main'
+        if: github.event_name != 'push' || github.ref != 'refs/heads/main'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
