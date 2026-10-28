@@ -6,11 +6,14 @@ cd "$repo_root"
 tag="${1:?Usage: package-linux.sh <release-tag> [build-directory]}"
 build_dir="${2:-$repo_root/build}"
 version="${tag#v}"
+# Main-branch CI package filenames include the source SHA, but the package's
+# installable version remains the numeric app version from pubspec.yaml.
 # Beta release workflow uses a shared tag (vX.Y.Z-beta.N) across platforms;
 # retain support for historical platform-suffixed Linux tags as well.
 version="${version%-beta-linux}"
 version="${version%-linux}"
 version="${version%-beta.*}"
+version="${version%-main-*}"
 if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta(\.[0-9]+|-linux)?$ && ! "$tag" =~ ^v[A-Za-z0-9.+~_-]+-linux$ ]] || [[ ! "$version" =~ ^[A-Za-z0-9.+:~_-]+$ ]]; then
   echo "Invalid Linux release tag: $tag" >&2
   exit 2
