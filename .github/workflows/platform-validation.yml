@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: package-validation-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   FLUTTER_VERSION: 3.47.2
