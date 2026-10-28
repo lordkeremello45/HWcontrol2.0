@@ -112,7 +112,7 @@ jobs:
           wix extension add -g WixToolset.Util.wixext/6.0.2
           & "$PWD/deploy/windows/generate-icon.ps1"
           $version = $env:RELEASE_TAG -replace '^v','' -replace '-beta([.-].*)$',''
-          wix build deploy/windows/HWControl.wxs -arch x64 -d Version=$version -d PackageDir="package/HWControl-$env:RELEASE_TAG-Windows-x64" -d IconPath=deploy/windows/HWControl.ico -o "HWControl-$env:RELEASE_TAG-Windows-x64.msi"
+          wix build deploy/windows/HWControl.wxs -ext WixToolset.Util.wixext -arch x64 -d Version=$version -d PackageDir="package/HWControl-$env:RELEASE_TAG-Windows-x64" -d IconPath=deploy/windows/HWControl.ico -o "HWControl-$env:RELEASE_TAG-Windows-x64.msi"
           if (-not (Test-Path "HWControl-$env:RELEASE_TAG-Windows-x64.msi")) { throw 'MSI was not produced' }
       - name: Smoke-test MSI
         shell: pwsh
@@ -125,6 +125,7 @@ jobs:
           if (-not (Test-Path "$env:ProgramFiles\HWControl\HWControl.exe")) { throw 'MSI did not install HWControl.exe' }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\hwcontrol_audio_probe.exe")) { throw 'MSI did not install native audio helper' }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\hwcontrol-hardware-identification.exe")) { throw 'C# hardware identification helper was not installed' }
+          if (-not (Test-Path "$env:PUBLIC\Desktop\HWControl.lnk")) { throw 'MSI did not create the all-users desktop shortcut' }
           & "$env:ProgramFiles\HWControl\hwcontrol-hardware-identification.exe" --self-test
           if ($LASTEXITCODE -ne 0) { throw 'Installed C# hardware identification self-test failed' }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\security-guardian.exe")) { throw 'security-guardian.exe missing' }
