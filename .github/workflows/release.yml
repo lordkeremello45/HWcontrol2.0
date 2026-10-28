@@ -193,7 +193,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $env:PATH = "$env:USERPROFILE\\.dotnet\\tools;$env:PATH"
           wix extension add -g WixToolset.Bal.wixext/6.0.2
-          $versionMatch = [regex]::Match($env:RELEASE_TAG, '^v([0-9]+\\.[0-9]+\\.[0-9]+)')
+          $versionMatch = [regex]::Match($env:RELEASE_TAG, '^v([0-9]+\.[0-9]+\.[0-9]+)')
           if (-not $versionMatch.Success) { throw "Could not derive numeric setup version from release tag: $env:RELEASE_TAG" }
           $version = $versionMatch.Groups[1].Value
           $msi = "HWControl-$($env:RELEASE_TAG)-Windows-x64.msi"
