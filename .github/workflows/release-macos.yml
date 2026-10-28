@@ -164,10 +164,10 @@ jobs:
         uses: actions/attest@v4
         with:
           subject-path: |
-            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.pkg
-            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.dmg
-            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon-app-bundle.zip
-            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.sha256
+            HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-macOS-AppleSilicon.pkg
+            HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-macOS-AppleSilicon.dmg
+            HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-macOS-AppleSilicon-app-bundle.zip
+            HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-macOS-AppleSilicon.sha256
 
       - name: Upload macOS main-branch packages
         if: github.ref == 'refs/heads/main'
@@ -202,11 +202,11 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ startsWith(env.RELEASE_TAG, 'v0.3.0-') && 'HWcontrol2.0 Beta — macOS' || format('HWControl {0}', env.RELEASE_TAG) }}
-          tag_name: ${{ env.RELEASE_TAG }}
+          tag_name: ${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}
           generate_release_notes: true
           prerelease: ${{ contains(env.RELEASE_TAG, '-beta') }}
           files: |
-            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.pkg
-            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.dmg
-            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon-app-bundle.zip
-            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.sha256
+            HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-macOS-AppleSilicon.pkg
+            HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-macOS-AppleSilicon.dmg
+            HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-macOS-AppleSilicon-app-bundle.zip
+            HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-macOS-AppleSilicon.sha256
