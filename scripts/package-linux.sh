@@ -174,16 +174,6 @@ set -eu
 if [ -d /run/systemd/system ]; then systemctl daemon-reload; fi
 POSTRM
 chmod 0755 "$deb_root/DEBIAN/postinst" "$deb_root/DEBIAN/prerm" "$deb_root/DEBIAN/postrm"
-source_date_epoch="$(git -C "$repo_root" log -1 --format=%ct HEAD)"
-find "$bundle_root" "$deb_root" -exec touch -h -d "@$source_date_epoch" {} +
-export SOURCE_DATE_EPOCH="$source_date_epoch" LC_ALL=C TZ=UTC
-deb_path="$repo_root/HWControl-${tag}-Linux-x64.deb"
-dpkg-deb --build --root-owner-group "$deb_root" "$deb_path"
-bash "$repo_root/scripts/validate-linux-deb.sh" "$deb_path" "$version"
-tar --sort=name --mtime="@$source_date_epoch" --owner=0 --group=0 --numeric-owner -cf "$work_dir/bundle.tar" -C "$work_dir/package" "$asset_root"
-gzip -n -c "$work_dir/bundle.tar" > "$repo_root/HWControl-${tag}-Linux-x64.tar.gz"
-zstd -q -f "$work_dir/bundle.tar" -o "$repo_root/HWControl-${tag}-Linux-x64.tar.zst"
-echo "Built and validated Linux DEB and portable archives for $tag."
 shlib_output="$(cd "$work_dir" && dpkg-shlibdeps -O --ignore-missing-info -l"$deb_root/opt/hwcontrol/lib" -e "${elf_files[@]}")"
 shlib_depends="$(sed -n 's/^shlibs:Depends=//p' <<< "$shlib_output")"
 [[ -n "$shlib_depends" ]] || { echo "dpkg-shlibdeps produced no runtime dependencies." >&2; exit 1; }
@@ -199,3 +189,14 @@ Depends: init-system-helpers, passwd, $shlib_depends
 Description: HWControl hardware monitoring and control suite
  Cross-platform local hardware monitoring application.
 CONTROL
+
+source_date_epoch="$(git -C "$repo_root" log -1 --format=%ct HEAD)"
+find "$bundle_root" "$deb_root" -exec touch -h -d "@$source_date_epoch" {} +
+export SOURCE_DATE_EPOCH="$source_date_epoch" LC_ALL=C TZ=UTC
+deb_path="$repo_root/HWControl-${tag}-Linux-x64.deb"
+dpkg-deb --build --root-owner-group "$deb_root" "$deb_path"
+bash "$repo_root/scripts/validate-linux-deb.sh" "$deb_path" "$version"
+tar --sort=name --mtime="@$source_date_epoch" --owner=0 --group=0 --numeric-owner -cf "$work_dir/bundle.tar" -C "$work_dir/package" "$asset_root"
+gzip -n -c "$work_dir/bundle.tar" > "$repo_root/HWControl-${tag}-Linux-x64.tar.gz"
+zstd -q -f "$work_dir/bundle.tar" -o "$repo_root/HWControl-${tag}-Linux-x64.tar.zst"
+echo "Built and validated Linux DEB and portable archives for $tag."
