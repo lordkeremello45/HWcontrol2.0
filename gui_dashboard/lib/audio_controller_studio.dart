@@ -746,7 +746,9 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
         !numberIn('highPassHz', 20, 300) ||
         !numberIn('noiseGateThresholdDb', -90, -20) ||
         !numberIn('compressorRatio', 1, 4) ||
-        !numberIn('limiterCeilingDb', -6, -0.5)) return false;
+        !numberIn('limiterCeilingDb', -6, -0.5)) {
+      return false;
+    }
     for (final key in ['highPassEnabled', 'noiseGateEnabled', 'compressorEnabled', 'limiterEnabled']) {
       if (value[key] is! bool) return false;
     }
@@ -1028,10 +1030,10 @@ class _AudioControllerStudioScreenState extends State<AudioControllerStudioScree
               _metric('Stereo correlation', spectrumAvailable ? _safeCorrelation() : 'Waiting for data'),
               _metric('Callback processing', _liveRunning ? '${_safeMetricDecimal('callbackProcessingTimeUs')} µs' : 'Not connected'),
               _metric('Worst callback', _liveRunning ? '${_safeMetricDecimal('maxCallbackProcessingTimeUs')} µs' : 'Not connected'),
-              _metric('Callback budget overruns', _liveRunning ? '${_safeMetricCount('callbackBudgetOverruns')}' : 'Not connected'),
-              _metric('Processed frames', _liveRunning ? '${_safeMetricCount('processedFrames')}' : 'Not connected'),
-              _metric('Dropped FFT frames', _liveRunning ? '${_safeMetricCount('droppedSpectrumFrames')}' : 'Not connected'),
-              _metric('Limiter-restrained samples', _liveRunning ? '${_safeMetricCount('limitedSamples')}' : 'Not connected'),
+              _metric('Callback budget overruns', _liveRunning ? _safeMetricCount('callbackBudgetOverruns') : 'Not connected'),
+              _metric('Processed frames', _liveRunning ? _safeMetricCount('processedFrames') : 'Not connected'),
+              _metric('Dropped FFT frames', _liveRunning ? _safeMetricCount('droppedSpectrumFrames') : 'Not connected'),
+              _metric('Limiter-restrained samples', _liveRunning ? _safeMetricCount('limitedSamples') : 'Not connected'),
             ],
           ),
           const SizedBox(height: 16),
