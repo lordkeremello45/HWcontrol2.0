@@ -88,12 +88,23 @@ jobs:
             esac
             tag="v${VERSION}-beta-${platform}"
             echo "Dispatching $workflow for $tag from $SOURCE_SHA"
-            output="$(gh workflow run "$workflow" --repo "$GH_REPO" --ref main \
-              -f "tag=$tag" -f "source_ref=$SOURCE_SHA")"
-            run_url="$(printf '%s\n' "$output" | grep -Eo 'https://github\.com/[^[:space:]]+/actions/runs/[0-9]+' | tail -n1)"
-            run_id="${run_url##*/}"
+            dispatch_started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            gh workflow run "$workflow" --repo "$GH_REPO" --ref main \
+              -f "tag=$tag" -f "source_ref=$SOURCE_SHA"
+
+            # gh workflow run confirms dispatch but does not reliably print a run URL/ID.
+            # Poll for a workflow_dispatch run created after this request.
+            run_id=""
+            for attempt in {1..12}; do
+              run_id="$(gh run list --workflow "$workflow" --repo "$GH_REPO" \
+                --event workflow_dispatch --limit 20 --json databaseId,createdAt |
+                jq -r --arg since "$dispatch_started_at" \
+                  '[.[] | select(.createdAt >= $since)] | sort_by(.createdAt) | last | .databaseId // empty')"
+              [[ "$run_id" =~ ^[0-9]+$ ]] && break
+              sleep 5
+            done
             [[ "$run_id" =~ ^[0-9]+$ ]] || {
-              echo "Could not parse workflow run ID for $workflow. CLI output: $output" >&2
+              echo "Dispatch was sent, but no matching run ID appeared for $workflow." >&2
               exit 1
             }
             echo "${platform}_run_id=$run_id" >> "$GITHUB_OUTPUT"
