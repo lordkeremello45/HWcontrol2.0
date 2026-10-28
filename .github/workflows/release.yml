@@ -209,13 +209,13 @@ jobs:
           $ErrorActionPreference = 'Stop'
           choco install 7zip --yes --no-progress
           $sevenZip = @(
-            "$env:ProgramFiles\\7-Zip\\7z.exe",
-            "${env:ProgramFiles(x86)}\\7-Zip\\7z.exe"
+            "$env:ProgramFiles\7-Zip\7z.exe",
+            "${env:ProgramFiles(x86)}\7-Zip\7z.exe"
           ) | Where-Object { Test-Path $_ } | Select-Object -First 1
           if (-not $sevenZip) { throw '7-Zip executable was not found after installation' }
           $packageDir = "package/HWControl-$($env:RELEASE_TAG)-Windows-x64"
           $archive = "HWControl-$($env:RELEASE_TAG)-Windows-x64.7z"
-          & $sevenZip a -t7z -mx=7 $archive "$packageDir\\*"
+          & $sevenZip a -t7z -mx=7 $archive "$packageDir\*"
           if ($LASTEXITCODE -ne 0) { throw '7-Zip archive creation failed' }
           & $sevenZip t $archive
           if ($LASTEXITCODE -ne 0) { throw '7-Zip archive integrity test failed' }
