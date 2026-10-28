@@ -1,0 +1,165 @@
+name: Build selected platform packages (Beta)
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: "Choose which platform packages to build"
+        required: true
+        type: choice
+        options:
+          - windows
+          - linux
+          - macos
+          - all
+        default: all
+      version:
+        description: "Beta version number without v or channel suffix (for example 0.3.1)"
+        required: true
+        type: string
+        default: "0.3.1"
+      source_ref:
+        description: "Source branch or full 40-character commit SHA"
+        required: true
+        type: string
+        default: main
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: selected-beta-package-build
+  cancel-in-progress: false
+
+jobs:
+  dispatch-and-verify:
+    name: Build selected packages and wait for results
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      PLATFORM: ${{ inputs.platform }}
+      VERSION: ${{ inputs.version }}
+      SOURCE_REF: ${{ inputs.source_ref }}
+    steps:
+      - name: Validate inputs and resolve source commit
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+            echo "Version must be semantic numeric form, e.g. 0.3.1 (no v prefix)." >&2
+            exit 1
+          }
+          [[ "$SOURCE_REF" == "main" || "$SOURCE_REF" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "Source must be main or a full 40-character commit SHA." >&2
+            exit 1
+          }
+          source_sha="$(gh api "repos/$GH_REPO/commits/$SOURCE_REF" --jq '.sha')"
+          [[ "$source_sha" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "Could not resolve source ref to a commit SHA." >&2
+            exit 1
+          }
+          echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
+          echo "Building beta packages from $source_sha."
+
+      - name: Dispatch selected platform release workflows
+        id: dispatch
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$PLATFORM" in
+            windows) platforms=(windows) ;;
+            linux) platforms=(linux) ;;
+            macos) platforms=(macos) ;;
+            all) platforms=(windows linux macos) ;;
+            *) echo "Unsupported platform: $PLATFORM" >&2; exit 1 ;;
+          esac
+
+          for platform in "${platforms[@]}"; do
+            case "$platform" in
+              windows) workflow="release.yml" ;;
+              linux) workflow="release-linux.yml" ;;
+              macos) workflow="release-macos.yml" ;;
+            esac
+            tag="v${VERSION}-beta-${platform}"
+            echo "Dispatching $workflow for $tag from $SOURCE_SHA"
+            output="$(gh workflow run "$workflow" --repo "$GH_REPO" --ref main \
+              -f "tag=$tag" -f "source_ref=$SOURCE_SHA")"
+            run_url="$(printf '%s\n' "$output" | grep -Eo 'https://github\.com/[^[:space:]]+/actions/runs/[0-9]+' | tail -n1)"
+            run_id="${run_url##*/}"
+            [[ "$run_id" =~ ^[0-9]+$ ]] || {
+              echo "Could not parse workflow run ID for $workflow. CLI output: $output" >&2
+              exit 1
+            }
+            echo "${platform}_run_id=$run_id" >> "$GITHUB_OUTPUT"
+            echo "${platform}_tag=$tag" >> "$GITHUB_OUTPUT"
+          done
+
+      - name: Wait for builds and verify outcomes
+        shell: bash
+        env:
+          WINDOWS_RUN_ID: ${{ steps.dispatch.outputs.windows_run_id }}
+          LINUX_RUN_ID: ${{ steps.dispatch.outputs.linux_run_id }}
+          MACOS_RUN_ID: ${{ steps.dispatch.outputs.macos_run_id }}
+        run: |
+          set -euo pipefail
+          case "$PLATFORM" in
+            windows) platforms=(windows) ;;
+            linux) platforms=(linux) ;;
+            macos) platforms=(macos) ;;
+            all) platforms=(windows linux macos) ;;
+          esac
+
+          deadline=$((SECONDS + 3300))
+          while (( SECONDS < deadline )); do
+            all_done=true
+            for platform in "${platforms[@]}"; do
+              var="${platform^^}_RUN_ID"
+              run_id="${!var}"
+              [[ "$run_id" =~ ^[0-9]+$ ]] || { echo "Missing run ID for $platform" >&2; exit 1; }
+              status="$(gh run view "$run_id" --repo "$GH_REPO" --json status --jq '.status')"
+              conclusion="$(gh run view "$run_id" --repo "$GH_REPO" --json conclusion --jq '.conclusion')"
+              echo "$platform release run $run_id: $status / ${conclusion:-pending}"
+              if [[ "$status" != "completed" ]]; then all_done=false; fi
+            done
+            if [[ "$all_done" == true ]]; then break; fi
+            sleep 15
+          done
+          (( SECONDS < deadline )) || { echo "Timed out waiting for platform builds." >&2; exit 1; }
+
+          failed=false
+          for platform in "${platforms[@]}"; do
+            var="${platform^^}_RUN_ID"
+            run_id="${!var}"
+            conclusion="$(gh run view "$run_id" --repo "$GH_REPO" --json conclusion --jq '.conclusion')"
+            if [[ "$conclusion" != "success" ]]; then
+              echo "::error::$platform release build failed ($conclusion): https://github.com/$GH_REPO/actions/runs/$run_id"
+              failed=true
+            fi
+          done
+          [[ "$failed" == false ]] || exit 1
+
+      - name: Verify release assets exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$PLATFORM" in
+            windows) platforms=(windows) ;;
+            linux) platforms=(linux) ;;
+            macos) platforms=(macos) ;;
+            all) platforms=(windows linux macos) ;;
+          esac
+          for platform in "${platforms[@]}"; do
+            tag="v${VERSION}-beta-${platform}"
+            assets="$(gh release view "$tag" --repo "$GH_REPO" --json assets --jq '.assets | length')"
+            if [[ "$assets" -lt 1 ]]; then
+              echo "::error::Release $tag has no downloadable assets."
+              exit 1
+            fi
+            echo "$tag published $assets asset(s): https://github.com/$GH_REPO/releases/tag/$tag"
+          done
