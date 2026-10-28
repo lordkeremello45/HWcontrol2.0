@@ -133,11 +133,11 @@ jobs:
         uses: actions/attest@v4
         with:
           subject-path: |
-            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.deb
-            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.tar.gz
-            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.tar.zst
-            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.zip
-            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.sha256
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.deb
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.gz
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.zst
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.zip
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.sha256
 
       - name: Upload Linux main-branch packages
         if: github.ref == 'refs/heads/main'
@@ -177,8 +177,8 @@ jobs:
           generate_release_notes: true
           prerelease: ${{ contains(env.RELEASE_TAG, '-beta') }}
           files: |
-            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.deb
-            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.tar.gz
-            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.tar.zst
-            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.zip
-            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.sha256
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.deb
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.gz
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.zst
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.zip
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.sha256
