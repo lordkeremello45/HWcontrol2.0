@@ -23,6 +23,8 @@ concurrency:
 
 jobs:
   update-beta:
+    env:
+      GH_REPO: ${{ github.repository }}
     if: >-
       (github.event_name == 'workflow_dispatch') ||
       (
