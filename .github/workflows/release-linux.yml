@@ -154,7 +154,7 @@ jobs:
           retention-days: 14
 
       - name: Replace existing beta release assets
-        if: contains(env.RELEASE_TAG, '-beta') && github.ref != 'refs/heads/main'
+        if: contains(env.RELEASE_TAG, '-beta') && (github.event_name != 'push' || github.ref != 'refs/heads/main')
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -169,7 +169,7 @@ jobs:
           fi
 
       - name: Publish Linux release
-        if: github.ref != 'refs/heads/main'
+        if: github.event_name != 'push' || github.ref != 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ startsWith(env.RELEASE_TAG, 'v0.3.0-') && 'HWcontrol2.0 Beta — Linux' || format('HWControl {0}', env.RELEASE_TAG) }}
