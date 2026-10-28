@@ -11,6 +11,11 @@ on:
 permissions:
   contents: read
 
+# Serialize mirror jobs: the mirror README customization is a commit on GitLab main.
+concurrency:
+  group: gitlab-mirror
+  cancel-in-progress: false
+
 jobs:
   mirror:
     name: GitHub → GitLab mirror
