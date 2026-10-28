@@ -41,6 +41,7 @@ jobs:
           ref: ${{ env.SOURCE_REF }}
 
       - name: Resolve main-branch package version
+        id: resolve-main-tag
         if: github.ref == 'refs/heads/main'
         shell: bash
         run: |
@@ -49,6 +50,7 @@ jobs:
           [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Could not read numeric application version from pubspec.yaml" >&2; exit 1; }
           tag="v${version}-main-${GITHUB_SHA}-linux"
           echo "RELEASE_TAG=$tag" >> "$GITHUB_ENV"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "Main-branch package tag: $tag"
 
       - name: Install dependencies
@@ -131,11 +133,11 @@ jobs:
         uses: actions/attest@v4
         with:
           subject-path: |
-            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.deb
-            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.gz
-            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.zst
-            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.zip
-            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.sha256
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.deb
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.tar.gz
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.tar.zst
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.zip
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.sha256
 
       - name: Upload Linux main-branch packages
         if: github.ref == 'refs/heads/main'
@@ -143,11 +145,11 @@ jobs:
         with:
           name: HWControl-main-${{ github.sha }}-Linux-x64
           path: |
-            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.deb
-            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.gz
-            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.zst
-            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.zip
-            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.sha256
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.deb
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.tar.gz
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.tar.zst
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.zip
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.sha256
           if-no-files-found: error
           retention-days: 14
 
@@ -175,8 +177,8 @@ jobs:
           generate_release_notes: true
           prerelease: ${{ contains(env.RELEASE_TAG, '-beta') }}
           files: |
-            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.deb
-            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.gz
-            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.zst
-            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.zip
-            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.sha256
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.deb
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.tar.gz
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.tar.zst
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.zip
+            HWControl-${{ steps.resolve-main-tag.outputs.tag }}-Linux-x64.sha256
