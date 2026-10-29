@@ -33,6 +33,8 @@ env:
 jobs:
   prepare-release:
     name: Validate source and immutable beta tag
+    permissions:
+      contents: write
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
@@ -46,6 +48,7 @@ jobs:
         id: validate
         env:
           GH_TOKEN: ${{ github.token }}
+          PUBLISH_RELEASE: ${{ inputs.publish }}
         shell: bash
         run: |
           set -euo pipefail
@@ -63,6 +66,13 @@ jobs:
             type="$(jq -r '.object.type' "$RUNNER_TEMP/tag-ref.json")"
             if [[ "$type" == "tag" ]]; then object="$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$object" --jq '.object.sha')"; fi
             [[ "$object" == "$source_sha" ]] || { echo "Existing tag points at $object, expected $source_sha; refusing to move it" >&2; exit 1; }
+          elif [[ "$PUBLISH_RELEASE" == "true" ]]; then
+            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/$RELEASE_TAG" -f "sha=$source_sha" >/dev/null
+            gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" > "$RUNNER_TEMP/tag-ref.json"
+            object="$(jq -r '.object.sha' "$RUNNER_TEMP/tag-ref.json")"
+            [[ "$object" == "$source_sha" ]] || { echo "New tag points at $object, expected $source_sha" >&2; exit 1; }
+          else
+            echo "Dry run: not creating release tag $RELEASE_TAG"
           fi
           echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
 
