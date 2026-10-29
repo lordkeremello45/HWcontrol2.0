@@ -71,7 +71,7 @@ export function isInstallableAsset(name, platform) {
 
 export function getPackageAssets(release, platform) {
   if (!release || !Array.isArray(release.assets) || !PLATFORMS.has(platform)) return [];
-  const unifiedBeta = /^v\d+\.\d+\.\d+-beta\.\d+$/i;
+  const unifiedBeta = /^v\d+\.\d+\.\d+-beta\.\d+$/i.test(release.tag_name || "");
   const platformAsset = {
     windows: /windows-x64/i,
     macos: /macos-applesilicon|macos-arm64|darwin-arm64/i,
