@@ -59,7 +59,8 @@ jobs:
             $remoteRef = git ls-remote origin "refs/tags/$env:RELEASE_TAG"
             if ($LASTEXITCODE -ne 0) { throw "Could not query remote tag $env:RELEASE_TAG" }
             if (-not $remoteRef) { throw "Release tag $env:RELEASE_TAG does not exist; refusing to publish an untagged commit" }
-            git fetch --no-tags origin "refs/tags/$env:RELEASE_TAG:refs/tags/$env:RELEASE_TAG"
+            $tagRef = "refs/tags/$($env:RELEASE_TAG)"
+            git fetch --no-tags origin "$($tagRef):$($tagRef)"
             if ($LASTEXITCODE -ne 0) { throw "Could not fetch release tag $env:RELEASE_TAG" }
             $tagSha = (git rev-parse "$env:RELEASE_TAG^{commit}").Trim()
             if ($tagSha -ne $sourceSha) { throw "Release tag $env:RELEASE_TAG points at $tagSha, not checked-out source commit $sourceSha" }
