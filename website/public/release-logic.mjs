@@ -71,14 +71,16 @@ export function isInstallableAsset(name, platform) {
 
 export function getPackageAssets(release, platform) {
   if (!release || !Array.isArray(release.assets) || !PLATFORMS.has(platform)) return [];
+  const unifiedBeta = /^v\\d+\\.\\d+\\.\\d+-beta\\.\\d+$/i.test(release.tag_name || "");
   const platformAsset = {
     windows: /windows-x64/i,
     macos: /macos-applesilicon|macos-arm64|darwin-arm64/i,
     linux: /linux-x64|linux-amd64/i
   }[platform];
+  const explicitPlatform = /windows|linux|macos|darwin/i;
   return release.assets
     .filter((asset) => asset && isInstallableAsset(asset.name, platform) &&
-      platformAsset.test(asset.name) &&
+      (platformAsset.test(asset.name) || (!unifiedBeta && !explicitPlatform.test(asset.name))) &&
       safeReleaseUrl(asset.url || asset.browser_download_url))
     .map((asset) => ({ ...asset, url: safeReleaseUrl(asset.url || asset.browser_download_url) }));
 }
