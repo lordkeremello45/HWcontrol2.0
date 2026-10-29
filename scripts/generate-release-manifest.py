@@ -8,6 +8,8 @@ import re
 from pathlib import Path
 from typing import Any
 
+REPOSITORY = "lordkeremello45/HWcontrol2.0"
+
 PLATFORMS = {
     "windows": {
         "suffix": "-windows",
@@ -30,7 +32,7 @@ def safe_github_url(value: Any) -> bool:
         return False
     from urllib.parse import urlparse
     parsed = urlparse(value)
-    return parsed.scheme == "https" and parsed.hostname == "github.com" and not parsed.username and not parsed.password
+    return parsed.scheme == "https" and parsed.hostname == "github.com" and not parsed.username and not parsed.password and parsed.path.startswith(f"/{REPOSITORY}/releases/")
 
 
 def published_at(release: dict[str, Any]) -> str:
