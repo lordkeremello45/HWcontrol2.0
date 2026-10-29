@@ -74,7 +74,7 @@ def checksum_asset(release: dict[str, Any], asset_name: str) -> dict[str, Any] |
     base = asset_name.lower()
     for suffix in CHECKSUM_SUFFIXES:
         candidate = by_name.get(base + suffix)
-        if candidate:
+        if candidate and safe_github_url(candidate.get("browser_download_url")):
             return candidate
     return None
 
@@ -115,7 +115,7 @@ def release_manifest(release: dict[str, Any], platform: str) -> dict[str, Any]:
 
     def url(name: str) -> str | None:
         asset = all_assets.get(name.lower())
-        return asset.get("browser_download_url") if asset else None
+        return asset.get("browser_download_url") if asset and safe_github_url(asset.get("browser_download_url")) else None
 
     return {
         "tag": release.get("tag_name"),
