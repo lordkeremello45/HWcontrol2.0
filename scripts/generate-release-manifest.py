@@ -92,6 +92,19 @@ def manifest_assets(release: dict[str, Any], platform: str) -> list[dict[str, An
     return output
 
 
+def platform_checksum_url(release: dict[str, Any], platform: str) -> str | None:
+    token = {
+        "windows": re.compile(r"windows.*x64", re.IGNORECASE),
+        "macos": re.compile(r"macos.*(apple.?silicon|arm64)|darwin.*arm64", re.IGNORECASE),
+        "linux": re.compile(r"linux.*(x64|amd64)", re.IGNORECASE),
+    }[platform]
+    for asset in release.get("assets", []):
+        name = str(asset.get("name", ""))
+        if token.search(name) and name.lower().endswith(".sha256") and safe_github_url(asset.get("browser_download_url")):
+            return asset.get("browser_download_url")
+    return None
+
+
 def release_manifest(release: dict[str, Any], platform: str) -> dict[str, Any]:
     assets = manifest_assets(release, platform)
     if not assets:
@@ -109,7 +122,7 @@ def release_manifest(release: dict[str, Any], platform: str) -> dict[str, Any]:
         "release_url": release.get("html_url"),
         "assets": assets,
         "integrity": {
-            "sha256sums_url": url("SHA256SUMS.txt"),
+            "sha256sums_url": url("SHA256SUMS.txt") or platform_checksum_url(release, platform),
             "sha512sums_url": url("SHA512SUMS.txt"),
             "sha3_512sums_url": url("SHA3-512SUMS.txt"),
             "ed25519_signature_url": url("SHA256SUMS.txt.sig"),
