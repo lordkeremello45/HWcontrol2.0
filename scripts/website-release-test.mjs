@@ -11,7 +11,7 @@ if (data.repository !== 'lordkeremello45/HWcontrol2.0') throw new Error('Unexpec
 function safeGitHubUrl(value) {
   try {
     const url = new URL(value);
-    return url.protocol === 'https:' && url.hostname === 'github.com' && !url.username && !url.password;
+    return url.protocol === 'https:' && url.hostname === 'github.com' && !url.username && !url.password && url.pathname.startsWith('/lordkeremello45/HWcontrol2.0/releases/');
   } catch {
     return false;
   }
