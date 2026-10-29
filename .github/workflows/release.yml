@@ -39,11 +39,11 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          if ($env:GITHUB_REF -ne 'refs/heads/main' -and $env:RELEASE_TAG -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?-windows
-          if ('${{ env.SOURCE_REF }}' -notmatch '^(main|[0-9a-f]{40})$') { throw "SOURCE_REF must be main or a full commit SHA" }
+          if ($env:GITHUB_REF -ne 'refs/heads/main' -and $env:RELEASE_TAG -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?-windows$') { throw "Invalid Windows release tag: $env:RELEASE_TAG" }
+          if ($env:SOURCE_REF -notmatch '^(main|[0-9a-f]{40})$') { throw "SOURCE_REF must be main or a full commit SHA" }
 
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.3.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           ref: ${{ env.SOURCE_REF }}
@@ -73,7 +73,7 @@ jobs:
           if (-not $tagMatch.Success -or $tagMatch.Groups[1].Value -ne $appVersion) { throw "Package tag version does not match app version $appVersion (tag: $env:RELEASE_TAG)" }
 
       - name: Setup Go
-        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
         with:
           go-version-file: bridge_service/go.mod
           cache: false
@@ -204,8 +204,8 @@ jobs:
           if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge still exists after MSI uninstall' }
           if (Get-Service -Name HWControlSecurityGuardian -ErrorAction SilentlyContinue) { throw 'HWControlSecurityGuardian still exists after MSI uninstall' }
           if (Test-Path "$env:ProgramFiles\HWControl") { throw 'Program Files\HWControl still exists after MSI uninstall' }
-          if (Test-Path (Join-Path $env:PUBLIC 'Desktop\HWControl.lnk')) { throw 'HWControl desktop shortcut still exists after MSI uninstall' }
-          if (Test-Path (Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk')) { throw 'HWControl Start Menu shortcut still exists after MSI uninstall' }
+          if (Test-Path (Join-Path $env:USERPROFILE 'Desktop\HWControl.lnk')) { throw 'HWControl desktop shortcut still exists after MSI uninstall' }
+          if (Test-Path (Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk')) { throw 'HWControl Start Menu shortcut still exists after MSI uninstall' }
           if (Test-Path "$env:ProgramData\HWControl\bridge.key") { throw 'bridge.key still exists after MSI uninstall' }
           if (Test-Path "$env:ProgramData\HWControl\security") { throw 'security canary state still exists after MSI uninstall' }
           $leftover = Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' -Name HWCONTROL_KEY -ErrorAction SilentlyContinue
@@ -258,8 +258,8 @@ jobs:
 
           $exe = Join-Path $env:ProgramFiles 'HWControl\HWControl.exe'
           if (-not (Test-Path $exe)) { throw "Setup EXE did not install the app: $exe" }
-          $desktopShortcut = Join-Path $env:PUBLIC 'Desktop\HWControl.lnk'
-          $startMenuShortcut = Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk'
+          $desktopShortcut = Join-Path $env:USERPROFILE 'Desktop\HWControl.lnk'
+          $startMenuShortcut = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk'
           foreach ($shortcutFile in @($desktopShortcut, $startMenuShortcut)) {
             if (-not (Test-Path $shortcutFile)) { throw "Setup EXE install did not create expected shortcut: $shortcutFile" }
             $shell = New-Object -ComObject WScript.Shell
@@ -359,7 +359,7 @@ jobs:
             $releaseArgs = @($env:RELEASE_TAG, '--repo', $env:GITHUB_REPOSITORY, '--title', $env:RELEASE_TAG, '--generate-notes', '--latest=false', '--target', $env:SOURCE_REF)
             if ($env:RELEASE_TAG -match '-beta') { $releaseArgs += '--prerelease' }
             gh release create @releaseArgs
-            if ($LASTEXITCODE -ne 0) { throw "Could not create GitHub prerelease $env:RELEASE_TAG" }
+            if ($LASTEXITCODE -ne 0) { throw "Could not create GitHub Release $env:RELEASE_TAG" }
           }
           gh release upload $env:RELEASE_TAG @assets --repo $env:GITHUB_REPOSITORY --clobber
           if ($LASTEXITCODE -ne 0) { throw "Could not upload Windows assets to GitHub Release $env:RELEASE_TAG" }
@@ -367,7 +367,7 @@ jobs:
           if ('${{ env.SOURCE_REF }}' -notmatch '^(main|[0-9a-f]{40})$') { throw "SOURCE_REF must be main or a full commit SHA" }
 
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.3.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           ref: ${{ env.SOURCE_REF }}
@@ -397,7 +397,7 @@ jobs:
           if (-not $tagMatch.Success -or $tagMatch.Groups[1].Value -ne $appVersion) { throw "Package tag version does not match app version $appVersion (tag: $env:RELEASE_TAG)" }
 
       - name: Setup Go
-        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
         with:
           go-version-file: bridge_service/go.mod
           cache: false
@@ -480,7 +480,7 @@ jobs:
           if (-not $versionMatch.Success) { throw "Could not derive numeric MSI version from release tag: $env:RELEASE_TAG" }
           $version = $versionMatch.Groups[1].Value
           $packageDir = "package/HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Windows-x64"
-          wix build deploy/windows/HWControl.wxs -arch x64 -d Version=$version -d PackageDir=$packageDir -d IconPath=deploy/windows/HWControl.ico -o "HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Windows-x64.msi"
+          wix build deploy/windows/HWControl.wxs -ext WixToolset.Util.wixext -arch x64 -d Version=$version -d PackageDir=$packageDir -d IconPath=deploy/windows/HWControl.ico -o "HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Windows-x64.msi"
           if (-not (Test-Path "HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Windows-x64.msi")) { throw 'MSI was not produced' }
           if ((Get-Item "HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Windows-x64.msi").Length -lt 4096) { throw 'MSI is unexpectedly small' }
 
@@ -500,8 +500,8 @@ jobs:
           if (-not (Test-Path "$env:ProgramFiles\HWControl\hwcontrol-hardware-identification.exe")) { throw 'C# hardware identification helper was not installed' }
           & "$env:ProgramFiles\HWControl\hwcontrol-hardware-identification.exe" --self-test
           if ($LASTEXITCODE -ne 0) { throw 'Installed C# hardware identification self-test failed' }
-          $shortcutPath = Join-Path $env:PUBLIC 'Desktop\HWControl.lnk'
-          $startMenuShortcutPath = Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk'
+          $shortcutPath = Join-Path $env:USERPROFILE 'Desktop\HWControl.lnk'
+          $startMenuShortcutPath = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk'
           if (-not (Test-Path $shortcutPath)) { throw 'HWControl desktop shortcut was not installed by MSI' }
           if (-not (Test-Path $startMenuShortcutPath)) { throw 'HWControl Start Menu shortcut was not installed by MSI' }
           $shell = New-Object -ComObject WScript.Shell
@@ -528,8 +528,8 @@ jobs:
           if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge still exists after MSI uninstall' }
           if (Get-Service -Name HWControlSecurityGuardian -ErrorAction SilentlyContinue) { throw 'HWControlSecurityGuardian still exists after MSI uninstall' }
           if (Test-Path "$env:ProgramFiles\HWControl") { throw 'Program Files\HWControl still exists after MSI uninstall' }
-          if (Test-Path (Join-Path $env:PUBLIC 'Desktop\HWControl.lnk')) { throw 'HWControl desktop shortcut still exists after MSI uninstall' }
-          if (Test-Path (Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk')) { throw 'HWControl Start Menu shortcut still exists after MSI uninstall' }
+          if (Test-Path (Join-Path $env:USERPROFILE 'Desktop\HWControl.lnk')) { throw 'HWControl desktop shortcut still exists after MSI uninstall' }
+          if (Test-Path (Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk')) { throw 'HWControl Start Menu shortcut still exists after MSI uninstall' }
           if (Test-Path "$env:ProgramData\HWControl\bridge.key") { throw 'bridge.key still exists after MSI uninstall' }
           if (Test-Path "$env:ProgramData\HWControl\security") { throw 'security canary state still exists after MSI uninstall' }
           $leftover = Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' -Name HWCONTROL_KEY -ErrorAction SilentlyContinue
@@ -582,8 +582,8 @@ jobs:
 
           $exe = Join-Path $env:ProgramFiles 'HWControl\HWControl.exe'
           if (-not (Test-Path $exe)) { throw "Setup EXE did not install the app: $exe" }
-          $desktopShortcut = Join-Path $env:PUBLIC 'Desktop\HWControl.lnk'
-          $startMenuShortcut = Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk'
+          $desktopShortcut = Join-Path $env:USERPROFILE 'Desktop\HWControl.lnk'
+          $startMenuShortcut = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk'
           foreach ($shortcutFile in @($desktopShortcut, $startMenuShortcut)) {
             if (-not (Test-Path $shortcutFile)) { throw "Setup EXE install did not create expected shortcut: $shortcutFile" }
             $shell = New-Object -ComObject WScript.Shell
@@ -681,7 +681,7 @@ jobs:
           $releaseExists = $LASTEXITCODE -eq 0
           if (-not $releaseExists) {
             gh release create $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY --title $env:RELEASE_TAG --generate-notes --prerelease --latest=false
-            if ($LASTEXITCODE -ne 0) { throw "Could not create GitHub prerelease $env:RELEASE_TAG" }
+            if ($LASTEXITCODE -ne 0) { throw "Could not create GitHub Release $env:RELEASE_TAG" }
           }
           gh release upload $env:RELEASE_TAG @assets --repo $env:GITHUB_REPOSITORY --clobber
           if ($LASTEXITCODE -ne 0) { throw "Could not upload Windows assets to GitHub Release $env:RELEASE_TAG" }
