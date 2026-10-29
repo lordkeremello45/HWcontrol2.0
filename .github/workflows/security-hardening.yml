@@ -110,6 +110,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Parse GitHub Actions workflow YAML
+        run: |
+          ruby -e 'require "yaml"; ARGV.each { |file| YAML.parse_file(file); puts "Valid YAML: #{file}" }' .github/workflows/*.yml
       - name: Check repository whitespace
         run: |
           git diff --check HEAD
