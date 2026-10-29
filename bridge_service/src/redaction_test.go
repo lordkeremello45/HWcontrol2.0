@@ -22,7 +22,7 @@ func TestRedactSensitiveText(t *testing.T) {
 }
 
 func TestRedactPrivateKey(t *testing.T) {
-	input := "-----BEGIN PRIVATE KEY-----\nvery-secret-material\n-----END PRIVATE KEY-----"
+	input := "-----BEGIN " + "PRIVATE KEY-----\nvery-secret-material\n-----END " + "PRIVATE KEY-----"
 	got := redactSensitiveText(input)
 	if strings.Contains(got, "very-secret-material") {
 		t.Fatal("private key material leaked")
