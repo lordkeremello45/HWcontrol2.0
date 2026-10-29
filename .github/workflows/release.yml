@@ -275,8 +275,8 @@ jobs:
 
           $exe = Join-Path $env:ProgramFiles 'HWControl\HWControl.exe'
           if (-not (Test-Path $exe)) { throw "Setup EXE did not install the app: $exe" }
-          $desktopShortcut = Join-Path $env:PUBLIC 'Desktop\HWControl.lnk'
-          $startMenuShortcut = Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk'
+          $desktopShortcut = Join-Path $env:USERPROFILE 'Desktop\HWControl.lnk'
+          $startMenuShortcut = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk'
           foreach ($shortcutFile in @($desktopShortcut, $startMenuShortcut)) {
             if (-not (Test-Path $shortcutFile)) { throw "Setup EXE install did not create expected shortcut: $shortcutFile" }
             $shell = New-Object -ComObject WScript.Shell
