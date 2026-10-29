@@ -31,7 +31,7 @@ export function getManifestPlatform(manifest, platform) {
 export function selectPlatformRelease(releases, platform) {
   if (!PLATFORMS.has(platform) || !Array.isArray(releases)) return null;
   const suffix = new RegExp(`-${platform}$`, "i");
-  const unifiedBeta = /^v\d+\.\d+\.\d+-beta\.\d+$/i;
+  const unifiedBeta = /^v\d+\.\d+\.\d+-beta\.\d+$/i.test(release.tag_name || "");
   return releases
     .filter((release) => {
       if (!release || release.draft || typeof release.tag_name !== "string" || !Array.isArray(release.assets)) return false;
@@ -71,7 +71,7 @@ export function isInstallableAsset(name, platform) {
 
 export function getPackageAssets(release, platform) {
   if (!release || !Array.isArray(release.assets) || !PLATFORMS.has(platform)) return [];
-  const unifiedBeta = /^v\\d+\\.\\d+\\.\\d+-beta\\.\\d+$/i.test(release.tag_name || "");
+  const unifiedBeta = /^v\d+\.\d+\.\d+-beta\.\d+$/i.test(release.tag_name || "");
   const platformAsset = {
     windows: /windows-x64/i,
     macos: /macos-applesilicon|macos-arm64|darwin-arm64/i,
