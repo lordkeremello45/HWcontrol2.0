@@ -122,7 +122,7 @@ def release_manifest(release: dict[str, Any], platform: str) -> dict[str, Any]:
         "release_url": release.get("html_url"),
         "assets": assets,
         "integrity": {
-            "sha256sums_url": url("SHA256SUMS.txt") or platform_checksum_url(release, platform),
+            "sha256sums_url": platform_checksum_url(release, platform) or url("SHA256SUMS") or url("SHA256SUMS.txt"),
             "sha512sums_url": url("SHA512SUMS.txt"),
             "sha3_512sums_url": url("SHA3-512SUMS.txt"),
             "ed25519_signature_url": url("SHA256SUMS.txt.sig"),
