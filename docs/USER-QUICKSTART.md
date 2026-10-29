@@ -47,7 +47,7 @@ Use only the Apple Silicon build for the documented target. If macOS cannot veri
 
        sudo apt install ./HWControl-<release-tag>-Linux-x64.deb
 
-   Replace <release-tag> with the tag shown on the release page. For example, a tag named v0.3.0-beta-linux produces an asset named HWControl-v0.3.0-beta-linux-Linux-x64.deb. The ./ prefix tells APT to install a local package file and resolve its dependencies.
+   Replace <release-tag> with the tag shown on the release page. For example, a tag named v0.3.1-beta.42-linux produces an asset named HWControl-v0.3.1-beta.42-linux-Linux-x64.deb. The ./ prefix tells APT to install a local package file and resolve its dependencies.
 3. The product/display name is HWcontrol2.0. The Debian package name and terminal launcher are both `hwcontrol`, so commands use the short name rather than `hwcontrol2.0`. Installing a local DEB file does not automatically configure an APT repository; until the official APT repository is published, use the local-file command above. Once the repository is live, its official setup instructions will provide the repository and signing-key configuration before `sudo apt install hwcontrol` is used.
 4. To remove the installed package, run:
 

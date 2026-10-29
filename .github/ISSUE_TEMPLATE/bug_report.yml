@@ -63,7 +63,7 @@ body:
     id: version
     attributes:
       label: HWcontrol2.0 version or commit
-      placeholder: "Example: v0.3.0-beta"
+      placeholder: "Example: v0.3.1-beta.42"
     validations:
       required: true
   - type: input
