@@ -34,7 +34,7 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || github.sha }}
           persist-credentials: false
@@ -65,7 +65,7 @@ jobs:
         run: brew install zstd
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
         with:
           go-version-file: bridge_service/go.mod
           cache: false
@@ -85,13 +85,13 @@ jobs:
           cmake --build build --parallel 2
           ctest --test-dir build --output-on-failure
           (cd bridge_service && go vet ./... && go test -count=1 ./... && go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../bridge-service ./src && go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../security-guardian ./security_guardian)
-          (cd gui_dashboard && flutter create --platforms=macos --no-pub . && git restore pubspec.yaml test/widget_test.dart && flutter pub get && flutter analyze && flutter test --no-pub && flutter build macos --release -t lib/installer_main.dart --dart-define=HWCONTROL_RELEASE_TRUST=official)
+          (cd gui_dashboard && flutter create --platforms=macos --no-pub . && git restore pubspec.yaml test/widget_test.dart && sed -i '' 's/^PRODUCT_NAME = .*/PRODUCT_NAME = HWControl/' macos/Runner/Configs/AppInfo.xcconfig && sed -i '' 's/^PRODUCT_BUNDLE_IDENTIFIER = .*/PRODUCT_BUNDLE_IDENTIFIER = com.hwcontrol.hwcontrol/' macos/Runner/Configs/AppInfo.xcconfig && flutter pub get && flutter analyze && flutter test --no-pub && flutter build macos --release -t lib/installer_main.dart --dart-define=HWCONTROL_RELEASE_TRUST=official)
 
       - name: Assemble macOS installer root
         run: |
           set -euo pipefail
           tag="$RELEASE_TAG"
-          version="${tag#v}"; version="${version%-macos}"; version="${version%-main-*}"
+          version="${tag#v}"; version="${version%%-*}"
           rm -rf pkg-root dmg-root
           mkdir -p pkg-root/Applications/HWControl dmg-root
           cp -R gui_dashboard/build/macos/Build/Products/Release/HWControl.app pkg-root/Applications/HWControl/
@@ -208,10 +208,11 @@ jobs:
 
       - name: Publish macOS release
         if: github.event_name != 'push' || github.ref != 'refs/heads/main'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           name: ${{ startsWith(env.RELEASE_TAG, 'v0.3.0-') && 'HWcontrol2.0 Beta — macOS' || format('HWControl {0}', env.RELEASE_TAG) }}
           tag_name: ${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}
+          target_commitish: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || github.sha }}
           generate_release_notes: true
           prerelease: ${{ contains(env.RELEASE_TAG, '-beta') }}
           files: |

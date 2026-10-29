@@ -49,6 +49,24 @@ jobs:
           gh api "repos/$GITHUB_REPOSITORY/commits/$source_sha" --jq '.sha' | grep -Fx "$source_sha" >/dev/null
           echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
 
+      - name: Checkout source commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.source.outputs.source_sha }}
+          persist-credentials: false
+
+      - name: Resolve application version and release tags
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(sed -nE 's/^version: ([0-9]+\\.[0-9]+\\.[0-9]+)$/\\1/p' gui_dashboard/pubspec.yaml | head -n1)"
+          [[ "$version" =~ ^[0-9]+\\.[0-9]+\\.[0-9]+$ ]] || { echo "Invalid app version: $version" >&2; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "windows_tag=v${version}-beta.${GITHUB_RUN_NUMBER}-windows" >> "$GITHUB_OUTPUT"
+          echo "linux_tag=v${version}-beta.${GITHUB_RUN_NUMBER}-linux" >> "$GITHUB_OUTPUT"
+          echo "macos_tag=v${version}-beta.${GITHUB_RUN_NUMBER}-macos" >> "$GITHUB_OUTPUT"
+
       - name: Dispatch Windows beta release
         id: windows
         env:
@@ -57,7 +75,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          url="$(gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref main             -f "tag=v0.3.0-beta-windows"             -f "source_ref=$SOURCE_SHA" | tail -n1)"
+          url="$(gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref main             -f "tag=${{ steps.release.outputs.windows_tag }}"             -f "source_ref=$SOURCE_SHA" | tail -n1)"
           echo "run_id=${url##*/}" >> "$GITHUB_OUTPUT"
 
       - name: Dispatch Linux beta release
@@ -68,7 +86,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          url="$(gh workflow run release-linux.yml --repo "$GITHUB_REPOSITORY" --ref main             -f "tag=v0.3.0-beta-linux"             -f "source_ref=$SOURCE_SHA" | tail -n1)"
+          url="$(gh workflow run release-linux.yml --repo "$GITHUB_REPOSITORY" --ref main             -f "tag=${{ steps.release.outputs.linux_tag }}"             -f "source_ref=$SOURCE_SHA" | tail -n1)"
           echo "run_id=${url##*/}" >> "$GITHUB_OUTPUT"
 
       - name: Dispatch macOS beta release
@@ -79,7 +97,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          url="$(gh workflow run release-macos.yml --repo "$GITHUB_REPOSITORY" --ref main             -f "tag=v0.3.0-beta-macos"             -f "source_ref=$SOURCE_SHA" | tail -n1)"
+          url="$(gh workflow run release-macos.yml --repo "$GITHUB_REPOSITORY" --ref main             -f "tag=${{ steps.release.outputs.macos_tag }}"             -f "source_ref=$SOURCE_SHA" | tail -n1)"
           echo "run_id=${url##*/}" >> "$GITHUB_OUTPUT"
 
       - name: Wait for all platform releases
@@ -123,29 +141,23 @@ jobs:
 
           (( SECONDS < deadline )) || { echo "Timed out waiting for platform releases."; exit 1; }
 
-      - name: Advance beta tags only after all platforms succeed
+      - name: Verify immutable platform release tags
         env:
           GH_TOKEN: ${{ github.token }}
           SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
+          WINDOWS_TAG: ${{ steps.release.outputs.windows_tag }}
+          LINUX_TAG: ${{ steps.release.outputs.linux_tag }}
+          MACOS_TAG: ${{ steps.release.outputs.macos_tag }}
         shell: bash
         run: |
           set -euo pipefail
-          for platform in windows linux macos; do
-            tag="v0.3.0-beta-$platform"
-            if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" >/dev/null 2>&1; then
-              gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$tag"                 -f "sha=$SOURCE_SHA" -F "force=true" >/dev/null
+          for tag in "$WINDOWS_TAG" "$LINUX_TAG" "$MACOS_TAG"; do
+            object="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --jq '.object.sha')"
+            type="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --jq '.object.type')"
+            if [[ "$type" == "tag" ]]; then
+              actual="$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$object" --jq '.object.sha')"
             else
-              gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs"                 -f "ref=refs/tags/$tag" -f "sha=$SOURCE_SHA" >/dev/null
+              actual="$object"
             fi
-          done
-
-      - name: Verify beta tags
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
-        run: |
-          set -euo pipefail
-          for platform in windows linux macos; do
-            actual="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v0.3.0-beta-$platform" --jq '.object.sha')"
-            test "$actual" = "$SOURCE_SHA"
+            test "$actual" = "$SOURCE_SHA" || { echo "Tag $tag points at $actual, expected $SOURCE_SHA" >&2; exit 1; }
           done
