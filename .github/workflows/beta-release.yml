@@ -8,6 +8,11 @@ on:
         default: 'v0.3.1-beta.1'
         required: true
         type: string
+      source_ref:
+        description: 'Source branch or full commit SHA to build'
+        default: 'main'
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -18,10 +23,46 @@ concurrency:
 
 env:
   FLUTTER_VERSION: 3.47.2
-  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  RELEASE_TAG: ${{ inputs.tag }}
 
 jobs:
+  prepare-release:
+    name: Validate source and immutable beta tag
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      source_sha: ${{ steps.validate.outputs.source_sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.source_ref }}
+          persist-credentials: false
+      - name: Validate release tag and source version
+        id: validate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\\.[0-9]+\\.[0-9]+-beta\\.[0-9]+$ ]]; then
+            echo "Invalid unified beta release tag: $RELEASE_TAG" >&2
+            exit 1
+          fi
+          app_version="$(sed -nE 's/^version: ([0-9]+\\.[0-9]+\\.[0-9]+)$/\\1/p' gui_dashboard/pubspec.yaml | head -n1)"
+          tag_version="${RELEASE_TAG#v}"
+          tag_version="${tag_version%%-*}"
+          [[ -n "$app_version" && "$app_version" == "$tag_version" ]] || { echo "Tag version $tag_version does not match source app version $app_version" >&2; exit 1; }
+          source_sha="$(git rev-parse HEAD)"
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" > "$RUNNER_TEMP/tag-ref.json" 2>/dev/null; then
+            object="$(jq -r '.object.sha' "$RUNNER_TEMP/tag-ref.json")"
+            type="$(jq -r '.object.type' "$RUNNER_TEMP/tag-ref.json")"
+            if [[ "$type" == "tag" ]]; then object="$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$object" --jq '.object.sha')"; fi
+            [[ "$object" == "$source_sha" ]] || { echo "Existing tag points at $object, expected $source_sha; refusing to move it" >&2; exit 1; }
+          fi
+          echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
+
   windows:
+    needs: prepare-release
     permissions:
       contents: read
       id-token: write
@@ -40,7 +81,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          ref: ${{ needs.prepare-release.outputs.source_sha }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
         with:
           go-version-file: bridge_service/go.mod
@@ -206,6 +247,7 @@ jobs:
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64.sha256
 
   linux:
+    needs: prepare-release
     permissions:
       contents: read
       id-token: write
@@ -216,7 +258,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          ref: ${{ needs.prepare-release.outputs.source_sha }}
       - run: sudo apt-get update && sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev zstd dpkg-dev
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
         with:
@@ -312,6 +354,7 @@ jobs:
             HWControl-${{ env.RELEASE_TAG }}-Linux-x64.sha256
 
   macos:
+    needs: prepare-release
     permissions:
       contents: read
       id-token: write
@@ -322,7 +365,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          ref: ${{ needs.prepare-release.outputs.source_sha }}
       - run: brew install zstd
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
         with:
@@ -392,7 +435,7 @@ jobs:
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.sha256
 
   release:
-    needs: [windows, linux, macos]
+    needs: [prepare-release, windows, linux, macos]
     permissions:
       contents: write
       id-token: write
@@ -418,14 +461,17 @@ jobs:
           test -f release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.tar.zst
       - name: Generate aggregate checksums
         run: |
-          find release-assets -type f ! -name '*.sha256' -print0 | sort -z | xargs -0 sha256sum > release-assets/SHA256SUMS
+          find release-assets -type f ! -name 'SHA256SUMS' -printf '%f\\n' | sort -u | while IFS= read -r name; do
+            file="$(find release-assets -type f -name "$name" -print -quit)"
+            sha256sum "$file" | awk -v name="$name" '{ print $1 "  " name }'
+          done > release-assets/SHA256SUMS
       - name: Publish beta release
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
         with:
           tag_name: ${{ env.RELEASE_TAG }}
           name: HWControl 2.0 ${{ env.RELEASE_TAG }}
           prerelease: true
-          target_commitish: ${{ github.sha }}
+          target_commitish: ${{ needs.prepare-release.outputs.source_sha }}
           generate_release_notes: true
           fail_on_unmatched_files: true
           files: |
