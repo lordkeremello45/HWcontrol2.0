@@ -40,6 +40,19 @@ jobs:
           persist-credentials: false
           ref: ${{ env.SOURCE_REF }}
 
+      - name: Verify existing release tag is immutable
+        if: github.event_name != 'push' || github.ref != 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote_ref="$(git ls-remote origin "refs/tags/$RELEASE_TAG")"
+          if [[ -n "$remote_ref" ]]; then
+            git fetch --no-tags origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
+            tag_sha="$(git rev-parse "$RELEASE_TAG^{commit}")"
+            source_sha="$(git rev-parse HEAD)"
+            [[ "$tag_sha" == "$source_sha" ]] || { echo "Tag $RELEASE_TAG points at $tag_sha, not source commit $source_sha" >&2; exit 1; }
+          fi
+
       - name: Resolve main-branch package version
         id: resolve-main-tag
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
