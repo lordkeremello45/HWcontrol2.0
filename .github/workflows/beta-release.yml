@@ -44,11 +44,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\\.[0-9]+\\.[0-9]+-beta\\.[0-9]+$ ]]; then
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]]; then
             echo "Invalid unified beta release tag: $RELEASE_TAG" >&2
             exit 1
           fi
-          app_version="$(sed -nE 's/^version: ([0-9]+\\.[0-9]+\\.[0-9]+)$/\\1/p' gui_dashboard/pubspec.yaml | head -n1)"
+          app_version="$(sed -nE 's/^version: ([0-9]+\.[0-9]+\.[0-9]+)$/\1/p' gui_dashboard/pubspec.yaml | head -n1)"
           tag_version="${RELEASE_TAG#v}"
           tag_version="${tag_version%%-*}"
           [[ -n "$app_version" && "$app_version" == "$tag_version" ]] || { echo "Tag version $tag_version does not match source app version $app_version" >&2; exit 1; }
