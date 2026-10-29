@@ -357,7 +357,7 @@ jobs:
         if: github.event_name != 'push' || github.ref != 'refs/heads/main'
         shell: pwsh
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: \${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
           $assets = @(
@@ -373,9 +373,10 @@ jobs:
           gh release view $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY 2>$null
           $releaseExists = $LASTEXITCODE -eq 0
           if (-not $releaseExists) {
-            gh release create $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY --title $env:RELEASE_TAG --generate-notes --prerelease --latest=false
-            if ($LASTEXITCODE -ne 0) { throw "Could not create GitHub prerelease $env:RELEASE_TAG" }
+            $releaseArgs = @($env:RELEASE_TAG, '--repo', $env:GITHUB_REPOSITORY, '--title', $env:RELEASE_TAG, '--generate-notes', '--target', $env:SOURCE_COMMIT_SHA)
+            if ($env:RELEASE_TAG -match '-beta') { $releaseArgs += '--prerelease'; $releaseArgs += '--latest=false' }
+            gh release create @releaseArgs
+            if ($LASTEXITCODE -ne 0) { throw "Could not create GitHub Release $env:RELEASE_TAG" }
           }
           gh release upload $env:RELEASE_TAG @assets --repo $env:GITHUB_REPOSITORY --clobber
-          if ($LASTEXITCODE -ne 0) { throw "Could not upload Windows assets to GitHub Release $env:RELEASE_TAG" }
           if ($LASTEXITCODE -ne 0) { throw "Could not upload Windows assets to GitHub Release $env:RELEASE_TAG" }
