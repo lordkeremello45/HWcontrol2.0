@@ -474,6 +474,7 @@ jobs:
           target_commitish: ${{ needs.prepare-release.outputs.source_sha }}
           generate_release_notes: true
           fail_on_unmatched_files: true
+          overwrite_files: true
           files: |
             release-assets/beta-windows-x64/*
             release-assets/beta-macos-arm64/*
