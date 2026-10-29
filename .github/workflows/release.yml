@@ -375,8 +375,8 @@ jobs:
           gh release view $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY 2>$null
           $releaseExists = $LASTEXITCODE -eq 0
           if (-not $releaseExists) {
-            $releaseArgs = @($env:RELEASE_TAG, '--repo', $env:GITHUB_REPOSITORY, '--title', $env:RELEASE_TAG, '--generate-notes', '--latest=false', '--target', $env:SOURCE_COMMIT_SHA)
-            if ($env:RELEASE_TAG -match '-beta') { $releaseArgs += '--prerelease' }
+            $releaseArgs = @($env:RELEASE_TAG, '--repo', $env:GITHUB_REPOSITORY, '--title', $env:RELEASE_TAG, '--generate-notes', '--target', $env:SOURCE_COMMIT_SHA)
+            if ($env:RELEASE_TAG -match '-beta') { $releaseArgs += '--prerelease'; $releaseArgs += '--latest=false' }
             gh release create @releaseArgs
             if ($LASTEXITCODE -ne 0) { throw "Could not create GitHub prerelease $env:RELEASE_TAG" }
           }
