@@ -1,9 +1,6 @@
 name: Beta Application Release
 
 on:
-  push:
-    tags:
-      - 'v*-beta*'
   workflow_dispatch:
     inputs:
       tag:
@@ -36,7 +33,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta(\.[0-9]+|-(windows|linux|macos))$ ]]; then
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]]; then
             echo "Invalid beta release tag format: $RELEASE_TAG" >&2
             exit 1
           fi
@@ -151,6 +148,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
+          wix extension add -g WixToolset.Bal.wixext/6.0.2
           $version = $env:RELEASE_TAG -replace '^v','' -replace '-beta([.-].*)$',''
           wix build deploy/windows/HWControl-Setup.wxs -ext WixToolset.Bal.wixext -arch x64 -d Version=$version -d MsiPath="$PWD/HWControl-$env:RELEASE_TAG-Windows-x64.msi" -o "HWControl-$env:RELEASE_TAG-Windows-x64-Setup.exe"
           if (-not (Test-Path "HWControl-$env:RELEASE_TAG-Windows-x64-Setup.exe")) { throw 'Setup.exe was not produced' }
