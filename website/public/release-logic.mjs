@@ -5,7 +5,7 @@ export function safeReleaseUrl(value) {
   if (typeof value !== "string" || !value) return null;
   try {
     const url = new URL(value);
-    if (url.protocol !== "https:" || url.hostname !== "github.com" || url.username || url.password) return null;
+    if (url.protocol !== "https:" || url.hostname !== "github.com" || url.username || url.password || !url.pathname.startsWith(`/${REPOSITORY}/releases/`)) return null;
     return url.href;
   } catch {
     return null;
