@@ -64,14 +64,13 @@ export function isChecksumAsset(name) {
 export function isInstallableAsset(name, platform) {
   const value = String(name || "").toLowerCase();
   if (platform === "windows") return /\.(exe|msi|msix|zip)$/.test(value);
-  if (platform === "macos") return /\.(pkg|dmg)$/.test(value);
+  if (platform === "macos") return /\.(pkg|dmg|zip)$/.test(value);
   if (platform === "linux") return /\.(deb|tar\.gz|tar\.zst)$/.test(value);
   return false;
 }
 
 export function getPackageAssets(release, platform) {
   if (!release || !Array.isArray(release.assets) || !PLATFORMS.has(platform)) return [];
-  const unifiedBeta = /^v\d+\.\d+\.\d+-beta\.\d+$/i.test(release.tag_name || "");
   const platformAsset = {
     windows: /windows-x64/i,
     macos: /macos-applesilicon|macos-arm64|darwin-arm64/i,
@@ -79,7 +78,7 @@ export function getPackageAssets(release, platform) {
   }[platform];
   return release.assets
     .filter((asset) => asset && isInstallableAsset(asset.name, platform) &&
-      (!unifiedBeta || platformAsset.test(asset.name)) &&
+      platformAsset.test(asset.name) &&
       safeReleaseUrl(asset.url || asset.browser_download_url))
     .map((asset) => ({ ...asset, url: safeReleaseUrl(asset.url || asset.browser_download_url) }));
 }
