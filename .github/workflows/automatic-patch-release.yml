@@ -80,8 +80,8 @@ jobs:
           deadline=$((SECONDS + 120))
           run_id=""
           while (( SECONDS < deadline )); do
-            runs="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow beta-release.yml --event workflow_dispatch --branch main --limit 10 --json databaseId,createdAt)"
-            run_id="$(jq -r --arg started "$dispatch_started_at" '[.[] | select(.createdAt >= $started)] | first | .databaseId // empty' <<< "$runs")"
+            runs="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow beta-release.yml --event workflow_dispatch --branch main --limit 10 --json databaseId,createdAt,displayTitle)"
+            run_id="$(jq -r --arg started "$dispatch_started_at" --arg tag "$BETA_TAG" '[.[] | select(.createdAt >= $started and .displayTitle == ("HWControl beta " + $tag))] | first | .databaseId // empty' <<< "$runs")"
             if [[ "$run_id" =~ ^[0-9]+$ ]]; then break; fi
             sleep 5
           done
