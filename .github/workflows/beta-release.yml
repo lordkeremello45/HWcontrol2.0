@@ -233,6 +233,17 @@ jobs:
           )
           $hashes = foreach ($file in $files) { "$((Get-FileHash $file -Algorithm SHA256).Hash.ToLower())  $file" }
           $hashes | Set-Content "HWControl-$env:RELEASE_TAG-Windows-x64.sha256"
+          $manifest = "HWControl-$env:RELEASE_TAG-Windows-x64.sha256"
+          $manifestLines = @(Get-Content $manifest)
+          if ($manifestLines.Count -ne $files.Count) { throw 'Windows SHA-256 manifest has an unexpected number of entries' }
+          foreach ($line in $manifestLines) {
+            if ($line -notmatch '^([0-9a-fA-F]{64})  (.+)$') { throw "Malformed SHA-256 manifest entry: $line" }
+            $expectedHash = $Matches[1].ToLowerInvariant()
+            $assetName = $Matches[2]
+            if ($assetName -notin $files) { throw "Unexpected asset in SHA-256 manifest: $assetName" }
+            $actualHash = (Get-FileHash -LiteralPath $assetName -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($actualHash -ne $expectedHash) { throw "SHA-256 mismatch for $assetName" }
+          }
       - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: |
