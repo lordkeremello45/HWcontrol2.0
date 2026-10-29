@@ -6,6 +6,8 @@ on:
       - Publish platform release
       - Release integrity
       - Publish Windows Setup bootstrapper
+      - Publish Linux release
+      - Publish macOS release
     types:
       - completed
   workflow_dispatch:
@@ -22,14 +24,16 @@ jobs:
   sync:
     if: >
       github.event_name == 'workflow_dispatch' ||
-      github.event.workflow_run.conclusion == 'success'
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch != 'main' &&
+      !contains(github.event.workflow_run.head_branch, '-beta') &&
+      !contains(github.event.workflow_run.head_branch, '-main-')
     runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout main
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          persist-credentials: false
           ref: main
           fetch-depth: 0
 
@@ -65,15 +69,15 @@ jobs:
           set -euo pipefail
           python3 scripts/generate-release-manifest.py \
             "$RUNNER_TEMP/releases.json" \
-            website/release.json
-          python3 -m json.tool website/release.json >/dev/null
-          node scripts/website-release-test.mjs website/release.json
+            website/public/release.json
+          python3 -m json.tool website/public/release.json >/dev/null
+          node scripts/website-release-test.mjs website/public/release.json
 
       - name: Detect metadata changes
         id: changes
         run: |
           set -euo pipefail
-          git add website/release.json
+          git add website/public/release.json
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "Release metadata is already current."

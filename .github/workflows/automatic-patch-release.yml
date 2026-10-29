@@ -49,103 +49,97 @@ jobs:
           gh api "repos/$GITHUB_REPOSITORY/commits/$source_sha" --jq '.sha' | grep -Fx "$source_sha" >/dev/null
           echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
 
-      - name: Dispatch Windows beta release
-        id: windows
+      - name: Checkout source commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.source.outputs.source_sha }}
+          persist-credentials: false
+
+      - name: Resolve application version and release tags
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(sed -nE 's/^version: ([0-9]+\.[0-9]+\.[0-9]+)$/\1/p' gui_dashboard/pubspec.yaml | head -n1)"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Invalid app version: $version" >&2; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch unified beta release
+        id: beta
         env:
           GH_TOKEN: ${{ github.token }}
           SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
+          VERSION: ${{ steps.release.outputs.version }}
+          BETA_TAG: v${{ steps.release.outputs.version }}-beta.${{ github.run_number }}
         shell: bash
         run: |
           set -euo pipefail
-          url="$(gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref main             -f "tag=v0.3.0-beta-windows"             -f "source_ref=$SOURCE_SHA" | tail -n1)"
-          echo "run_id=${url##*/}" >> "$GITHUB_OUTPUT"
-
-      - name: Dispatch Linux beta release
-        id: linux
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          url="$(gh workflow run release-linux.yml --repo "$GITHUB_REPOSITORY" --ref main             -f "tag=v0.3.0-beta-linux"             -f "source_ref=$SOURCE_SHA" | tail -n1)"
-          echo "run_id=${url##*/}" >> "$GITHUB_OUTPUT"
-
-      - name: Dispatch macOS beta release
-        id: macos
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          url="$(gh workflow run release-macos.yml --repo "$GITHUB_REPOSITORY" --ref main             -f "tag=v0.3.0-beta-macos"             -f "source_ref=$SOURCE_SHA" | tail -n1)"
-          echo "run_id=${url##*/}" >> "$GITHUB_OUTPUT"
-
-      - name: Wait for all platform releases
-        env:
-          GH_TOKEN: ${{ github.token }}
-          WINDOWS_RUN: ${{ steps.windows.outputs.run_id }}
-          LINUX_RUN: ${{ steps.linux.outputs.run_id }}
-          MACOS_RUN: ${{ steps.macos.outputs.run_id }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          for run_id in "$WINDOWS_RUN" "$LINUX_RUN" "$MACOS_RUN"; do
-            [[ "$run_id" =~ ^[0-9]+$ ]] || { echo "Invalid workflow run id: $run_id"; exit 1; }
+          dispatch_started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          gh workflow run beta-release.yml --repo "$GITHUB_REPOSITORY" --ref main \
+            -f "tag=$BETA_TAG" -f "source_ref=$SOURCE_SHA" -f "publish=true"
+          deadline=$((SECONDS + 120))
+          run_id=""
+          while (( SECONDS < deadline )); do
+            runs="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow beta-release.yml --event workflow_dispatch --branch main --limit 10 --json databaseId,createdAt,displayTitle)"
+            run_id="$(jq -r --arg started "$dispatch_started_at" --arg tag "$BETA_TAG" '[.[] | select(.createdAt >= $started and .displayTitle == ("HWControl beta " + $tag))] | first | .databaseId // empty' <<< "$runs")"
+            if [[ "$run_id" =~ ^[0-9]+$ ]]; then break; fi
+            sleep 5
           done
+          [[ "$run_id" =~ ^[0-9]+$ ]] || { echo "Could not find the dispatched beta workflow run" >&2; exit 1; }
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+          echo "tag=$BETA_TAG" >> "$GITHUB_OUTPUT"
 
+      - name: Wait for unified beta release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BETA_RUN: ${{ steps.beta.outputs.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
           deadline=$((SECONDS + 3300))
           while (( SECONDS < deadline )); do
-            all_done=true
-            all_success=true
-
-            for pair in "windows:$WINDOWS_RUN" "linux:$LINUX_RUN" "macos:$MACOS_RUN"; do
-              platform="${pair%%:*}"
-              run_id="${pair##*:}"
-              status="$(gh run view "$run_id" --json status --jq '.status')"
-              conclusion="$(gh run view "$run_id" --json conclusion --jq '.conclusion')"
-              echo "$platform: $status / $conclusion"
-
-              if [[ "$status" != "completed" ]]; then
-                all_done=false
-              elif [[ "$conclusion" != "success" ]]; then
-                all_success=false
-              fi
-            done
-
-            if [[ "$all_done" == true ]]; then
-              [[ "$all_success" == true ]] || { echo "Platform release failed; beta tags remain unchanged."; exit 1; }
-              break
+            status="$(gh run view "$BETA_RUN" --json status --jq '.status')"
+            conclusion="$(gh run view "$BETA_RUN" --json conclusion --jq '.conclusion')"
+            echo "Unified beta workflow: $status / $conclusion"
+            if [[ "$status" == "completed" ]]; then
+              [[ "$conclusion" == "success" ]] || { echo "Unified beta build or release failed." >&2; exit 1; }
+              exit 0
             fi
             sleep 15
           done
+          echo "Timed out waiting for unified beta release." >&2
+          exit 1
 
-          (( SECONDS < deadline )) || { echo "Timed out waiting for platform releases."; exit 1; }
-
-      - name: Advance beta tags only after all platforms succeed
+      - name: Verify release tag, source commit and complete asset matrix
         env:
           GH_TOKEN: ${{ github.token }}
           SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
+          BETA_TAG: ${{ steps.beta.outputs.tag }}
         shell: bash
         run: |
           set -euo pipefail
-          for platform in windows linux macos; do
-            tag="v0.3.0-beta-$platform"
-            if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" >/dev/null 2>&1; then
-              gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$tag"                 -f "sha=$SOURCE_SHA" -F "force=true" >/dev/null
-            else
-              gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs"                 -f "ref=refs/tags/$tag" -f "sha=$SOURCE_SHA" >/dev/null
-            fi
-          done
+          ref="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$BETA_TAG")"
+          object="$(jq -r '.object.sha' <<< "$ref")"
+          type="$(jq -r '.object.type' <<< "$ref")"
+          if [[ "$type" == "tag" ]]; then object="$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$object" --jq '.object.sha')"; fi
+          [[ "$object" == "$SOURCE_SHA" ]] || { echo "Release tag targets $object instead of $SOURCE_SHA" >&2; exit 1; }
 
-      - name: Verify beta tags
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
-        run: |
-          set -euo pipefail
-          for platform in windows linux macos; do
-            actual="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v0.3.0-beta-$platform" --jq '.object.sha')"
-            test "$actual" = "$SOURCE_SHA"
+          assets="$(gh release view "$BETA_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name')"
+          expected=(
+            "HWControl-$BETA_TAG-Windows-x64-Setup.exe"
+            "HWControl-$BETA_TAG-Windows-x64.msi"
+            "HWControl-$BETA_TAG-Windows-x64.zip"
+            "HWControl-$BETA_TAG-Windows-x64-MSIX.msix"
+            "HWControl-$BETA_TAG-Windows-x64.sha256"
+            "HWControl-$BETA_TAG-Linux-x64.deb"
+            "HWControl-$BETA_TAG-Linux-x64.tar.gz"
+            "HWControl-$BETA_TAG-Linux-x64.tar.zst"
+            "HWControl-$BETA_TAG-Linux-x64.sha256"
+            "HWControl-$BETA_TAG-macOS-AppleSilicon.pkg"
+            "HWControl-$BETA_TAG-macOS-AppleSilicon.dmg"
+            "HWControl-$BETA_TAG-macOS-AppleSilicon.sha256"
+            "SHA256SUMS"
+          )
+          for asset in "${expected[@]}"; do
+            grep -Fxq "$asset" <<< "$assets" || { echo "Missing release asset: $asset" >&2; exit 1; }
           done

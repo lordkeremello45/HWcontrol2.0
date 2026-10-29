@@ -1,16 +1,23 @@
 name: Beta Application Release
+run-name: HWControl beta ${{ inputs.tag }}
 
 on:
-  push:
-    tags:
-      - 'v*-beta*'
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Beta release tag, for example v0.3.1-beta.1'
-        default: 'v0.3.1-beta.1'
+        description: 'Unified beta tag matching the source version, for example vX.Y.Z-beta.N'
         required: true
         type: string
+      source_ref:
+        description: 'Source branch or full commit SHA to build'
+        default: 'main'
+        required: true
+        type: string
+      publish:
+        description: 'Publish the GitHub Release after all package checks; false runs packaging and smoke tests only'
+        default: false
+        required: false
+        type: boolean
 
 permissions:
   contents: read
@@ -21,10 +28,56 @@ concurrency:
 
 env:
   FLUTTER_VERSION: 3.47.2
-  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  RELEASE_TAG: ${{ inputs.tag }}
 
 jobs:
+  prepare-release:
+    name: Validate source and immutable beta tag
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      source_sha: ${{ steps.validate.outputs.source_sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.source_ref }}
+          persist-credentials: false
+      - name: Validate release tag and source version
+        id: validate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PUBLISH_RELEASE: ${{ inputs.publish }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]]; then
+            echo "Invalid unified beta release tag: $RELEASE_TAG" >&2
+            exit 1
+          fi
+          app_version="$(sed -nE 's/^version: ([0-9]+\.[0-9]+\.[0-9]+)$/\1/p' gui_dashboard/pubspec.yaml | head -n1)"
+          tag_version="${RELEASE_TAG#v}"
+          tag_version="${tag_version%%-*}"
+          [[ -n "$app_version" && "$app_version" == "$tag_version" ]] || { echo "Tag version $tag_version does not match source app version $app_version" >&2; exit 1; }
+          source_sha="$(git rev-parse HEAD)"
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" > "$RUNNER_TEMP/tag-ref.json" 2>/dev/null; then
+            object="$(jq -r '.object.sha' "$RUNNER_TEMP/tag-ref.json")"
+            type="$(jq -r '.object.type' "$RUNNER_TEMP/tag-ref.json")"
+            if [[ "$type" == "tag" ]]; then object="$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$object" --jq '.object.sha')"; fi
+            [[ "$object" == "$source_sha" ]] || { echo "Existing tag points at $object, expected $source_sha; refusing to move it" >&2; exit 1; }
+          elif [[ "$PUBLISH_RELEASE" == "true" ]]; then
+            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/$RELEASE_TAG" -f "sha=$source_sha" >/dev/null
+            gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" > "$RUNNER_TEMP/tag-ref.json"
+            object="$(jq -r '.object.sha' "$RUNNER_TEMP/tag-ref.json")"
+            [[ "$object" == "$source_sha" ]] || { echo "New tag points at $object, expected $source_sha" >&2; exit 1; }
+          else
+            echo "Dry run: not creating release tag $RELEASE_TAG"
+          fi
+          echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
+
   windows:
+    needs: prepare-release
     permissions:
       contents: read
       id-token: write
@@ -36,15 +89,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta(\.[0-9]+|-(windows|linux|macos))$ ]]; then
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]]; then
             echo "Invalid beta release tag format: $RELEASE_TAG" >&2
             exit 1
           fi
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+          ref: ${{ needs.prepare-release.outputs.source_sha }}
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
         with:
           go-version-file: bridge_service/go.mod
           cache: false
@@ -125,7 +178,9 @@ jobs:
           if (-not (Test-Path "$env:ProgramFiles\HWControl\HWControl.exe")) { throw 'MSI did not install HWControl.exe' }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\hwcontrol_audio_probe.exe")) { throw 'MSI did not install native audio helper' }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\hwcontrol-hardware-identification.exe")) { throw 'C# hardware identification helper was not installed' }
-          if (-not (Test-Path "$env:PUBLIC\Desktop\HWControl.lnk")) { throw 'MSI did not create the all-users desktop shortcut' }
+          if (-not (Test-Path (Join-Path $env:USERPROFILE 'Desktop\HWControl.lnk'))) { throw 'MSI did not create the installing-user desktop shortcut' }
+          $startMenuShortcut = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk'
+          if (-not (Test-Path $startMenuShortcut)) { throw 'MSI did not create the installing-user Start Menu shortcut' }
           & "$env:ProgramFiles\HWControl\hwcontrol-hardware-identification.exe" --self-test
           if ($LASTEXITCODE -ne 0) { throw 'Installed C# hardware identification self-test failed' }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\security-guardian.exe")) { throw 'security-guardian.exe missing' }
@@ -134,6 +189,8 @@ jobs:
           if (-not (Get-Service -Name HWControlSecurityGuardian -ErrorAction SilentlyContinue)) { throw 'HWControlSecurityGuardian service missing' }
           & "$PWD\deploy\windows\Invoke-MsiWithTimeout.ps1" -MsiPath $msi -Action Uninstall -LogPath "$root/uninstall.log" -TimeoutSeconds 120
           if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'MSI uninstall left service behind' }
+          if (Test-Path (Join-Path $env:USERPROFILE 'Desktop\HWControl.lnk')) { throw 'MSI uninstall left desktop shortcut behind' }
+          if (Test-Path $startMenuShortcut) { throw 'MSI uninstall left Start Menu shortcut behind' }
       - name: Build portable ZIP
         shell: pwsh
         run: |
@@ -151,8 +208,9 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
+          wix extension add -g WixToolset.Bal.wixext/6.0.2
           $version = $env:RELEASE_TAG -replace '^v','' -replace '-beta([.-].*)$',''
-          wix build deploy/windows/HWControl-Setup.wxs -ext WixToolset.BootstrapperApplications.wixext -arch x64 -d Version=$version -d MsiPath="$PWD/HWControl-$env:RELEASE_TAG-Windows-x64.msi" -o "HWControl-$env:RELEASE_TAG-Windows-x64-Setup.exe"
+          wix build deploy/windows/HWControl-Setup.wxs -ext WixToolset.Bal.wixext -arch x64 -d Version=$version -d MsiPath="$PWD/HWControl-$env:RELEASE_TAG-Windows-x64.msi" -o "HWControl-$env:RELEASE_TAG-Windows-x64-Setup.exe"
           if (-not (Test-Path "HWControl-$env:RELEASE_TAG-Windows-x64-Setup.exe")) { throw 'Setup.exe was not produced' }
       - name: Build unsigned MSIX beta package
         shell: pwsh
@@ -189,6 +247,17 @@ jobs:
           )
           $hashes = foreach ($file in $files) { "$((Get-FileHash $file -Algorithm SHA256).Hash.ToLower())  $file" }
           $hashes | Set-Content "HWControl-$env:RELEASE_TAG-Windows-x64.sha256"
+          $manifest = "HWControl-$env:RELEASE_TAG-Windows-x64.sha256"
+          $manifestLines = @(Get-Content $manifest)
+          if ($manifestLines.Count -ne $files.Count) { throw 'Windows SHA-256 manifest has an unexpected number of entries' }
+          foreach ($line in $manifestLines) {
+            if ($line -notmatch '^([0-9a-fA-F]{64})  (.+)$') { throw "Malformed SHA-256 manifest entry: $line" }
+            $expectedHash = $Matches[1].ToLowerInvariant()
+            $assetName = $Matches[2]
+            if ($assetName -notin $files) { throw "Unexpected asset in SHA-256 manifest: $assetName" }
+            $actualHash = (Get-FileHash -LiteralPath $assetName -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($actualHash -ne $expectedHash) { throw "SHA-256 mismatch for $assetName" }
+          }
       - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: |
@@ -208,6 +277,7 @@ jobs:
             HWControl-${{ env.RELEASE_TAG }}-Windows-x64.sha256
 
   linux:
+    needs: prepare-release
     permissions:
       contents: read
       id-token: write
@@ -215,12 +285,12 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          ref: ${{ needs.prepare-release.outputs.source_sha }}
       - run: sudo apt-get update && sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev zstd dpkg-dev
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
         with:
           go-version-file: bridge_service/go.mod
           cache: false
@@ -241,45 +311,6 @@ jobs:
         run: |
           set -euo pipefail
           bash scripts/package-linux.sh "$RELEASE_TAG" build
-          exit 0
-          tag="$RELEASE_TAG"
-          version="${tag#v}"; version="${version%-beta*}"
-          root="HWControl-${tag}-Linux-x64"
-          rm -rf package linux-deb
-          mkdir -p "package/$root" linux-deb/DEBIAN linux-deb/opt/hwcontrol linux-deb/usr/bin linux-deb/lib/systemd/system
-          install -m 0755 build/ai_core/ai_engine "package/$root/ai_engine"
-          install -m 0755 build/audio_core/hwcontrol_audio_probe "package/$root/hwcontrol_audio_probe"
-          install -m 0755 bridge-service "package/$root/bridge-service"
-          install -m 0755 security-guardian "package/$root/security-guardian"
-          install -m 0440 security/fetch-status/bridger.key "package/$root/security/fetch-status/bridger.key"
-          cp -R gui_dashboard/build/linux/x64/release/bundle "package/$root/dashboard"
-          cp README.md SECURITY.md THIRD_PARTY_NOTICES "package/$root/"
-          cp -R deploy/linux "package/$root/deploy"
-          cp -R "package/$root/." linux-deb/opt/hwcontrol/
-          install -m 0644 deploy/linux/hwcontrol-bridge.service linux-deb/lib/systemd/system/hwcontrol-bridge.service
-          install -m 0644 deploy/linux/hwcontrol-security-guardian.service linux-deb/lib/systemd/system/hwcontrol-security-guardian.service
-          printf '%s\n' '#!/bin/sh' 'set -eu' 'KEY_DIR=/var/lib/hwcontrol' 'SECURITY_DIR=$KEY_DIR/security' 'CANARY_DIR=$SECURITY_DIR/canary' 'STATE_DIR=$SECURITY_DIR/state' 'mkdir -p $KEY_DIR $CANARY_DIR $STATE_DIR' 'chmod 0750 $KEY_DIR' 'if [ ! -s $KEY_DIR/bridge.key ]; then umask 077; od -An -N32 -tx1 /dev/urandom | tr -d " \\n" > $KEY_DIR/bridge.key; fi' 'chmod 0600 $KEY_DIR/bridge.key' 'if ! getent group hwcontrol-security >/dev/null; then groupadd --system hwcontrol-security; fi' 'if ! id hwcontrol-security >/dev/null 2>&1; then useradd --system --no-create-home --shell /usr/sbin/nologin --gid hwcontrol-security hwcontrol-security; fi' 'install -o root -g hwcontrol-security -m 0440 /opt/hwcontrol/security/fetch-status/bridger.key $CANARY_DIR/bridger.key' 'chown root:hwcontrol-security $CANARY_DIR' 'chmod 0750 $CANARY_DIR' 'chown hwcontrol-security:hwcontrol-security $STATE_DIR' 'chmod 0700 $STATE_DIR' 'systemctl daemon-reload' 'systemctl enable hwcontrol-bridge.service >/dev/null' 'systemctl enable hwcontrol-security-guardian.service >/dev/null' 'systemctl restart hwcontrol-bridge.service' 'systemctl restart hwcontrol-security-guardian.service' > linux-deb/DEBIAN/postinst
-          chmod 0755 linux-deb/DEBIAN/postinst
-          printf '%s\n' '#!/bin/sh' 'set -eu' 'systemctl disable --now hwcontrol-security-guardian.service 2>/dev/null || true' 'systemctl disable --now hwcontrol-bridge.service 2>/dev/null || true' > linux-deb/DEBIAN/prerm
-          chmod 0755 linux-deb/DEBIAN/prerm
-          printf '%s\n' '#!/bin/sh' 'set -eu' 'if [ "$1" = purge ]; then rm -rf /var/lib/hwcontrol; fi' 'systemctl daemon-reload 2>/dev/null || true' > linux-deb/DEBIAN/postrm
-          chmod 0755 linux-deb/DEBIAN/postrm
-          printf '%s\n' '#!/usr/bin/env bash' 'exec /opt/hwcontrol/dashboard/hwcontrol_dashboard "$@"' > linux-deb/usr/bin/hwcontrol
-          chmod 0755 linux-deb/usr/bin/hwcontrol
-          cat > linux-deb/DEBIAN/control <<EOF
-          Package: hwcontrol
-          Version: $version
-          Section: utils
-          Priority: optional
-          Architecture: amd64
-          Maintainer: HWControl contributors
-          Description: HWControl hardware monitoring and control suite
-           Cross-platform local hardware monitoring application.
-          EOF
-          dpkg-deb --build --root-owner-group linux-deb "HWControl-${tag}-Linux-x64.deb"
-          tar -czf "HWControl-${tag}-Linux-x64.tar.gz" -C package "$root"
-          tar -cf bundle.tar -C package "$root"
-          zstd -f bundle.tar -o "HWControl-${tag}-Linux-x64.tar.zst"
       - name: Smoke-test DEB
         run: |
           set -euo pipefail
@@ -314,6 +345,7 @@ jobs:
             HWControl-${{ env.RELEASE_TAG }}-Linux-x64.sha256
 
   macos:
+    needs: prepare-release
     permissions:
       contents: read
       id-token: write
@@ -321,12 +353,12 @@ jobs:
     runs-on: macos-14
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          ref: ${{ needs.prepare-release.outputs.source_sha }}
       - run: brew install zstd
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
         with:
           go-version-file: bridge_service/go.mod
           cache: false
@@ -343,7 +375,7 @@ jobs:
           cmake --build build --parallel 2
           ctest --test-dir build --output-on-failure
           (cd bridge_service && go vet ./... && go test -count=1 ./... && go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../bridge-service ./src && go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../security-guardian ./security_guardian)
-          (cd gui_dashboard && flutter create --platforms=macos --no-pub . && git restore pubspec.yaml test/widget_test.dart && flutter pub get && flutter analyze && flutter test --no-pub && flutter build macos --release -t lib/installer_main.dart --dart-define=HWCONTROL_RELEASE_TRUST=official)
+          (cd gui_dashboard && flutter create --platforms=macos --no-pub . && git restore pubspec.yaml test/widget_test.dart && sed -i '' 's/^PRODUCT_NAME = .*/PRODUCT_NAME = HWControl/' macos/Runner/Configs/AppInfo.xcconfig && sed -i '' 's/^PRODUCT_BUNDLE_IDENTIFIER = .*/PRODUCT_BUNDLE_IDENTIFIER = com.hwcontrol.hwcontrol/' macos/Runner/Configs/AppInfo.xcconfig && flutter pub get && flutter analyze && flutter test --no-pub && flutter build macos --release -t lib/installer_main.dart --dart-define=HWCONTROL_RELEASE_TRUST=official)
       - name: Build PKG and DMG
         run: |
           set -euo pipefail
@@ -394,7 +426,8 @@ jobs:
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.sha256
 
   release:
-    needs: [windows, linux, macos]
+    if: inputs.publish == true
+    needs: [prepare-release, windows, linux, macos]
     permissions:
       contents: write
       id-token: write
@@ -418,18 +451,30 @@ jobs:
           test -f release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.deb
           test -f release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.tar.gz
           test -f release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.tar.zst
+          test -f release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64.sha256
+          test -f release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.sha256
+          test -f release-assets/beta-macos-arm64/HWControl-${RELEASE_TAG}-macOS-AppleSilicon.sha256
       - name: Generate aggregate checksums
         run: |
-          find release-assets -type f ! -name '*.sha256' -print0 | sort -z | xargs -0 sha256sum > release-assets/SHA256SUMS
+          find release-assets -type f ! -name 'SHA256SUMS' -printf '%f\n' | sort -u | while IFS= read -r name; do
+            file="$(find release-assets -type f -name "$name" -print -quit)"
+            sha256sum "$file" | awk -v name="$name" '{ print $1 "  " name }'
+          done > release-assets/SHA256SUMS
+          while read -r digest name; do
+            file="$(find release-assets -type f -name "$name" -print -quit)"
+            [[ -n "$file" ]] || { echo "Checksum references missing file: $name" >&2; exit 1; }
+            printf '%s  %s\n' "$digest" "$file"
+          done < release-assets/SHA256SUMS | sha256sum -c -
       - name: Publish beta release
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
         with:
           tag_name: ${{ env.RELEASE_TAG }}
           name: HWControl 2.0 ${{ env.RELEASE_TAG }}
           prerelease: true
-          target_commitish: ${{ github.sha }}
+          target_commitish: ${{ needs.prepare-release.outputs.source_sha }}
           generate_release_notes: true
           fail_on_unmatched_files: true
+          overwrite_files: true
           files: |
             release-assets/beta-windows-x64/*
             release-assets/beta-macos-arm64/*

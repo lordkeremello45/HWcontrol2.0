@@ -8,6 +8,8 @@ import re
 from pathlib import Path
 from typing import Any
 
+REPOSITORY = "lordkeremello45/HWcontrol2.0"
+
 PLATFORMS = {
     "windows": {
         "suffix": "-windows",
@@ -25,6 +27,14 @@ PLATFORMS = {
 CHECKSUM_SUFFIXES = (".sha256", ".sha256sum", ".sha256.txt")
 
 
+def safe_github_url(value: Any) -> bool:
+    if not isinstance(value, str):
+        return False
+    from urllib.parse import urlparse
+    parsed = urlparse(value)
+    return parsed.scheme == "https" and parsed.hostname == "github.com" and not parsed.username and not parsed.password and parsed.path.startswith(f"/{REPOSITORY}/releases/")
+
+
 def published_at(release: dict[str, Any]) -> str:
     return str(release.get("published_at") or release.get("created_at") or "")
 
@@ -34,7 +44,14 @@ def stable_platform_releases(releases: list[dict[str, Any]]) -> dict[str, dict[s
     for platform, cfg in PLATFORMS.items():
         candidates = [
             r for r in releases
-            if not r.get("draft") and not r.get("prerelease") and str(r.get("tag_name", "")).lower().endswith(cfg["suffix"])
+            if not r.get("draft") and not r.get("prerelease")
+            and str(r.get("tag_name", "")).lower().endswith(cfg["suffix"])
+            and any(
+                re.search(pattern, str(asset.get("name", "")), re.IGNORECASE)
+                and safe_github_url(asset.get("browser_download_url"))
+                for pattern in cfg["patterns"]
+                for asset in r.get("assets", [])
+            )
         ]
         candidates.sort(key=published_at, reverse=True)
         if candidates:
@@ -47,7 +64,7 @@ def matching_assets(release: dict[str, Any], platform: str) -> list[dict[str, An
     assets = []
     for asset in release.get("assets", []):
         name = str(asset.get("name", ""))
-        if any(p.search(name) for p in patterns):
+        if any(p.search(name) for p in patterns) and safe_github_url(asset.get("browser_download_url")):
             assets.append(asset)
     return sorted(assets, key=lambda a: str(a.get("name", "")).lower())
 
@@ -57,7 +74,7 @@ def checksum_asset(release: dict[str, Any], asset_name: str) -> dict[str, Any] |
     base = asset_name.lower()
     for suffix in CHECKSUM_SUFFIXES:
         candidate = by_name.get(base + suffix)
-        if candidate:
+        if candidate and safe_github_url(candidate.get("browser_download_url")):
             return candidate
     return None
 
@@ -77,6 +94,19 @@ def manifest_assets(release: dict[str, Any], platform: str) -> list[dict[str, An
     return output
 
 
+def platform_checksum_url(release: dict[str, Any], platform: str) -> str | None:
+    token = {
+        "windows": re.compile(r"windows.*x64", re.IGNORECASE),
+        "macos": re.compile(r"macos.*(apple.?silicon|arm64)|darwin.*arm64", re.IGNORECASE),
+        "linux": re.compile(r"linux.*(x64|amd64)", re.IGNORECASE),
+    }[platform]
+    for asset in release.get("assets", []):
+        name = str(asset.get("name", ""))
+        if token.search(name) and name.lower().endswith(".sha256") and safe_github_url(asset.get("browser_download_url")):
+            return asset.get("browser_download_url")
+    return None
+
+
 def release_manifest(release: dict[str, Any], platform: str) -> dict[str, Any]:
     assets = manifest_assets(release, platform)
     if not assets:
@@ -85,7 +115,7 @@ def release_manifest(release: dict[str, Any], platform: str) -> dict[str, Any]:
 
     def url(name: str) -> str | None:
         asset = all_assets.get(name.lower())
-        return asset.get("browser_download_url") if asset else None
+        return asset.get("browser_download_url") if asset and safe_github_url(asset.get("browser_download_url")) else None
 
     return {
         "tag": release.get("tag_name"),
@@ -94,7 +124,7 @@ def release_manifest(release: dict[str, Any], platform: str) -> dict[str, Any]:
         "release_url": release.get("html_url"),
         "assets": assets,
         "integrity": {
-            "sha256sums_url": url("SHA256SUMS.txt"),
+            "sha256sums_url": platform_checksum_url(release, platform) or url("SHA256SUMS") or url("SHA256SUMS.txt"),
             "sha512sums_url": url("SHA512SUMS.txt"),
             "sha3_512sums_url": url("SHA3-512SUMS.txt"),
             "ed25519_signature_url": url("SHA256SUMS.txt.sig"),

@@ -21,11 +21,11 @@ Hardware-control availability is capability-driven: if a platform or device does
 
 ## Beta distribution
 
-Platform-specific Beta release channels are maintained on GitHub:
+Unified cross-platform Beta releases are published only after Windows, Linux and macOS package sets and checksum manifests pass validation:
 
-- Windows: https://github.com/lordkeremello45/HWcontrol2.0/releases/tag/v0.3.0-beta-windows
-- Linux: https://github.com/lordkeremello45/HWcontrol2.0/releases/tag/v0.3.0-beta-linux
-- macOS: https://github.com/lordkeremello45/HWcontrol2.0/releases/tag/v0.3.0-beta-macos
+- Windows: https://github.com/lordkeremello45/HWcontrol2.0/releases
+- Linux: https://github.com/lordkeremello45/HWcontrol2.0/releases
+- macOS: https://github.com/lordkeremello45/HWcontrol2.0/releases
 - All releases: https://github.com/lordkeremello45/HWcontrol2.0/releases
 
 A release is considered distributable only after its platform workflow has produced the expected package assets and checksum manifest.
