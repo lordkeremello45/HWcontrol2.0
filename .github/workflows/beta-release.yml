@@ -169,6 +169,8 @@ jobs:
           if (-not (Test-Path "$env:ProgramFiles\HWControl\hwcontrol_audio_probe.exe")) { throw 'MSI did not install native audio helper' }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\hwcontrol-hardware-identification.exe")) { throw 'C# hardware identification helper was not installed' }
           if (-not (Test-Path (Join-Path $env:USERPROFILE 'Desktop\HWControl.lnk'))) { throw 'MSI did not create the installing-user desktop shortcut' }
+          $startMenuShortcut = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk'
+          if (-not (Test-Path $startMenuShortcut)) { throw 'MSI did not create the installing-user Start Menu shortcut' }
           & "$env:ProgramFiles\HWControl\hwcontrol-hardware-identification.exe" --self-test
           if ($LASTEXITCODE -ne 0) { throw 'Installed C# hardware identification self-test failed' }
           if (-not (Test-Path "$env:ProgramFiles\HWControl\security-guardian.exe")) { throw 'security-guardian.exe missing' }
@@ -177,6 +179,8 @@ jobs:
           if (-not (Get-Service -Name HWControlSecurityGuardian -ErrorAction SilentlyContinue)) { throw 'HWControlSecurityGuardian service missing' }
           & "$PWD\deploy\windows\Invoke-MsiWithTimeout.ps1" -MsiPath $msi -Action Uninstall -LogPath "$root/uninstall.log" -TimeoutSeconds 120
           if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'MSI uninstall left service behind' }
+          if (Test-Path (Join-Path $env:USERPROFILE 'Desktop\HWControl.lnk')) { throw 'MSI uninstall left desktop shortcut behind' }
+          if (Test-Path $startMenuShortcut) { throw 'MSI uninstall left Start Menu shortcut behind' }
       - name: Build portable ZIP
         shell: pwsh
         run: |
