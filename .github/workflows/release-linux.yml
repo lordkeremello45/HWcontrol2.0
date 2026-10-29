@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Existing release tag, for example v0.3.0-beta-linux'
+        description: 'Existing platform tag, for example vX.Y.Z-linux or vX.Y.Z-beta-linux'
         required: true
         type: string
       source_ref:
