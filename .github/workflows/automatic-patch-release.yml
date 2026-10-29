@@ -60,8 +60,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          version="$(sed -nE 's/^version: ([0-9]+\\.[0-9]+\\.[0-9]+)$/\\1/p' gui_dashboard/pubspec.yaml | head -n1)"
-          [[ "$version" =~ ^[0-9]+\\.[0-9]+\\.[0-9]+$ ]] || { echo "Invalid app version: $version" >&2; exit 1; }
+          version="$(sed -nE 's/^version: ([0-9]+\.[0-9]+\.[0-9]+)$/\1/p' gui_dashboard/pubspec.yaml | head -n1)"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Invalid app version: $version" >&2; exit 1; }
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "windows_tag=v${version}-beta.${GITHUB_RUN_NUMBER}-windows" >> "$GITHUB_OUTPUT"
           echo "linux_tag=v${version}-beta.${GITHUB_RUN_NUMBER}-linux" >> "$GITHUB_OUTPUT"
