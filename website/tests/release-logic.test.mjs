@@ -30,6 +30,20 @@ test("ignores empty releases and selects the newest downloadable platform releas
   assert.equal(selectPlatformRelease(releases, "unknown"), null);
 });
 
+test("rejects wrong-platform assets in platform-specific releases and accepts macOS ZIP bundles", () => {
+  const releases = [
+    { tag_name: "v0.4.0-windows", published_at: "2026-10-25T00:00:00Z", assets: [
+      { name: "HWControl-v0.4.0-Linux-x64.deb", browser_download_url: assetUrl("v0.4.0-windows", "HWControl-v0.4.0-Linux-x64.deb") }
+    ] },
+    { tag_name: "v0.3.0-macos", published_at: "2026-10-20T00:00:00Z", assets: [
+      { name: "HWControl-v0.3.0-macOS-AppleSilicon.zip", browser_download_url: assetUrl("v0.3.0-macos", "HWControl-v0.3.0-macOS-AppleSilicon.zip") }
+    ] }
+  ];
+  assert.equal(selectPlatformRelease(releases, "windows"), null);
+  assert.equal(selectPlatformRelease(releases, "macos")?.tag_name, "v0.3.0-macos");
+  assert.equal(getPackageAssets(releases[1], "macos").length, 1);
+});
+
 test("supports unified beta tags while filtering package and checksum assets by platform", () => {
   const release = {
     tag_name: "v0.3.1-beta.42", published_at: "2026-10-20T00:00:00Z", assets: [
