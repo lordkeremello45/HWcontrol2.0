@@ -53,6 +53,7 @@ jobs:
         run: |
           set -euo pipefail
           remote_ref="$(git ls-remote origin "refs/tags/$RELEASE_TAG")"
+          [[ -n "$remote_ref" ]] || { echo "Release tag $RELEASE_TAG does not exist; refusing to publish an untagged commit" >&2; exit 1; }
           if [[ -n "$remote_ref" ]]; then
             git fetch --no-tags origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
             tag_sha="$(git rev-parse "$RELEASE_TAG^{commit}")"
