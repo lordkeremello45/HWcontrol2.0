@@ -39,14 +39,31 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          if ($env:GITHUB_REF -ne 'refs/heads/main' -and '${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}' -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?-windows$') { throw "Invalid Windows release tag: $env:RELEASE_TAG" }
+          if (($env:GITHUB_EVENT_NAME -ne 'push' -or $env:GITHUB_REF -ne 'refs/heads/main') -and $env:RELEASE_TAG -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?-windows$') { throw "Invalid Windows release tag: $env:RELEASE_TAG" }
           if ('${{ env.SOURCE_REF }}' -notmatch '^(main|[0-9a-f]{40})$') { throw "SOURCE_REF must be main or a full commit SHA" }
 
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.3.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           ref: ${{ env.SOURCE_REF }}
+
+      - name: Resolve and validate source commit
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $sourceSha = (git rev-parse HEAD).Trim()
+          if ($LASTEXITCODE -ne 0 -or $sourceSha -notmatch '^[0-9a-f]{40}$') { throw "Could not resolve checked-out source commit" }
+          "SOURCE_COMMIT_SHA=$sourceSha" >> $env:GITHUB_ENV
+          if (($env:GITHUB_EVENT_NAME -ne 'push' -or $env:GITHUB_REF -ne 'refs/heads/main')) {
+            $remoteRef = git ls-remote origin "refs/tags/$env:RELEASE_TAG"
+            if ($LASTEXITCODE -ne 0) { throw "Could not query remote tag $env:RELEASE_TAG" }
+            if (-not $remoteRef) { throw "Release tag $env:RELEASE_TAG does not exist; refusing to publish an untagged commit" }
+            git fetch --no-tags origin "refs/tags/$env:RELEASE_TAG:refs/tags/$env:RELEASE_TAG"
+            if ($LASTEXITCODE -ne 0) { throw "Could not fetch release tag $env:RELEASE_TAG" }
+            $tagSha = (git rev-parse "$env:RELEASE_TAG^{commit}").Trim()
+            if ($tagSha -ne $sourceSha) { throw "Release tag $env:RELEASE_TAG points at $tagSha, not checked-out source commit $sourceSha" }
+          }
 
       - name: Resolve main-branch package version
         id: resolve-main-tag
@@ -73,7 +90,7 @@ jobs:
           if (-not $tagMatch.Success -or $tagMatch.Groups[1].Value -ne $appVersion) { throw "Package tag version does not match app version $appVersion (tag: $env:RELEASE_TAG)" }
 
       - name: Setup Go
-        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
         with:
           go-version-file: bridge_service/go.mod
           cache: false
@@ -156,7 +173,7 @@ jobs:
           if (-not $versionMatch.Success) { throw "Could not derive numeric MSI version from release tag: $env:RELEASE_TAG" }
           $version = $versionMatch.Groups[1].Value
           $packageDir = "package/HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Windows-x64"
-          wix build deploy/windows/HWControl.wxs -arch x64 -d Version=$version -d PackageDir=$packageDir -d IconPath=deploy/windows/HWControl.ico -o "HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Windows-x64.msi"
+          wix build deploy/windows/HWControl.wxs -ext WixToolset.Util.wixext -arch x64 -d Version=$version -d PackageDir=$packageDir -d IconPath=deploy/windows/HWControl.ico -o "HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Windows-x64.msi"
           if (-not (Test-Path "HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Windows-x64.msi")) { throw 'MSI was not produced' }
           if ((Get-Item "HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Windows-x64.msi").Length -lt 4096) { throw 'MSI is unexpectedly small' }
 
@@ -176,8 +193,8 @@ jobs:
           if (-not (Test-Path "$env:ProgramFiles\HWControl\hwcontrol-hardware-identification.exe")) { throw 'C# hardware identification helper was not installed' }
           & "$env:ProgramFiles\HWControl\hwcontrol-hardware-identification.exe" --self-test
           if ($LASTEXITCODE -ne 0) { throw 'Installed C# hardware identification self-test failed' }
-          $shortcutPath = Join-Path $env:PUBLIC 'Desktop\HWControl.lnk'
-          $startMenuShortcutPath = Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk'
+          $shortcutPath = Join-Path $env:USERPROFILE 'Desktop\HWControl.lnk'
+          $startMenuShortcutPath = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk'
           if (-not (Test-Path $shortcutPath)) { throw 'HWControl desktop shortcut was not installed by MSI' }
           if (-not (Test-Path $startMenuShortcutPath)) { throw 'HWControl Start Menu shortcut was not installed by MSI' }
           $shell = New-Object -ComObject WScript.Shell
@@ -204,8 +221,8 @@ jobs:
           if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge still exists after MSI uninstall' }
           if (Get-Service -Name HWControlSecurityGuardian -ErrorAction SilentlyContinue) { throw 'HWControlSecurityGuardian still exists after MSI uninstall' }
           if (Test-Path "$env:ProgramFiles\HWControl") { throw 'Program Files\HWControl still exists after MSI uninstall' }
-          if (Test-Path (Join-Path $env:PUBLIC 'Desktop\HWControl.lnk')) { throw 'HWControl desktop shortcut still exists after MSI uninstall' }
-          if (Test-Path (Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk')) { throw 'HWControl Start Menu shortcut still exists after MSI uninstall' }
+          if (Test-Path (Join-Path $env:USERPROFILE 'Desktop\HWControl.lnk')) { throw 'HWControl desktop shortcut still exists after MSI uninstall' }
+          if (Test-Path (Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk')) { throw 'HWControl Start Menu shortcut still exists after MSI uninstall' }
           if (Test-Path "$env:ProgramData\HWControl\bridge.key") { throw 'bridge.key still exists after MSI uninstall' }
           if (Test-Path "$env:ProgramData\HWControl\security") { throw 'security canary state still exists after MSI uninstall' }
           $leftover = Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' -Name HWCONTROL_KEY -ErrorAction SilentlyContinue
@@ -239,7 +256,8 @@ jobs:
           $msi = "HWControl-$($env:RELEASE_TAG)-Windows-x64.msi"
           $setup = "HWControl-$($env:RELEASE_TAG)-Windows-x64-Setup.exe"
           if (-not (Test-Path $msi)) { throw "Required MSI is missing: $msi" }
-          wix build deploy/windows/HWControl-Setup.wxs -arch x64 -d Version=$version -d MsiPath=$msi -o $setup
+          wix extension add -g WixToolset.Bal.wixext/6.0.2
+          wix build deploy/windows/HWControl-Setup.wxs -ext WixToolset.Bal.wixext -arch x64 -d Version=$version -d MsiPath=$msi -o $setup
           if (-not (Test-Path $setup)) { throw 'WiX bundle Setup EXE was not produced' }
           if ((Get-Item $setup).Length -lt 4096) { throw 'Setup EXE is unexpectedly small' }
 
@@ -360,4 +378,5 @@ jobs:
             if ($LASTEXITCODE -ne 0) { throw "Could not create GitHub prerelease $env:RELEASE_TAG" }
           }
           gh release upload $env:RELEASE_TAG @assets --repo $env:GITHUB_REPOSITORY --clobber
+          if ($LASTEXITCODE -ne 0) { throw "Could not upload Windows assets to GitHub Release $env:RELEASE_TAG" }
           if ($LASTEXITCODE -ne 0) { throw "Could not upload Windows assets to GitHub Release $env:RELEASE_TAG" }
