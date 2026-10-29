@@ -8,22 +8,42 @@ import {
   isChecksumAsset,
   isValidManifest,
   safeReleaseUrl,
-  selectPlatformRelease
+  selectPlatformRelease,
+  selectLatestDownloadableRelease
 } from "../public/release-logic.mjs";
 
 const releaseUrl = (tag) => `https://github.com/lordkeremello45/HWcontrol2.0/releases/tag/${tag}`;
 const assetUrl = (tag, name) => `https://github.com/lordkeremello45/HWcontrol2.0/releases/download/${tag}/${name}`;
 
-test("selects the newest platform release, including a newer beta, and ignores drafts", () => {
+test("ignores empty releases and selects the newest downloadable platform release", () => {
   const releases = [
-    { tag_name: "v0.2.4-windows", published_at: "2026-09-10T00:00:00Z", assets: [] },
+    { tag_name: "v0.2.4-windows", published_at: "2026-09-10T00:00:00Z", assets: [
+      { name: "HWControl-Windows-x64.msi", browser_download_url: assetUrl("v0.2.4-windows", "HWControl-Windows-x64.msi") }
+    ] },
     { tag_name: "v0.3.0-beta-windows", published_at: "2026-10-10T00:00:00Z", prerelease: true, assets: [] },
     { tag_name: "v9.9.9-windows", published_at: "2026-10-11T00:00:00Z", draft: true, assets: [] },
     { tag_name: "v0.3.0-beta-linux", published_at: "2026-10-12T00:00:00Z", assets: [] }
   ];
-  assert.equal(selectPlatformRelease(releases, "windows")?.tag_name, "v0.3.0-beta-windows");
-  assert.equal(selectPlatformRelease(releases, "linux")?.tag_name, "v0.3.0-beta-linux");
+  assert.equal(selectPlatformRelease(releases, "windows")?.tag_name, "v0.2.4-windows");
+  assert.equal(selectPlatformRelease(releases, "linux"), null);
+  assert.equal(selectLatestDownloadableRelease(releases)?.tag_name, "v0.2.4-windows");
   assert.equal(selectPlatformRelease(releases, "unknown"), null);
+});
+
+test("supports unified beta tags while filtering package and checksum assets by platform", () => {
+  const release = {
+    tag_name: "v0.3.1-beta.42", published_at: "2026-10-20T00:00:00Z", assets: [
+      { name: "HWControl-v0.3.1-beta.42-Windows-x64.msi", browser_download_url: assetUrl("v0.3.1-beta.42", "HWControl-v0.3.1-beta.42-Windows-x64.msi") },
+      { name: "HWControl-v0.3.1-beta.42-Linux-x64.deb", browser_download_url: assetUrl("v0.3.1-beta.42", "HWControl-v0.3.1-beta.42-Linux-x64.deb") },
+      { name: "HWControl-v0.3.1-beta.42-macOS-AppleSilicon.dmg", browser_download_url: assetUrl("v0.3.1-beta.42", "HWControl-v0.3.1-beta.42-macOS-AppleSilicon.dmg") },
+      { name: "HWControl-v0.3.1-beta.42-Windows-x64.sha256", browser_download_url: assetUrl("v0.3.1-beta.42", "HWControl-v0.3.1-beta.42-Windows-x64.sha256") },
+      { name: "SHA256SUMS", browser_download_url: assetUrl("v0.3.1-beta.42", "SHA256SUMS") }
+    ]
+  };
+  assert.equal(selectPlatformRelease([release], "windows")?.tag_name, release.tag_name);
+  assert.deepEqual(getPackageAssets(release, "linux").map((asset) => asset.name), ["HWControl-v0.3.1-beta.42-Linux-x64.deb"]);
+  assert.deepEqual(getPackageAssets(release, "macos").map((asset) => asset.name), ["HWControl-v0.3.1-beta.42-macOS-AppleSilicon.dmg"]);
+  assert.equal(getChecksumUrl(release, "windows"), assetUrl("v0.3.1-beta.42", "HWControl-v0.3.1-beta.42-Windows-x64.sha256"));
 });
 
 test("filters Windows assets to real installer/archive formats", () => {

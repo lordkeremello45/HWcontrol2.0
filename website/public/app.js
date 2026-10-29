@@ -5,6 +5,7 @@ import {
   getPackageAssets,
   isValidManifest,
   safeReleaseUrl,
+  selectLatestDownloadableRelease,
   selectPlatformRelease
 } from "./release-logic.mjs";
 
@@ -63,7 +64,7 @@ function render() {
     return;
   }
 
-  const checksumUrl = getChecksumUrl(release);
+  const checksumUrl = getChecksumUrl(release, state.platform);
   const status = usingManifest
     ? `<div class="loading">${state.liveStatus === "pending" ? "Showing cached release metadata while checking for newer packages." : "Live release metadata is unavailable; showing the last published manifest. Check GitHub Releases for newer packages."}</div>`
     : "";
@@ -138,9 +139,7 @@ async function loadLiveReleases() {
     if (!Array.isArray(data)) throw new Error("Unexpected release API response");
     state.releases = data.filter((release) => release && typeof release === "object");
     state.liveStatus = "success";
-    const latest = state.releases
-      .filter((release) => !release.draft && release.tag_name)
-      .sort((a, b) => (Date.parse(b.published_at || b.created_at || "") || 0) - (Date.parse(a.published_at || a.created_at || "") || 0))[0];
+    const latest = selectLatestDownloadableRelease(state.releases);
     $("#latestBadge").textContent = latest
       ? `${latest.prerelease || /-beta/i.test(latest.tag_name) ? "Latest beta" : "Latest release"} · ${latest.tag_name}`
       : "No published release found";
