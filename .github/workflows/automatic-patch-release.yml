@@ -74,7 +74,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          url="$(gh workflow run beta-release.yml --repo "$GITHUB_REPOSITORY" --ref main -f "tag=$BETA_TAG" -f "source_ref=$SOURCE_SHA" | tail -n1)"
+          url="$(gh workflow run beta-release.yml --repo "$GITHUB_REPOSITORY" --ref main -f "tag=$BETA_TAG" -f "source_ref=$SOURCE_SHA" -f "publish=true" | tail -n1)"
           run_id="${url##*/}"
           [[ "$run_id" =~ ^[0-9]+$ ]] || { echo "Invalid beta workflow run id: $run_id" >&2; exit 1; }
           echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
