@@ -94,7 +94,8 @@ test("filters macOS and Linux to their installable package formats", () => {
 });
 
 test("only trusts HTTPS GitHub URLs", () => {
-  assert.equal(safeReleaseUrl("https://github.com/owner/repo/releases"), "https://github.com/owner/repo/releases");
+  assert.equal(safeReleaseUrl("https://github.com/lordkeremello45/HWcontrol2.0/releases/tag/v0.3.0-windows"), "https://github.com/lordkeremello45/HWcontrol2.0/releases/tag/v0.3.0-windows");
+  assert.equal(safeReleaseUrl("https://github.com/other/project/releases/tag/v1.0.0"), null);
   assert.equal(safeReleaseUrl("http://github.com/owner/repo"), null);
   assert.equal(safeReleaseUrl("https://example.org/package.exe"), null);
   assert.equal(safeReleaseUrl("https://user:pass@github.com/owner/repo"), null);
