@@ -36,10 +36,10 @@ jobs:
       run:
         working-directory: bridge_service
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.3.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
         with:
           go-version-file: bridge_service/go.mod
           cache: false
@@ -70,7 +70,7 @@ jobs:
         language: [cpp, go, csharp]
     steps:
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.3.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Initialize CodeQL
@@ -90,7 +90,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout full history
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.3.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -107,7 +107,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.3.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Check repository whitespace
@@ -118,7 +118,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if git grep -I -nE '-----BEGIN (RSA|EC|OPENSSH|DSA|PRIVATE) KEY-----|(^|[^[:alnum:]_])(ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})([^A-Za-z0-9_]|$)' -- . ':!docs/wiki'; then
+          if git grep -I -nE -e '-----BEGIN (RSA|EC|OPENSSH|DSA|PRIVATE) KEY-----|(^|[^[:alnum:]_])(ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})([^A-Za-z0-9_]|$)' -- . ':!docs/wiki'; then
             echo "Potential credential material found in the repository."
             exit 1
           fi
