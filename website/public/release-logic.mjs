@@ -30,38 +30,8 @@ export function getManifestPlatform(manifest, platform) {
 
 export function selectPlatformRelease(releases, platform) {
   if (!PLATFORMS.has(platform) || !Array.isArray(releases)) return null;
-  const suffix = new RegExp(`-${platform}const REPOSITORY = "lordkeremello45/HWcontrol2.0";
-const PLATFORMS = new Set(["windows", "macos", "linux"]);
-
-export function safeReleaseUrl(value) {
-  if (typeof value !== "string" || !value) return null;
-  try {
-    const url = new URL(value);
-    if (url.protocol !== "https:" || url.hostname !== "github.com" || url.username || url.password) return null;
-    return url.href;
-  } catch {
-    return null;
-  }
-}
-
-export function isValidManifest(manifest) {
-  if (!manifest || manifest.schema !== 1 || manifest.project !== "HWControl" || manifest.repository !== REPOSITORY || !manifest.platforms) return false;
-  for (const platform of PLATFORMS) {
-    const release = manifest.platforms[platform];
-    if (!release || typeof release.tag !== "string" || !new RegExp(`-${platform}$`, "i").test(release.tag)) return false;
-    if (!safeReleaseUrl(release.release_url) || !Array.isArray(release.assets) || release.assets.length === 0) return false;
-    if (!release.assets.every((asset) => asset && typeof asset.name === "string" && safeReleaseUrl(asset.url))) return false;
-  }
-  return true;
-}
-
-export function getManifestPlatform(manifest, platform) {
-  if (!PLATFORMS.has(platform) || !isValidManifest(manifest)) return null;
-  return manifest.platforms[platform];
-}
-
-, "i");
-  const unifiedBeta = /^v\\d+\\.\\d+\\.\\d+-beta\\.\\d+$/i;
+  const suffix = new RegExp(`-${platform}$`, "i");
+  const unifiedBeta = /^v\d+\.\d+\.\d+-beta\.\d+$/i;
   return releases
     .filter((release) => {
       if (!release || release.draft || typeof release.tag_name !== "string" || !Array.isArray(release.assets)) return false;
@@ -101,7 +71,7 @@ export function isInstallableAsset(name, platform) {
 
 export function getPackageAssets(release, platform) {
   if (!release || !Array.isArray(release.assets) || !PLATFORMS.has(platform)) return [];
-  const unifiedBeta = /^v\\d+\\.\\d+\\.\\d+-beta\\.\\d+$/i.test(release.tag_name || "");
+  const unifiedBeta = /^v\d+\.\d+\.\d+-beta\.\d+$/i.test(release.tag_name || "");
   const platformAsset = {
     windows: /windows-x64/i,
     macos: /macos-applesilicon|macos-arm64|darwin-arm64/i,
@@ -124,8 +94,8 @@ export function getChecksumUrl(release, platform) {
     linux: /linux-x64|linux-amd64/i
   }[platform];
   const candidates = assets.filter((item) => item && /(?:sha-?256|checksum)/i.test(item.name || ""));
-  const preferred = platformToken ? candidates.find((item) => platformToken.test(item.name || "") && /\\.sha256$/i.test(item.name || "")) : null;
-  const aggregate = candidates.find((item) => /^(SHA256SUMS|SHA256SUMS\\.txt)$/i.test(item.name || ""));
+  const preferred = platformToken ? candidates.find((item) => platformToken.test(item.name || "") && /\.sha256$/i.test(item.name || "")) : null;
+  const aggregate = candidates.find((item) => /^(SHA256SUMS|SHA256SUMS\.txt)$/i.test(item.name || ""));
   const asset = preferred || aggregate || candidates[0];
   return safeReleaseUrl(asset?.url || asset?.browser_download_url);
 }
