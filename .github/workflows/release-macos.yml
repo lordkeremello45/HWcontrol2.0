@@ -219,21 +219,6 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Replace existing beta release assets
-        if: contains(env.RELEASE_TAG, '-beta') && (github.event_name != 'push' || github.ref != 'refs/heads/main')
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' |
-              while IFS= read -r asset; do
-                [[ -z "$asset" ]] && continue
-                gh release delete-asset "$RELEASE_TAG" "$asset" --repo "$GITHUB_REPOSITORY" --yes
-              done
-          fi
-
       - name: Publish macOS release
         if: github.event_name != 'push' || github.ref != 'refs/heads/main'
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
