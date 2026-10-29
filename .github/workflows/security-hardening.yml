@@ -124,4 +124,10 @@ jobs:
           if git grep -I -nE -e '-----BEGIN (RSA|EC|OPENSSH|DSA|PRIVATE) KEY-----|(^|[^[:alnum:]_])(ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})([^A-Za-z0-9_]|$)' -- . ':!docs/wiki'; then
             echo "Potential credential material found in the repository."
             exit 1
+          else
+            status=$?
+            if [ "$status" -ne 1 ]; then
+              echo "Credential scan command failed with exit code $status" >&2
+              exit "$status"
+            fi
           fi
