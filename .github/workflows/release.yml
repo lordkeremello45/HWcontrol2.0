@@ -248,7 +248,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $env:PATH = "$env:USERPROFILE\\.dotnet\\tools;$env:PATH"
+          $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
           wix extension add -g WixToolset.Bal.wixext/6.0.2
           $versionMatch = [regex]::Match($env:RELEASE_TAG, '^v([0-9]+\.[0-9]+\.[0-9]+)')
           if (-not $versionMatch.Success) { throw "Could not derive numeric setup version from release tag: $env:RELEASE_TAG" }
@@ -256,7 +256,6 @@ jobs:
           $msi = "HWControl-$($env:RELEASE_TAG)-Windows-x64.msi"
           $setup = "HWControl-$($env:RELEASE_TAG)-Windows-x64-Setup.exe"
           if (-not (Test-Path $msi)) { throw "Required MSI is missing: $msi" }
-          wix extension add -g WixToolset.Bal.wixext/6.0.2
           wix build deploy/windows/HWControl-Setup.wxs -ext WixToolset.Bal.wixext -arch x64 -d Version=$version -d MsiPath=$msi -o $setup
           if (-not (Test-Path $setup)) { throw 'WiX bundle Setup EXE was not produced' }
           if ((Get-Item $setup).Length -lt 4096) { throw 'Setup EXE is unexpectedly small' }
