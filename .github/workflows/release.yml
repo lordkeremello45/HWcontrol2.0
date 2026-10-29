@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Existing release tag to publish, for example v0.3.0-beta-windows'
+        description: 'Existing platform tag to publish, for example vX.Y.Z-windows or vX.Y.Z-beta-windows'
         required: true
         type: string
       source_ref:
