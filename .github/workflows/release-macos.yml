@@ -213,6 +213,7 @@ jobs:
           name: ${{ startsWith(env.RELEASE_TAG, 'v0.3.0-') && 'HWcontrol2.0 Beta — macOS' || format('HWControl {0}', env.RELEASE_TAG) }}
           tag_name: ${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}
           target_commitish: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref || github.sha }}
+          overwrite_files: true
           generate_release_notes: true
           prerelease: ${{ contains(env.RELEASE_TAG, '-beta') }}
           files: |
