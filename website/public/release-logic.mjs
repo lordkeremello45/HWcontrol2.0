@@ -86,7 +86,6 @@ export function getPackageAssets(release, platform) {
 
 export function getChecksumUrl(release, platform) {
   const explicit = safeReleaseUrl(release?.integrity?.sha256sums_url);
-  if (explicit) return explicit;
   const assets = Array.isArray(release?.assets) ? release.assets : [];
   const platformToken = {
     windows: /windows-x64/i,
@@ -96,7 +95,7 @@ export function getChecksumUrl(release, platform) {
   const candidates = assets.filter((item) => item && /(?:sha-?256|checksum)/i.test(item.name || ""));
   const preferred = platformToken ? candidates.find((item) => platformToken.test(item.name || "") && /\.sha256$/i.test(item.name || "")) : null;
   const aggregate = candidates.find((item) => /^(SHA256SUMS|SHA256SUMS\.txt)$/i.test(item.name || ""));
-  const asset = preferred || aggregate || candidates[0];
+  const asset = preferred || explicit || aggregate || candidates[0];
   return safeReleaseUrl(asset?.url || asset?.browser_download_url);
 }
 
