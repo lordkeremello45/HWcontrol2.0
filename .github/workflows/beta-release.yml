@@ -12,6 +12,11 @@ on:
         default: 'main'
         required: true
         type: string
+      publish:
+        description: 'Publish the GitHub Release after all package checks; false runs packaging and smoke tests only'
+        default: false
+        required: false
+        type: boolean
 
 permissions:
   contents: read
@@ -395,6 +400,7 @@ jobs:
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.sha256
 
   release:
+    if: inputs.publish == true
     needs: [prepare-release, windows, linux, macos]
     permissions:
       contents: write
