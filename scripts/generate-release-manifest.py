@@ -25,6 +25,14 @@ PLATFORMS = {
 CHECKSUM_SUFFIXES = (".sha256", ".sha256sum", ".sha256.txt")
 
 
+def safe_github_url(value: Any) -> bool:
+    if not isinstance(value, str):
+        return False
+    from urllib.parse import urlparse
+    parsed = urlparse(value)
+    return parsed.scheme == "https" and parsed.hostname == "github.com" and not parsed.username and not parsed.password
+
+
 def published_at(release: dict[str, Any]) -> str:
     return str(release.get("published_at") or release.get("created_at") or "")
 
@@ -34,7 +42,14 @@ def stable_platform_releases(releases: list[dict[str, Any]]) -> dict[str, dict[s
     for platform, cfg in PLATFORMS.items():
         candidates = [
             r for r in releases
-            if not r.get("draft") and not r.get("prerelease") and str(r.get("tag_name", "")).lower().endswith(cfg["suffix"])
+            if not r.get("draft") and not r.get("prerelease")
+            and str(r.get("tag_name", "")).lower().endswith(cfg["suffix"])
+            and any(
+                re.search(pattern, str(asset.get("name", "")), re.IGNORECASE)
+                and safe_github_url(asset.get("browser_download_url"))
+                for pattern in cfg["patterns"]
+                for asset in r.get("assets", [])
+            )
         ]
         candidates.sort(key=published_at, reverse=True)
         if candidates:
@@ -47,7 +62,7 @@ def matching_assets(release: dict[str, Any], platform: str) -> list[dict[str, An
     assets = []
     for asset in release.get("assets", []):
         name = str(asset.get("name", ""))
-        if any(p.search(name) for p in patterns):
+        if any(p.search(name) for p in patterns) and safe_github_url(asset.get("browser_download_url")):
             assets.append(asset)
     return sorted(assets, key=lambda a: str(a.get("name", "")).lower())
 
