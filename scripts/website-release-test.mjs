@@ -29,9 +29,9 @@ for (const platform of expected) {
     throw new Error(`${platform}: no package assets`);
   }
   const packagePattern = {
-    windows: /windows.*x64.*(\\.exe|\\.msi|\\.msix|\\.zip)$/i,
-    macos: /macos.*(apple.?silicon|arm64).*(\\.pkg|\\.dmg|\\.zip)$/i,
-    linux: /linux.*(x64|amd64).*(\\.deb|\\.tar\\.gz|\\.tar\\.zst|\\.rpm)$/i,
+    windows: /windows.*x64.*(\.exe|\.msi|\.msix|\.zip)$/i,
+    macos: /macos.*(apple.?silicon|arm64).*(\.pkg|\.dmg|\.zip)$/i,
+    linux: /linux.*(x64|amd64).*(\.deb|\.tar\.gz|\.tar\.zst|\.rpm)$/i,
   }[platform];
   for (const asset of release.assets) {
     if (!asset.name || !safeGitHubUrl(asset.url)) throw new Error(`${platform}: malformed or unsafe asset entry`);
