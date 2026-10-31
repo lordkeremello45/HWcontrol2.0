@@ -1,121 +1,212 @@
-name: Release readiness
+name: Final release readiness
 
 on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Release tag to validate (for example v0.2.4)"
+        description: "Platform release tag (vX.Y.Z-windows, vX.Y.Z-linux or vX.Y.Z-macos)"
         required: true
         type: string
-      require_windows_signing:
-        description: "Fail if Windows Authenticode credentials are missing"
-        required: false
-        default: false
-        type: boolean
-      require_macos_signing:
-        description: "Fail if Apple signing/notarization credentials are missing"
-        required: false
-        default: false
-        type: boolean
 
 permissions:
   contents: read
+  attestations: read
 
 jobs:
-  readiness:
-    name: Validate release assets and trust configuration
+  assets-and-integrity:
+    name: Validate published assets, checksums and provenance
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ inputs.tag }}
     steps:
-      - name: Validate release assets
+      - name: Validate tag and download release
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-(windows|linux|macos)$ ]] || {
+            echo "Expected a stable platform tag: vX.Y.Z-windows, vX.Y.Z-linux or vX.Y.Z-macos." >&2
+            exit 1
+          }
+          metadata="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,isPrerelease,publishedAt)"
+          jq -e '.isDraft == false and .isPrerelease == false and .publishedAt != null' <<<"$metadata" >/dev/null || {
+            echo "The release must be published and must not be a prerelease." >&2
+            exit 1
+          }
+          rm -rf release-assets
+          mkdir release-assets
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir release-assets --pattern '*' --clobber
+          test -n "$(find release-assets -maxdepth 1 -type f -print -quit)"
+
+      - name: Require complete platform asset set
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$TAG" in
+            *-windows)
+              required=(
+                "HWControl-$TAG-Windows-x64-Setup.exe"
+                "HWControl-$TAG-Windows-x64.msi"
+                "HWControl-$TAG-Windows-x64.zip"
+                "HWControl-$TAG-Windows-x64.7z"
+                "HWControl-$TAG-Windows-x64.sha256"
+              )
+              ;;
+            *-linux)
+              required=(
+                "HWControl-$TAG-Linux-x64.deb"
+                "HWControl-$TAG-Linux-x64.tar.gz"
+                "HWControl-$TAG-Linux-x64.tar.zst"
+                "HWControl-$TAG-Linux-x64.zip"
+                "HWControl-$TAG-Linux-x64.sha256"
+                "HWControl-$TAG-Linux-x64.sha256.asc"
+                "HWControl-GPG-public.asc"
+                "HWControl-GPG-fingerprint.txt"
+              )
+              ;;
+            *-macos)
+              required=(
+                "HWControl-$TAG-macOS-AppleSilicon.pkg"
+                "HWControl-$TAG-macOS-AppleSilicon.dmg"
+                "HWControl-$TAG-macOS-AppleSilicon-app-bundle.zip"
+                "HWControl-$TAG-macOS-AppleSilicon.sha256"
+              )
+              ;;
+          esac
+          for asset in "${required[@]}"; do
+            test -s "release-assets/$asset" || {
+              echo "Required release asset is missing or empty: $asset" >&2
+              exit 1
+            }
+          done
+          printf 'Validated required asset: %s\n' "${required[@]}"
+
+      - name: Verify every SHA-256 manifest entry
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          manifests=(release-assets/*.sha256)
+          test "${#manifests[@]}" -gt 0 || { echo 'No SHA-256 manifest found.' >&2; exit 1; }
+          for manifest in "${manifests[@]}"; do
+            entries=0
+            while IFS= read -r line || [[ -n "$line" ]]; do
+              [[ -n "$line" ]] || continue
+              expected="${line%% *}"
+              asset="${line#*  }"
+              [[ "$expected" =~ ^[0-9a-fA-F]{64}$ ]] || { echo "Malformed SHA-256 digest in $manifest" >&2; exit 1; }
+              [[ "$asset" != "$line" && -n "$asset" ]] || { echo "Malformed manifest filename in $manifest" >&2; exit 1; }
+              test -s "release-assets/$asset" || { echo "Manifest references missing asset: $asset" >&2; exit 1; }
+              actual="$(sha256sum "release-assets/$asset" | awk '{print $1}')"
+              [[ "$actual" == "${expected,,}" ]] || { echo "SHA-256 mismatch: $asset" >&2; exit 1; }
+              entries=$((entries + 1))
+            done < "$manifest"
+            test "$entries" -gt 0 || { echo "Empty SHA-256 manifest: $manifest" >&2; exit 1; }
+          done
+
+      - name: Verify Linux release-manifest GPG signature
+        if: endsWith(inputs.tag, '-linux')
+        shell: bash
+        run: |
+          set -euo pipefail
+          export GNUPGHOME="$RUNNER_TEMP/hwcontrol-release-verify"
+          install -d -m 0700 "$GNUPGHOME"
+          trap 'rm -rf "$GNUPGHOME"' EXIT
+          gpg --batch --import release-assets/HWControl-GPG-public.asc
+          expected="$(grep -Eo '[A-F0-9]{40}' release-assets/HWControl-GPG-fingerprint.txt | head -n1)"
+          actual="$(gpg --batch --with-colons --fingerprint | awk -F: '$1 == "fpr" {print $10; exit}')"
+          [[ -n "$expected" && "$actual" == "$expected" ]] || { echo "Linux release signer fingerprint mismatch." >&2; exit 1; }
+          gpg --batch --verify \
+            "release-assets/HWControl-$TAG-Linux-x64.sha256.asc" \
+            "release-assets/HWControl-$TAG-Linux-x64.sha256"
+
+      - name: Verify GitHub artifact attestations
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$TAG" in
+            *-windows) assets=("HWControl-$TAG-Windows-x64-Setup.exe" "HWControl-$TAG-Windows-x64.msi" "HWControl-$TAG-Windows-x64.zip") ;;
+            *-linux) assets=("HWControl-$TAG-Linux-x64.deb" "HWControl-$TAG-Linux-x64.tar.gz" "HWControl-$TAG-Linux-x64.tar.zst" "HWControl-$TAG-Linux-x64.zip") ;;
+            *-macos) assets=("HWControl-$TAG-macOS-AppleSilicon.pkg" "HWControl-$TAG-macOS-AppleSilicon.dmg" "HWControl-$TAG-macOS-AppleSilicon-app-bundle.zip") ;;
+          esac
+          for asset in "${assets[@]}"; do
+            gh attestation verify "release-assets/$asset" --repo "$GITHUB_REPOSITORY"
+          done
+
+      - name: Summarize verified release integrity
+        run: |
+          {
+            echo "## Final release integrity"
+            echo
+            echo "- Release: `$TAG`"
+            echo "- Required platform assets: present"
+            echo "- SHA-256 manifests: verified"
+            echo "- GitHub artifact attestations: verified"
+            if [[ "$TAG" == *-linux ]]; then echo "- Linux release GPG signature and pinned fingerprint: verified"; fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  windows-publisher-trust:
+    name: Verify Windows Authenticode signatures
+    if: endsWith(inputs.tag, '-windows')
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - name: Download Windows release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force -Path release-assets | Out-Null
+          gh release download $env:TAG --repo $env:GITHUB_REPOSITORY --dir release-assets --pattern '*.msi' --pattern '*-Setup.exe' --pattern '*.zip'
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download Windows release assets.' }
+
+      - name: Verify trusted Authenticode signatures
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $targets = @(
+            Get-ChildItem release-assets -File -Include '*.msi', '*-Setup.exe'
+            Expand-Archive -Path (Get-ChildItem release-assets -Filter '*.zip' | Select-Object -First 1).FullName -DestinationPath expanded -Force
+            Get-ChildItem expanded -Recurse -File | Where-Object { $_.Extension -in @('.exe', '.dll') }
+          )
+          if ($targets.Count -lt 3) { throw 'Expected signed Windows installers and executable payloads were not found.' }
+          foreach ($file in $targets) {
+            $signature = Get-AuthenticodeSignature -LiteralPath $file.FullName
+            if ($signature.Status -ne 'Valid') { throw "Authenticode verification failed for $($file.Name): $($signature.Status)" }
+          }
+
+  macos-publisher-trust:
+    name: Verify Developer ID and notarization
+    if: endsWith(inputs.tag, '-macos')
+    runs-on: macos-14
+    timeout-minutes: 20
+    steps:
+      - name: Download macOS release assets
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag }}
         run: |
           set -euo pipefail
-          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json name,tagName,publishedAt,assets
-          rm -rf release-assets
-          mkdir release-assets
-          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir release-assets --pattern '*' --clobber
-          shopt -s nullglob
-          files=(release-assets/*)
-          test "${#files[@]}" -gt 0
+          mkdir -p release-assets
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir release-assets \
+            --pattern '*.pkg' --pattern '*.dmg' --pattern '*app-bundle.zip'
 
-          case "$TAG" in
-            *-windows)
-              compgen -G 'release-assets/*.msi' >/dev/null || compgen -G 'release-assets/*.zip' >/dev/null
-              ;;
-            *-macos)
-              compgen -G 'release-assets/*.pkg' >/dev/null || compgen -G 'release-assets/*.dmg' >/dev/null
-              ;;
-            *-linux)
-              compgen -G 'release-assets/*.deb' >/dev/null || compgen -G 'release-assets/*.tar.gz' >/dev/null || compgen -G 'release-assets/*.tar.zst' >/dev/null
-              ;;
-          esac
-
-      - name: Verify SHA256 manifests
-        env:
-          TAG: ${{ inputs.tag }}
+      - name: Verify Developer ID signatures and notarization tickets
         run: |
           set -euo pipefail
-          cd release-assets
-          shopt -s nullglob
-          manifests=(*.sha256)
-          test "${#manifests[@]}" -gt 0 || { echo "No per-artifact SHA256 manifest found."; exit 1; }
-          for manifest in "${manifests[@]}"; do
-            while read -r expected asset; do
-              [ -n "$expected" ] || continue
-              asset="${asset#*}"
-              test -f "$asset" || { echo "Missing asset: $asset"; exit 1; }
-              actual="$(sha256sum "$asset" | awk '{print $1}')"
-              test "$expected" = "$actual" || { echo "SHA256 mismatch: $asset"; exit 1; }
-            done < "$manifest"
-          done
-
-      - name: Check Windows trust configuration
-        env:
-          WINDOWS_CERTIFICATE_B64: ${{ secrets.WINDOWS_CERTIFICATE_B64 }}
-          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
-          REQUIRE: ${{ inputs.require_windows_signing }}
-        run: |
-          set -euo pipefail
-          configured=false
-          if [ -n "${WINDOWS_CERTIFICATE_B64:-}" ] && [ -n "${WINDOWS_CERTIFICATE_PASSWORD:-}" ]; then configured=true; fi
-          echo "Windows Authenticode configured: $configured"
-          if [ "$REQUIRE" = "true" ] && [ "$configured" != "true" ]; then
-            echo "Required Windows signing credentials are missing." >&2
-            exit 1
-          fi
-
-      - name: Check Apple trust configuration
-        env:
-          APPLE_CERTIFICATE_P12_B64: ${{ secrets.APPLE_CERTIFICATE_P12_B64 }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_API_KEY_B64: ${{ secrets.APPLE_API_KEY_B64 }}
-          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
-          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
-          REQUIRE: ${{ inputs.require_macos_signing }}
-        run: |
-          set -euo pipefail
-          configured=false
-          if [ -n "${APPLE_CERTIFICATE_P12_B64:-}" ] &&              [ -n "${APPLE_CERTIFICATE_PASSWORD:-}" ] &&              [ -n "${APPLE_SIGNING_IDENTITY:-}" ] &&              [ -n "${APPLE_API_KEY_B64:-}" ] &&              [ -n "${APPLE_API_KEY_ID:-}" ] &&              [ -n "${APPLE_API_ISSUER:-}" ]; then configured=true; fi
-          echo "Apple Developer ID + notarization configuration: $configured"
-          if [ "$REQUIRE" = "true" ] && [ "$configured" != "true" ]; then
-            echo "Required Apple signing/notarization credentials are missing." >&2
-            exit 1
-          fi
-
-      - name: Readiness summary
-        env:
-          TAG: ${{ inputs.tag }}
-        run: |
-          {
-            echo "## Release readiness"
-            echo
-            echo "- Release: `$TAG`"
-            echo "- Package assets: present"
-            echo "- SHA-256 verification: passed"
-            echo "- Windows/Apple publisher trust: checked against configured repository secrets"
-            echo
-            echo "Checksums and artifact provenance do not substitute for OS-trusted publisher signatures."
-          } >> "$GITHUB_STEP_SUMMARY"
+          pkg="release-assets/HWControl-$TAG-macOS-AppleSilicon.pkg"
+          dmg="release-assets/HWControl-$TAG-macOS-AppleSilicon.dmg"
+          archive="release-assets/HWControl-$TAG-macOS-AppleSilicon-app-bundle.zip"
+          pkgutil --check-signature "$pkg"
+          spctl --assess --type install --verbose "$pkg"
+          xcrun stapler validate "$pkg"
+          xcrun stapler validate "$dmg"
+          mkdir -p extracted
+          ditto -x -k "$archive" extracted
+          app="extracted/HWControl/HWControl.app"
+          test -d "$app"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          spctl --assess --type execute --verbose "$app"
