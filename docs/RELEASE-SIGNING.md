@@ -29,9 +29,15 @@ The following are separate production trust mechanisms and cannot be replaced by
 
 ## macOS
 
-The free pipeline can build Apple Silicon packages, validate installation, generate SHA-256 checksums, and produce GitHub provenance.
+When all Apple signing secrets are configured, the release workflow imports the Developer ID Application certificate into an ephemeral keychain, signs the app and native helpers, signs the installer with the Developer ID Installer identity, submits the PKG and DMG to Apple notarization, staples the tickets, and verifies the resulting packages. Required secrets are `APPLE_CERTIFICATE_P12_B64`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `APPLE_INSTALLER_IDENTITY`, `APPLE_API_KEY_B64`, `APPLE_API_KEY_ID`, and `APPLE_API_ISSUER`.
 
-Developer ID signing and Apple notarization require Apple-issued signing credentials, so the free pipeline must not claim that a package is notarized or Developer ID signed when those credentials are unavailable.
+If any Apple signing secret is absent, the package remains unsigned. Final-release readiness verifies the actual package signatures and notarization tickets; the presence of secrets alone is not accepted as proof.
+
+## Linux release manifest signing
+
+The Linux release workflow signs its platform SHA-256 manifest using the pinned HWControl Release GPG key. Configure `HWCONTROL_GPG_PRIVATE_KEY_B64` and `HWCONTROL_GPG_PASSPHRASE`. The workflow checks the imported primary-key fingerprint against `HWControl-GPG-fingerprint.txt`, creates a detached `.sha256.asc` signature, and verifies it before publishing. The final-release gate verifies the signature independently using the committed public key.
+
+The APT repository uses a separate dedicated key in `APT_GPG_PRIVATE_KEY`. Its fingerprint is pinned in both the repository builder and the client setup script (`17B2AAC6F057A3AD4C43EF4BD150613F605FA463`). Do not reuse the Linux release-manifest signing key for APT metadata.
 
 ## Verification
 
