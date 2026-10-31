@@ -42,18 +42,30 @@ Use only the Apple Silicon build for the documented target. If macOS cannot veri
 
 ### Debian/Ubuntu-family Linux
 
-1. Download the HWControl-<release-tag>-Linux-x64.deb asset from the official [GitHub Releases page](https://github.com/lordkeremello45/HWcontrol2.0/releases).
-2. Open a terminal in the directory containing the downloaded file and install it using its exact filename:
+The package name and terminal launcher are both `hwcontrol`.
 
-       sudo apt install ./HWControl-<release-tag>-Linux-x64.deb
+**If the signed APT repository is live** (the official website publishes the signed `InRelease` index), download and inspect the setup script, then register the repository:
 
-   Replace <release-tag> with the tag shown on the release page. For example, a unified tag named v0.3.1-beta.42 produces an asset named HWControl-v0.3.1-beta.42-Linux-x64.deb. The ./ prefix tells APT to install a local package file and resolve its dependencies.
-3. The product/display name is HWcontrol2.0. The Debian package name and terminal launcher are both `hwcontrol`, so commands use the short name rather than `hwcontrol2.0`. Installing a local DEB file does not automatically configure an APT repository; until the official APT repository is published, use the local-file command above. Once the repository is live, its official setup instructions will provide the repository and signing-key configuration before `sudo apt install hwcontrol` is used.
-4. To remove the installed package, run:
+    curl --fail --location --proto '=https' --tlsv1.2 \
+      https://raw.githubusercontent.com/lordkeremello45/HWcontrol2.0/main/scripts/setup-apt-repository.sh \
+      --output setup-hwcontrol-apt.sh
+    less setup-hwcontrol-apt.sh
+    sudo bash setup-hwcontrol-apt.sh
+    sudo apt update && sudo apt install hwcontrol
 
-       sudo apt remove hwcontrol
+The setup script verifies the pinned APT signing-key fingerprint before adding the repository. Do not bypass a fingerprint mismatch or install from an unverified mirror.
 
-   Use sudo apt purge hwcontrol only if you intentionally want the package's purge script to remove its /var/lib/hwcontrol state. Review the release-specific cleanup instructions before removing application state.
+**If the APT repository is not yet published**, install the exact DEB asset from the official [GitHub Releases page](https://github.com/lordkeremello45/HWcontrol2.0/releases):
+
+    sudo apt install ./HWControl-<release-tag>-Linux-x64.deb
+
+Replace <release-tag> with the tag shown on the release page. Installing a local DEB does not configure the APT repository.
+
+To remove the installed package, run:
+
+    sudo apt remove hwcontrol
+
+Use `sudo apt purge hwcontrol` only if you intentionally want the package's purge script to remove its `/var/lib/hwcontrol` state. Review the release-specific cleanup instructions before removing application state.
 
 A portable archive is not interchangeable with a DEB package. Review any dependency or permission prompts before confirming.
 
