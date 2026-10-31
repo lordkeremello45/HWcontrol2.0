@@ -168,7 +168,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $targets = @(
-            Get-ChildItem release-assets -File -Include '*.msi', '*-Setup.exe'
+            Get-ChildItem release-assets -File | Where-Object { $_.Extension -eq '.msi' -or $_.Name -like '*-Setup.exe' }
             Expand-Archive -Path (Get-ChildItem release-assets -Filter '*.zip' | Select-Object -First 1).FullName -DestinationPath expanded -Force
             Get-ChildItem expanded -Recurse -File | Where-Object { $_.Extension -in @('.exe', '.dll') }
           )
@@ -195,6 +195,8 @@ jobs:
             --pattern '*.pkg' --pattern '*.dmg' --pattern '*app-bundle.zip'
 
       - name: Verify Developer ID signatures and notarization tickets
+        env:
+          TAG: ${{ inputs.tag }}
         run: |
           set -euo pipefail
           pkg="release-assets/HWControl-$TAG-macOS-AppleSilicon.pkg"
