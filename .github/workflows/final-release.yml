@@ -254,8 +254,8 @@ jobs:
           pages_deadline=$((SECONDS + 1200))
           while (( SECONDS < pages_deadline )); do
             pages_state="$(gh run view "$pages_run_id" --repo "$GH_REPO" --json status,conclusion --jq '[.status, (.conclusion // "")] | @tsv')"
-            pages_status="${pages_state%%*}"
-            pages_conclusion="${pages_state#*$'\\t'}"
+            pages_status="${pages_state%%$'\t'*}"
+            pages_conclusion="${pages_state#*$'\t'}"
             echo "Pages deployment $pages_run_id: $pages_status / ${pages_conclusion:-pending}"
             [[ "$pages_status" == "completed" ]] && break
             sleep 10
