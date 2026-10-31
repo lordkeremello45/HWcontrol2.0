@@ -5,9 +5,17 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Optional stable platform release tag to build and attach this SBOM to'
+        required: false
+        type: string
 
 permissions:
-  contents: read
+  contents: write
+  id-token: write
+  attestations: write
 
 jobs:
   sbom:
@@ -16,6 +24,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.tag || github.ref }}
           persist-credentials: false
       - name: Generate SPDX SBOM
         uses: anchore/sbom-action@v0
@@ -28,3 +37,23 @@ jobs:
         with:
           name: hwcontrol-sbom
           path: hwcontrol-sbom.spdx.json
+
+      - name: Attest release SBOM
+        if: inputs.tag != ''
+        uses: actions/attest@v4
+        with:
+          subject-path: hwcontrol-sbom.spdx.json
+
+      - name: Attach SBOM to stable platform release
+        if: inputs.tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-(windows|linux|macos)$ ]] || {
+            echo "SBOM release tag must be a stable platform tag." >&2
+            exit 1
+          }
+          test -s hwcontrol-sbom.spdx.json
+          gh release upload "$TAG" hwcontrol-sbom.spdx.json --repo "$GITHUB_REPOSITORY" --clobber
