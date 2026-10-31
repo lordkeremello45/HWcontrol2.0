@@ -219,16 +219,6 @@ jobs:
         with:
           subject-path: HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Linux-x64.sha256.asc
 
-      - name: Upload Linux GPG signature when configured
-        if: env.LINUX_GPG_SIGNING_CONFIGURED == 'true' && (github.event_name != 'push' || github.ref != 'refs/heads/main')
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          signature="HWControl-${RELEASE_TAG}-Linux-x64.sha256.asc"
-          test -s "$signature"
-          gh release upload "$RELEASE_TAG" "$signature" --repo "$GITHUB_REPOSITORY" --clobber
-
       - name: Upload Linux main-branch packages
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
@@ -261,3 +251,14 @@ jobs:
             HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Linux-x64.sha256
             HWControl-GPG-public.asc
             HWControl-GPG-fingerprint.txt
+
+      - name: Upload Linux GPG signature when configured
+        if: env.LINUX_GPG_SIGNING_CONFIGURED == 'true' && (github.event_name != 'push' || github.ref != 'refs/heads/main')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          signature="HWControl-${RELEASE_TAG}-Linux-x64.sha256.asc"
+          test -s "$signature"
+          gh release upload "$RELEASE_TAG" "$signature" --repo "$GITHUB_REPOSITORY" --clobber
+
