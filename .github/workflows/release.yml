@@ -161,6 +161,17 @@ jobs:
             if (-not (Test-Path "$packageDir/$required")) { throw "$required missing from Windows package" }
           }
 
+      - name: Sign Windows payload before installer creation
+        shell: pwsh
+        env:
+          WINDOWS_CERTIFICATE_B64: ${{ secrets.WINDOWS_CERTIFICATE_B64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $packageDir = "package/HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Windows-x64"
+          & pwsh -NoProfile -File scripts/sign-windows-release.ps1 -Path $packageDir
+          if ($LASTEXITCODE -ne 0) { throw 'Windows payload signing failed.' }
+
       - name: Build MSI
         shell: pwsh
         run: |
@@ -177,6 +188,17 @@ jobs:
           wix build deploy/windows/HWControl.wxs -ext WixToolset.Util.wixext -arch x64 -d Version=$version -d PackageDir=$packageDir -d IconPath=deploy/windows/HWControl.ico -o "HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Windows-x64.msi"
           if (-not (Test-Path "HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Windows-x64.msi")) { throw 'MSI was not produced' }
           if ((Get-Item "HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Windows-x64.msi").Length -lt 4096) { throw 'MSI is unexpectedly small' }
+
+      - name: Sign MSI before Setup bundle creation
+        shell: pwsh
+        env:
+          WINDOWS_CERTIFICATE_B64: ${{ secrets.WINDOWS_CERTIFICATE_B64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $msi = "HWControl-$($env:RELEASE_TAG)-Windows-x64.msi"
+          & pwsh -NoProfile -File scripts/sign-windows-release.ps1 -Path $msi
+          if ($LASTEXITCODE -ne 0) { throw 'MSI signing failed.' }
 
       - name: Smoke test MSI install and uninstall
         shell: pwsh
@@ -260,6 +282,17 @@ jobs:
           wix build deploy/windows/HWControl-Setup.wxs -ext WixToolset.Bal.wixext -arch x64 -d Version=$version -d MsiPath=$msi -o $setup
           if (-not (Test-Path $setup)) { throw 'WiX bundle Setup EXE was not produced' }
           if ((Get-Item $setup).Length -lt 4096) { throw 'Setup EXE is unexpectedly small' }
+
+      - name: Sign final Setup EXE
+        shell: pwsh
+        env:
+          WINDOWS_CERTIFICATE_B64: ${{ secrets.WINDOWS_CERTIFICATE_B64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $setup = "HWControl-$($env:RELEASE_TAG)-Windows-x64-Setup.exe"
+          & pwsh -NoProfile -File scripts/sign-windows-release.ps1 -Path $setup
+          if ($LASTEXITCODE -ne 0) { throw 'Setup EXE signing failed.' }
 
       - name: Smoke test Setup EXE install, shortcuts and uninstall
         shell: pwsh
