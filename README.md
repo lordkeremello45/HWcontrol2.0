@@ -110,6 +110,7 @@ These documents distinguish project goals from verified capabilities. In particu
 
 - [Beta Quickstart and safe installation](docs/USER-QUICKSTART.md)
 - [Product readiness acceptance checklist](docs/PRODUCT-READINESS-CHECKLIST.md)
+- [Physical hardware validation matrix](docs/HARDWARE-VALIDATION-MATRIX.md)
 - [Stable final-release runbook and required signing secrets](docs/FINAL-RELEASE-RUNBOOK.md)
 - [Team product overview](https://lordkeremello45.github.io/HWcontrol-Team.github.io/product/)
 - [Getting started guide](https://lordkeremello45.github.io/HWcontrol-Team.github.io/getting-started/)
