@@ -110,7 +110,7 @@ jobs:
           done
 
       - name: Verify Linux release-manifest GPG signature
-        if: endsWith(inputs.tag, '-linux')
+        if: ${{ endsWith(inputs.tag, '-linux') }}
         shell: bash
         run: |
           set -euo pipefail
@@ -152,7 +152,7 @@ jobs:
 
   windows-publisher-trust:
     name: Verify Windows Authenticode signatures
-    if: endsWith(inputs.tag, '-windows')
+    if: ${{ endsWith(inputs.tag, '-windows') }}
     runs-on: windows-2022
     timeout-minutes: 15
     steps:
@@ -184,7 +184,7 @@ jobs:
 
   macos-publisher-trust:
     name: Verify Developer ID and notarization
-    if: endsWith(inputs.tag, '-macos')
+    if: ${{ endsWith(inputs.tag, '-macos') }}
     runs-on: macos-14
     timeout-minutes: 20
     steps:
