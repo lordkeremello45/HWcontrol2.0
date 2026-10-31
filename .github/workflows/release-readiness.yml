@@ -130,9 +130,9 @@ jobs:
         run: |
           set -euo pipefail
           case "$TAG" in
-            *-windows) assets=("HWControl-$TAG-Windows-x64-Setup.exe" "HWControl-$TAG-Windows-x64.msi" "HWControl-$TAG-Windows-x64.zip" "hwcontrol-sbom.spdx.json") ;;
-            *-linux) assets=("HWControl-$TAG-Linux-x64.deb" "HWControl-$TAG-Linux-x64.tar.gz" "HWControl-$TAG-Linux-x64.tar.zst" "HWControl-$TAG-Linux-x64.zip" "hwcontrol-sbom.spdx.json") ;;
-            *-macos) assets=("HWControl-$TAG-macOS-AppleSilicon.pkg" "HWControl-$TAG-macOS-AppleSilicon.dmg" "HWControl-$TAG-macOS-AppleSilicon-app-bundle.zip" "hwcontrol-sbom.spdx.json") ;;
+            *-windows) assets=("HWControl-$TAG-Windows-x64-Setup.exe" "HWControl-$TAG-Windows-x64.msi" "HWControl-$TAG-Windows-x64.zip" "HWControl-$TAG-Windows-x64.sha256" "hwcontrol-sbom.spdx.json") ;;
+            *-linux) assets=("HWControl-$TAG-Linux-x64.deb" "HWControl-$TAG-Linux-x64.tar.gz" "HWControl-$TAG-Linux-x64.tar.zst" "HWControl-$TAG-Linux-x64.zip" "HWControl-$TAG-Linux-x64.sha256" "HWControl-$TAG-Linux-x64.sha256.asc" "hwcontrol-sbom.spdx.json") ;;
+            *-macos) assets=("HWControl-$TAG-macOS-AppleSilicon.pkg" "HWControl-$TAG-macOS-AppleSilicon.dmg" "HWControl-$TAG-macOS-AppleSilicon-app-bundle.zip" "HWControl-$TAG-macOS-AppleSilicon.sha256" "hwcontrol-sbom.spdx.json") ;;
           esac
           for asset in "${assets[@]}"; do
             gh attestation verify "release-assets/$asset" --repo "$GITHUB_REPOSITORY"
