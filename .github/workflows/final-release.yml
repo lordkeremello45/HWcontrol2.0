@@ -211,6 +211,8 @@ jobs:
           done
 
       - name: Synchronize website release metadata and APT repository
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -237,6 +239,29 @@ jobs:
           done
           [[ "$status" == "completed" && "$conclusion" == "success" ]] || {
             echo "Website release metadata synchronization failed: https://github.com/$GH_REPO/actions/runs/$run_id" >&2
+            exit 1
+          }
+
+          pages_id="$(gh workflow view pages.yml --repo "$GH_REPO" --json id --jq '.id')"
+          pages_run_id=""
+          for attempt in $(seq 1 36); do
+            response="$(gh api "repos/$GH_REPO/actions/workflows/$pages_id/runs?event=workflow_dispatch&branch=main&per_page=100")"
+            pages_run_id="$(jq -r --arg started "$started" '[.workflow_runs[] | select(.created_at >= $started)] | sort_by(.created_at) | last | .id // empty' <<<"$response")"
+            [[ "$pages_run_id" =~ ^[0-9]+$ ]] && break
+            sleep 5
+          done
+          [[ "$pages_run_id" =~ ^[0-9]+$ ]] || { echo 'Could not find the Pages deployment run triggered by release synchronization.' >&2; exit 1; }
+          pages_deadline=$((SECONDS + 1200))
+          while (( SECONDS < pages_deadline )); do
+            pages_state="$(gh run view "$pages_run_id" --repo "$GH_REPO" --json status,conclusion --jq '[.status, (.conclusion // "")] | @tsv')"
+            pages_status="${pages_state%%$'\\t'*}"
+            pages_conclusion="${pages_state#*$'\\t'}"
+            echo "Pages deployment $pages_run_id: $pages_status / ${pages_conclusion:-pending}"
+            [[ "$pages_status" == "completed" ]] && break
+            sleep 10
+          done
+          [[ "$pages_status" == "completed" && "$pages_conclusion" == "success" ]] || {
+            echo "Pages deployment failed: https://github.com/$GH_REPO/actions/runs/$pages_run_id" >&2
             exit 1
           }
 
