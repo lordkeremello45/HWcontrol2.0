@@ -213,11 +213,6 @@ jobs:
             HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Linux-x64.zip
             HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Linux-x64.sha256
             HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Linux-x64.sha256.asc
-            HWControl-GPG-public.asc
-            HWControl-GPG-fingerprint.txt
-            HWControl-GPG-public.asc
-            HWControl-GPG-fingerprint.txt
-            HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Linux-x64.sha256.asc
 
       - name: Upload Linux main-branch packages
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -249,3 +244,6 @@ jobs:
             HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Linux-x64.tar.zst
             HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Linux-x64.zip
             HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Linux-x64.sha256
+            HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Linux-x64.sha256.asc
+            HWControl-GPG-public.asc
+            HWControl-GPG-fingerprint.txt
