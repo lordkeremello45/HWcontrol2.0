@@ -136,14 +136,16 @@ jobs:
                 echo "Refusing to move immutable tag $tag: it points at $object_sha, expected $SOURCE_SHA." >&2
                 exit 1
               }
-              echo "Existing immutable tag $tag matches source; dispatching a rebuild."
-              gh workflow run "$workflow" --repo "$GH_REPO" --ref main -f "tag=$tag" -f "source_ref=$SOURCE_SHA"
-              run_id="$(wait_for_run_id "$workflow_id" workflow_dispatch "$started")"
+              echo "Existing immutable tag $tag matches source."
             else
               echo "Creating immutable tag $tag at $SOURCE_SHA."
               gh api --method POST "repos/$GH_REPO/git/refs" -f "ref=refs/tags/$tag" -f "sha=$SOURCE_SHA" >/dev/null
-              run_id="$(wait_for_run_id "$workflow_id" push "$started")"
             fi
+
+            # GITHUB_TOKEN-created refs do not emit downstream push workflows.
+            # Dispatch explicitly after the immutable tag exists.
+            gh workflow run "$workflow" --repo "$GH_REPO" --ref main -f "tag=$tag" -f "source_ref=$SOURCE_SHA"
+            run_id="$(wait_for_run_id "$workflow_id" workflow_dispatch "$started")"
             echo "${platform}_run_id=$run_id" >> "$GITHUB_OUTPUT"
             echo "${platform}_tag=$tag" >> "$GITHUB_OUTPUT"
             run_ids+=("$platform:$run_id")
