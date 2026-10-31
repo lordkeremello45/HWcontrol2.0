@@ -1,0 +1,252 @@
+name: Final release — all platforms
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Stable semantic version without v (must match gui_dashboard/pubspec.yaml)"
+        required: true
+        type: string
+        default: "0.3.1"
+      source_ref:
+        description: "main or a full 40-character commit SHA"
+        required: true
+        type: string
+        default: "main"
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: final-release-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  preflight-and-release:
+    name: Build, publish and verify stable platform releases
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERSION: ${{ inputs.version }}
+      SOURCE_REF: ${{ inputs.source_ref }}
+      WINDOWS_CERTIFICATE_B64: ${{ secrets.WINDOWS_CERTIFICATE_B64 }}
+      WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+      APPLE_CERTIFICATE_P12_B64: ${{ secrets.APPLE_CERTIFICATE_P12_B64 }}
+      APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+      APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+      APPLE_INSTALLER_IDENTITY: ${{ secrets.APPLE_INSTALLER_IDENTITY }}
+      APPLE_API_KEY_B64: ${{ secrets.APPLE_API_KEY_B64 }}
+      APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+      APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+      HWCONTROL_GPG_PRIVATE_KEY_B64: ${{ secrets.HWCONTROL_GPG_PRIVATE_KEY_B64 }}
+      HWCONTROL_GPG_PASSPHRASE: ${{ secrets.HWCONTROL_GPG_PASSPHRASE }}
+      APT_GPG_PRIVATE_KEY: ${{ secrets.APT_GPG_PRIVATE_KEY }}
+    steps:
+      - name: Validate source and require production signing credentials
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+            echo "Version must be semantic numeric form, e.g. 0.3.1." >&2
+            exit 1
+          }
+          [[ "$SOURCE_REF" == "main" || "$SOURCE_REF" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "Source must be main or a full 40-character commit SHA." >&2
+            exit 1
+          }
+
+          missing=()
+          for name in WINDOWS_CERTIFICATE_B64 WINDOWS_CERTIFICATE_PASSWORD \
+            APPLE_CERTIFICATE_P12_B64 APPLE_CERTIFICATE_PASSWORD APPLE_SIGNING_IDENTITY \
+            APPLE_INSTALLER_IDENTITY APPLE_API_KEY_B64 APPLE_API_KEY_ID APPLE_API_ISSUER \
+            HWCONTROL_GPG_PRIVATE_KEY_B64 HWCONTROL_GPG_PASSPHRASE APT_GPG_PRIVATE_KEY; do
+            [[ -n "${!name:-}" ]] || missing+=("$name")
+          done
+          if [[ "${#missing[@]}" -gt 0 ]]; then
+            printf 'Missing required final-release secret: %s\n' "${missing[@]}" >&2
+            echo 'No stable tags or releases were created. Configure the listed repository Actions secrets and rerun.' >&2
+            exit 1
+          fi
+
+          source_sha="$(gh api "repos/$GH_REPO/commits/$SOURCE_REF" --jq '.sha')"
+          [[ "$source_sha" =~ ^[0-9a-f]{40}$ ]] || { echo 'Could not resolve source commit.' >&2; exit 1; }
+          source_version="$(gh api "repos/$GH_REPO/contents/gui_dashboard/pubspec.yaml?ref=$source_sha" --jq '.content' | base64 --decode | sed -nE 's/^version: ([0-9]+\.[0-9]+\.[0-9]+)$/\1/p' | head -n1)"
+          [[ "$source_version" == "$VERSION" ]] || {
+            echo "Requested version $VERSION does not match source version $source_version." >&2
+            exit 1
+          }
+          echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
+          echo "Final release source: $source_sha (version $VERSION)."
+
+      - name: Create immutable platform tags and start release builds
+        id: builds
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          platforms=(windows linux macos)
+          workflows=(release.yml release-linux.yml release-macos.yml)
+          run_ids=()
+
+          wait_for_run_id() {
+            local workflow_id="$1"
+            local event="$2"
+            local started="$3"
+            local run_id=""
+            for attempt in $(seq 1 36); do
+              if [[ "$event" == "push" ]]; then
+                response="$(gh api "repos/$GH_REPO/actions/workflows/$workflow_id/runs?head_sha=$SOURCE_SHA&event=push&per_page=100")"
+              else
+                response="$(gh api "repos/$GH_REPO/actions/workflows/$workflow_id/runs?event=workflow_dispatch&branch=main&per_page=100")"
+              fi
+              run_id="$(jq -r --arg started "$started" '
+                [.workflow_runs[] | select(.created_at >= $started)]
+                | sort_by(.created_at) | last | .id // empty
+              ' <<<"$response")"
+              [[ "$run_id" =~ ^[0-9]+$ ]] && { echo "$run_id"; return 0; }
+              sleep 5
+            done
+            echo "Timed out waiting for workflow run ID ($event)." >&2
+            return 1
+          }
+
+          for index in "${!platforms[@]}"; do
+            platform="${platforms[$index]}"
+            workflow="${workflows[$index]}"
+            tag="v${VERSION}-${platform}"
+            workflow_id="$(gh workflow view "$workflow" --repo "$GH_REPO" --json id --jq '.id')"
+            [[ "$workflow_id" =~ ^[0-9]+$ ]] || { echo "Could not resolve workflow ID: $workflow" >&2; exit 1; }
+
+            started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            existing="$(gh api "repos/$GH_REPO/git/ref/tags/$tag" 2>/dev/null || true)"
+            if [[ -n "$existing" ]]; then
+              object_sha="$(jq -r '.object.sha' <<<"$existing")"
+              object_type="$(jq -r '.object.type' <<<"$existing")"
+              if [[ "$object_type" == "tag" ]]; then
+                object_sha="$(gh api "repos/$GH_REPO/git/tags/$object_sha" --jq '.object.sha')"
+              fi
+              [[ "$object_sha" == "$SOURCE_SHA" ]] || {
+                echo "Refusing to move immutable tag $tag: it points at $object_sha, expected $SOURCE_SHA." >&2
+                exit 1
+              }
+              echo "Existing immutable tag $tag matches source; dispatching a rebuild."
+              gh workflow run "$workflow" --repo "$GH_REPO" --ref main -f "tag=$tag" -f "source_ref=$SOURCE_SHA"
+              run_id="$(wait_for_run_id "$workflow_id" workflow_dispatch "$started")"
+            else
+              echo "Creating immutable tag $tag at $SOURCE_SHA."
+              gh api --method POST "repos/$GH_REPO/git/refs" -f "ref=refs/tags/$tag" -f "sha=$SOURCE_SHA" >/dev/null
+              run_id="$(wait_for_run_id "$workflow_id" push "$started")"
+            fi
+            echo "${platform}_run_id=$run_id" >> "$GITHUB_OUTPUT"
+            echo "${platform}_tag=$tag" >> "$GITHUB_OUTPUT"
+            run_ids+=("$platform:$run_id")
+          done
+
+          printf 'Dispatched platform builds: %s\n' "${run_ids[*]}"
+
+      - name: Wait for all platform builds
+        shell: bash
+        env:
+          WINDOWS_RUN_ID: ${{ steps.builds.outputs.windows_run_id }}
+          LINUX_RUN_ID: ${{ steps.builds.outputs.linux_run_id }}
+          MACOS_RUN_ID: ${{ steps.builds.outputs.macos_run_id }}
+        run: |
+          set -euo pipefail
+          for platform in windows linux macos; do
+            var="${platform^^}_RUN_ID"
+            run_id="${!var}"
+            [[ "$run_id" =~ ^[0-9]+$ ]] || { echo "Missing $platform workflow run ID." >&2; exit 1; }
+            deadline=$((SECONDS + 3900))
+            while (( SECONDS < deadline )); do
+              state="$(gh run view "$run_id" --repo "$GH_REPO" --json status,conclusion --jq '[.status, (.conclusion // "")] | @tsv')"
+              status="${state%%$'\t'*}"
+              conclusion="${state#*$'\t'}"
+              echo "$platform run $run_id: $status / ${conclusion:-pending}"
+              [[ "$status" == "completed" ]] && break
+              sleep 15
+            done
+            [[ "$status" == "completed" && "$conclusion" == "success" ]] || {
+              echo "$platform release build did not succeed: https://github.com/$GH_REPO/actions/runs/$run_id" >&2
+              exit 1
+            }
+          done
+
+      - name: Run strict final-release readiness for each platform
+        shell: bash
+        run: |
+          set -euo pipefail
+          readiness_id="$(gh workflow view release-readiness.yml --repo "$GH_REPO" --json id --jq '.id')"
+          [[ "$readiness_id" =~ ^[0-9]+$ ]] || { echo 'Could not resolve release-readiness workflow.' >&2; exit 1; }
+          for platform in windows linux macos; do
+            tag="v${VERSION}-${platform}"
+            started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            gh workflow run release-readiness.yml --repo "$GH_REPO" --ref main -f "tag=$tag"
+            run_id=""
+            for attempt in $(seq 1 36); do
+              response="$(gh api "repos/$GH_REPO/actions/workflows/$readiness_id/runs?event=workflow_dispatch&branch=main&per_page=100")"
+              run_id="$(jq -r --arg started "$started" '[.workflow_runs[] | select(.created_at >= $started)] | sort_by(.created_at) | last | .id // empty' <<<"$response")"
+              [[ "$run_id" =~ ^[0-9]+$ ]] && break
+              sleep 5
+            done
+            [[ "$run_id" =~ ^[0-9]+$ ]] || { echo "Could not find readiness run for $tag." >&2; exit 1; }
+
+            deadline=$((SECONDS + 1500))
+            while (( SECONDS < deadline )); do
+              state="$(gh run view "$run_id" --repo "$GH_REPO" --json status,conclusion --jq '[.status, (.conclusion // "")] | @tsv')"
+              status="${state%%$'\t'*}"
+              conclusion="${state#*$'\t'}"
+              echo "$tag readiness $run_id: $status / ${conclusion:-pending}"
+              [[ "$status" == "completed" ]] && break
+              sleep 10
+            done
+            [[ "$status" == "completed" && "$conclusion" == "success" ]] || {
+              echo "Final-release readiness failed for $tag: https://github.com/$GH_REPO/actions/runs/$run_id" >&2
+              exit 1
+            }
+          done
+
+      - name: Synchronize website release metadata and APT repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          gh workflow run release-web-sync.yml --repo "$GH_REPO" --ref main
+          sync_id="$(gh workflow view release-web-sync.yml --repo "$GH_REPO" --json id --jq '.id')"
+          run_id=""
+          for attempt in $(seq 1 36); do
+            response="$(gh api "repos/$GH_REPO/actions/workflows/$sync_id/runs?event=workflow_dispatch&branch=main&per_page=100")"
+            run_id="$(jq -r --arg started "$started" '[.workflow_runs[] | select(.created_at >= $started)] | sort_by(.created_at) | last | .id // empty' <<<"$response")"
+            [[ "$run_id" =~ ^[0-9]+$ ]] && break
+            sleep 5
+          done
+          [[ "$run_id" =~ ^[0-9]+$ ]] || { echo 'Could not find website release-sync run.' >&2; exit 1; }
+
+          deadline=$((SECONDS + 1200))
+          while (( SECONDS < deadline )); do
+            state="$(gh run view "$run_id" --repo "$GH_REPO" --json status,conclusion --jq '[.status, (.conclusion // "")] | @tsv')"
+            status="${state%%$'\t'*}"
+            conclusion="${state#*$'\t'}"
+            echo "Website/Pages sync $run_id: $status / ${conclusion:-pending}"
+            [[ "$status" == "completed" ]] && break
+            sleep 10
+          done
+          [[ "$status" == "completed" && "$conclusion" == "success" ]] || {
+            echo "Website release metadata synchronization failed: https://github.com/$GH_REPO/actions/runs/$run_id" >&2
+            exit 1
+          }
+
+          {
+            echo "## Stable release completed"
+            echo
+            echo "- Source commit: `$SOURCE_SHA`"
+            echo "- Windows: https://github.com/$GH_REPO/releases/tag/v$VERSION-windows"
+            echo "- Linux: https://github.com/$GH_REPO/releases/tag/v$VERSION-linux"
+            echo "- macOS: https://github.com/$GH_REPO/releases/tag/v$VERSION-macos"
+            echo "- Platform package, checksum, provenance and signing gates: passed"
+            echo "- Website release metadata / APT publication workflow: passed"
+          } >> "$GITHUB_STEP_SUMMARY"
