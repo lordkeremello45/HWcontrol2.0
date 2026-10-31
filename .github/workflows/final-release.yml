@@ -50,6 +50,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          release_started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
             echo "Version must be semantic numeric form, e.g. 0.3.1." >&2
             exit 1
@@ -80,6 +81,7 @@ jobs:
             exit 1
           }
           echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
+          echo "release_started_at=$release_started_at" >> "$GITHUB_OUTPUT"
           echo "Final release source: $source_sha (version $VERSION)."
 
       - name: Create immutable platform tags and start release builds
@@ -213,6 +215,7 @@ jobs:
       - name: Synchronize website release metadata and APT repository
         env:
           SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
+          RELEASE_STARTED_AT: ${{ steps.source.outputs.release_started_at }}
         shell: bash
         run: |
           set -euo pipefail
@@ -246,11 +249,22 @@ jobs:
           pages_run_id=""
           for attempt in $(seq 1 36); do
             response="$(gh api "repos/$GH_REPO/actions/workflows/$pages_id/runs?event=workflow_dispatch&branch=main&per_page=100")"
-            pages_run_id="$(jq -r --arg started "$started" '[.workflow_runs[] | select(.created_at >= $started)] | sort_by(.created_at) | last | .id // empty' <<<"$response")"
+            pages_run_id="$(jq -r --arg since "$RELEASE_STARTED_AT" '[.workflow_runs[] | select(.created_at >= $since)] | sort_by(.created_at) | last | .id // empty' <<<"$response")"
             [[ "$pages_run_id" =~ ^[0-9]+$ ]] && break
             sleep 5
           done
-          [[ "$pages_run_id" =~ ^[0-9]+$ ]] || { echo 'Could not find the Pages deployment run triggered by release synchronization.' >&2; exit 1; }
+          if [[ ! "$pages_run_id" =~ ^[0-9]+$ ]]; then
+            echo 'No Pages run was triggered by release synchronization; dispatching the deployment explicitly.'
+            pages_started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            gh workflow run pages.yml --repo "$GH_REPO" --ref main
+            for attempt in $(seq 1 36); do
+              response="$(gh api "repos/$GH_REPO/actions/workflows/$pages_id/runs?event=workflow_dispatch&branch=main&per_page=100")"
+              pages_run_id="$(jq -r --arg since "$pages_started" '[.workflow_runs[] | select(.created_at >= $since)] | sort_by(.created_at) | last | .id // empty' <<<"$response")"
+              [[ "$pages_run_id" =~ ^[0-9]+$ ]] && break
+              sleep 5
+            done
+          fi
+          [[ "$pages_run_id" =~ ^[0-9]+$ ]] || { echo 'Could not find a Pages deployment run.' >&2; exit 1; }
           pages_deadline=$((SECONDS + 1200))
           while (( SECONDS < pages_deadline )); do
             pages_state="$(gh run view "$pages_run_id" --repo "$GH_REPO" --json status,conclusion --jq '[.status, (.conclusion // "")] | @tsv')"
