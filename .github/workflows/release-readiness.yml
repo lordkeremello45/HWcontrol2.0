@@ -92,7 +92,128 @@ jobs:
           for manifest in "${manifests[@]}"; do
             entries=0
             while IFS= read -r line || [[ -n "$line" ]]; do
-              line="${line%$'\\r'}"
+              line="${line%
+              [[ -n "$line" ]] || continue
+              expected="${line%% *}"
+              asset="${line#*  }"
+              [[ "$expected" =~ ^[0-9a-fA-F]{64}$ ]] || { echo "Malformed SHA-256 digest in $manifest" >&2; exit 1; }
+              [[ "$asset" != "$line" && -n "$asset" ]] || { echo "Malformed manifest filename in $manifest" >&2; exit 1; }
+              test -s "release-assets/$asset" || { echo "Manifest references missing asset: $asset" >&2; exit 1; }
+              actual="$(sha256sum "release-assets/$asset" | awk '{print $1}')"
+              [[ "$actual" == "${expected,,}" ]] || { echo "SHA-256 mismatch: $asset" >&2; exit 1; }
+              entries=$((entries + 1))
+            done < "$manifest"
+            test "$entries" -gt 0 || { echo "Empty SHA-256 manifest: $manifest" >&2; exit 1; }
+          done
+
+      - name: Verify Linux release-manifest GPG signature
+        if: endsWith(inputs.tag, '-linux')
+        shell: bash
+        run: |
+          set -euo pipefail
+          export GNUPGHOME="$RUNNER_TEMP/hwcontrol-release-verify"
+          install -d -m 0700 "$GNUPGHOME"
+          trap 'rm -rf "$GNUPGHOME"' EXIT
+          gpg --batch --import release-assets/HWControl-GPG-public.asc
+          expected="$(grep -Eo '[A-F0-9]{40}' release-assets/HWControl-GPG-fingerprint.txt | head -n1)"
+          actual="$(gpg --batch --with-colons --fingerprint | awk -F: '$1 == "fpr" {print $10; exit}')"
+          [[ -n "$expected" && "$actual" == "$expected" ]] || { echo "Linux release signer fingerprint mismatch." >&2; exit 1; }
+          gpg --batch --verify \
+            "release-assets/HWControl-$TAG-Linux-x64.sha256.asc" \
+            "release-assets/HWControl-$TAG-Linux-x64.sha256"
+
+      - name: Verify GitHub artifact attestations
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$TAG" in
+            *-windows) assets=("HWControl-$TAG-Windows-x64-Setup.exe" "HWControl-$TAG-Windows-x64.msi" "HWControl-$TAG-Windows-x64.zip") ;;
+            *-linux) assets=("HWControl-$TAG-Linux-x64.deb" "HWControl-$TAG-Linux-x64.tar.gz" "HWControl-$TAG-Linux-x64.tar.zst" "HWControl-$TAG-Linux-x64.zip") ;;
+            *-macos) assets=("HWControl-$TAG-macOS-AppleSilicon.pkg" "HWControl-$TAG-macOS-AppleSilicon.dmg" "HWControl-$TAG-macOS-AppleSilicon-app-bundle.zip") ;;
+          esac
+          for asset in "${assets[@]}"; do
+            gh attestation verify "release-assets/$asset" --repo "$GITHUB_REPOSITORY"
+          done
+
+      - name: Summarize verified release integrity
+        run: |
+          {
+            echo "## Final release integrity"
+            echo
+            echo "- Release: `$TAG`"
+            echo "- Required platform assets: present"
+            echo "- SHA-256 manifests: verified"
+            echo "- GitHub artifact attestations: verified"
+            if [[ "$TAG" == *-linux ]]; then echo "- Linux release GPG signature and pinned fingerprint: verified"; fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  windows-publisher-trust:
+    name: Verify Windows Authenticode signatures
+    if: endsWith(inputs.tag, '-windows')
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - name: Download Windows release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force -Path release-assets | Out-Null
+          gh release download $env:TAG --repo $env:GITHUB_REPOSITORY --dir release-assets --pattern '*.msi' --pattern '*-Setup.exe' --pattern '*.zip'
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download Windows release assets.' }
+
+      - name: Verify trusted Authenticode signatures
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $targets = @(
+            Get-ChildItem release-assets -File | Where-Object { $_.Extension -eq '.msi' -or $_.Name -like '*-Setup.exe' }
+            Expand-Archive -Path (Get-ChildItem release-assets -Filter '*.zip' | Select-Object -First 1).FullName -DestinationPath expanded -Force
+            Get-ChildItem expanded -Recurse -File | Where-Object { $_.Extension -in @('.exe', '.dll') }
+          )
+          if ($targets.Count -lt 3) { throw 'Expected signed Windows installers and executable payloads were not found.' }
+          foreach ($file in $targets) {
+            $signature = Get-AuthenticodeSignature -LiteralPath $file.FullName
+            if ($signature.Status -ne 'Valid') { throw "Authenticode verification failed for $($file.Name): $($signature.Status)" }
+          }
+
+  macos-publisher-trust:
+    name: Verify Developer ID and notarization
+    if: endsWith(inputs.tag, '-macos')
+    runs-on: macos-14
+    timeout-minutes: 20
+    steps:
+      - name: Download macOS release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir release-assets \
+            --pattern '*.pkg' --pattern '*.dmg' --pattern '*app-bundle.zip'
+
+      - name: Verify Developer ID signatures and notarization tickets
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          pkg="release-assets/HWControl-$TAG-macOS-AppleSilicon.pkg"
+          dmg="release-assets/HWControl-$TAG-macOS-AppleSilicon.dmg"
+          archive="release-assets/HWControl-$TAG-macOS-AppleSilicon-app-bundle.zip"
+          pkgutil --check-signature "$pkg"
+          spctl --assess --type install --verbose "$pkg"
+          xcrun stapler validate "$pkg"
+          xcrun stapler validate "$dmg"
+          mkdir -p extracted
+          ditto -x -k "$archive" extracted
+          app="extracted/HWControl/HWControl.app"
+          test -d "$app"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          spctl --assess --type execute --verbose "$app"
+\r'}"
               [[ -n "$line" ]] || continue
               expected="${line%% *}"
               asset="${line#*  }"
