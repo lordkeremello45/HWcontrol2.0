@@ -180,6 +180,40 @@ jobs:
             }
           done
 
+      - name: Generate and attest SPDX SBOMs for each platform release
+        shell: bash
+        run: |
+          set -euo pipefail
+          sbom_id="$(gh workflow view sbom.yml --repo "$GH_REPO" --json id --jq '.id')"
+          [[ "$sbom_id" =~ ^[0-9]+$ ]] || { echo 'Could not resolve SBOM workflow.' >&2; exit 1; }
+          for platform in windows linux macos; do
+            tag="v${VERSION}-${platform}"
+            started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            gh workflow run sbom.yml --repo "$GH_REPO" --ref main -f "tag=$tag"
+            run_id=""
+            for attempt in $(seq 1 36); do
+              response="$(gh api "repos/$GH_REPO/actions/workflows/$sbom_id/runs?event=workflow_dispatch&branch=main&per_page=100")"
+              run_id="$(jq -r --arg since "$started" '[.workflow_runs[] | select(.created_at >= $since)] | sort_by(.created_at) | last | .id // empty' <<<"$response")"
+              [[ "$run_id" =~ ^[0-9]+$ ]] && break
+              sleep 5
+            done
+            [[ "$run_id" =~ ^[0-9]+$ ]] || { echo "Could not find SBOM run for $tag." >&2; exit 1; }
+
+            deadline=$((SECONDS + 900))
+            while (( SECONDS < deadline )); do
+              state="$(gh run view "$run_id" --repo "$GH_REPO" --json status,conclusion --jq '[.status, (.conclusion // "")] | @tsv')"
+              status="${state%%$'\\t'*}"
+              conclusion="${state#*$'\\t'}"
+              echo "$tag SBOM $run_id: $status / ${conclusion:-pending}"
+              [[ "$status" == "completed" ]] && break
+              sleep 10
+            done
+            [[ "$status" == "completed" && "$conclusion" == "success" ]] || {
+              echo "SBOM generation/attestation failed for $tag: https://github.com/$GH_REPO/actions/runs/$run_id" >&2
+              exit 1
+            }
+          done
+
       - name: Run strict final-release readiness for each platform
         shell: bash
         run: |
