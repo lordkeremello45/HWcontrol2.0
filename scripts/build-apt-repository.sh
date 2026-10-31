@@ -64,8 +64,11 @@ mkdir -m 0700 "$gnupg_home"
 export GNUPGHOME="$gnupg_home"
 printf '%s' "$APT_GPG_PRIVATE_KEY" | gpg --batch --import
 fingerprint="$(gpg --batch --with-colons --list-secret-keys | awk -F: '$1 == "fpr" {print $10; exit}')"
-if [[ -z "$fingerprint" ]]; then
-  echo "Could not determine the APT signing key fingerprint." >&2
+expected_fingerprint="17B2AAC6F057A3AD4C43EF4BD150613F605FA463"
+if [[ "$fingerprint" != "$expected_fingerprint" ]]; then
+  echo "APT signing-key fingerprint mismatch; refusing to publish the repository." >&2
+  echo "Expected: $expected_fingerprint" >&2
+  echo "Received: ${fingerprint:-<none>}" >&2
   exit 1
 fi
 gpg --batch --yes --local-user "$fingerprint" --clearsign --output "dists/stable/InRelease" "dists/stable/Release"
