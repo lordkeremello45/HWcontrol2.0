@@ -5,6 +5,8 @@ The repository uses GitHub Actions for cross-platform build validation, packagin
 Important workflows include:
 
 - `.github/workflows/platform-validation.yml`
+- `.github/workflows/final-release.yml` coordinates immutable Windows/Linux/macOS stable tags, signing-secret preflight, package builds, strict readiness gates, and website/APT synchronization.
+- `.github/workflows/release-readiness.yml` verifies required assets, SHA-256 manifests, GitHub attestations, Windows Authenticode, macOS Developer ID/notarization, and Linux GPG signatures.
 - `.github/workflows/release.yml` (Windows release packaging and MSI/ZIP validation)
 - Platform-specific release workflows (Windows/Linux/macOS) generate and validate package checksums.
 - GitHub artifact attestations are generated where the release workflow enables them.
