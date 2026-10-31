@@ -55,10 +55,11 @@ Its primary fingerprint must be exactly 17B2AAC6F057A3AD4C43EF4BD150613F605FA463
 1. Confirm the main branch contains the intended source and that gui_dashboard/pubspec.yaml has the intended stable version.
 2. Confirm all required secrets above are configured and valid.
 3. Confirm docs/HARDWARE-VALIDATION-MATRIX.md contains complete VERIFIED physical-device evidence for Windows, Linux and macOS. CI and virtual machines do not satisfy this gate.
-4. Open GitHub → Actions → Final release — all platforms.
-5. Run the workflow with the version (for example, 0.3.1) and source ref main or an exact 40-character commit SHA.
-6. The workflow checks credentials and source version before creating tags. It then dispatches Windows, Linux and macOS release builds, generates and attests an SPDX SBOM for each platform, runs strict release readiness, and synchronizes website release metadata and the signed APT repository.
-7. Treat the release as final only if the top-level workflow and all platform readiness jobs finish successfully.
+4. After all acceptance criteria are genuinely met, update README, USER-QUICKSTART, honestdescription and PRODUCT-READINESS-CHECKLIST to describe the stable channel and preserve all known limitations. Do not change their Beta status before the evidence exists.
+5. Open GitHub → Actions → Final release — all platforms.
+6. Run the workflow with the version (for example, 0.3.1) and source ref main or an exact 40-character commit SHA.
+7. The workflow checks credentials and source version before creating tags. It then dispatches Windows, Linux and macOS release builds, generates and attests an SPDX SBOM for each platform, runs strict release readiness, and synchronizes website release metadata and the signed APT repository.
+8. Treat the release as final only if the top-level workflow and all platform readiness jobs finish successfully.
 
 ## Acceptance gates
 
