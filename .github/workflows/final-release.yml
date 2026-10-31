@@ -26,7 +26,7 @@ jobs:
   preflight-and-release:
     name: Build, publish and verify stable platform releases
     runs-on: ubuntu-24.04
-    timeout-minutes: 150
+    timeout-minutes: 240
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
