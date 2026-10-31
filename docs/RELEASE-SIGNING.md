@@ -16,6 +16,8 @@ These controls improve supply-chain integrity and let users verify that a downlo
 
 A self-signed certificate is intentionally not generated as a substitute. It would not establish public Windows/macOS publisher trust and could mislead users about the security state of the release.
 
+The coordinated **Final release — all platforms** workflow is stricter: it refuses to create stable platform tags until Windows Authenticode, Apple Developer ID/notarization, Linux release-manifest GPG, and APT repository signing secrets are configured. It then builds all three platforms from one immutable source commit and runs artifact, checksum, attestation, publisher-signature and website/APT deployment gates. Beta releases remain separately labeled and must not be presented as stable.
+
 ## Windows
 
 When `WINDOWS_CERTIFICATE_B64` and `WINDOWS_CERTIFICATE_PASSWORD` GitHub Actions secrets are configured, the existing workflow can sign PE files and the final MSI/Setup.exe with SignTool.
