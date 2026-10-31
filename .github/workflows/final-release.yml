@@ -254,8 +254,49 @@ jobs:
           pages_deadline=$((SECONDS + 1200))
           while (( SECONDS < pages_deadline )); do
             pages_state="$(gh run view "$pages_run_id" --repo "$GH_REPO" --json status,conclusion --jq '[.status, (.conclusion // "")] | @tsv')"
-            pages_status="${pages_state%%$'\\t'*}"
+            pages_status="${pages_state%%*}"
             pages_conclusion="${pages_state#*$'\\t'}"
+            echo "Pages deployment $pages_run_id: $pages_status / ${pages_conclusion:-pending}"
+            [[ "$pages_status" == "completed" ]] && break
+            sleep 10
+          done
+          [[ "$pages_status" == "completed" && "$pages_conclusion" == "success" ]] || {
+            echo "Pages deployment failed: https://github.com/$GH_REPO/actions/runs/$pages_run_id" >&2
+            exit 1
+          }
+
+          {
+            echo "## Stable release completed"
+            echo
+            echo "- Source commit: `$SOURCE_SHA`"
+            echo "- Windows: https://github.com/$GH_REPO/releases/tag/v$VERSION-windows"
+            echo "- Linux: https://github.com/$GH_REPO/releases/tag/v$VERSION-linux"
+            echo "- macOS: https://github.com/$GH_REPO/releases/tag/v$VERSION-macos"
+            echo "- Platform package, checksum, provenance and signing gates: passed"
+            echo "- Website release metadata / APT publication workflow: passed"
+          } >> "$GITHUB_STEP_SUMMARY"
+\t'*}"
+            pages_conclusion="${pages_state#*}"
+            echo "Pages deployment $pages_run_id: $pages_status / ${pages_conclusion:-pending}"
+            [[ "$pages_status" == "completed" ]] && break
+            sleep 10
+          done
+          [[ "$pages_status" == "completed" && "$pages_conclusion" == "success" ]] || {
+            echo "Pages deployment failed: https://github.com/$GH_REPO/actions/runs/$pages_run_id" >&2
+            exit 1
+          }
+
+          {
+            echo "## Stable release completed"
+            echo
+            echo "- Source commit: `$SOURCE_SHA`"
+            echo "- Windows: https://github.com/$GH_REPO/releases/tag/v$VERSION-windows"
+            echo "- Linux: https://github.com/$GH_REPO/releases/tag/v$VERSION-linux"
+            echo "- macOS: https://github.com/$GH_REPO/releases/tag/v$VERSION-macos"
+            echo "- Platform package, checksum, provenance and signing gates: passed"
+            echo "- Website release metadata / APT publication workflow: passed"
+          } >> "$GITHUB_STEP_SUMMARY"
+\t'}"
             echo "Pages deployment $pages_run_id: $pages_status / ${pages_conclusion:-pending}"
             [[ "$pages_status" == "completed" ]] && break
             sleep 10
