@@ -73,7 +73,7 @@ Use the DEB on Debian/Ubuntu-family systems, or the portable TAR package when ap
 
 #### Debian/Ubuntu APT repository (amd64)
 
-HWcontrol2.0 also publishes a signed APT repository through GitHub Pages. The repository setup script pins the archive signing-key fingerprint and refuses to install a key that does not match it.
+HWcontrol2.0 can publish a signed APT repository through GitHub Pages after a stable Linux DEB release is available and the dedicated `APT_GPG_PRIVATE_KEY` secret passes fingerprint validation. The repository setup script pins the archive signing-key fingerprint and refuses to install a key that does not match it. Treat APT as available only after the Pages deployment has completed successfully and the repository endpoint serves its signed `InRelease` file.
 
 Download and inspect the setup script, then register the repository:
 
