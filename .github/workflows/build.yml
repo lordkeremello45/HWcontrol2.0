@@ -119,6 +119,27 @@ jobs:
       - name: Test dashboard
         run: flutter test --no-pub
 
+  workflow-lint:
+    name: Validate GitHub Actions workflow syntax
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.3.0
+        with:
+          persist-credentials: false
+      - name: Install Go
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+        with:
+          go-version: stable
+          cache: false
+      - name: Install actionlint
+        run: |
+          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.7
+          echo "$HOME/go/bin" >> "$GITHUB_PATH"
+      - name: Lint all workflow files
+        run: actionlint -color
+
   integrations:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
