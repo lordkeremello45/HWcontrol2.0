@@ -166,6 +166,44 @@ jobs:
           sha256sum HWControl-${RELEASE_TAG}-Linux-x64.deb HWControl-${RELEASE_TAG}-Linux-x64.tar.gz HWControl-${RELEASE_TAG}-Linux-x64.tar.zst HWControl-${RELEASE_TAG}-Linux-x64.zip > HWControl-${RELEASE_TAG}-Linux-x64.sha256
           sha256sum -c HWControl-${RELEASE_TAG}-Linux-x64.sha256
 
+      - name: Sign Linux checksum manifest with the pinned release GPG key
+        env:
+          HWCONTROL_GPG_PRIVATE_KEY_B64: ${{ secrets.HWCONTROL_GPG_PRIVATE_KEY_B64 }}
+          HWCONTROL_GPG_PASSPHRASE: ${{ secrets.HWCONTROL_GPG_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          has_key=false
+          has_passphrase=false
+          [[ -n "${HWCONTROL_GPG_PRIVATE_KEY_B64:-}" ]] && has_key=true
+          [[ -n "${HWCONTROL_GPG_PASSPHRASE:-}" ]] && has_passphrase=true
+          if [[ "$has_key" != "$has_passphrase" ]]; then
+            echo 'Both Linux release GPG secrets must be configured together.' >&2
+            exit 1
+          fi
+          if [[ "$has_key" != true ]]; then
+            echo 'LINUX_GPG_SIGNING_CONFIGURED=false' >> "$GITHUB_ENV"
+            echo 'Linux release manifest remains unsigned; final-release readiness will reject it.'
+            exit 0
+          fi
+
+          export GNUPGHOME="$RUNNER_TEMP/hwcontrol-release-gnupg"
+          install -d -m 0700 "$GNUPGHOME"
+          trap 'rm -rf "$GNUPGHOME"' EXIT
+          printf '%s' "$HWCONTROL_GPG_PRIVATE_KEY_B64" | base64 --decode | gpg --batch --import
+          expected_fingerprint="$(grep -Eo '[A-F0-9]{40}' HWControl-GPG-fingerprint.txt | head -n1)"
+          actual_fingerprint="$(gpg --batch --with-colons --list-secret-keys | awk -F: '$1 == "fpr" {print $10; exit}')"
+          [[ -n "$expected_fingerprint" && "$actual_fingerprint" == "$expected_fingerprint" ]] || {
+            echo "Release signing key fingerprint mismatch: expected $expected_fingerprint, received $actual_fingerprint" >&2
+            exit 1
+          }
+
+          manifest="HWControl-${RELEASE_TAG}-Linux-x64.sha256"
+          signature="${manifest}.asc"
+          gpg --batch --yes --pinentry-mode loopback --passphrase-fd 3 --local-user "$expected_fingerprint" --armor --detach-sign --output "$signature" "$manifest" 3<<<"$HWCONTROL_GPG_PASSPHRASE"
+          gpg --batch --verify "$signature" "$manifest"
+          cp HWControl-GPG-public.asc HWControl-GPG-fingerprint.txt .
+          echo 'LINUX_GPG_SIGNING_CONFIGURED=true' >> "$GITHUB_ENV"
+
       - name: Attest release artifacts
         uses: actions/attest@v4
         with:
@@ -175,6 +213,9 @@ jobs:
             HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Linux-x64.tar.zst
             HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Linux-x64.zip
             HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Linux-x64.sha256
+            HWControl-GPG-public.asc
+            HWControl-GPG-fingerprint.txt
+            HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Linux-x64.sha256.asc
 
       - name: Upload Linux main-branch packages
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
