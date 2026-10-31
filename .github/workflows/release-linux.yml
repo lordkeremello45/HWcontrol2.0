@@ -201,7 +201,6 @@ jobs:
           signature="${manifest}.asc"
           gpg --batch --yes --pinentry-mode loopback --passphrase-fd 3 --local-user "$expected_fingerprint" --armor --detach-sign --output "$signature" "$manifest" 3<<<"$HWCONTROL_GPG_PASSPHRASE"
           gpg --batch --verify "$signature" "$manifest"
-          cp HWControl-GPG-public.asc HWControl-GPG-fingerprint.txt .
           echo 'LINUX_GPG_SIGNING_CONFIGURED=true' >> "$GITHUB_ENV"
 
       - name: Attest release artifacts
@@ -213,6 +212,9 @@ jobs:
             HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Linux-x64.tar.zst
             HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Linux-x64.zip
             HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Linux-x64.sha256
+            HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Linux-x64.sha256.asc
+            HWControl-GPG-public.asc
+            HWControl-GPG-fingerprint.txt
             HWControl-GPG-public.asc
             HWControl-GPG-fingerprint.txt
             HWControl-${{ steps.resolve-main-tag.outputs.tag || env.RELEASE_TAG }}-Linux-x64.sha256.asc
