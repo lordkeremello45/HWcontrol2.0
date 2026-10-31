@@ -135,6 +135,91 @@ jobs:
           cp "HWControl-${tag}-macOS-AppleSilicon.pkg" dmg-root/
           hdiutil create -volname HWControl -srcfolder dmg-root -ov -format UDZO "HWControl-${tag}-macOS-AppleSilicon.dmg"
 
+      - name: Sign, notarize and verify macOS release when credentials are configured
+        env:
+          APPLE_CERTIFICATE_P12_B64: ${{ secrets.APPLE_CERTIFICATE_P12_B64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_INSTALLER_IDENTITY: ${{ secrets.APPLE_INSTALLER_IDENTITY }}
+          APPLE_API_KEY_B64: ${{ secrets.APPLE_API_KEY_B64 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          set -euo pipefail
+          names=(APPLE_CERTIFICATE_P12_B64 APPLE_CERTIFICATE_PASSWORD APPLE_SIGNING_IDENTITY APPLE_INSTALLER_IDENTITY APPLE_API_KEY_B64 APPLE_API_KEY_ID APPLE_API_ISSUER)
+          configured=0
+          for name in "${names[@]}"; do
+            value="${!name:-}"
+            if [[ -n "$value" ]]; then configured=$((configured + 1)); fi
+          done
+          if [[ "$configured" -eq 0 ]]; then
+            echo 'APPLE_SIGNING_CONFIGURED=false' >> "$GITHUB_ENV"
+            echo 'Apple Developer ID signing/notarization secrets are absent; this artifact will remain unsigned and final-release readiness will reject it.'
+            exit 0
+          fi
+          if [[ "$configured" -ne "${#names[@]}" ]]; then
+            echo 'Apple signing configuration is incomplete; refusing to publish a partially signed release.' >&2
+            exit 1
+          fi
+
+          keychain_path="$RUNNER_TEMP/hwcontrol-release.keychain-db"
+          keychain_password="$(openssl rand -hex 24)"
+          p12_path="$RUNNER_TEMP/hwcontrol-developer-id.p12"
+          api_key_path="$RUNNER_TEMP/AuthKey_${APPLE_API_KEY_ID}.p8"
+          pkg="HWControl-${RELEASE_TAG}-macOS-AppleSilicon.pkg"
+          dmg="HWControl-${RELEASE_TAG}-macOS-AppleSilicon.dmg"
+          app_root="$PWD/pkg-root/Applications/HWControl"
+          app="$app_root/HWControl.app"
+          unsigned_pkg="$RUNNER_TEMP/HWControl-unsigned.pkg"
+          signed_pkg="$RUNNER_TEMP/HWControl-signed.pkg"
+
+          cleanup() {
+            security delete-keychain "$keychain_path" >/dev/null 2>&1 || true
+            rm -f "$p12_path" "$api_key_path" "$unsigned_pkg" "$signed_pkg"
+          }
+          trap cleanup EXIT
+
+          printf '%s' "$APPLE_CERTIFICATE_P12_B64" | base64 --decode > "$p12_path"
+          printf '%s' "$APPLE_API_KEY_B64" | base64 --decode > "$api_key_path"
+          test -s "$p12_path"
+          test -s "$api_key_path"
+
+          security create-keychain -p "$keychain_password" "$keychain_path"
+          security set-keychain-settings -lut 21600 "$keychain_path"
+          security unlock-keychain -p "$keychain_password" "$keychain_path"
+          security import "$p12_path" -k "$keychain_path" -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/productsign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$keychain_password" "$keychain_path"
+          security list-keychains -d user -s "$keychain_path" login.keychain-db
+
+          for binary in "$app_root/ai_engine" "$app_root/hwcontrol_audio_probe" "$app_root/bridge-service" "$app_root/security-guardian"; do
+            test -x "$binary"
+            codesign --force --options runtime --timestamp --sign "$APPLE_SIGNING_IDENTITY" "$binary"
+            codesign --verify --strict --verbose=2 "$binary"
+          done
+          codesign --force --deep --options runtime --timestamp --sign "$APPLE_SIGNING_IDENTITY" "$app"
+          codesign --verify --deep --strict --verbose=2 "$app"
+
+          version="${RELEASE_TAG#v}"; version="${version%%-*}"
+          pkgbuild --root pkg-root --identifier com.hwcontrol.hwcontrol --version "$version" --scripts deploy/macos/pkg-scripts --install-location / "$unsigned_pkg"
+          productsign --sign "$APPLE_INSTALLER_IDENTITY" "$unsigned_pkg" "$signed_pkg"
+          mv "$signed_pkg" "$pkg"
+          pkgutil --check-signature "$pkg"
+          xcrun notarytool submit "$pkg" --key "$api_key_path" --key-id "$APPLE_API_KEY_ID" --issuer "$APPLE_API_ISSUER" --wait
+          xcrun stapler staple "$pkg"
+          xcrun stapler validate "$pkg"
+
+          rm -rf dmg-root
+          mkdir -p dmg-root
+          cp -R "$app" dmg-root/
+          cp "$pkg" dmg-root/
+          hdiutil create -volname HWControl -srcfolder dmg-root -ov -format UDZO "$dmg"
+          xcrun notarytool submit "$dmg" --key "$api_key_path" --key-id "$APPLE_API_KEY_ID" --issuer "$APPLE_API_ISSUER" --wait
+          xcrun stapler staple "$dmg"
+          xcrun stapler validate "$dmg"
+          spctl --assess --type install --verbose "$pkg"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          echo 'APPLE_SIGNING_CONFIGURED=true' >> "$GITHUB_ENV"
+
       - name: Package and validate standalone macOS app archive
         run: |
           set -euo pipefail
@@ -176,20 +261,6 @@ jobs:
           sudo rm -rf /Applications/HWControl
           sudo rm -rf '/Library/Application Support/HWControl'
           test ! -e /Applications/HWControl
-
-      - name: Check optional Apple signing configuration
-        id: signing
-        env:
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-        run: |
-          set -euo pipefail
-          if [ -n "${APPLE_SIGNING_IDENTITY:-}" ]; then
-            echo 'configured=true' >> "$GITHUB_OUTPUT"
-            echo 'Apple Developer ID signing is configured.'
-          else
-            echo 'configured=false' >> "$GITHUB_OUTPUT"
-            echo 'Apple Developer ID signing is not configured; release remains unsigned.'
-          fi
 
       - name: Verify package hashes
         run: |
