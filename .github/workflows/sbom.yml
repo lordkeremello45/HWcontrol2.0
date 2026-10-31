@@ -20,35 +20,35 @@ permissions:
 jobs:
   sbom:
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.3.0
         with:
           ref: ${{ inputs.tag || github.ref }}
           persist-credentials: false
+
       - name: Generate SPDX SBOM
         uses: anchore/sbom-action@v0
         with:
           path: .
           format: spdx-json
           artifact-name: hwcontrol-sbom.spdx.json
-      - name: Upload SBOM
+
+      - name: Upload SBOM workflow artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: hwcontrol-sbom
           path: hwcontrol-sbom.spdx.json
 
-      - name: Attest release SBOM
-        if: inputs.tag != ''
-        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
-        with:
-          subject-path: hwcontrol-sbom.spdx.json
-
-      - name: Attach SBOM to stable platform release
-        if: inputs.tag != ''
+      - name: Add SBOM digest to platform checksum manifest
+        id: manifest
+        if: ${{ inputs.tag != '' }}
         env:
-          GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag }}
+          HWCONTROL_GPG_PRIVATE_KEY_B64: ${{ secrets.HWCONTROL_GPG_PRIVATE_KEY_B64 }}
+          HWCONTROL_GPG_PASSPHRASE: ${{ secrets.HWCONTROL_GPG_PASSPHRASE }}
+        shell: bash
         run: |
           set -euo pipefail
           [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-(windows|linux|macos)$ ]] || {
@@ -56,4 +56,75 @@ jobs:
             exit 1
           }
           test -s hwcontrol-sbom.spdx.json
-          gh release upload "$TAG" hwcontrol-sbom.spdx.json --repo "$GITHUB_REPOSITORY" --clobber
+
+          case "$TAG" in
+            *-windows) manifest="HWControl-$TAG-Windows-x64.sha256" ;;
+            *-linux) manifest="HWControl-$TAG-Linux-x64.sha256" ;;
+            *-macos) manifest="HWControl-$TAG-macOS-AppleSilicon.sha256" ;;
+          esac
+          test -s "$manifest" || { echo "Platform checksum manifest is missing: $manifest" >&2; exit 1; }
+
+          if ! grep -Fq 'hwcontrol-sbom.spdx.json' "$manifest"; then
+            sha256sum hwcontrol-sbom.spdx.json >> "$manifest"
+          fi
+          expected="$(awk '$2 == "hwcontrol-sbom.spdx.json" {print $1; exit}' "$manifest")"
+          actual="$(sha256sum hwcontrol-sbom.spdx.json | awk '{print $1}')"
+          [[ -n "$expected" && "$expected" == "$actual" ]] || {
+            echo "SBOM checksum does not match the platform manifest." >&2
+            exit 1
+          }
+
+          signature=""
+          if [[ "$TAG" == *-linux ]]; then
+            [[ -n "$HWCONTROL_GPG_PRIVATE_KEY_B64" && -n "$HWCONTROL_GPG_PASSPHRASE" ]] || {
+              echo "Linux release-manifest signing secrets are required to update the signed manifest." >&2
+              exit 1
+            }
+            export GNUPGHOME="$RUNNER_TEMP/hwcontrol-sbom-gnupg"
+            install -d -m 0700 "$GNUPGHOME"
+            trap 'rm -rf "$GNUPGHOME"' EXIT
+            printf '%s' "$HWCONTROL_GPG_PRIVATE_KEY_B64" | base64 --decode | gpg --batch --import
+            expected_fingerprint="$(grep -Eo '[A-F0-9]{40}' HWControl-GPG-fingerprint.txt | head -n1)"
+            actual_fingerprint="$(gpg --batch --with-colons --list-secret-keys | awk -F: '$1 == "fpr" {print $10; exit}')"
+            [[ -n "$expected_fingerprint" && "$actual_fingerprint" == "$expected_fingerprint" ]] || {
+              echo "Linux release signing key fingerprint mismatch." >&2
+              exit 1
+            }
+            signature="${manifest}.asc"
+            gpg --batch --yes --pinentry-mode loopback --passphrase-fd 3 --local-user "$expected_fingerprint" --armor --detach-sign --output "$signature" "$manifest" 3<<<"$HWCONTROL_GPG_PASSPHRASE"
+            gpg --batch --verify "$signature" "$manifest"
+          fi
+
+          echo "manifest=$manifest" >> "$GITHUB_OUTPUT"
+          echo "signature=$signature" >> "$GITHUB_OUTPUT"
+
+      - name: Attest SBOM and updated manifest
+        if: ${{ inputs.tag != '' && !endsWith(inputs.tag, '-linux') }}
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            hwcontrol-sbom.spdx.json
+            ${{ steps.manifest.outputs.manifest }}
+
+      - name: Attest Linux SBOM, manifest and GPG signature
+        if: ${{ inputs.tag != '' && endsWith(inputs.tag, '-linux') }}
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            hwcontrol-sbom.spdx.json
+            ${{ steps.manifest.outputs.manifest }}
+            ${{ steps.manifest.outputs.signature }}
+
+      - name: Attach SBOM and updated integrity manifest to stable release
+        if: ${{ inputs.tag != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+          MANIFEST: ${{ steps.manifest.outputs.manifest }}
+          SIGNATURE: ${{ steps.manifest.outputs.signature }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          assets=(hwcontrol-sbom.spdx.json "$MANIFEST")
+          if [[ -n "$SIGNATURE" ]]; then assets+=("$SIGNATURE"); fi
+          gh release upload "$TAG" "${assets[@]}" --repo "$GITHUB_REPOSITORY" --clobber
