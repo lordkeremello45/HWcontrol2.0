@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.3.0
         with:
           ref: ${{ inputs.tag || github.ref }}
           persist-credentials: false
@@ -33,14 +33,14 @@ jobs:
           format: spdx-json
           artifact-name: hwcontrol-sbom.spdx.json
       - name: Upload SBOM
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: hwcontrol-sbom
           path: hwcontrol-sbom.spdx.json
 
       - name: Attest release SBOM
         if: inputs.tag != ''
-        uses: actions/attest@v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: hwcontrol-sbom.spdx.json
 
