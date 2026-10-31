@@ -80,6 +80,15 @@ jobs:
             echo "Requested version $VERSION does not match source version $source_version." >&2
             exit 1
           }
+
+          hardware_matrix="$(gh api "repos/$GH_REPO/contents/docs/HARDWARE-VALIDATION-MATRIX.md?ref=$source_sha" --jq '.content' | base64 --decode)"
+          for platform in Windows Linux macOS; do
+            if ! grep -Eq "^\\| $platform \\|.*\\| VERIFIED \\|" <<<"$hardware_matrix"; then
+              echo "Physical hardware validation is not VERIFIED for $platform. Update docs/HARDWARE-VALIDATION-MATRIX.md with reproducible physical-device evidence before creating stable tags." >&2
+              exit 1
+            fi
+          done
+
           echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
           echo "release_started_at=$release_started_at" >> "$GITHUB_OUTPUT"
           echo "Final release source: $source_sha (version $VERSION)."
