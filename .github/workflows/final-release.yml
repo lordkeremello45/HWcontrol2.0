@@ -19,7 +19,7 @@ permissions:
   actions: write
 
 concurrency:
-  group: final-release-${{ inputs.version }}
+  group: hwcontrol-final-release
   cancel-in-progress: false
 
 jobs:
