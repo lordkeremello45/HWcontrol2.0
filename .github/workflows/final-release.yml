@@ -104,7 +104,7 @@ jobs:
             local workflow="$1"
             local started="$2"
             local run_id=""
-            for attempt in $(seq 1 36); do
+            for _ in $(seq 1 36); do
               run_id="$(gh run list --repo "$GH_REPO" --workflow "$workflow" --event workflow_dispatch --branch main --limit 30 --json databaseId,createdAt |
                 jq -r --arg since "$started" '[.[] | select(.createdAt >= $since)] | sort_by(.createdAt) | last | .databaseId // empty')"
               [[ "$run_id" =~ ^[0-9]+$ ]] && { echo "$run_id"; return 0; }
@@ -157,7 +157,7 @@ jobs:
           wait_for_run_id() {
             local started="$1"
             local run_id=""
-            for attempt in $(seq 1 36); do
+            for _ in $(seq 1 36); do
               run_id="$(gh run list --repo "$GH_REPO" --workflow sbom.yml --event workflow_dispatch --branch main --limit 30 --json databaseId,createdAt |
                 jq -r --arg since "$started" '[.[] | select(.createdAt >= $since)] | sort_by(.createdAt) | last | .databaseId // empty')"
               [[ "$run_id" =~ ^[0-9]+$ ]] && { echo "$run_id"; return 0; }
@@ -185,7 +185,7 @@ jobs:
           wait_for_run_id() {
             local started="$1"
             local run_id=""
-            for attempt in $(seq 1 36); do
+            for _ in $(seq 1 36); do
               run_id="$(gh run list --repo "$GH_REPO" --workflow release-readiness.yml --event workflow_dispatch --branch main --limit 30 --json databaseId,createdAt |
                 jq -r --arg since "$started" '[.[] | select(.createdAt >= $since)] | sort_by(.createdAt) | last | .databaseId // empty')"
               [[ "$run_id" =~ ^[0-9]+$ ]] && { echo "$run_id"; return 0; }
@@ -217,7 +217,7 @@ jobs:
             local workflow="$1"
             local started="$2"
             local run_id=""
-            for attempt in $(seq 1 36); do
+            for _ in $(seq 1 36); do
               run_id="$(gh run list --repo "$GH_REPO" --workflow "$workflow" --event workflow_dispatch --branch main --limit 30 --json databaseId,createdAt |
                 jq -r --arg since "$started" '[.[] | select(.createdAt >= $since)] | sort_by(.createdAt) | last | .databaseId // empty')"
               [[ "$run_id" =~ ^[0-9]+$ ]] && { echo "$run_id"; return 0; }
