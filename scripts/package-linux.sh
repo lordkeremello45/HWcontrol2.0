@@ -35,12 +35,12 @@ required_artifacts=(
   "$build_dir/audio_core/hwcontrol_audio_probe"
   "$repo_root/bridge-service"
   "$repo_root/security-guardian"
-  "$repo_root/security/fetch-status/bridger.key"
   "$repo_root/gui_dashboard/build/linux/x64/release/bundle/hwcontrol_dashboard"
 )
 for artifact in "${required_artifacts[@]}"; do
   [[ -x "$artifact" ]] || { echo "Missing or non-executable release artifact: $artifact" >&2; exit 1; }
 done
+[[ -s "$repo_root/security/fetch-status/bridger.key" ]] || { echo "Missing or empty release canary artifact: $repo_root/security/fetch-status/bridger.key" >&2; exit 1; }
 
 DESTDIR="$cmake_root" cmake --install "$build_dir" --prefix /opt/hwcontrol
 install -Dm0755 "$cmake_root/opt/hwcontrol/ai_engine" "$bundle_root/ai_engine"
