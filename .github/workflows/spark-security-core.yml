@@ -69,9 +69,11 @@ jobs:
           test -x "$GPRBUILD_BIN/gprbuild"
           test -x "$GNATPROVE_BIN/gnatprove"
 
-          echo "$GNAT_BIN" >> "$GITHUB_PATH"
-          echo "$GPRBUILD_BIN" >> "$GITHUB_PATH"
-          echo "$GNATPROVE_BIN" >> "$GITHUB_PATH"
+          {
+            echo "$GNAT_BIN"
+            echo "$GPRBUILD_BIN"
+            echo "$GNATPROVE_BIN"
+          } >> "$GITHUB_PATH"
 
           export PATH="$GNAT_BIN:$GPRBUILD_BIN:$GNATPROVE_BIN:$PATH"
           gnatmake -v
