@@ -326,8 +326,8 @@ jobs:
           sudo rm -rf /var/lib/hwcontrol
       - name: Generate Linux checksums
         run: |
-          sha256sum HWControl-$RELEASE_TAG-Linux-x64.deb HWControl-$RELEASE_TAG-Linux-x64.tar.gz HWControl-$RELEASE_TAG-Linux-x64.tar.zst > HWControl-$RELEASE_TAG-Linux-x64.sha256
-          sha256sum -c HWControl-$RELEASE_TAG-Linux-x64.sha256
+          sha256sum "HWControl-$RELEASE_TAG-Linux-x64.deb" "HWControl-$RELEASE_TAG-Linux-x64.tar.gz" "HWControl-$RELEASE_TAG-Linux-x64.tar.zst" > "HWControl-$RELEASE_TAG-Linux-x64.sha256"
+          sha256sum -c "HWControl-$RELEASE_TAG-Linux-x64.sha256"
       - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: |
@@ -442,18 +442,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -f release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64-Setup.exe
-          test -f release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64.msi
-          test -f release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64.zip
-          test -f release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64-MSIX.msix
-          test -f release-assets/beta-macos-arm64/HWControl-${RELEASE_TAG}-macOS-AppleSilicon.pkg
-          test -f release-assets/beta-macos-arm64/HWControl-${RELEASE_TAG}-macOS-AppleSilicon.dmg
-          test -f release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.deb
-          test -f release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.tar.gz
-          test -f release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.tar.zst
-          test -f release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64.sha256
-          test -f release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.sha256
-          test -f release-assets/beta-macos-arm64/HWControl-${RELEASE_TAG}-macOS-AppleSilicon.sha256
+          test -f "release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64-Setup.exe"
+          test -f "release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64.msi"
+          test -f "release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64.zip"
+          test -f "release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64-MSIX.msix"
+          test -f "release-assets/beta-macos-arm64/HWControl-${RELEASE_TAG}-macOS-AppleSilicon.pkg"
+          test -f "release-assets/beta-macos-arm64/HWControl-${RELEASE_TAG}-macOS-AppleSilicon.dmg"
+          test -f "release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.deb"
+          test -f "release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.tar.gz"
+          test -f "release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.tar.zst"
+          test -f "release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64.sha256"
+          test -f "release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.sha256"
+          test -f "release-assets/beta-macos-arm64/HWControl-${RELEASE_TAG}-macOS-AppleSilicon.sha256"
       - name: Generate aggregate checksums
         run: |
           find release-assets -type f ! -name 'SHA256SUMS' -printf '%f\n' | sort -u | while IFS= read -r name; do
