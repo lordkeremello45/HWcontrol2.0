@@ -3,6 +3,8 @@ with Interfaces.C;
 package HWControl_Security
   with SPARK_Mode => On
 is
+   use type Interfaces.C.unsigned_char;
+
    Critical_Temperature : constant := 95;
    Minimum_Sensor_Temperature : constant := -40;
    Maximum_Sensor_Temperature : constant := 125;
