@@ -29,13 +29,13 @@
 
     <Component Id="BridgeServiceComponent" Directory="INSTALLFOLDER">
       <File Id="BridgeServiceExe" Source="$(var.PackageDir)\bridge-service.exe" KeyPath="yes" />
-      <ServiceInstall Id="BridgeServiceInstall" Name="HWControlBridge" DisplayName="HWControl Bridge" Description="HWControl local authenticated bridge service" ErrorControl="normal" Start="auto" Type="ownProcess" Account="LocalService" Vital="yes" />
+      <ServiceInstall Id="BridgeServiceInstall" Name="HWControlBridge" DisplayName="HWControl Bridge" Description="HWControl local authenticated bridge service" ErrorControl="normal" Start="auto" Type="ownProcess" Account="NT AUTHORITY\LocalService" Vital="yes" />
       <ServiceControl Id="BridgeServiceControl" Name="HWControlBridge" Start="install" Stop="both" Remove="uninstall" Wait="yes" />
     </Component>
 
     <Component Id="SecurityGuardianComponent" Directory="INSTALLFOLDER">
       <File Id="SecurityGuardianExe" Source="$(var.PackageDir)\security-guardian.exe" KeyPath="yes" />
-      <ServiceInstall Id="SecurityGuardianInstall" Name="HWControlSecurityGuardian" DisplayName="HWControl Security Guardian" Description="HWControl secondary security guardian and canary monitor" ErrorControl="normal" Start="auto" Type="ownProcess" Account="LocalService" Vital="yes" />
+      <ServiceInstall Id="SecurityGuardianInstall" Name="HWControlSecurityGuardian" DisplayName="HWControl Security Guardian" Description="HWControl secondary security guardian and canary monitor" ErrorControl="normal" Start="auto" Type="ownProcess" Account="NT AUTHORITY\LocalService" Vital="yes" />
       <ServiceControl Id="SecurityGuardianControl" Name="HWControlSecurityGuardian" Start="install" Stop="both" Remove="uninstall" Wait="yes" />
     </Component>
   </Package>
