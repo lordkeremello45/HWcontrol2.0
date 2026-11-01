@@ -143,7 +143,7 @@ jobs:
           {
             echo "## Final release integrity"
             echo
-            echo "- Release: `$TAG`"
+            printf -- '- Release: %s\n' "$TAG"
             echo "- Required platform assets: present"
             echo "- SHA-256 manifests: verified"
             echo "- GitHub artifact attestations: verified"
