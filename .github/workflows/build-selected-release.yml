@@ -77,6 +77,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # shellcheck disable=SC2153 # PLATFORM is injected by the workflow env.
           case "$PLATFORM" in
             windows) platforms=(windows) ;;
             linux) platforms=(linux) ;;
@@ -124,6 +125,7 @@ jobs:
           MACOS_RUN_ID: ${{ steps.dispatch.outputs.macos_run_id }}
         run: |
           set -euo pipefail
+          # shellcheck disable=SC2153 # PLATFORM is injected by the workflow env.
           case "$PLATFORM" in
             windows) platforms=(windows) ;;
             linux) platforms=(linux) ;;
@@ -164,6 +166,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # shellcheck disable=SC2153 # PLATFORM is injected by the workflow env.
           case "$PLATFORM" in
             windows) platforms=(windows) ;;
             linux) platforms=(linux) ;;
