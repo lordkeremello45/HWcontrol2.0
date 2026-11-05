@@ -128,6 +128,7 @@ jobs:
           install -m 0755 bridge-service pkg-root/Applications/HWControl/bridge-service
           install -m 0755 security-guardian pkg-root/Applications/HWControl/security-guardian
           install -m 0644 deploy/macos/com.hwcontrol.bridge.plist pkg-root/Applications/HWControl/com.hwcontrol.bridge.plist
+          install -m 0644 deploy/macos/com.hwcontrol.security-guardian.plist pkg-root/Applications/HWControl/com.hwcontrol.security-guardian.plist
           cp README.md SECURITY.md THIRD_PARTY_NOTICES pkg-root/Applications/HWControl/
           cp -R deploy/macos pkg-root/Applications/HWControl/deploy
           chmod 0755 deploy/macos/pkg-scripts/preinstall deploy/macos/pkg-scripts/postinstall
