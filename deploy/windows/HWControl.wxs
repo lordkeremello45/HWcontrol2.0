@@ -86,6 +86,7 @@
         <PermissionEx Sddl="D:P(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;OICI;FA;;;LS)" />
       </CreateFolder>
       <RemoveFile Id="ResetVerifyStateOnInstall" Name="verify.state" On="install" />
+      <RemoveFile Id="ResetVerifyKeyOnInstall" Name="verify.key" On="install" />
       <RemoveFile Id="RemoveGuardianLogOnUninstall" Name="guardian.log" On="uninstall" />
       <RemoveFile Id="RemoveVerifyStateOnUninstall" Name="verify.state" On="uninstall" />
       <RemoveFile Id="RemoveVerifyKeyOnUninstall" Name="verify.key" On="uninstall" />
