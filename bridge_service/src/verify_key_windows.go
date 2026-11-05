@@ -27,6 +27,9 @@ func verifyKeyPath() string {
 }
 
 func protectVerifyKey(key []byte) ([]byte, error) {
+	if len(key) != verifyKeySize {
+		return nil, fmt.Errorf("verify.key must be %d bytes", verifyKeySize)
+	}
 	in := windows.DataBlob{Size: uint32(len(key)), Data: &key[0]}
 	var out windows.DataBlob
 	if err := windows.CryptProtectData(&in, nil, nil, 0, nil, cryptProtectUIForbidden|cryptProtectLocalMachine, &out); err != nil {
