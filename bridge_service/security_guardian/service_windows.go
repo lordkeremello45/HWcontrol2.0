@@ -17,7 +17,7 @@ func configureGuardianLog() func() {
 	if root == "" {
 		root = "C:\\ProgramData"
 	}
-	path := filepath.Join(root, "HWControl", "security", "guardian.log")
+	path := filepath.Join(root, "HWControl", "security", "state", "guardian.log")
 	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return func() {}
 	}

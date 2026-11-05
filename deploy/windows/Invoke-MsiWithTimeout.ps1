@@ -36,7 +36,7 @@ function Write-HWControlServiceDiagnostics {
     }
 
     Write-ServiceLogTail -Path (Join-Path $env:ProgramData 'HWControl\bridge.log') -Title 'HWCONTROL BRIDGE SERVICE LOG'
-    Write-ServiceLogTail -Path (Join-Path $env:ProgramData 'HWControl\security\guardian.log') -Title 'HWCONTROL SECURITY GUARDIAN LOG'
+    Write-ServiceLogTail -Path (Join-Path $env:ProgramData 'HWControl\security\state\guardian.log') -Title 'HWCONTROL SECURITY GUARDIAN LOG'
 }
 
 if (-not (Test-Path -LiteralPath $MsiPath -PathType Leaf)) {
