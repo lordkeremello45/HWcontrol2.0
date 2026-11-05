@@ -217,8 +217,8 @@ jobs:
           if (-not (Test-Path "$env:ProgramFiles\HWControl\hwcontrol-hardware-identification.exe")) { throw 'C# hardware identification helper was not installed' }
           & "$env:ProgramFiles\HWControl\hwcontrol-hardware-identification.exe" --self-test
           if ($LASTEXITCODE -ne 0) { throw 'Installed C# hardware identification self-test failed' }
-          $shortcutPath = Join-Path $env:USERPROFILE 'Desktop\HWControl.lnk'
-          $startMenuShortcutPath = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk'
+          $shortcutPath = Join-Path $env:PUBLIC 'Desktop\HWControl.lnk'
+          $startMenuShortcutPath = Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk'
           if (-not (Test-Path $shortcutPath)) { throw 'HWControl desktop shortcut was not installed by MSI' }
           if (-not (Test-Path $startMenuShortcutPath)) { throw 'HWControl Start Menu shortcut was not installed by MSI' }
           $shell = New-Object -ComObject WScript.Shell
@@ -245,8 +245,8 @@ jobs:
           if (Get-Service -Name HWControlBridge -ErrorAction SilentlyContinue) { throw 'HWControlBridge still exists after MSI uninstall' }
           if (Get-Service -Name HWControlSecurityGuardian -ErrorAction SilentlyContinue) { throw 'HWControlSecurityGuardian still exists after MSI uninstall' }
           if (Test-Path "$env:ProgramFiles\HWControl") { throw 'Program Files\HWControl still exists after MSI uninstall' }
-          if (Test-Path (Join-Path $env:USERPROFILE 'Desktop\HWControl.lnk')) { throw 'HWControl desktop shortcut still exists after MSI uninstall' }
-          if (Test-Path (Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk')) { throw 'HWControl Start Menu shortcut still exists after MSI uninstall' }
+          if (Test-Path (Join-Path $env:PUBLIC 'Desktop\HWControl.lnk')) { throw 'HWControl desktop shortcut still exists after MSI uninstall' }
+          if (Test-Path (Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs\HWControl\HWControl.lnk')) { throw 'HWControl Start Menu shortcut still exists after MSI uninstall' }
           if (Test-Path "$env:ProgramData\HWControl\bridge.key") { throw 'bridge.key still exists after MSI uninstall' }
           if (Test-Path "$env:ProgramData\HWControl\security") { throw 'security canary state still exists after MSI uninstall' }
           $leftover = Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' -Name HWCONTROL_KEY -ErrorAction SilentlyContinue
