@@ -241,7 +241,7 @@ func TestEvaluateHardwareHealthDetectsStalledIndividualFanAmongMultipleChannels(
 	})
 	found := false
 	for _, anomaly := range evaluation.Anomalies {
-		if anomaly.Code == "fan-stall-risk" && anomaly.Severity == "critical" && anomaly.Message == "Controllable fan channel GPU Fan reports 0 RPM while thermal load is high" {
+		if anomaly.Code == "fan-stall-risk" && anomaly.Severity == "critical" && anomaly.Message == "Fan channel GPU Fan has a non-zero PWM command (55.0%) but reports 0 RPM under thermal load" {
 			found = true
 		}
 	}
