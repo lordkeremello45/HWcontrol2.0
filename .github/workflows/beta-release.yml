@@ -445,6 +445,22 @@ jobs:
           cp -R pkg-root/Applications/HWControl/HWControl.app dmg-root/
           cp "HWControl-${tag}-macOS-AppleSilicon.pkg" dmg-root/
           hdiutil create -volname HWControl -srcfolder dmg-root -ov -format UDZO "HWControl-${tag}-macOS-AppleSilicon.dmg"
+      - name: Package and validate standalone macOS app bundle
+        run: |
+          set -euo pipefail
+          app_root="pkg-root/Applications/HWControl"
+          app="$app_root/HWControl.app"
+          archive="HWControl-$RELEASE_TAG-macOS-AppleSilicon-app-bundle.zip"
+          test -d "$app/Contents/MacOS"
+          executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Contents/Info.plist")"
+          test -n "$executable"
+          test -x "$app/Contents/MacOS/$executable"
+          test -x "$app_root/bridge-service"
+          test -x "$app_root/security-guardian"
+          ditto -c -k --sequesterRsrc --keepParent "$app_root" "$archive"
+          unzip -t "$archive"
+          unzip -Z1 "$archive" | grep -Fq 'HWControl/HWControl.app/Contents/Info.plist'
+          unzip -Z1 "$archive" | grep -Fq 'HWControl/bridge-service'
       - name: Smoke-test PKG
         run: |
           set -euo pipefail
@@ -459,17 +475,33 @@ jobs:
           test -x /Applications/HWControl/ai_engine
           test -x /Applications/HWControl/security-guardian
           test -f '/Library/Application Support/HWControl/security/canary/bridger.key'
+          test -f /Library/LaunchDaemons/com.hwcontrol.bridge.plist
+          test -f /Library/LaunchDaemons/com.hwcontrol.security-guardian.plist
+          for attempt in $(seq 1 30); do
+            if [[ -S '/Library/Application Support/HWControl/bridge.sock' ]]; then break; fi
+            sleep 1
+          done
+          if [[ ! -S '/Library/Application Support/HWControl/bridge.sock' ]]; then
+            sudo cat /tmp/hwcontrol-postinstall.log || true
+            sudo tail -n 120 /var/log/install.log || true
+            exit 1
+          fi
+          sudo launchctl print system/com.hwcontrol.bridge >/dev/null
+          sudo launchctl print system/com.hwcontrol.security-guardian >/dev/null
+          sudo launchctl bootout system /Library/LaunchDaemons/com.hwcontrol.security-guardian.plist || true
           sudo launchctl bootout system /Library/LaunchDaemons/com.hwcontrol.bridge.plist || true
+          sudo rm -f /Library/LaunchDaemons/com.hwcontrol.bridge.plist /Library/LaunchDaemons/com.hwcontrol.security-guardian.plist
           sudo rm -rf /Applications/HWControl '/Library/Application Support/HWControl'
       - name: Generate macOS checksums
         run: |
-          shasum -a 256 "HWControl-$RELEASE_TAG-macOS-AppleSilicon.pkg" "HWControl-$RELEASE_TAG-macOS-AppleSilicon.dmg" > "HWControl-$RELEASE_TAG-macOS-AppleSilicon.sha256"
+          shasum -a 256 "HWControl-$RELEASE_TAG-macOS-AppleSilicon.pkg" "HWControl-$RELEASE_TAG-macOS-AppleSilicon.dmg" "HWControl-$RELEASE_TAG-macOS-AppleSilicon-app-bundle.zip" > "HWControl-$RELEASE_TAG-macOS-AppleSilicon.sha256"
           shasum -a 256 -c "HWControl-$RELEASE_TAG-macOS-AppleSilicon.sha256"
       - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: |
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.pkg
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.dmg
+            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon-app-bundle.zip
             HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.sha256
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
