@@ -1,15 +1,17 @@
 # Linux Packages
 
-The Linux release supports a DEB plus portable archive formats.
+## Beta release assets
 
-## Package selection
+- Debian/Ubuntu: DEB package.
+- Portable x64: TAR.GZ, TAR.ZST and ZIP archives.
 
-- Debian/Ubuntu: prefer `.deb`
-- Arch/Fedora/RHEL-family: prefer `.tar.zst`
-- other x64 Linux: `.tar.zst` or `.tar.gz`
+The smoke test installs the DEB, waits for the bridge Unix socket (up to 30 seconds), checks the service and socket, and removes the package. If readiness times out, the workflow prints systemd status and journal logs.
 
-The installer chooses from assets actually published in the release rather than assuming a distro-specific package exists.
+## Distribution distinctions
 
-## Native package metadata
+- APT is a repository distribution mechanism, not a `.apt` file extension. The repository consists of signed metadata and DEB packages.
+- Generic `.tar.zst` is a portable archive, not an Arch package.
+- Native Arch packaging requires a correctly structured `.pkg.tar.zst` package; it is **not currently produced** by this beta workflow.
+- Native RPM packaging is also separate and must not be inferred from a portable archive.
 
-The current portable archive path is not a claim of native Arch RPM package metadata. Native distro package formats can be added independently.
+The installer should select only assets actually published in the release. Do not label a portable archive as a native distro package.
