@@ -91,7 +91,7 @@ jobs:
           [[ "$app_version" == "$tag_version" ]] || { echo "Package tag version $tag_version does not match app version $app_version" >&2; exit 1; }
 
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev zstd dpkg-dev zip unzip
+        run: sudo apt-get update && sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev zstd patchelf dpkg-dev zip unzip
 
       - name: Setup Go
         uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0

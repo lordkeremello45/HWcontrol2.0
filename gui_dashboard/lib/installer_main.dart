@@ -7,6 +7,7 @@ import 'l10n/app_localizations.dart';
 import 'main.dart' show HWControlApp;
 import 'l10n/app_localizations_map.dart';
 import 'services/ai/model_manager.dart';
+import 'services/companion_binary_locator.dart';
 import 'services/language_service.dart';
 
 void main() => runApp(const InstallerApp());
@@ -141,14 +142,10 @@ class _InstallerWizardState extends State<InstallerWizard> {
       );
       // Resolve companion binaries relative to the installed application, not
       // the process working directory (which differs for Desktop shortcuts).
-      final executableDirectory = File(Platform.resolvedExecutable).parent;
-      final executable = File(
-        '${executableDirectory.path}${Platform.pathSeparator}bridge-service',
+      final bridgePresent = await hasBridgeServiceBinary(
+        executablePath: Platform.resolvedExecutable,
+        isWindows: Platform.isWindows,
       );
-      final executableWin = File(
-        '${executableDirectory.path}${Platform.pathSeparator}bridge-service.exe',
-      );
-      final bridgePresent = await executable.exists() || await executableWin.exists();
       final completed = await marker.exists();
       if (!mounted) return;
       setState(() {

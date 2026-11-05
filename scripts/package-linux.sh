@@ -18,7 +18,7 @@ if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta(\.[0-9]+|-linux)?$ && ! "$tag" =
   echo "Invalid Linux release tag: $tag" >&2
   exit 2
 fi
-for command in cmake dpkg-deb dpkg-shlibdeps readelf ldd tar zstd; do
+for command in cmake dpkg-deb dpkg-shlibdeps readelf ldd patchelf tar zstd; do
   command -v "$command" >/dev/null 2>&1 || { echo "Missing packaging command: $command" >&2; exit 1; }
 done
 
@@ -101,8 +101,18 @@ for file in "${bundle_files[@]}"; do
       elf_files+=("$file")
     fi
     if grep -Eq '(RUNPATH|RPATH).*(/workspaces/|/home/runner/work/|/tmp/)' <<< "$dynamic_section"; then
-      echo "Build-host path found in ELF search path: $file" >&2
-      exit 1
+      # Flutter plugin shared objects can inherit an absolute runner build path.
+      # Keep their runtime lookup package-relative instead of leaking that path.
+      case "$file" in
+        *.so|*.so.*)
+          patchelf --set-rpath '$ORIGIN' "$file"
+          dynamic_section="$(readelf -d "$file" 2>/dev/null || true)"
+          ;;
+      esac
+      if grep -Eq '(RUNPATH|RPATH).*(/workspaces/|/home/runner/work/|/tmp/)' <<< "$dynamic_section"; then
+        echo "Build-host path found in ELF search path: $file" >&2
+        exit 1
+      fi
     fi
   fi
 done

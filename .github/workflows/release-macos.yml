@@ -243,7 +243,10 @@ jobs:
         run: |
           set -euo pipefail
           tag="$RELEASE_TAG"
-          sudo installer -pkg "HWControl-${tag}-macOS-AppleSilicon.pkg" -target /
+          if ! sudo installer -pkg "HWControl-${tag}-macOS-AppleSilicon.pkg" -target /; then
+            sudo cat /tmp/hwcontrol-postinstall.log || true
+            exit 1
+          fi
           test -d /Applications/HWControl/HWControl.app
           test -x /Applications/HWControl/bridge-service
           test -x /Applications/HWControl/hwcontrol_audio_probe
