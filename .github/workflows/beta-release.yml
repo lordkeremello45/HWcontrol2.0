@@ -165,7 +165,9 @@ jobs:
           wix extension add -g WixToolset.Util.wixext/6.0.2
           & "$PWD/deploy/windows/generate-icon.ps1"
           $version = $env:RELEASE_TAG -replace '^v','' -replace '-beta([.-].*)$',''
-          wix build deploy/windows/HWControl.wxs -ext WixToolset.Util.wixext -arch x64 -d Version=$version -d PackageDir="package/HWControl-$env:RELEASE_TAG-Windows-x64" -d IconPath=deploy/windows/HWControl.ico -o "HWControl-$env:RELEASE_TAG-Windows-x64.msi"
+          $packageDir = (Resolve-Path "package/$root").Path
+          $iconPath = (Resolve-Path "deploy/windows/HWControl.ico").Path
+          wix build deploy/windows/HWControl.wxs -ext WixToolset.Util.wixext -arch x64 -d Version=$version -d "PackageDir=$packageDir" -d "IconPath=$iconPath" -o "HWControl-$env:RELEASE_TAG-Windows-x64.msi"
           if (-not (Test-Path "HWControl-$env:RELEASE_TAG-Windows-x64.msi")) { throw 'MSI was not produced' }
       - name: Smoke-test MSI
         shell: pwsh
@@ -316,8 +318,18 @@ jobs:
           set -euo pipefail
           sudo dpkg -i "HWControl-$RELEASE_TAG-Linux-x64.deb"
           systemctl is-enabled hwcontrol-bridge.service
+          for attempt in $(seq 1 30); do
+            if [[ -S /var/lib/hwcontrol/bridge.sock ]]; then break; fi
+            if ! systemctl is-active --quiet hwcontrol-bridge.service; then break; fi
+            sleep 1
+          done
+          if [[ ! -S /var/lib/hwcontrol/bridge.sock ]]; then
+            echo "Bridge service did not create its Unix socket within 30 seconds." >&2
+            systemctl status hwcontrol-bridge.service --no-pager || true
+            journalctl -u hwcontrol-bridge.service -n 100 --no-pager || true
+            exit 1
+          fi
           systemctl is-active hwcontrol-bridge.service
-          test -S /var/lib/hwcontrol/bridge.sock
           sudo systemctl stop hwcontrol-security-guardian.service || true
           sudo systemctl stop hwcontrol-bridge.service
           sudo dpkg -r hwcontrol
@@ -389,6 +401,7 @@ jobs:
           install -m 0755 bridge-service pkg-root/Applications/HWControl/bridge-service
           install -m 0755 security-guardian pkg-root/Applications/HWControl/security-guardian
           install -m 0644 deploy/macos/com.hwcontrol.bridge.plist pkg-root/Applications/HWControl/com.hwcontrol.bridge.plist
+          install -m 0644 deploy/macos/com.hwcontrol.security-guardian.plist pkg-root/Applications/HWControl/com.hwcontrol.security-guardian.plist
           cp README.md SECURITY.md THIRD_PARTY_NOTICES pkg-root/Applications/HWControl/
           cp -R deploy/macos pkg-root/Applications/HWControl/deploy
           pkgbuild --root pkg-root --identifier com.hwcontrol.hwcontrol --version "$version" --scripts deploy/macos/pkg-scripts --install-location / "HWControl-${tag}-macOS-AppleSilicon.pkg"
@@ -398,7 +411,11 @@ jobs:
       - name: Smoke-test PKG
         run: |
           set -euo pipefail
-          sudo installer -pkg "HWControl-$RELEASE_TAG-macOS-AppleSilicon.pkg" -target /
+          if ! sudo installer -pkg "HWControl-$RELEASE_TAG-macOS-AppleSilicon.pkg" -target /; then
+            sudo cat /tmp/hwcontrol-postinstall.log || true
+            sudo tail -n 120 /var/log/install.log || true
+            exit 1
+          fi
           test -d /Applications/HWControl/HWControl.app
           test -x /Applications/HWControl/bridge-service
           test -x /Applications/HWControl/hwcontrol_audio_probe
