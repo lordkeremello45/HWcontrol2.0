@@ -53,9 +53,9 @@ Stable releases are coordinated by the **Final release — all platforms** workf
 | Platform | Release target | Package formats | Architecture | Status |
 |---|---|---|---|---|
 | Windows | Windows 10 / 11 | Setup EXE + MSI + ZIP + 7Z | x64 | Beta |
-| Windows MSIX | Windows 10 / 11 | CI validation artifact only; temporary CI signing certificate | x64 | Validation only |
-| macOS | macOS 14+ | PKG + DMG containing .app | Apple Silicon / arm64 | Beta |
-| Linux | Debian/Ubuntu-family | DEB + TAR.GZ + TAR.ZST | x64 | Beta |
+| Windows MSIX | Windows 10 / 11 | Unsigned beta-preview `.msix`; CI install validation uses a temporary certificate | x64 | Preview only |
+| macOS | macOS 14+ | PKG + DMG + app-bundle ZIP containing `HWControl.app` | Apple Silicon / arm64 | Beta |
+| Linux | Debian/Ubuntu-family | DEB + TAR.GZ + TAR.ZST + ZIP | x64 | Beta |
 
 Windows ARM64 and Intel macOS packages are not currently shipped.
 
@@ -63,15 +63,15 @@ Windows ARM64 and Intel macOS packages are not currently shipped.
 
 ### Windows
 
-Use the guided Setup EXE installer for normal users. The MSI remains available for managed deployment, and ZIP/7Z are portable archive formats. MSIX is built and install/smoke-tested by a separate CI validation workflow using a temporary CI certificate; it is not currently published as a normal release asset or signed with a trusted production publisher identity.
+Use the guided Setup EXE installer for normal users. The MSI remains available for managed deployment, and ZIP/7Z are portable archive formats. The beta release may also include an unsigned MSIX preview; it is not signed with a trusted production publisher identity. A separate CI validation workflow installs MSIX using a temporary test certificate, which does not establish production publisher trust.
 
 ### macOS
 
-Use the Apple Silicon PKG or DMG from the macOS Beta release.
+Use the Apple Silicon PKG or DMG from the macOS Beta release. The `app-bundle.zip` asset contains the `HWControl.app` bundle and its companion runtime files.
 
 ### Linux
 
-Use the DEB on Debian/Ubuntu-family systems, or the portable TAR package when appropriate.
+Use the DEB on Debian/Ubuntu-family systems, or the portable TAR/ZIP archive when appropriate.
 
 #### Debian/Ubuntu APT repository (amd64)
 
