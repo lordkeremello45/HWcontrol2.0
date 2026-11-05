@@ -14,7 +14,7 @@ import (
 
 const verifyKeySize = 32
 const (
-	cryptProtectUIForbidden = 0x1
+	cryptProtectUIForbidden  = 0x1
 	cryptProtectLocalMachine = 0x4
 )
 
