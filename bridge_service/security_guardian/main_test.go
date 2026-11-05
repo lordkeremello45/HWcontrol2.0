@@ -40,7 +40,6 @@ func TestGuardianRejectsSymlinkCanary(t *testing.T) {
 	}
 }
 
-
 func TestGuardianDetectsModifiedCanary(t *testing.T) {
 	dir := t.TempDir()
 	securityDir := filepath.Join(dir, "security")
