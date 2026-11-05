@@ -37,7 +37,7 @@ if [ ! -s "$KEY_FILE" ]; then
   /usr/bin/openssl rand -hex 32 | /usr/bin/tr -d '\n' > "$tmp_key"
   key_length=$(/usr/bin/wc -c < "$tmp_key")
   key_length=$(printf '%s' "$key_length" | /usr/bin/tr -d '[:space:]')
-  /usr/bin/test "$key_length" -eq 64
+  [ "$key_length" -eq 64 ]
   /bin/chmod 0600 "$tmp_key"
   /bin/mv -f "$tmp_key" "$KEY_FILE"
   trap - EXIT HUP INT TERM
@@ -46,7 +46,7 @@ else
   log "existing bridge key preserved"
 fi
 
-/usr/bin/test -s "$KEY_FILE"
+[ -s "$KEY_FILE" ]
 
 # The launch daemon runs as root, while the desktop app runs as the
 # logged-in console user. Keep the key private to that user and root.
