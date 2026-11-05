@@ -130,6 +130,7 @@ jobs:
           install -m 0644 deploy/macos/com.hwcontrol.bridge.plist pkg-root/Applications/HWControl/com.hwcontrol.bridge.plist
           cp README.md SECURITY.md THIRD_PARTY_NOTICES pkg-root/Applications/HWControl/
           cp -R deploy/macos pkg-root/Applications/HWControl/deploy
+          chmod 0755 deploy/macos/pkg-scripts/preinstall deploy/macos/pkg-scripts/postinstall
           pkgbuild --root pkg-root --identifier com.hwcontrol.hwcontrol --version "$version" --scripts deploy/macos/pkg-scripts --install-location / "HWControl-${tag}-macOS-AppleSilicon.pkg"
           cp -R pkg-root/Applications/HWControl/HWControl.app dmg-root/
           cp "HWControl-${tag}-macOS-AppleSilicon.pkg" dmg-root/
@@ -245,6 +246,7 @@ jobs:
           tag="$RELEASE_TAG"
           if ! sudo installer -pkg "HWControl-${tag}-macOS-AppleSilicon.pkg" -target /; then
             sudo cat /tmp/hwcontrol-postinstall.log || true
+            sudo tail -n 120 /var/log/install.log || true
             exit 1
           fi
           test -d /Applications/HWControl/HWControl.app
