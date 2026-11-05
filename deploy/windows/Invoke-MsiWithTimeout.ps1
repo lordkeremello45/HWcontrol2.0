@@ -15,6 +15,30 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+function Write-ServiceLogTail {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+        [Parameter(Mandatory = $true)]
+        [string]$Title
+    )
+
+    if (Test-Path -LiteralPath $Path -PathType Leaf) {
+        Write-Host "===== $Title ====="
+        Get-Content -LiteralPath $Path -Tail 120
+        Write-Host "===== END $Title ====="
+    }
+}
+
+function Write-HWControlServiceDiagnostics {
+    if ([string]::IsNullOrWhiteSpace($env:ProgramData)) {
+        return
+    }
+
+    Write-ServiceLogTail -Path (Join-Path $env:ProgramData 'HWControl\bridge.log') -Title 'HWCONTROL BRIDGE SERVICE LOG'
+    Write-ServiceLogTail -Path (Join-Path $env:ProgramData 'HWControl\security\guardian.log') -Title 'HWCONTROL SECURITY GUARDIAN LOG'
+}
+
 if (-not (Test-Path -LiteralPath $MsiPath -PathType Leaf)) {
     throw "MSI not found: $MsiPath"
 }
@@ -29,7 +53,7 @@ $arguments = if ($Action -eq 'Install') {
 $process = Start-Process -FilePath $msiexec -ArgumentList $arguments -PassThru
 try {
     if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
-        Write-Host "MSI $Action exceeded ${TimeoutSeconds}s; terminating msiexec and collecting diagnostics."
+        Write-Host "MSI $Action exceeded $TimeoutSeconds seconds; terminating msiexec and collecting diagnostics."
         try { $process.Kill($true) } catch { Write-Warning "Could not terminate msiexec: $($_.Exception.Message)" }
         Start-Sleep -Seconds 2
         if (Test-Path -LiteralPath $LogPath) {
@@ -37,6 +61,7 @@ try {
             Get-Content -LiteralPath $LogPath -Tail 250
             Write-Host '===== END MSI TIMEOUT LOG TAIL ====='
         }
+        Write-HWControlServiceDiagnostics
         throw "MSI $Action timed out after $TimeoutSeconds seconds"
     }
 
@@ -46,6 +71,7 @@ try {
             Get-Content -LiteralPath $LogPath -Tail 250
             Write-Host '===== END MSI FAILURE LOG TAIL ====='
         }
+        Write-HWControlServiceDiagnostics
         throw "MSI $Action failed with exit code $($process.ExitCode)"
     }
 } finally {

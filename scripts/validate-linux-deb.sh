@@ -53,12 +53,15 @@ sh -n "$root/usr/bin/hwcontrol"
 
 while IFS= read -r -d '' binary; do
   readelf -h "$binary" >/dev/null 2>&1 || continue
-  dependency_output="$(ldd "$binary" 2>&1)" || { printf '%s\n' "$dependency_output" >&2; exit 1; }
-  if grep -Fq 'not found' <<< "$dependency_output"; then
-    printf 'Unresolved library in %s:\n%s\n' "${binary#"$root"}" "$dependency_output" >&2
-    exit 1
-  fi
   dynamic_section="$(readelf -d "$binary" 2>/dev/null || true)"
+  # Skip ldd for static ELF executables, which have no DT_NEEDED entries.
+  if grep -Eq '\(NEEDED\)' <<< "$dynamic_section"; then
+    dependency_output="$(ldd "$binary" 2>&1)" || { printf '%s\n' "$dependency_output" >&2; exit 1; }
+    if grep -Fq 'not found' <<< "$dependency_output"; then
+      printf 'Unresolved library in %s:\n%s\n' "${binary#"$root"}" "$dependency_output" >&2
+      exit 1
+    fi
+  fi
   if grep -Eq '(RUNPATH|RPATH).*(/workspaces/|/home/runner/work/|/tmp/)' <<< "$dynamic_section"; then
     echo "Build-host path found in ELF search path: ${binary#"$root"}" >&2
     exit 1

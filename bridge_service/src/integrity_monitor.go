@@ -193,7 +193,7 @@ func integrityFileDigest(path string) (string, error) {
 func (m *bridgeIntegrityMonitor) start(done <-chan struct{}, onViolation func(error)) {
 	go func() {
 		ticker := time.NewTicker(bridgeIntegrityPollInterval)
-		lastVerifyCheck := time.Time{}
+		lastVerifyCheck := time.Now()
 		defer ticker.Stop()
 
 		for {
@@ -204,11 +204,13 @@ func (m *bridgeIntegrityMonitor) start(done <-chan struct{}, onViolation func(er
 				return
 			case <-ticker.C:
 				if time.Since(lastVerifyCheck) >= 10*time.Second {
-					lastVerifyCheck = time.Now()
 					if err := verifyInstallationState(m.verifyRoot); err != nil {
 						m.violate(fmt.Errorf("installation verification failed: %w", err), onViolation)
 						return
 					}
+					// Measure the interval from completion so a slow full-tree scan does
+					// not trigger an immediate second scan.
+					lastVerifyCheck = time.Now()
 				}
 				for _, target := range m.targets {
 					digest, err := integrityFileDigest(target.path)

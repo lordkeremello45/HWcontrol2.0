@@ -88,17 +88,22 @@ mapfile -d '' -t bundle_files < <(find "$bundle_root" -type f -print0)
 elf_files=()
 for file in "${bundle_files[@]}"; do
   if readelf -h "$file" >/dev/null 2>&1; then
-    dependency_output="$(ldd "$file" 2>&1)" || { printf '%s\n' "$dependency_output" >&2; exit 1; }
-    if grep -Fq 'not found' <<< "$dependency_output"; then
-      printf 'Unresolved library in %s:\n%s\n' "$file" "$dependency_output" >&2
-      exit 1
-    fi
+    # Static ELF executables have no DT_NEEDED entries; ldd exits non-zero
+    # for them ("not a dynamic executable"). Resolve dependencies only for
+    # dynamically linked ELF files, while retaining RPATH checks for every ELF.
     dynamic_section="$(readelf -d "$file" 2>/dev/null || true)"
+    if grep -Eq '\(NEEDED\)' <<< "$dynamic_section"; then
+      dependency_output="$(ldd "$file" 2>&1)" || { printf '%s\n' "$dependency_output" >&2; exit 1; }
+      if grep -Fq 'not found' <<< "$dependency_output"; then
+        printf 'Unresolved library in %s:\n%s\n' "$file" "$dependency_output" >&2
+        exit 1
+      fi
+      elf_files+=("$file")
+    fi
     if grep -Eq '(RUNPATH|RPATH).*(/workspaces/|/home/runner/work/|/tmp/)' <<< "$dynamic_section"; then
       echo "Build-host path found in ELF search path: $file" >&2
       exit 1
     fi
-    elf_files+=("$file")
   fi
 done
 [[ "${#elf_files[@]}" -gt 0 ]] || { echo "No ELF runtime files were staged." >&2; exit 1; }

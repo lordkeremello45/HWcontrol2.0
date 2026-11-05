@@ -14,6 +14,7 @@ import (
 )
 
 const serviceShutdownTimeout = 10 * time.Second
+const serviceStartupWaitHint = 30_000
 
 func runWindowsService() (bool, error) {
 	isService, err := svc.IsWindowsService()
@@ -30,52 +31,83 @@ type serviceHandler struct{}
 
 func (serviceHandler) Execute(_ []string, requests <-chan svc.ChangeRequest, status chan<- svc.Status) (bool, uint32) {
 	bridge := newBridgeService()
-	status <- svc.Status{State: svc.StartPending, WaitHint: 10_000}
+	status <- svc.Status{State: svc.StartPending, WaitHint: serviceStartupWaitHint, CheckPoint: 1}
 
-	ready := make(chan error, 1)
+	done := make(chan error, 1)
 	go func() {
 		err := runBridge(context.Background(), bridge)
-		ready <- err
+		done <- err
 		close(bridge.stopped)
 	}()
 
-	select {
-	case err := <-ready:
-		if err != nil {
-			log.Printf("bridge failed during startup: %v", err)
-			status <- svc.Status{State: svc.Stopped, Win32ExitCode: 1}
-			return false, 1
+	startupTicker := time.NewTicker(5 * time.Second)
+	defer startupTicker.Stop()
+	checkpoint := uint32(1)
+
+	stopService := func() {
+		status <- svc.Status{State: svc.StopPending, WaitHint: uint32(serviceShutdownTimeout / time.Millisecond), CheckPoint: 1}
+		bridge.requestStop()
+		bridge.stopListener()
+		select {
+		case err := <-done:
+			if err != nil {
+				log.Printf("bridge stopped during shutdown: %v", err)
+			}
+		case <-time.After(serviceShutdownTimeout):
+			log.Printf("graceful shutdown exceeded %s", serviceShutdownTimeout)
 		}
 		status <- svc.Status{State: svc.Stopped}
-		return false, 0
-	case <-time.After(10 * time.Second):
-		status <- svc.Status{State: svc.Running, Accepts: svc.AcceptStop | svc.AcceptShutdown}
 	}
 
 	for {
 		select {
+		case <-bridge.ready:
+			status <- svc.Status{State: svc.Running, Accepts: svc.AcceptStop | svc.AcceptShutdown}
+			goto running
+		case err := <-done:
+			if err != nil {
+				log.Printf("bridge failed before becoming ready: %v", err)
+				status <- svc.Status{State: svc.Stopped, Win32ExitCode: 1}
+				return false, 1
+			}
+			status <- svc.Status{State: svc.Stopped}
+			return false, 0
 		case req, ok := <-requests:
 			if !ok {
+				status <- svc.Status{State: svc.Stopped}
+				return false, 0
+			}
+			switch req.Cmd {
+			case svc.Interrogate:
+				status <- svc.Status{State: svc.StartPending, WaitHint: serviceStartupWaitHint, CheckPoint: checkpoint}
+			case svc.Stop, svc.Shutdown:
+				stopService()
+				return false, 0
+			}
+		case <-startupTicker.C:
+			checkpoint++
+			status <- svc.Status{State: svc.StartPending, WaitHint: serviceStartupWaitHint, CheckPoint: checkpoint}
+		}
+	}
+
+running:
+	for {
+		select {
+		case req, ok := <-requests:
+			if !ok {
+				status <- svc.Status{State: svc.Stopped}
 				return false, 0
 			}
 			switch req.Cmd {
 			case svc.Interrogate:
 				status <- svc.Status{State: svc.Running, Accepts: svc.AcceptStop | svc.AcceptShutdown}
 			case svc.Stop, svc.Shutdown:
-				status <- svc.Status{State: svc.StopPending, WaitHint: uint32(serviceShutdownTimeout / time.Millisecond)}
-				bridge.requestStop()
-				bridge.stopListener()
-				select {
-				case <-bridge.stopped:
-				case <-time.After(serviceShutdownTimeout):
-					log.Printf("graceful shutdown exceeded %s", serviceShutdownTimeout)
-				}
-				status <- svc.Status{State: svc.Stopped}
+				stopService()
 				return false, 0
 			}
-		case err := <-ready:
+		case err := <-done:
 			if err != nil {
-				log.Printf("bridge stopped: %v", err)
+				log.Printf("bridge service stopped unexpectedly: %v", err)
 				status <- svc.Status{State: svc.Stopped, Win32ExitCode: 1}
 				return false, 1
 			}

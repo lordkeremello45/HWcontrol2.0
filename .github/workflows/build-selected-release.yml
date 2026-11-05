@@ -101,7 +101,7 @@ jobs:
             # gh workflow run confirms dispatch but does not reliably print a run URL/ID.
             # Poll for a workflow_dispatch run created after this request.
             run_id=""
-            for attempt in {1..12}; do
+            for _ in {1..12}; do
               run_id="$(gh run list --workflow "$workflow" --repo "$GH_REPO" \
                 --event workflow_dispatch --limit 20 --json databaseId,createdAt |
                 jq -r --arg since "$dispatch_started_at" \

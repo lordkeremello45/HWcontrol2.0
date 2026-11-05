@@ -10,8 +10,10 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
+	"sync"
 )
 
 const verifyStateVersion = 1
@@ -96,8 +98,14 @@ func verifyFileDigest(path string) (verifyFileRecord, error) {
 	}, nil
 }
 
+type verifyInventoryResult struct {
+	path   string
+	record verifyFileRecord
+	err    error
+}
+
 func collectVerifyInventory(root string) ([]verifyFileRecord, error) {
-	var records []verifyFileRecord
+	paths := make([]string, 0)
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -109,20 +117,70 @@ func collectVerifyInventory(root string) ([]verifyFileRecord, error) {
 			filepath.Clean(path) == filepath.Clean(verifyKeyPath()) {
 			return nil
 		}
-		record, err := verifyFileDigest(path)
-		if err != nil {
-			return err
-		}
-		record.Path, err = filepath.Rel(root, path)
-		if err != nil {
-			return err
-		}
-		record.Path = filepath.ToSlash(record.Path)
-		records = append(records, record)
+		paths = append(paths, path)
 		return nil
 	})
 	if err != nil {
 		return nil, err
+	}
+	if len(paths) == 0 {
+		return []verifyFileRecord{}, nil
+	}
+
+	// Hash the complete installation inventory with bounded parallelism. This
+	// preserves coverage while avoiding serial first-start scans on Windows.
+	workers := runtime.GOMAXPROCS(0)
+	if workers > 4 {
+		workers = 4
+	}
+	if workers > len(paths) {
+		workers = len(paths)
+	}
+
+	jobs := make(chan string)
+	results := make(chan verifyInventoryResult, workers)
+	var workerGroup sync.WaitGroup
+	for i := 0; i < workers; i++ {
+		workerGroup.Add(1)
+		go func() {
+			defer workerGroup.Done()
+			for path := range jobs {
+				record, hashErr := verifyFileDigest(path)
+				if hashErr == nil {
+					relative, relErr := filepath.Rel(root, path)
+					if relErr != nil {
+						hashErr = relErr
+					} else {
+						record.Path = filepath.ToSlash(relative)
+					}
+				}
+				results <- verifyInventoryResult{path: path, record: record, err: hashErr}
+			}
+		}()
+	}
+
+	go func() {
+		for _, path := range paths {
+			jobs <- path
+		}
+		close(jobs)
+		workerGroup.Wait()
+		close(results)
+	}()
+
+	records := make([]verifyFileRecord, 0, len(paths))
+	var firstErr error
+	for result := range results {
+		if result.err != nil {
+			if firstErr == nil {
+				firstErr = fmt.Errorf("inventory %s: %w", filepath.Base(result.path), result.err)
+			}
+			continue
+		}
+		records = append(records, result.record)
+	}
+	if firstErr != nil {
+		return nil, firstErr
 	}
 	return canonicalVerifyRecords(records), nil
 }
