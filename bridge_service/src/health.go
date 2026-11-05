@@ -168,6 +168,13 @@ func evaluateHardwareHealth(metrics HardwareMetrics) HardwareHealthEvaluation {
 						})
 						continue
 					}
+					if !isFiniteNonNegative(channel.FanPercent) || channel.FanPercent > 100 {
+						anomalies = append(anomalies, HardwareAnomaly{
+							"fan-command-state-invalid", "warning",
+							fmt.Sprintf("PWM command telemetry is invalid for fan channel %s", channelName),
+						})
+						continue
+					}
 					if channel.FanPercent > 0 {
 						anomalies = append(anomalies, HardwareAnomaly{
 							"fan-stall-risk", "critical",
