@@ -3,9 +3,11 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 type windowsDriverInfo struct {
@@ -20,7 +22,9 @@ $driver = Get-CimInstance Win32_PnPSignedDriver | Where-Object { $_.DeviceClass 
 if ($driver) { [pscustomobject]@{ provider=[string]$driver.DriverProviderName; version=[string]$driver.DriverVersion; name=[string]$driver.FriendlyName; signed=[bool]$driver.IsSigned } | ConvertTo-Json -Compress }`
 
 func mergeDriverInfo(metrics *HardwareMetrics) {
-	output, err := exec.Command("powershell.exe", "-NoProfile", "-NonInteractive", "-Command", windowsDriverScript).Output()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	output, err := exec.CommandContext(ctx, "powershell.exe", "-NoProfile", "-NonInteractive", "-Command", windowsDriverScript).Output()
 	if err != nil || strings.TrimSpace(string(output)) == "" {
 		if metrics.GPUDriverStatus == "" {
 			metrics.GPUDriverStatus = "unavailable"

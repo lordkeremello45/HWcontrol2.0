@@ -59,7 +59,7 @@ cp "$repo_root/README.md" "$repo_root/SECURITY.md" "$repo_root/THIRD_PARTY_NOTIC
 cp -a "$repo_root/deploy/linux" "$bundle_root/deploy"
 
 mkdir -p "$deb_root/opt/hwcontrol" "$deb_root/usr/bin" "$deb_root/usr/share/applications" "$deb_root/lib/systemd/system" "$deb_root/DEBIAN"
-cp -a "$bundle_root/." "$deb_root/opt/hwcontrol/"
+# Copy after ELF RUNPATH normalization so DEB and portable archives match.
 install -Dm0644 "$repo_root/deploy/linux/hwcontrol-bridge.service" "$deb_root/lib/systemd/system/hwcontrol-bridge.service"
 install -Dm0644 "$repo_root/deploy/linux/hwcontrol-security-guardian.service" "$deb_root/lib/systemd/system/hwcontrol-security-guardian.service"
 cat > "$deb_root/usr/bin/hwcontrol" <<'LAUNCHER'
@@ -117,6 +117,7 @@ for file in "${bundle_files[@]}"; do
   fi
 done
 [[ "${#elf_files[@]}" -gt 0 ]] || { echo "No ELF runtime files were staged." >&2; exit 1; }
+cp -a "$bundle_root/." "$deb_root/opt/hwcontrol/"
 
 cat > "$work_dir/debian/control" <<CONTROL
 Source: hwcontrol

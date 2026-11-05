@@ -12,6 +12,8 @@
     <dict>
         <key>HWCONTROL_KEY_FILE</key>
         <string>/Library/Application Support/HWControl/bridge.key</string>
+        <key>HWCONTROL_SOCKET</key>
+        <string>/Library/Application Support/HWControl/bridge.sock</string>
     </dict>
     <key>RunAtLoad</key>
     <true/>

@@ -256,6 +256,7 @@ jobs:
           test -f '/Library/Application Support/HWControl/security/canary/bridger.key'
           test -f /Library/LaunchDaemons/com.hwcontrol.security-guardian.plist
           test -f /Library/LaunchDaemons/com.hwcontrol.bridge.plist
+          test -S '/Library/Application Support/HWControl/bridge.sock'
           sudo launchctl print system/com.hwcontrol.bridge >/dev/null
           sudo launchctl print system/com.hwcontrol.security-guardian >/dev/null
           sudo launchctl bootout system /Library/LaunchDaemons/com.hwcontrol.security-guardian.plist || true

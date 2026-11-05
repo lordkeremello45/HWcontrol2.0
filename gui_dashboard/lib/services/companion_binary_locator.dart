@@ -1,13 +1,10 @@
 import 'dart:io';
 
-/// Checks the bounded installation layout for the companion Go bridge.
-///
-/// Linux places the bridge beside the dashboard's parent directory. macOS
-/// places it outside the .app bundle, above Contents/MacOS. Windows places it
-/// beside the dashboard executable.
-Future<bool> hasBridgeServiceBinary({
+/// Finds a packaged companion binary beside the dashboard or in one of its
+/// bounded installation ancestors.
+Future<File?> findCompanionBinary({
   required String executablePath,
-  required bool isWindows,
+  required List<String> binaryNames,
   int maxParentDirectories = 3,
 }) async {
   if (maxParentDirectories < 0) {
@@ -17,24 +14,48 @@ Future<bool> hasBridgeServiceBinary({
       'must not be negative',
     );
   }
+  if (binaryNames.any((name) =>
+      name.isEmpty ||
+      name == '.' ||
+      name == '..' ||
+      name.contains('/') ||
+      name.contains(Platform.pathSeparator))) {
+    throw ArgumentError.value(
+      binaryNames,
+      'binaryNames',
+      'must contain file names only',
+    );
+  }
 
-  final binaryNames = isWindows
-      ? const <String>['bridge-service.exe', 'bridge-service']
-      : const <String>['bridge-service'];
   var directory = File(executablePath).parent;
-
   for (var depth = 0; depth <= maxParentDirectories; depth++) {
     for (final binaryName in binaryNames) {
       final candidate = File(
         '${directory.path}${Platform.pathSeparator}$binaryName',
       );
-      if (await candidate.exists()) return true;
+      if (await candidate.exists()) return candidate;
     }
 
     final parent = directory.parent;
     if (parent.path == directory.path) break;
     directory = parent;
   }
+  return null;
+}
 
-  return false;
+/// Checks the platform-specific installed name of the Go bridge.
+Future<bool> hasBridgeServiceBinary({
+  required String executablePath,
+  required bool isWindows,
+  int maxParentDirectories = 3,
+}) async {
+  final binaryNames = isWindows
+      ? const <String>['bridge-service.exe', 'bridge-service']
+      : const <String>['bridge-service'];
+  return await findCompanionBinary(
+        executablePath: executablePath,
+        binaryNames: binaryNames,
+        maxParentDirectories: maxParentDirectories,
+      ) !=
+      null;
 }

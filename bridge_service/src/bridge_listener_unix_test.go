@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -61,5 +62,24 @@ func TestListenBridgeRejectsWritableSocketParent(t *testing.T) {
 	}
 	if err := os.Chmod(directory, 0700); err != nil {
 		t.Fatalf("restore socket parent permissions: %v", err)
+	}
+}
+
+func TestBridgeSocketPathUsesPlatformDefault(t *testing.T) {
+	t.Setenv("HWCONTROL_SOCKET", "")
+	want := defaultBridgeSocket
+	if runtime.GOOS == "darwin" {
+		want = defaultDarwinBridgeSocket
+	}
+	if got := bridgeSocketPath(); got != want {
+		t.Fatalf("bridgeSocketPath() = %q, want %q", got, want)
+	}
+}
+
+func TestBridgeSocketPathHonorsConfiguredPath(t *testing.T) {
+	want := filepath.Join(t.TempDir(), "configured.sock")
+	t.Setenv("HWCONTROL_SOCKET", want)
+	if got := bridgeSocketPath(); got != want {
+		t.Fatalf("bridgeSocketPath() = %q, want configured path %q", got, want)
 	}
 }

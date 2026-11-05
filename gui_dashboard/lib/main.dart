@@ -25,6 +25,7 @@ import 'automation_rules.dart';
 import 'audio_controller_studio.dart';
 import 'services/ai/model_manager.dart';
 import 'services/bridge_line_decoder.dart';
+import 'services/companion_binary_locator.dart';
 import 'user_data_store.dart';
 import 'game_profile.dart';
 import 'l10n/app_localizations.dart';
@@ -437,13 +438,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return (await HWControlModelManager.modelFile()).path;
   }
   Future<String?> _findAiEnginePath() async {
-    final executable = File(Platform.resolvedExecutable);
-    final executableDir = executable.parent.path;
     final binaryName = Platform.isWindows ? 'ai_engine.exe' : 'ai_engine';
+    final packagedBinary = await findCompanionBinary(
+      executablePath: Platform.resolvedExecutable,
+      binaryNames: <String>[binaryName],
+      maxParentDirectories: 3,
+    );
+    if (packagedBinary != null) return packagedBinary.path;
+
+    // Preserve source-tree and development launch fallbacks.
     final candidates = <String>[
-      '$executableDir${Platform.pathSeparator}$binaryName',
-      '${Directory(executableDir).parent.path}${Platform.pathSeparator}$binaryName',
-      '${Directory(Directory(executableDir).parent.path).parent.path}${Platform.pathSeparator}$binaryName',
       '${Directory.current.path}${Platform.pathSeparator}$binaryName',
       '${Directory.current.path}${Platform.pathSeparator}ai_core${Platform.pathSeparator}$binaryName',
     ];

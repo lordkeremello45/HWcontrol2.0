@@ -7,14 +7,21 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"runtime"
 	"syscall"
 )
 
-const defaultBridgeSocket = "/var/lib/hwcontrol/bridge.sock"
+const (
+	defaultBridgeSocket       = "/var/lib/hwcontrol/bridge.sock"
+	defaultDarwinBridgeSocket = "/Library/Application Support/HWControl/bridge.sock"
+)
 
 func bridgeSocketPath() string {
 	if configured := os.Getenv("HWCONTROL_SOCKET"); configured != "" {
 		return configured
+	}
+	if runtime.GOOS == "darwin" {
+		return defaultDarwinBridgeSocket
 	}
 	return defaultBridgeSocket
 }
