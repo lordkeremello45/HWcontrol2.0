@@ -161,10 +161,19 @@ func evaluateHardwareHealth(metrics HardwareMetrics) HardwareHealthEvaluation {
 					continue
 				}
 				if channel.FanRPM == 0 {
-					anomalies = append(anomalies, HardwareAnomaly{
-						"fan-stall-risk", "critical",
-						fmt.Sprintf("Controllable fan channel %s reports 0 RPM while thermal load is high", channelName),
-					})
+					if !channel.PercentAvailable {
+						anomalies = append(anomalies, HardwareAnomaly{
+							"fan-command-state-unavailable-under-thermal-load", "warning",
+							fmt.Sprintf("Fan channel %s reports 0 RPM, but its PWM command state is unavailable", channelName),
+						})
+						continue
+					}
+					if channel.FanPercent > 0 {
+						anomalies = append(anomalies, HardwareAnomaly{
+							"fan-stall-risk", "critical",
+							fmt.Sprintf("Fan channel %s has a non-zero PWM command (%.1f%%) but reports 0 RPM under thermal load", channelName, channel.FanPercent),
+						})
+					}
 				}
 			}
 		} else if metrics.FanControlSupported && metrics.FanRPM <= 0 {
