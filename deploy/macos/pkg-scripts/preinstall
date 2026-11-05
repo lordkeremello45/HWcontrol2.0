@@ -2,9 +2,14 @@
 set -eu
 
 PLIST_DST="/Library/LaunchDaemons/com.hwcontrol.bridge.plist"
+GUARDIAN_PLIST_DST="/Library/LaunchDaemons/com.hwcontrol.security-guardian.plist"
+if [ -f "$GUARDIAN_PLIST_DST" ]; then
+  /bin/launchctl bootout system "$GUARDIAN_PLIST_DST" 2>/dev/null || true
+  /bin/rm -f "$GUARDIAN_PLIST_DST"
+fi
 if [ -f "$PLIST_DST" ]; then
-  launchctl bootout system "$PLIST_DST" 2>/dev/null || true
-  rm -f "$PLIST_DST"
+  /bin/launchctl bootout system "$PLIST_DST" 2>/dev/null || true
+  /bin/rm -f "$PLIST_DST"
 fi
 
 exit 0
