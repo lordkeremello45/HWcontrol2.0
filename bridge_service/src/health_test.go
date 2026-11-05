@@ -236,7 +236,7 @@ func TestEvaluateHardwareHealthDetectsStalledIndividualFanAmongMultipleChannels(
 		CPUTemperature: 88, ThermalSafetyAvailable: true,
 		FanChannels: []FanChannel{
 			{ID: "0123456789abcdef", Name: "CPU Fan", Backend: "linux-hwmon", Supported: true, FanRPM: 1450, RPMAvailable: true},
-			{ID: "1123456789abcdef", Name: "GPU Fan", Backend: "linux-hwmon", Supported: true, FanRPM: 0, RPMAvailable: true},
+			{ID: "1123456789abcdef", Name: "GPU Fan", Backend: "linux-hwmon", Supported: true, FanRPM: 0, RPMAvailable: true, FanPercent: 55, PercentAvailable: true},
 		},
 	})
 	found := false
@@ -284,4 +284,40 @@ func TestEvaluateHardwareHealthIgnoresUnsupportedFanChannelsForStallDetection(t 
 			t.Fatalf("unsupported channel must not produce a controllable-fan anomaly: %#v", anomaly)
 		}
 	}
+}
+
+func TestEvaluateHardwareHealthDoesNotFlagIntentionalZeroPWMAsFanStall(t *testing.T) {
+	bridgeIntegrityState.Store(true)
+	evaluation := evaluateHardwareHealth(HardwareMetrics{
+		CPUTemperature: 88, ThermalSafetyAvailable: true,
+		FanChannels: []FanChannel{{
+			ID: "0123456789abcdef", Name: "GPU Fan", Backend: "linux-hwmon", Supported: true,
+			FanRPM: 0, RPMAvailable: true, FanPercent: 0, PercentAvailable: true,
+		}},
+	})
+	for _, anomaly := range evaluation.Anomalies {
+		if anomaly.Code == "fan-stall-risk" {
+			t.Fatalf("zero RPM with a zero PWM command may be an intentional fan-stop mode: %#v", anomaly)
+		}
+	}
+}
+
+func TestEvaluateHardwareHealthDoesNotConfirmStallWithoutPWMCommandState(t *testing.T) {
+	bridgeIntegrityState.Store(true)
+	evaluation := evaluateHardwareHealth(HardwareMetrics{
+		CPUTemperature: 88, ThermalSafetyAvailable: true,
+		FanChannels: []FanChannel{{
+			ID: "0123456789abcdef", Name: "CPU Fan", Backend: "linux-hwmon", Supported: true,
+			FanRPM: 0, RPMAvailable: true, PercentAvailable: false,
+		}},
+	})
+	for _, anomaly := range evaluation.Anomalies {
+		if anomaly.Code == "fan-stall-risk" {
+			t.Fatal("zero RPM without command-state telemetry must not be treated as a confirmed stall")
+		}
+		if anomaly.Code == "fan-command-state-unavailable-under-thermal-load" && anomaly.Severity == "warning" {
+			return
+		}
+	}
+	t.Fatalf("expected missing PWM-command-state warning, got %#v", evaluation.Anomalies)
 }
