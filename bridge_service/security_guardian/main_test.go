@@ -56,6 +56,9 @@ func TestGuardianDetectsModifiedCanary(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if err := os.Chmod(canaryPath(), 0600); err != nil {
+		t.Fatal(err)
+	}
 	if err := os.WriteFile(canaryPath(), []byte("tampered\n"), 0600); err != nil {
 		t.Fatal(err)
 	}
