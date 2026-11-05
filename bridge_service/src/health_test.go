@@ -229,3 +229,59 @@ func TestEvaluateHardwareHealthDoesNotConfuseFanControlWithFanTelemetry(t *testi
 		t.Fatal("fan control support must not imply readable fan telemetry")
 	}
 }
+
+func TestEvaluateHardwareHealthDetectsStalledIndividualFanAmongMultipleChannels(t *testing.T) {
+	bridgeIntegrityState.Store(true)
+	evaluation := evaluateHardwareHealth(HardwareMetrics{
+		CPUTemperature: 88, ThermalSafetyAvailable: true,
+		FanChannels: []FanChannel{
+			{ID: "0123456789abcdef", Name: "CPU Fan", Backend: "linux-hwmon", Supported: true, FanRPM: 1450, RPMAvailable: true},
+			{ID: "1123456789abcdef", Name: "GPU Fan", Backend: "linux-hwmon", Supported: true, FanRPM: 0, RPMAvailable: true},
+		},
+	})
+	found := false
+	for _, anomaly := range evaluation.Anomalies {
+		if anomaly.Code == "fan-stall-risk" && anomaly.Severity == "critical" && anomaly.Message == "Controllable fan channel GPU Fan reports 0 RPM while thermal load is high" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("expected a channel-specific critical stall anomaly, got %#v", evaluation.Anomalies)
+	}
+}
+
+func TestEvaluateHardwareHealthWarnsWhenControllableFanRPMIsUnavailable(t *testing.T) {
+	bridgeIntegrityState.Store(true)
+	evaluation := evaluateHardwareHealth(HardwareMetrics{
+		CPUTemperature: 88, ThermalSafetyAvailable: true,
+		FanChannels: []FanChannel{{
+			ID: "0123456789abcdef", Name: "CPU Fan", Backend: "linux-hwmon", Supported: true,
+			RPMAvailable: false,
+		}},
+	})
+	for _, anomaly := range evaluation.Anomalies {
+		if anomaly.Code == "fan-stall-risk" {
+			t.Fatal("missing RPM telemetry must not be misreported as a confirmed zero-RPM stall")
+		}
+		if anomaly.Code == "fan-rpm-unavailable-under-thermal-load" && anomaly.Severity == "warning" {
+			return
+		}
+	}
+	t.Fatalf("expected an RPM-unavailable warning, got %#v", evaluation.Anomalies)
+}
+
+func TestEvaluateHardwareHealthIgnoresUnsupportedFanChannelsForStallDetection(t *testing.T) {
+	bridgeIntegrityState.Store(true)
+	evaluation := evaluateHardwareHealth(HardwareMetrics{
+		CPUTemperature: 88, ThermalSafetyAvailable: true,
+		FanChannels: []FanChannel{{
+			ID: "0123456789abcdef", Name: "Monitor-only Fan", Backend: "monitor-only",
+			Supported: false, FanRPM: 0, RPMAvailable: true,
+		}},
+	})
+	for _, anomaly := range evaluation.Anomalies {
+		if anomaly.Code == "fan-stall-risk" || anomaly.Code == "fan-rpm-unavailable-under-thermal-load" {
+			t.Fatalf("unsupported channel must not produce a controllable-fan anomaly: %#v", anomaly)
+		}
+	}
+}
