@@ -165,7 +165,7 @@ jobs:
           wix extension add -g WixToolset.Util.wixext/6.0.2
           & "$PWD/deploy/windows/generate-icon.ps1"
           $version = $env:RELEASE_TAG -replace '^v','' -replace '-beta([.-].*)$',''
-          $packageDir = (Resolve-Path "package/$root").Path
+          $packageDir = (Resolve-Path "package/HWControl-$env:RELEASE_TAG-Windows-x64").Path
           $iconPath = (Resolve-Path "deploy/windows/HWControl.ico").Path
           wix build deploy/windows/HWControl.wxs -ext WixToolset.Util.wixext -arch x64 -d Version=$version -d "PackageDir=$packageDir" -d "IconPath=$iconPath" -o "HWControl-$env:RELEASE_TAG-Windows-x64.msi"
           if (-not (Test-Path "HWControl-$env:RELEASE_TAG-Windows-x64.msi")) { throw 'MSI was not produced' }
