@@ -13,7 +13,10 @@ import (
 )
 
 const verifyKeySize = 32
-const cryptProtectUIForbidden = 0x1
+const (
+	cryptProtectUIForbidden = 0x1
+	cryptProtectLocalMachine = 0x4
+)
 
 func verifyKeyPath() string {
 	root := os.Getenv("ProgramData")
@@ -26,7 +29,7 @@ func verifyKeyPath() string {
 func protectVerifyKey(key []byte) ([]byte, error) {
 	in := windows.DataBlob{Size: uint32(len(key)), Data: &key[0]}
 	var out windows.DataBlob
-	if err := windows.CryptProtectData(&in, nil, nil, 0, nil, cryptProtectUIForbidden, &out); err != nil {
+	if err := windows.CryptProtectData(&in, nil, nil, 0, nil, cryptProtectUIForbidden|cryptProtectLocalMachine, &out); err != nil {
 		return nil, fmt.Errorf("CryptProtectData: %w", err)
 	}
 	defer windows.LocalFree(windows.Handle(uintptr(unsafe.Pointer(out.Data))))
