@@ -543,6 +543,7 @@ jobs:
           test -f "release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.tar.gz"
           test -f "release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.tar.zst"
           test -f "release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.zip"
+          test -f "release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.zip"
           test -f "release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64.sha256"
           test -f "release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.sha256"
           test -f "release-assets/beta-macos-arm64/HWControl-${RELEASE_TAG}-macOS-AppleSilicon.sha256"
