@@ -131,8 +131,47 @@ func evaluateHardwareHealth(metrics HardwareMetrics) HardwareHealthEvaluation {
 	} else if metrics.GPUTemperature >= thermalWarningTemperature {
 		anomalies = append(anomalies, HardwareAnomaly{"gpu-temperature-high", "warning", fmt.Sprintf("GPU temperature reached %.1f °C", metrics.GPUTemperature)})
 	}
-	if metrics.FanControlSupported && metrics.FanRPM <= 0 && (metrics.CPUTemperature >= thermalWarningTemperature || metrics.GPUTemperature >= thermalWarningTemperature) {
-		anomalies = append(anomalies, HardwareAnomaly{"fan-stall-risk", "critical", "Fan control is available but no fan RPM is reported while thermal load is high"})
+	thermalLoadHigh := metrics.CPUTemperature >= thermalWarningTemperature || metrics.GPUTemperature >= thermalWarningTemperature
+	if thermalLoadHigh {
+		controllableChannels := make([]FanChannel, 0, len(metrics.FanChannels))
+		for _, channel := range metrics.FanChannels {
+			if channel.Supported && validFanChannelID(channel.ID) && channel.Backend != "" && channel.Backend != "monitor-only" {
+				controllableChannels = append(controllableChannels, channel)
+			}
+		}
+
+		if len(controllableChannels) > 0 {
+			for _, channel := range controllableChannels {
+				channelName := strings.TrimSpace(channel.Name)
+				if channelName == "" {
+					channelName = channel.ID
+				}
+				if !channel.RPMAvailable {
+					anomalies = append(anomalies, HardwareAnomaly{
+						"fan-rpm-unavailable-under-thermal-load", "warning",
+						fmt.Sprintf("RPM telemetry is unavailable for controllable fan channel %s while thermal load is high", channelName),
+					})
+					continue
+				}
+				if !isFiniteNonNegative(channel.FanRPM) {
+					anomalies = append(anomalies, HardwareAnomaly{
+						"fan-rpm-invalid", "warning",
+						fmt.Sprintf("RPM telemetry is invalid for controllable fan channel %s", channelName),
+					})
+					continue
+				}
+				if channel.FanRPM == 0 {
+					anomalies = append(anomalies, HardwareAnomaly{
+						"fan-stall-risk", "critical",
+						fmt.Sprintf("Controllable fan channel %s reports 0 RPM while thermal load is high", channelName),
+					})
+				}
+			}
+		} else if metrics.FanControlSupported && metrics.FanRPM <= 0 {
+			// Preserve the legacy aggregate check for platform backends that do
+			// not expose independently addressable fan channels.
+			anomalies = append(anomalies, HardwareAnomaly{"fan-stall-risk", "critical", "Fan control is available but no fan RPM is reported while thermal load is high"})
+		}
 	}
 	if !metrics.ThermalSafetyAvailable {
 		anomalies = append(anomalies, HardwareAnomaly{"thermal-sensor-missing", "warning", "No valid thermal sensor is available; hardware control must remain fail-closed"})
