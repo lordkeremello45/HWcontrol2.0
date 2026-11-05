@@ -39,3 +39,31 @@ func TestGuardianRejectsSymlinkCanary(t *testing.T) {
 		t.Fatal("expected symlink canary to be rejected")
 	}
 }
+
+
+func TestGuardianDetectsModifiedCanary(t *testing.T) {
+	dir := t.TempDir()
+	securityDir := filepath.Join(dir, "security")
+	t.Setenv("HWCONTROL_DECOY_DIR", securityDir)
+	t.Setenv("HWCONTROL_PANIC_FILE", filepath.Join(securityDir, "state", "panic-mode.json"))
+	if err := os.MkdirAll(filepath.Dir(canaryPath()), 0750); err != nil {
+		t.Fatal(err)
+	}
+	canonical := []byte("0526be8dc7adb18bc4e82119046c9a9fc8625571311060208a8d0744d71ff671\n")
+	if err := os.WriteFile(canaryPath(), canonical, 0440); err != nil {
+		t.Fatal(err)
+	}
+	baseline, err := initializeGuardian()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(canaryPath(), []byte("tampered\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := checkGuardianCanary(baseline); err == nil {
+		t.Fatal("expected modified canary to fail integrity verification")
+	}
+	if _, err := os.Stat(panicPath()); err != nil {
+		t.Fatalf("expected panic state to be written: %v", err)
+	}
+}

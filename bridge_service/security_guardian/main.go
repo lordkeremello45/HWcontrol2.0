@@ -89,31 +89,66 @@ func ensureCanary() error {
 	return nil
 }
 
-func main() {
+func initializeGuardian() (string, error) {
 	if err := ensureCanary(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		_ = writePanic("security canary missing or unreadable")
+		return "", err
 	}
 	baseline, err := digest(canaryPath())
+	if err != nil {
+		_ = writePanic("security canary missing, replaced, or unreadable")
+		return "", err
+	}
+	if baseline != expectedCanaryDigest {
+		_ = writePanic("bridger.key baseline mismatch")
+		return "", fmt.Errorf("bridger.key baseline mismatch")
+	}
+	return baseline, nil
+}
+
+func checkGuardianCanary(baseline string) error {
+	current, err := digest(canaryPath())
+	if err != nil {
+		_ = writePanic("security canary missing, replaced, or unreadable")
+		return fmt.Errorf("security canary unavailable: %w", err)
+	}
+	if current != expectedCanaryDigest || current != baseline {
+		_ = writePanic("bridger.key integrity changed or replaced")
+		return fmt.Errorf("bridger.key integrity changed or replaced")
+	}
+	return nil
+}
+
+func runGuardian(stop <-chan struct{}) error {
+	baseline, err := initializeGuardian()
+	if err != nil {
+		return err
+	}
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-stop:
+			return nil
+		case <-ticker.C:
+			if err := checkGuardianCanary(baseline); err != nil {
+				return err
+			}
+		}
+	}
+}
+
+func main() {
+	handled, err := runWindowsService()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	if baseline != expectedCanaryDigest {
-		_ = writePanic("bridger.key baseline mismatch")
-		os.Exit(2)
+	if handled {
+		return
 	}
-	ticker := time.NewTicker(2 * time.Second)
-	defer ticker.Stop()
-	for range ticker.C {
-		current, err := digest(canaryPath())
-		if err != nil {
-			_ = writePanic("security canary missing, replaced, or unreadable")
-			os.Exit(3)
-		}
-		if current != expectedCanaryDigest || current != baseline {
-			_ = writePanic("bridger.key integrity changed or replaced")
-			os.Exit(4)
-		}
+	if err := runGuardian(nil); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 }
