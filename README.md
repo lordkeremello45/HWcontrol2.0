@@ -5,6 +5,7 @@
 It is a desktop PC utility—not an industrial automation/SCADA product, a serial hardware-flow-control protocol, or a DAW/mixer controller. Its architecture is Flutter/Dart desktop GUI → authenticated localhost Go bridge → native C++/CMake engine → platform-specific hardware APIs. **Hardware support varies by device, driver, operating system, and available permissions; this project is in Beta.**
 
 [![HWControl Website](https://img.shields.io/badge/HWControl-Website-111827?style=for-the-badge&logo=googlechrome&logoColor=white)](https://lordkeremello45.github.io/HWcontrol2.0/)
+[![Discord Community](https://img.shields.io/badge/Discord-Join%20the%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/nVF6The3Nu)
 [![GitHub Releases](https://img.shields.io/github/v/release/lordkeremello45/HWcontrol2.0?display_name=tag&style=for-the-badge)](https://github.com/lordkeremello45/HWcontrol2.0/releases)
 [![GitLab Mirror](https://img.shields.io/badge/GitLab-Mirror-FCA326?style=for-the-badge&logo=gitlab&logoColor=white)](https://gitlab.com/lordkeremello45/HWcontrol2.0)
 [![Codeberg Mirror](https://img.shields.io/badge/Codeberg-Mirror-2185D0?style=for-the-badge&logo=codeberg&logoColor=white)](https://codeberg.org/lordkeremelllo45/HWcontrol2.0)
@@ -196,6 +197,7 @@ If you report a hardware problem, include the OS, architecture, CPU/GPU model, d
 
 HWcontrol2.0 is developed in the open. The public engineering plan focuses on useful technical documentation and reproducible discussion rather than paid promotion.
 
+- Discord community: [Join HWcontrol2.0 Community](https://discord.gg/nVF6The3Nu)
 - GitHub: https://github.com/lordkeremello45/HWcontrol2.0
 - GitLab mirror: https://gitlab.com/lordkeremello45/HWcontrol2.0
 - Codeberg mirror: https://codeberg.org/lordkeremelllo45/HWcontrol2.0
