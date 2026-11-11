@@ -82,7 +82,7 @@ func discoverLiquidCoolingStatus() LiquidCoolingStatus {
 	ctx, cancel := context.WithTimeout(context.Background(), liquidctlStatusTimeout)
 	defer cancel()
 	command := exec.CommandContext(ctx, executable, "status", "--json")
-	command.Env = stableLiquidctlEnvironment(os.Environ())
+	command.Env = hardwareToolEnvironment()
 
 	var output boundedLiquidctlOutput
 	output.limit = liquidctlMaxOutput
