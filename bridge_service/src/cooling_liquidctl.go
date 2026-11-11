@@ -114,12 +114,31 @@ func discoverLiquidCoolingStatus() LiquidCoolingStatus {
 }
 
 func stableLiquidctlEnvironment(environment []string) []string {
-	result := make([]string, 0, len(environment)+2)
+	// Do not pass service credentials or application-specific configuration to
+	// an optional external process. liquidctl only needs process lookup,
+	// Windows system paths and a writable temporary directory.
+	allowed := map[string]bool{
+		"PATH": true, "SYSTEMROOT": true, "WINDIR": true,
+		"TMP": true, "TEMP": true, "TMPDIR": true,
+	}
+	values := make(map[string]string, len(allowed))
 	for _, entry := range environment {
-		if strings.HasPrefix(entry, "LANG=") || strings.HasPrefix(entry, "LC_ALL=") {
+		key, value, ok := strings.Cut(entry, "=")
+		if !ok {
 			continue
 		}
-		result = append(result, entry)
+		key = strings.ToUpper(key)
+		if allowed[key] && value != "" {
+			if _, exists := values[key]; !exists {
+				values[key] = key + "=" + value
+			}
+		}
+	}
+	result := make([]string, 0, len(values)+2)
+	for _, key := range []string{"PATH", "SYSTEMROOT", "WINDIR", "TMP", "TEMP", "TMPDIR"} {
+		if value, ok := values[key]; ok {
+			result = append(result, value)
+		}
 	}
 	return append(result, "LANG=C", "LC_ALL=C")
 }

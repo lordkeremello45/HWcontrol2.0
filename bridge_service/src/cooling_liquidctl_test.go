@@ -121,3 +121,29 @@ func TestAddLiquidCoolingCapabilitiesMapsNormalizedReadingNames(t *testing.T) {
 		t.Fatal("leak detection must remain unavailable without an explicit validated reading")
 	}
 }
+
+
+func TestStableLiquidctlEnvironmentDoesNotInheritServiceSecrets(t *testing.T) {
+	got := stableLiquidctlEnvironment([]string{
+		"PATH=/usr/bin",
+		"HOME=/root",
+		"HWCONTROL_KEY=must-not-leak",
+		"HWCONTROL_KEY_FILE=/protected/bridge.key",
+		"PYTHONPATH=/attacker/override",
+		"SYSTEMROOT=C:\\Windows",
+		"TMPDIR=/tmp",
+		"LANG=tr_TR.UTF-8",
+		"LC_ALL=tr_TR.UTF-8",
+	})
+	joined := strings.Join(got, "\n")
+	for _, forbidden := range []string{"HOME=", "HWCONTROL_KEY", "PYTHONPATH", "tr_TR"} {
+		if strings.Contains(joined, forbidden) {
+			t.Fatalf("optional liquidctl process inherited forbidden environment entry %q: %s", forbidden, joined)
+		}
+	}
+	for _, required := range []string{"PATH=/usr/bin", "SYSTEMROOT=C:\\Windows", "TMPDIR=/tmp", "LANG=C", "LC_ALL=C"} {
+		if !strings.Contains(joined, required) {
+			t.Fatalf("liquidctl environment is missing required entry %q: %s", required, joined)
+		}
+	}
+}
