@@ -122,7 +122,6 @@ func TestAddLiquidCoolingCapabilitiesMapsNormalizedReadingNames(t *testing.T) {
 	}
 }
 
-
 func TestStableLiquidctlEnvironmentDoesNotInheritServiceSecrets(t *testing.T) {
 	got := stableLiquidctlEnvironment([]string{
 		"PATH=/usr/bin",
