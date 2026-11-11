@@ -16,9 +16,9 @@ HWControl provides a point-based Smart Fan Curve editor in the dashboard.
 
 ## Backend support
 
-The GUI does not imply hardware support. The bridge exposes fanControlSupported and fanControlBackend from the native/platform backend.
+The GUI does not imply hardware support. The Go bridge exposes fanControlSupported and fanControlBackend from the detected platform adapter.
 
-Linux exposes independently enumerated hwmon PWM channels. Each channel is reported separately with its backend, RPM feedback, current PWM percentage, writable/manual-mode status and a reason when it remains monitor-only. The bridge only permits per-channel writes when the channel has a matching fanN_input RPM sensor, is writable, and pwmN_enable already reports manual mode (1); the application does not switch a controller out of firmware automatic mode automatically.
+Linux exposes independently enumerated hwmon PWM channels. Each channel is reported separately with its backend, RPM feedback, current PWM percentage, writable/manual-mode status and a reason when it remains monitor-only. The bridge only permits per-channel writes when the channel has a matching fanN_input RPM sensor, is writable, and pwmN_enable already reports manual mode (1). It rechecks that mode immediately before each write and verifies the PWM command-value readback afterward; the application does not switch a controller out of firmware automatic mode automatically. Readback confirms the requested sysfs value, not physical RPM response.
 
 When multiple channels are available, the legacy global fan slider remains disabled and users control channels individually. Each channel can save its own curve, select CPU temperature, GPU temperature or the hottest valid CPU/GPU reading, enable/disable automatic curve evaluation, and save a manual target. Channel controls remain subject to the same thermal, authentication and fail-closed checks.
 

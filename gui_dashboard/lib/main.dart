@@ -20,6 +20,7 @@ import 'diagnostics.dart';
 import 'setup_wizard.dart';
 import 'fan_curve.dart';
 import 'fan_channels.dart';
+import 'cooling_devices.dart';
 import 'benchmark.dart';
 import 'automation_rules.dart';
 import 'audio_controller_studio.dart';
@@ -362,6 +363,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Map<String, Map<String, double>> _profiles = {};
   FanCurve _fanCurve = FanCurve.balanced;
   List<FanChannelTelemetry> _fanChannels = <FanChannelTelemetry>[];
+  LiquidCoolingSnapshot _liquidCooling = const LiquidCoolingSnapshot.unavailable();
+  DateTime? _lastLiquidCoolingRefresh;
   Map<String, FanChannelProfile> _fanChannelProfiles = <String, FanChannelProfile>{};
   final Map<String, FanCurveController> _fanChannelControllers = <String, FanCurveController>{};
   bool _smartFanEnabled = false;
@@ -1130,7 +1133,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       } else if (_fanControlSupported) {
         restored = await _sendCommand(
           'Fan Hızı',
-          _preGameFanValue.clamp(1, 100).toDouble(),
+          _preGameFanValue.clamp(20, 100).toDouble(),
         );
       }
 
@@ -1144,7 +1147,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (!detected) _preGameFanChannelValues.clear();
       if (mounted) {
         setState(() {
-          _fanValue = _preGameFanValue.clamp(1, 100).toDouble();
+          _fanValue = _preGameFanValue.clamp(20, 100).toDouble();
         });
       }
       _addEvent('Game Mode önceki fan hedeflerini geri yükledi');
@@ -2099,7 +2102,33 @@ Attach this archive to a support issue only after reviewing it for personal info
     if (thresholdExceeded) _addEvent('CPU sıcaklığı eşik üstünde');
     await _applyGameModeProfile(data);
     await _applyAutomaticFanControl(data);
+    // Optional USB cooling telemetry must never delay emergency/automatic fan control.
+    unawaited(_refreshLiquidCoolingTelemetry());
     if (_samplesSinceHistoryPersist >= 12) unawaited(_persistTelemetryHistory());
+  }
+
+  Future<void> _refreshLiquidCoolingTelemetry() async {
+    final now = DateTime.now();
+    final lastRefresh = _lastLiquidCoolingRefresh;
+    if (lastRefresh != null &&
+        now.difference(lastRefresh) < const Duration(seconds: 30)) {
+      return;
+    }
+    _lastLiquidCoolingRefresh = now;
+    final data = await _requestBridgeData('Get Liquid Cooling');
+    if (!mounted) return;
+    if (data == null) {
+      // A transient IPC/process failure gets a short retry backoff rather than
+      // retrying on every telemetry tick.
+      _lastLiquidCoolingRefresh = DateTime.now().subtract(const Duration(seconds: 25));
+      setState(() {
+        _liquidCooling = _liquidCooling.asStale();
+      });
+      return;
+    }
+    setState(() {
+      _liquidCooling = LiquidCoolingSnapshot.fromJson(data);
+    });
   }
 
   Future<void> _refreshSecurity() async {
@@ -4396,10 +4425,8 @@ Attach this archive to a support issue only after reviewing it for personal info
   }
 
   Widget _buildSliderControl(String label, IconData icon, double value, ValueChanged<double> onChanged, Color color, {String? command}) {
-    // The bridge rejects a zero-percent fan target because it can stop cooling.
-    // Keep the manual control within the backend's accepted range instead of
-    // letting the user select a value that will always fail at apply time.
-    final minimum = command == 'Fan Hızı' ? 1.0 : 0.0;
+    // Keep the manual slider aligned with the bridge's conservative fan floor.
+    final minimum = command == 'Fan Hızı' ? 20.0 : 0.0;
     final sliderValue = value.clamp(minimum, 100.0).toDouble();
     return Column(
       children: [
@@ -4422,7 +4449,7 @@ Attach this archive to a support issue only after reviewing it for personal info
           value: sliderValue,
           min: minimum,
           max: 100,
-          divisions: command == 'Fan Hızı' ? 99 : 20,
+          divisions: command == 'Fan Hızı' ? 80 : 20,
           activeColor: color,
           onChanged: _fanControlSupported ? onChanged : null,
         ),

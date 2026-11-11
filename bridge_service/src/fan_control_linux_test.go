@@ -212,3 +212,52 @@ func TestStableLinuxFanChannelIDIsDeterministic(t *testing.T) {
 		t.Fatalf("generated identifier is invalid: %q", first)
 	}
 }
+
+func TestWriteLinuxFanTargetRechecksManualModeBeforeApplying(t *testing.T) {
+	root := t.TempDir()
+	rpm := 1200
+	pwmPath := writeFanFixture(t, root, "hwmon0", "testchip", 1, 1, 140, &rpm)
+	targets := discoverLinuxFanTargets(root, nil)
+	if len(targets) != 1 || !targets[0].supported {
+		t.Fatalf("expected one initially controllable channel, got %+v", targets)
+	}
+	enablePath := filepath.Join(filepath.Dir(pwmPath), "pwm1_enable")
+	if err := os.WriteFile(enablePath, []byte("2\n"), 0644); err != nil {
+		t.Fatalf("change PWM mode: %v", err)
+	}
+	before, err := os.ReadFile(pwmPath)
+	if err != nil {
+		t.Fatalf("read PWM before rejected write: %v", err)
+	}
+	if err := writeLinuxFanTarget(targets[0], 60); err == nil {
+		t.Fatal("write must be rejected if firmware/manual mode changed after discovery")
+	}
+	after, err := os.ReadFile(pwmPath)
+	if err != nil {
+		t.Fatalf("read PWM after rejected write: %v", err)
+	}
+	if string(after) != string(before) {
+		t.Fatalf("PWM target changed after a mode mismatch: before=%q after=%q", before, after)
+	}
+}
+
+func TestWriteLinuxFanTargetVerifiesCommandReadback(t *testing.T) {
+	root := t.TempDir()
+	rpm := 1200
+	writeFanFixture(t, root, "hwmon0", "testchip", 1, 1, 140, &rpm)
+	targets := discoverLinuxFanTargets(root, nil)
+	if len(targets) != 1 || !targets[0].supported {
+		t.Fatalf("expected one controllable fixture channel, got %+v", targets)
+	}
+	if err := writeLinuxFanTarget(targets[0], 60); err != nil {
+		t.Fatalf("validated PWM write should succeed: %v", err)
+	}
+	readback, err := os.ReadFile(targets[0].pwmPath)
+	if err != nil {
+		t.Fatalf("read PWM target after write: %v", err)
+	}
+	expected := strconv.Itoa(int(60 * 255.0 / 100.0))
+	if strings.TrimSpace(string(readback)) != expected {
+		t.Fatalf("PWM readback = %q, want %q", strings.TrimSpace(string(readback)), expected)
+	}
+}

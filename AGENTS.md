@@ -11,9 +11,14 @@ Flutter / Dart GUI
         ↓
 Authenticated localhost Go Bridge
         ↓
-Native C++ / CMake Engine
+Go telemetry collectors and platform-specific control adapters
         ↓
-Platform-specific hardware APIs
+Operating-system / vendor hardware APIs
+
+Separate native helpers:
+- C++ / CMake local AI and audio components
+
+A shared native C++ Hardware API / Cooling HAL is a target design, not the current hardware-control runtime path.
 ```
 
 Targets: Windows 10/11 x64, Linux x64, macOS 14+ Apple Silicon.
@@ -28,6 +33,8 @@ Targets: Windows 10/11 x64, Linux x64, macOS 14+ Apple Silicon.
 6. Treat Windows, Linux, and macOS as distinct platforms.
 7. Do not add Python to the production application unless explicitly requested.
 8. Do not introduce unnecessary asynchronous complexity into existing synchronous workflows.
+9. Optional external executables must use bounded execution time/output, strict output parsing, explicit capability reporting, and must never be assumed present.
+10. Keep read-only telemetry separate from writable controls; never add pump/fan writes without documented device-specific bounds, readback and physical validation.
 9. Never hard-code secrets, tokens, passwords, certificates, private keys, or credentials.
 10. Never weaken security or disable validation merely to make CI pass.
 

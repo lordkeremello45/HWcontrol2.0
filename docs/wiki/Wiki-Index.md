@@ -19,6 +19,7 @@ This directory contains the version-controlled source for the project documentat
 
 - [Features](Features.md)
 - [Hardware Monitoring](Features-Hardware-Monitoring.md)
+- [Liquid Cooling](Features-Liquid-Cooling.md)
 - [CPU & GPU Temperature](Features-CPU-GPU-Temperature.md)
 - [Fan Curve Editor](Features-Fan-Curve-Editor.md)
 - [Real-time Hardware Graphs](Features-Real-time-Hardware-Graphs.md)

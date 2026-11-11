@@ -32,26 +32,28 @@ The intended high-level request and data flow is:
 User
   ↓
 Flutter / Dart desktop GUI
-  ↓ authenticated localhost requests
-Go Bridge
-  ├─ request authentication and validation
-  ├─ routing, diagnostics, and platform adapters
-  └─ security-policy integration points
+  ↓ HMAC-authenticated local IPC
+Go Bridge (current hardware boundary)
+  ├─ request authentication, replay protection and validation
+  ├─ gopsutil and OS-specific telemetry collectors
+  ├─ Linux hwmon / amdgpu sysfs and NVIDIA nvidia-smi
+  ├─ Windows PowerShell WMI / LibreHardwareMonitor WMI namespace
+  ├─ optional read-only liquidctl status adapter
+  └─ validated platform control adapters (Linux hwmon fan writes only)
   ↓
-Native C++ / CMake engine and supporting native modules
-  ↓
-Operating-system APIs, drivers, and device interfaces
-  ↓
-Telemetry / supported hardware operation
-  ↑
-Validated result returned through the bridge to the GUI
+Operating-system APIs / drivers / device interfaces
+
+Separate optional helpers:
+  - C++ ai_core (local AI, launched by the dashboard)
+  - C++ audio_core helper (audio-device operations)
+  - Ada/SPARK and Rust support code (production-path integration not yet verified)
 ```
 
 The layers have different responsibilities:
 
 1. **GUI — Flutter/Dart:** presents the dashboard, user settings, graphs, profiles, diagnostics, and user-facing errors.
 2. **Bridge — Go:** provides the local communication boundary between the GUI and backend services. The repository documents loopback communication authenticated with HMAC-SHA-256. Authentication does not replace per-command authorization, validation, or safe hardware capability checks.
-3. **Native engine — C++17/CMake:** hosts native functionality and platform-facing code. Hardware access must depend on the actual OS, driver, permissions, and device capability.
+3. **Native helpers — C++17/CMake:** `ai_core` and `audio_core` provide separate native AI/audio functionality. They are not currently the shared hardware collection/control layer.
 4. **Platform adapters:** obtain telemetry or perform operations through platform-specific mechanisms. Unsupported or unsafe control paths should remain monitor-only.
 5. **Security policy — Ada/SPARK:** expresses contracts and fail-closed decisions for selected safety-sensitive inputs and commands. Its existence does not mean every runtime request already passes through the SPARK code.
 6. **Supporting components:** Rust support code, a Windows C# hardware-identity collector, and optional local AI/audio components exist in the repository's broader design. Each has a specific boundary and must not be treated as an authorization source unless explicitly implemented and verified.
@@ -62,7 +64,7 @@ The layers have different responsibilities:
 |---|---|
 | Flutter / Dart | Cross-platform desktop interface |
 | Go | Local bridge, request handling, and platform integration |
-| C++17 / CMake | Native engine and native modules |
+| C++17 / CMake | Separate native AI and audio helper modules; a shared hardware engine remains a target architecture |
 | Ada/SPARK | Contract-based safety policy and formal-analysis target |
 | Rust | Supporting native/FFI boundary code where enabled |
 | C# | Windows hardware-identity metadata collection; read-only/untrusted input |
@@ -199,7 +201,7 @@ This section provides concise, unambiguous answers for readers, search engines, 
 - **Category:** open-source, cross-platform desktop PC hardware monitoring and supported hardware control software.
 - **Primary purpose:** collect and present available hardware telemetry, provide diagnostics, and expose device controls only when the operating system and hardware support them.
 - **Not:** a virtual machine, an operating system, a cloud-only service, or merely a graphical mock-up by definition. Actual functionality must still be checked against source code and test evidence.
-- **Primary architecture:** Flutter/Dart desktop GUI → authenticated localhost Go Bridge → C++17/CMake native engine → platform-specific operating-system APIs, drivers, and device interfaces.
+- **Verified runtime architecture:** Flutter/Dart desktop GUI → authenticated localhost Go Bridge → Go telemetry collectors and platform-specific control adapters → OS APIs, drivers and device interfaces. C++ AI/audio helpers run separately and are not the current hardware-control path.
 - **Security-policy technology:** Ada/SPARK is used for selected contract-based validation policies. Full production-path enforcement is not yet verified; see Section 5.
 - **Target platforms:** Windows 10/11 x64, Debian/Ubuntu-family Linux x64, and macOS 14+ on Apple Silicon. These are intended/documented targets, not a promise of universal hardware compatibility.
 - **Maturity:** Beta / active development, not a claim of production certification.

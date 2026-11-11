@@ -1,41 +1,31 @@
 # Hardware Monitoring
 
-The bridge collects system telemetry and exposes it to the Flutter dashboard.
+The Go bridge collects system telemetry and exposes it to the Flutter dashboard over the authenticated local IPC protocol.
 
 ## Current metrics
 
-The bridge model includes:
+The bridge model includes CPU and GPU usage/temperature where exposed, RAM, storage, fan percentage/RPM, power, voltage, GPU clocks/memory, uptime, sensor provenance and collection time. Availability depends on the OS, installed drivers, device and permissions.
 
-- CPU usage
-- CPU temperature
-- GPU usage
-- GPU temperature
-- RAM usage
-- disk usage
-- fan percentage / RPM
-- power
-- voltage
-- GPU vendor/name
-- GPU driver state and source
-- GPU memory usage
-- GPU clocks
-- system uptime
-- sensor source
+## Optional liquid-cooling telemetry
 
-Availability depends on the operating system and installed drivers.
+When an external `liquidctl` executable is installed and its hardware is supported, the bridge runs `liquidctl status --json` with a bounded timeout. It reports explicitly recognized coolant temperature, pump RPM, fan RPM, coolant flow and coolant level readings. Unsupported keys/units are ignored. Device serials and raw USB addresses are not returned.
+
+This path is read-only: HWcontrol does not run `liquidctl initialize` or any `set` operation. Device detection does not prove AIO/custom-loop type, pump control, leak detection or universal compatibility. See [Liquid Cooling](Features-Liquid-Cooling.md).
 
 ## Data path
 
 ```text
 Hardware / OS interfaces
         ↓
-Go bridge telemetry collection
+Go bridge collectors and platform adapters
         ↓
-Authenticated loopback socket
+HardwareMetrics + capability states / provenance
+        ↓
+Authenticated local IPC
         ↓
 Flutter dashboard
         ↓
-Charts / status cards / controls
+Cards / fan channels / cooling telemetry / history graph
 ```
 
-The dashboard refreshes telemetry periodically and keeps a bounded temperature history.
+The dashboard keeps a bounded local temperature history. CPU utilization uses nonblocking delta sampling; NVIDIA and platform collectors run concurrently. Hardware identity is refreshed asynchronously and cached so slow platform inventory commands do not block the main status response. A PWM command readback is not the same as verified physical fan RPM.

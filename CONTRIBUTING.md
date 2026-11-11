@@ -2,7 +2,7 @@
 
 Thank you for contributing to HWControl 2.0.
 
-HWControl is a cross-platform desktop hardware monitoring and control project built with Flutter/Dart, a Go bridge, and a native C++/CMake engine.
+HWControl is a cross-platform desktop hardware monitoring and supported-control project built with a Flutter/Dart dashboard and an authenticated Go bridge. C++/CMake AI and audio helpers are separate native components; current hardware telemetry and control adapters live in the Go bridge.
 
 ## Before opening an issue
 

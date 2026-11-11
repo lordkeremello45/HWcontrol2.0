@@ -7,8 +7,10 @@ This FAQ reflects the current documented HWcontrol2.0 architecture and implement
 ### What is HWcontrol2.0?
 HWcontrol2.0 is a cross-platform desktop hardware monitoring and control application.
 
-Architecture:
-Flutter/Dart GUI → authenticated localhost Go bridge → native C++ engine → platform-specific hardware APIs.
+Verified runtime path:
+Flutter/Dart GUI → authenticated localhost Go bridge → Go telemetry collectors and platform-specific control adapters → OS/vendor APIs.
+
+The C++/CMake AI and audio helpers run as separate components; they are not the current shared hardware API layer.
 
 ### Which platforms are supported?
 The project targets Windows 10/11 x64, Linux x64 (primarily Debian/Ubuntu-family distributions), and macOS 14+ on Apple Silicon. Individual capabilities vary by platform, driver, firmware, permissions, and hardware model.

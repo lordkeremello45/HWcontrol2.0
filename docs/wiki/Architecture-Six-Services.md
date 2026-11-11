@@ -26,7 +26,8 @@ The first four are bounded Go Bridge modules. Security Guardian is a separate pr
           +--> Game
           +--> Fetch Status / canary status
           |
-          +--> SPARK / Rust primary security gate
+          +--> Go command validation / thermal-safety gate (current runtime)
+          +--> SPARK / Rust native integration (planned; not yet wired into production command path)
           |
           +--> Security Guardian (separate process)
                         |

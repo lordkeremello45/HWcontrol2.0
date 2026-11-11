@@ -80,6 +80,7 @@ func TestValidateCommand(t *testing.T) {
 		{"security command", testCommand("Get Security", 0), true},
 		{"diagnostics command", testCommand("Get Diagnostics", 0), true},
 		{"health command", testCommand("Get Health", 0), true},
+		{"liquid cooling telemetry command", testCommand("Get Liquid Cooling", 0), true},
 	}
 
 	for _, test := range tests {
@@ -310,7 +311,7 @@ func TestAuthenticateCommandRejectsMalformedAuth(t *testing.T) {
 }
 
 func TestValidateCommandRejectsNonFiniteAndOutOfRangeValues(t *testing.T) {
-	for _, value := range []float64{-1, 101, math.NaN(), math.Inf(1), math.Inf(-1)} {
+	for _, value := range []float64{-1, 1, 19, 101, math.NaN(), math.Inf(1), math.Inf(-1)} {
 		if err := validateCommand(testCommand("Fan Hızı", value)); err == nil {
 			t.Fatalf("validateCommand() accepted invalid value %v", value)
 		}

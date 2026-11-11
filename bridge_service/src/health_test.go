@@ -321,3 +321,28 @@ func TestEvaluateHardwareHealthDoesNotConfirmStallWithoutPWMCommandState(t *test
 	}
 	t.Fatalf("expected missing PWM-command-state warning, got %#v", evaluation.Anomalies)
 }
+
+func TestHardwareCapabilityIncludesExplicitState(t *testing.T) {
+	for _, test := range []struct {
+		name      string
+		available bool
+		backend   string
+		reason    string
+		want      string
+	}{
+		{name: "available", available: true, backend: "test", want: "available"},
+		{name: "permission denied", backend: "test", reason: "permission denied", want: "permission_denied"},
+		{name: "unsupported", backend: "not-implemented", reason: "adapter not implemented", want: "unsupported"},
+		{name: "unavailable", backend: "test", reason: "sensor not detected", want: "unavailable"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			got := capability(test.available, test.backend, test.reason)
+			if got.State != test.want {
+				t.Fatalf("capability state = %q, want %q", got.State, test.want)
+			}
+			if got.Available != test.available {
+				t.Fatalf("capability available = %t, want %t", got.Available, test.available)
+			}
+		})
+	}
+}

@@ -3,9 +3,11 @@
 package main
 
 import (
+	"context"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/shirou/gopsutil/v3/cpu"
 )
@@ -52,7 +54,9 @@ func collectHardwareIdentity() HardwareIdentity {
 		}
 		break
 	}
-	if output, err := exec.Command("lspci", "-nn", "-d", "::0300").Output(); err == nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if output, err := exec.CommandContext(ctx, "lspci", "-nn", "-d", "::0300").Output(); err == nil {
 		line := strings.TrimSpace(strings.SplitN(string(output), "\n", 2)[0])
 		if idx := strings.Index(line, ": "); idx >= 0 {
 			id.GPUModel = strings.TrimSpace(line[idx+2:])

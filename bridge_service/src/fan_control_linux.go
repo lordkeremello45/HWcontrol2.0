@@ -238,15 +238,36 @@ func detectFanControl() FanControlInfo {
 }
 
 func writeLinuxFanTarget(target linuxFanTarget, percent float64) error {
-	value := int(percent * 255.0 / 100.0)
-	if value < 0 {
-		value = 0
+	if err := validateFanPercent(percent); err != nil {
+		return err
 	}
-	if value > 255 {
-		value = 255
+	number, ok := parseLinuxPWMNumber(target.pwmPath)
+	if !ok {
+		return fmt.Errorf("invalid PWM target")
+	}
+	enablePath := filepath.Join(filepath.Dir(target.pwmPath), fmt.Sprintf("pwm%d_enable", number))
+	mode, err := os.ReadFile(enablePath)
+	if err != nil {
+		return fmt.Errorf("recheck PWM control mode: %w", err)
+	}
+	if strings.TrimSpace(string(mode)) != "1" {
+		return fmt.Errorf("PWM control mode changed; manual control was not applied")
+	}
+
+	value := int(percent * 255.0 / 100.0)
+	if value < 0 || value > 255 {
+		return fmt.Errorf("PWM target is outside the supported range")
 	}
 	if err := os.WriteFile(target.pwmPath, []byte(strconv.Itoa(value)+"\n"), 0200); err != nil {
 		return fmt.Errorf("write %s: %w", filepath.Base(target.pwmPath), err)
+	}
+	readback, err := os.ReadFile(target.pwmPath)
+	if err != nil {
+		return fmt.Errorf("read back %s after write: %w", filepath.Base(target.pwmPath), err)
+	}
+	actual, err := strconv.Atoi(strings.TrimSpace(string(readback)))
+	if err != nil || actual != value {
+		return fmt.Errorf("PWM target readback mismatch: requested %d, received %q", value, strings.TrimSpace(string(readback)))
 	}
 	return nil
 }
@@ -278,9 +299,9 @@ func setFanControl(percent float64) error {
 	if err := validateFanPercent(percent); err != nil {
 		return err
 	}
-	info := detectFanControl()
-	if !info.Supported || info.Handle == "" {
-		return fmt.Errorf("linux hwmon fan control unavailable: %s", info.Reason)
+	targets := linuxFanTargets()
+	if len(targets) != 1 {
+		return fmt.Errorf("linux hwmon fan control unavailable: expected one validated channel, found %d", len(targets))
 	}
-	return os.WriteFile(info.Handle, []byte(strconv.Itoa(int(percent*255.0/100.0))+"\n"), 0200)
+	return writeLinuxFanTarget(targets[0], percent)
 }

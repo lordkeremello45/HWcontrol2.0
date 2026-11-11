@@ -6,7 +6,8 @@ HWControl 2.0 is an open-source, cross-platform desktop application for hardware
 
 - **UI:** Flutter / Dart
 - **Secure local bridge:** Go
-- **Native engine:** C++ with CMake
+- **Hardware collection/control:** Go bridge with OS/vendor adapters
+- **Native helpers:** C++/CMake AI and audio components
 - **Release targets:** Windows 10/11 x64, macOS 14+ Apple Silicon, Debian/Ubuntu-family Linux x64
 - **Website:** https://lordkeremello45.github.io/HWcontrol2.0/
 - **Source:** https://github.com/lordkeremello45/HWcontrol2.0
@@ -17,7 +18,7 @@ HWControl 2.0 is an open-source, cross-platform desktop application for hardware
 
 The dashboard exposes CPU, memory, disk, GPU and fan telemetry where the operating system/driver exposes it. It also provides temperature history, configurable temperature alerts, local profiles, hardware-control commands, security status, bridge diagnostics and update checks.
 
-Hardware-control availability is capability-driven: if a platform or device does not expose a safe supported control path, the application must remain monitor-only rather than pretending that control is available.
+Hardware-control availability is capability-driven: if a platform or device does not expose a safe supported control path, the application must remain monitor-only rather than pretending that control is available. An optional externally installed liquidctl CLI can provide read-only coolant/pump/fan telemetry; no pump or AIO control is implied.
 
 ## Beta distribution
 

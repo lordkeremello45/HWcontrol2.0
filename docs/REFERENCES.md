@@ -27,7 +27,9 @@ References answer **where a design decision came from**. They do not replace imp
 
 ### Linux
 - Linux kernel documentation: https://docs.kernel.org/
-- Linux kernel hwmon: https://www.kernel.org/doc/html/latest/hwmon/hwmon-kernel-api.html
+- Linux kernel hwmon API: https://www.kernel.org/doc/html/latest/hwmon/hwmon-kernel-api.html
+- Linux hwmon sysfs interface (sensor labels, PWM and fan input attributes): https://www.kernel.org/doc/html/latest/hwmon/sysfs-interface.html
+- Linux pwm-fan driver (PWM enable modes and fan RPM reporting): https://www.kernel.org/doc/html/latest/hwmon/pwm-fan.html
 - Linux block I/O statistics: https://www.kernel.org/doc/html/latest/block/stat.html
 - Linux fs-verity: https://www.kernel.org/doc/html/latest/filesystems/fsverity.html
 - Debian: https://www.debian.org/
@@ -43,10 +45,22 @@ References answer **where a design decision came from**. They do not replace imp
 
 ### GPU vendors
 - NVIDIA Developer / Documentation: https://developer.nvidia.com/ and https://docs.nvidia.com/
+- NVIDIA NVAPI GPU Cooler Interface (fan-level control and tachometer API; Windows): https://docs.nvidia.com/nvapi/group__gpucooler.html
 - AMD Developer: https://developer.amd.com/
+- AMD ADLX manual fan tuning — SetTargetFanSpeed: https://gpuopen.com/manuals/adlx/adlx-sdk-references/adlx-interfaces/gpu-tuning/iadlxmanualfantuning/settargetfanspeed/
 - Intel Developer: https://www.intel.com/content/www/us/en/developer/overview.html
+- Intel Graphics Control Library (IGCL) fan API: https://intel.github.io/drivers.gpu.control-library/Control/api.html
 
-**HWcontrol use:** vendor-specific telemetry and hardware integration where an appropriate supported API exists.
+**HWcontrol use:** vendor-specific telemetry and hardware integration where an appropriate supported API exists. NVAPI, ADLX and IGCL expose vendor-scoped fan APIs, but no such Windows write adapter is currently wired into the Go bridge; SDK presence is not implementation evidence.
+
+## Cooling controllers and integration research
+
+- liquidctl — supported liquid coolers and CLI JSON status interface: https://github.com/liquidctl/liquidctl
+- liquidctl CLI command reference (JSON, status, initialization and set commands): https://github.com/liquidctl/liquidctl/blob/main/liquidctl.8
+- CoolerControl architecture — optional liquidctl process boundary and daemon/device lifecycle: https://docs.coolercontrol.org/understanding/architecture
+- CoolerControl hardware support — hwmon, NVML, liquidctl and driver dependency model: https://docs.coolercontrol.org/devices/
+
+**HWcontrol use:** selected the optional `liquidctl status --json` read-only boundary. HWcontrol does not bundle liquidctl, install Python, initialize devices or issue pump/fan write commands. JSON key/value/unit stability is limited, so the bridge uses a strict recognized-field allowlist.
 
 ## Languages, frameworks and build systems
 

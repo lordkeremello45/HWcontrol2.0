@@ -14,9 +14,9 @@ HWcontrol2.0 aims to bring these workflows together while making capability limi
 
 ### 1. One application, an explicit multi-layer architecture
 
-The project uses a Flutter/Dart dashboard, an authenticated localhost Go bridge, and a native C++/CMake engine that integrates with platform-specific hardware APIs.
+The verified current implementation uses a Flutter/Dart dashboard and an authenticated localhost Go bridge. Hardware telemetry collectors and validated control adapters currently live in the Go bridge. The repository also contains separate C++/CMake AI and audio helpers; a shared native C++ hardware-abstraction engine remains a target architecture, not a completed runtime component.
 
-This separation is intended to make the UI, command boundary, and low-level hardware integration easier to inspect and test independently. The architecture is a design choice, not proof that every layer is already fully hardened.
+This separation is intended to make the UI, command boundary, native helper processes and platform integration easier to inspect and test independently. A planned architecture is not proof that the corresponding runtime layer is implemented.
 
 ### 2. Capability-gated hardware control
 

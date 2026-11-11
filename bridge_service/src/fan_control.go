@@ -37,9 +37,11 @@ func (i FanControlInfo) asError() error {
 	return fmt.Errorf("fan control backend unavailable: %s", i.Reason)
 }
 
+const minimumFanPercent = 20.0
+
 func validateFanPercent(percent float64) error {
-	if !isFiniteNonNegative(percent) || percent <= 0 || percent > 100 {
-		return fmt.Errorf("fan percent must be greater than 0 and at most 100; zero can stop the fan")
+	if !isFiniteNonNegative(percent) || percent < minimumFanPercent || percent > 100 {
+		return fmt.Errorf("fan percent must be at least %.0f and at most 100", minimumFanPercent)
 	}
 	return nil
 }

@@ -9,6 +9,7 @@ import (
 
 type HardwareCapability struct {
 	Available bool   `json:"available"`
+	State     string `json:"state"`
 	Backend   string `json:"backend"`
 	Reason    string `json:"reason,omitempty"`
 }
@@ -55,7 +56,15 @@ const (
 )
 
 func capability(available bool, backend, reason string) HardwareCapability {
-	return HardwareCapability{Available: available, Backend: backend, Reason: reason}
+	state := "unavailable"
+	if available {
+		state = "available"
+	} else if strings.Contains(strings.ToLower(reason), "permission") {
+		state = "permission_denied"
+	} else if backend == "not-implemented" || strings.Contains(strings.ToLower(reason), "not implemented") {
+		state = "unsupported"
+	}
+	return HardwareCapability{Available: available, State: state, Backend: backend, Reason: reason}
 }
 
 func hasValidatedFanControl(metrics HardwareMetrics) bool {
@@ -258,6 +267,7 @@ func isValidTemperature(value float64) bool {
 func healthSnapshot() HealthSnapshot {
 	metrics := collectMetrics()
 	evaluation := evaluateHardwareHealth(metrics)
+	addLiquidCoolingCapabilities(evaluation.Capabilities, cachedLiquidCoolingStatus())
 	checks := map[string]string{"authentication": "ok", "localTransport": "ok", "hardwareControl": "monitor-only", "hardwareIdentity": "unavailable", "sensors": "unavailable", "runtimeIntegrity": "unhealthy"}
 	warnings := make([]string, 0, 4)
 	if hasValidatedFanControl(metrics) {

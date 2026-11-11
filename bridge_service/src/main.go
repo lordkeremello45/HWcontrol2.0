@@ -242,9 +242,52 @@ const (
 	maxRequestBytes   = 64 * 1024
 )
 
+
+func mergePlatformTelemetry(metrics *HardwareMetrics, platform HardwareMetrics) {
+	if metrics == nil {
+		return
+	}
+	if platform.CPUTemperatureSource != "" && platform.CPUTemperature > 0 {
+		metrics.CPUTemperature = platform.CPUTemperature
+		metrics.CPUTemperatureSource = platform.CPUTemperatureSource
+	}
+	if platform.GPUTemperatureSource != "" && platform.GPUTemperature > 0 {
+		metrics.GPUTemperature = platform.GPUTemperature
+		metrics.GPUTemperatureSource = platform.GPUTemperatureSource
+	}
+	if platform.GPUUsage > 0 {
+		metrics.GPUUsage = platform.GPUUsage
+	}
+	if platform.GPUMemoryUsedBytes > 0 {
+		metrics.GPUMemoryUsedBytes = platform.GPUMemoryUsedBytes
+	}
+	if platform.GPUMemoryTotalBytes > 0 {
+		metrics.GPUMemoryTotalBytes = platform.GPUMemoryTotalBytes
+	}
+	if platform.PowerWatts > 0 {
+		metrics.PowerWatts = platform.PowerWatts
+	}
+	if isFinitePositive(platform.FanRPM) {
+		metrics.FanRPM = platform.FanRPM
+		metrics.FanRPMSource = platform.FanRPMSource
+	}
+	if isFinitePositive(platform.Voltage) {
+		metrics.Voltage = platform.Voltage
+	}
+	if platform.GPUVendor != "" {
+		metrics.GPUVendor = platform.GPUVendor
+	}
+	if platform.GPUName != "" {
+		metrics.GPUName = platform.GPUName
+	}
+	if platform.SensorSource != "" {
+		metrics.SensorSource = platform.SensorSource
+	}
+}
+
 func collectMetrics() HardwareMetrics {
 	metrics := HardwareMetrics{}
-	if percentages, err := cpu.Percent(time.Second, true); err == nil && len(percentages) > 0 {
+	if percentages, err := cpu.Percent(0, true); err == nil && len(percentages) > 0 {
 		var total float64
 		for _, percentage := range percentages {
 			total += percentage
@@ -280,7 +323,22 @@ func collectMetrics() HardwareMetrics {
 			}
 		}
 	}
-	if output, err := nvidiaSMIOutput(); err == nil {
+	var nvidiaOutput []byte
+	var nvidiaErr error
+	platformMetrics := HardwareMetrics{}
+	var collectors sync.WaitGroup
+	collectors.Add(2)
+	go func() {
+		defer collectors.Done()
+		nvidiaOutput, nvidiaErr = nvidiaSMIOutput()
+	}()
+	go func() {
+		defer collectors.Done()
+		mergePlatformMetrics(&platformMetrics)
+	}()
+	collectors.Wait()
+	output := nvidiaOutput
+	if nvidiaErr == nil {
 		lines := strings.Split(strings.TrimSpace(string(output)), "\n")
 		if len(lines) > 0 && strings.TrimSpace(lines[0]) != "" {
 			parts := strings.Split(lines[0], ",")
@@ -318,7 +376,8 @@ func collectMetrics() HardwareMetrics {
 			metrics.GPUTemperatureSource = "nvidia-smi:max-gpu-temperature"
 		}
 	}
-	mergePlatformMetrics(&metrics)
+	mergePlatformTelemetry(&metrics, platformMetrics)
+
 	mergeBatteryMetrics(&metrics)
 	metrics.FanChannels = listFanChannels()
 	fanControl := detectFanControl()
@@ -345,7 +404,7 @@ func collectMetrics() HardwareMetrics {
 	metrics.GameProcessPID = game.PID
 	metrics.GameDetectedAt = game.DetectedAt
 	metrics.GameSessionDurationSeconds = game.SessionDurationSeconds
-	identity := collectHardwareIdentity()
+	identity := cachedHardwareIdentity()
 	metrics.SystemManufacturer = identity.SystemManufacturer
 	metrics.SystemModel = identity.SystemModel
 	metrics.SystemVersion = identity.SystemVersion
@@ -577,7 +636,7 @@ func validateCommand(cmd Command) error {
 			return fmt.Errorf("read-only command value must be zero")
 		}
 		return nil
-	case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Sensor History", "Get Fan Channels", "Get Fetch Status", "Get Audio Devices", "Get Audio Studio Status", "Stop Audio Studio":
+	case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Sensor History", "Get Fan Channels", "Get Liquid Cooling", "Get Fetch Status", "Get Audio Devices", "Get Audio Studio Status", "Stop Audio Studio":
 		if cmd.Value != 0 {
 			return fmt.Errorf("read-only command value must be zero")
 		}
@@ -1170,6 +1229,8 @@ func audioProbeControl(command string) (map[string]any, error) {
 func diagnosticsSnapshot() map[string]any {
 	metrics := collectMetrics()
 	health := evaluateHardwareHealth(metrics)
+	liquidCooling := cachedLiquidCoolingStatus()
+	addLiquidCoolingCapabilities(health.Capabilities, liquidCooling)
 	modelPath := strings.TrimSpace(os.Getenv("HWCONTROL_MODEL"))
 	modelState := "managed-by-gui"
 	if modelPath != "" {
@@ -1202,6 +1263,7 @@ func diagnosticsSnapshot() map[string]any {
 		"fanControlBackend":      metrics.FanControlBackend,
 		"hardwareControlMode":    metrics.HardwareControlMode,
 		"fanChannels":            metrics.FanChannels,
+		"liquidCooling":          liquidCooling,
 		"thermalSafetyAvailable": metrics.ThermalSafetyAvailable,
 		"localOnly":              true,
 		"listenAddress":          bridgeEndpoint(),
@@ -1447,7 +1509,7 @@ func handleConnection(conn net.Conn, secret string) {
 		authFailures = 0
 		if panicModeActive() {
 			switch cmd.Action {
-			case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Sensor History", "Get Fan Channels", "Get Fetch Status", "Get Power Mode", "Get Audio Devices":
+			case "Get Status", "Get Security", "Get Diagnostics", "Get Health", "Get Game Mode", "Get Update", "Get Sensor Health", "Get Sensor History", "Get Fan Channels", "Get Liquid Cooling", "Get Fetch Status", "Get Power Mode", "Get Audio Devices":
 				// Read-only diagnostics remain available so the user can see why the system entered panic mode.
 			default:
 				_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
@@ -1558,6 +1620,15 @@ func handleConnection(conn net.Conn, secret string) {
 					"localOnly": true,
 				},
 			}); err != nil {
+				return
+			}
+			continue
+		}
+		if cmd.Action == "Get Liquid Cooling" {
+			liquidCooling := discoverLiquidCoolingStatus()
+			storeLiquidCoolingStatus(liquidCooling)
+			_ = conn.SetWriteDeadline(time.Now().Add(connectionTimeout))
+			if err := encoder.Encode(Response{Status: "SUCCESS", Message: "Liquid-cooling telemetry retrieved (read-only)", Data: liquidCooling}); err != nil {
 				return
 			}
 			continue

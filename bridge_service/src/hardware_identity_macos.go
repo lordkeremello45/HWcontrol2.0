@@ -3,12 +3,22 @@
 package main
 
 import (
+	"context"
 	"os/exec"
 	"strings"
+	"time"
 )
 
+const macHardwareIdentityCommandTimeout = 1500 * time.Millisecond
+
+func macHardwareIdentityOutput(name string, args ...string) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), macHardwareIdentityCommandTimeout)
+	defer cancel()
+	return exec.CommandContext(ctx, name, args...).Output()
+}
+
 func macSysctl(key string) string {
-	out, err := exec.Command("sysctl", "-n", key).Output()
+	out, err := macHardwareIdentityOutput("sysctl", "-n", key)
 	if err != nil {
 		return ""
 	}
@@ -26,7 +36,7 @@ func collectHardwareIdentity() HardwareIdentity {
 	id.CPUPhysicalCores = parsePositiveInt(macSysctl("hw.physicalcpu"))
 	id.GPUVendor = "Apple"
 
-	if out, err := exec.Command("ioreg", "-l", "-c", "IOPlatformExpertDevice").Output(); err == nil {
+	if out, err := macHardwareIdentityOutput("ioreg", "-l", "-c", "IOPlatformExpertDevice"); err == nil {
 		text := string(out)
 		id.SystemVersion = extractIORegValue(text, "product-name")
 		id.MotherboardModel = extractIORegValue(text, "board-id")

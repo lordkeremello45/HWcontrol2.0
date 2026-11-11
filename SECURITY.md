@@ -107,29 +107,24 @@ The security path is deliberately split by responsibility:
 Flutter / Dart
       |
       v
-Go Bridge
-  |   |-- HMAC-SHA-256 authentication
-  |   |-- timestamp / nonce / replay protection
-  |   |-- runtime integrity monitor
-  v
-SPARK Security Core
-  |   |-- authorization
-  |   |-- input and telemetry validation
-  |   |-- safety invariants
-  |   |-- fail-closed ALLOW / DENY decision
-  v
-Rust Security Support
-  |   |-- bounded FFI/ABI representation
-  |   |-- safe decision transport
-  |   |-- unknown decision => DENY
-  v
-C++ Hardware Engine
-  |
-  v
-OS / vendor API / hardware
+Authenticated Go Bridge (current runtime boundary)
+  |-- HMAC-SHA-256 authentication
+  |-- timestamp / nonce / replay protection
+  |-- strict command validation
+  |-- runtime integrity and panic-mode checks
+  |-- Go thermal-safety / capability validation
+      |
+      +--> Windows / Linux / macOS collectors and platform adapters
+                 |
+                 v
+           OS / vendor APIs / hardware (only where implemented)
+
+Separate code/design components:
+  Ada/SPARK policy core -> C ABI -> optional Rust support layer
+  C++ ai_core / audio_core -> separate native helper processes
 ```
 
-SPARK is the policy authority. Rust is an integration boundary and must never upgrade a SPARK denial to an allow or perform hardware I/O. The Rust support crate is intentionally dependency-free. Its native link to the SPARK C ABI is kept behind an explicit feature until the supported GNAT/SPARK toolchain is validated on each target platform.
+The Ada/SPARK policy package and Rust ABI support code exist in the repository, but the production Go hardware-command path does not yet invoke the SPARK C ABI. The SPARK core README documents this integration gap. Until native linking and end-to-end invocation are verified, the live bridge's Go validation is the current command gate; do not describe SPARK/Rust as an active primary runtime gate. The Rust support crate must never upgrade a SPARK denial to an allow or perform hardware I/O. Its native link remains behind an explicit feature until the supported GNAT/SPARK toolchain is validated on each target platform.
 
 ### Bridge key lifecycle
 

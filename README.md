@@ -2,7 +2,7 @@
 
 **HWcontrol2.0 is a cross-platform PC hardware monitoring and control application** for Windows 10/11, Linux, and macOS 14+ Apple Silicon. It is designed to report CPU/GPU temperatures, memory and storage telemetry, fan speeds and other sensors when the operating system and hardware expose them; supported devices can also use safety-gated fan and performance controls.
 
-It is a desktop PC utility—not an industrial automation/SCADA product, a serial hardware-flow-control protocol, or a DAW/mixer controller. Its architecture is Flutter/Dart desktop GUI → authenticated localhost Go bridge → native C++/CMake engine → platform-specific hardware APIs. **Hardware support varies by device, driver, operating system, and available permissions; this project is in Beta.**
+It is a desktop PC utility—not an industrial automation/SCADA product, a serial hardware-flow-control protocol, or a DAW/mixer controller. Its verified runtime path is Flutter/Dart desktop GUI → authenticated localhost Go bridge → Go telemetry collectors and platform-specific control adapters. The C++/CMake AI and audio components run as separate native helpers; they are not the current hardware-control engine. **Hardware support varies by device, driver, operating system, and available permissions; this project is in Beta.**
 
 [![HWControl Website](https://img.shields.io/badge/HWControl-Website-111827?style=for-the-badge&logo=googlechrome&logoColor=white)](https://lordkeremello45.github.io/HWcontrol2.0/)
 [![Discord Community](https://img.shields.io/badge/Discord-Join%20the%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/nVF6The3Nu)
@@ -11,7 +11,7 @@ It is a desktop PC utility—not an industrial automation/SCADA product, a seria
 [![Codeberg Mirror](https://img.shields.io/badge/Codeberg-Mirror-2185D0?style=for-the-badge&logo=codeberg&logoColor=white)](https://codeberg.org/lordkeremelllo45/HWcontrol2.0)
 [![Hugging Face Mirror](https://img.shields.io/badge/%F0%9F%A4%97-Hugging%20Face%20Mirror-yellow?style=for-the-badge)](https://huggingface.co/lordkeremello45/Hwcontrol2.0)
 
-HWcontrol2.0 is an open-source, cross-platform hardware monitoring, control, health and diagnostics platform built around a Flutter/Dart dashboard, an authenticated localhost Go bridge, and a native C++/CMake engine.
+HWcontrol2.0 is an open-source, cross-platform hardware monitoring, control, health and diagnostics platform built around a Flutter/Dart dashboard and an authenticated localhost Go bridge. Hardware collection and validated control adapters currently live in the Go bridge; C++/CMake AI and audio helpers are separate components.
 
 > **Current channel: Beta.** Hardware support and control capabilities depend on the operating system, drivers, and detected hardware. Unsupported control paths remain monitor-only.
 
@@ -38,6 +38,7 @@ Stable releases are coordinated by the **Final release — all platforms** workf
 - Game Mode
 - Safety-normalized Smart Fan Curve editor with a nonzero cooling floor, thermal emergency override and capability-gated automatic control
 - Per-channel fan inventory, independent manual targets, local fan profiles, and CPU/GPU/hottest-sensor selection where the platform exposes validated PWM channels
+- Optional read-only liquid-cooling telemetry through an externally installed `liquidctl` CLI (coolant temperature, pump/fan RPM, flow and level only when explicitly reported)
 - Local temperature automation rules
 - Bounded CPU microbenchmark
 - Local extension metadata/capability contract
