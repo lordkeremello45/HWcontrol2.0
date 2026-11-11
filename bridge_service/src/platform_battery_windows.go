@@ -39,7 +39,9 @@ $status = if ($battery) { switch ([int]$battery.BatteryStatus) { 1 {'discharging
 func mergeBatteryMetrics(metrics *HardwareMetrics) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	output, err := exec.CommandContext(ctx, "powershell.exe", "-NoProfile", "-NonInteractive", "-Command", windowsBatteryScript).Output()
+	command := exec.CommandContext(ctx, "powershell.exe", "-NoProfile", "-NonInteractive", "-Command", windowsBatteryScript)
+	command.Env = hardwareToolEnvironment()
+	output, err := command.Output()
 	if err != nil || len(output) == 0 || len(output) > 64*1024 {
 		metrics.Battery = BatteryMetrics{Status: "unavailable"}
 		return

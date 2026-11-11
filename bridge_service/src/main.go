@@ -465,7 +465,9 @@ const nvidiaSafetyTemperatureTimeout = 1200 * time.Millisecond
 func nvidiaSMITemperatureOutput() ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), nvidiaSafetyTemperatureTimeout)
 	defer cancel()
-	return exec.CommandContext(ctx, "nvidia-smi", "--query-gpu=temperature.gpu", "--format=csv,noheader,nounits").Output()
+	command := exec.CommandContext(ctx, "nvidia-smi", "--query-gpu=temperature.gpu", "--format=csv,noheader,nounits")
+	command.Env = hardwareToolEnvironment()
+	return command.Output()
 }
 
 func maxNvidiaGPUTemperature(output []byte) (float64, bool) {
@@ -539,7 +541,9 @@ func collectHardwareControlSafetyMetrics() HardwareMetrics {
 func nvidiaSMIOutput() ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), nvidiaSMITimeout)
 	defer cancel()
-	return exec.CommandContext(ctx, "nvidia-smi", "--query-gpu=name,driver_version,temperature.gpu,utilization.gpu,utilization.memory,fan.speed,power.draw,power.limit,voltage.gpu,memory.used,memory.total,clocks.gr,clocks.mem,pstate,utilization.encoder,utilization.decoder", "--format=csv,noheader,nounits").Output()
+	command := exec.CommandContext(ctx, "nvidia-smi", "--query-gpu=name,driver_version,temperature.gpu,utilization.gpu,utilization.memory,fan.speed,power.draw,power.limit,voltage.gpu,memory.used,memory.total,clocks.gr,clocks.mem,pstate,utilization.encoder,utilization.decoder", "--format=csv,noheader,nounits")
+	command.Env = hardwareToolEnvironment()
+	return command.Output()
 }
 
 func modelDigest() string {
@@ -1014,6 +1018,7 @@ func audioDeviceSnapshot() (map[string]any, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	command := exec.CommandContext(ctx, probe, "--json")
+	command.Env = hardwareToolEnvironment()
 	output, err := command.Output()
 	if ctx.Err() != nil {
 		return nil, fmt.Errorf("native audio device enumeration timed out")
@@ -1160,6 +1165,7 @@ func audioProbeControl(command string) (map[string]any, error) {
 			return nil, err
 		}
 		cmd := exec.Command(probe, "--server")
+		cmd.Env = hardwareToolEnvironment()
 		stdin, err := cmd.StdinPipe()
 		if err != nil {
 			return nil, fmt.Errorf("open native audio control input: %w", err)

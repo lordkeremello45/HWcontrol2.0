@@ -16,7 +16,9 @@ var ioregBatteryValue = regexp.MustCompile(`"([^"]+)"\s*=\s*("[^"]*"|[0-9]+)`)
 func mergeBatteryMetrics(metrics *HardwareMetrics) {
 	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
 	defer cancel()
-	output, err := exec.CommandContext(ctx, "/usr/sbin/ioreg", "-r", "-c", "AppleSmartBattery", "-l").Output()
+	command := exec.CommandContext(ctx, "/usr/sbin/ioreg", "-r", "-c", "AppleSmartBattery", "-l")
+	command.Env = hardwareToolEnvironment()
+	output, err := command.Output()
 	if err != nil || len(output) == 0 || len(output) > 256*1024 {
 		metrics.Battery = BatteryMetrics{Status: "unavailable"}
 		return

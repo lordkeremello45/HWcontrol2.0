@@ -131,6 +131,7 @@ func readStorageHealth(device string) storageHealthResult {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, "smartctl", "-a", "-j", physical)
+	cmd.Env = hardwareToolEnvironment()
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr

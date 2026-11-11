@@ -56,7 +56,9 @@ func collectHardwareIdentity() HardwareIdentity {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	if output, err := exec.CommandContext(ctx, "lspci", "-nn", "-d", "::0300").Output(); err == nil {
+	command := exec.CommandContext(ctx, "lspci", "-nn", "-d", "::0300")
+	command.Env = hardwareToolEnvironment()
+	if output, err := command.Output(); err == nil {
 		line := strings.TrimSpace(strings.SplitN(string(output), "\n", 2)[0])
 		if idx := strings.Index(line, ": "); idx >= 0 {
 			id.GPUModel = strings.TrimSpace(line[idx+2:])

@@ -79,6 +79,7 @@ func collectHardwareIdentityWithCSharp() (HardwareIdentity, bool) {
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, helper)
+	cmd.Env = hardwareToolEnvironment()
 	var stdout limitedHardwareOutput
 	stdout.limit = csharpHardwareIdentityMaxOutput
 	cmd.Stdout = &stdout

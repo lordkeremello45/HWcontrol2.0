@@ -24,7 +24,9 @@ if ($driver) { [pscustomobject]@{ provider=[string]$driver.DriverProviderName; v
 func mergeDriverInfo(metrics *HardwareMetrics) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	output, err := exec.CommandContext(ctx, "powershell.exe", "-NoProfile", "-NonInteractive", "-Command", windowsDriverScript).Output()
+	command := exec.CommandContext(ctx, "powershell.exe", "-NoProfile", "-NonInteractive", "-Command", windowsDriverScript)
+	command.Env = hardwareToolEnvironment()
+	output, err := command.Output()
 	if err != nil || strings.TrimSpace(string(output)) == "" {
 		if metrics.GPUDriverStatus == "" {
 			metrics.GPUDriverStatus = "unavailable"

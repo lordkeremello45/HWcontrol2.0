@@ -19,7 +19,9 @@ const (
 )
 
 var runPowerProfileCommand = func(ctx context.Context, args ...string) ([]byte, error) {
-	return exec.CommandContext(ctx, "busctl", args...).CombinedOutput()
+	command := exec.CommandContext(ctx, "busctl", args...)
+	command.Env = hardwareToolEnvironment()
+	return command.CombinedOutput()
 }
 
 func parseBusctlString(output string) (string, error) {

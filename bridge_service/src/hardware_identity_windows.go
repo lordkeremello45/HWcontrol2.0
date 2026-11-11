@@ -42,7 +42,9 @@ func collectHardwareIdentityWithPowerShell() HardwareIdentity {
 	id.DetectionSource = "Windows CIM/WMI"
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	output, err := exec.CommandContext(ctx, "powershell.exe", "-NoProfile", "-NonInteractive", "-Command", windowsHardwareIdentityScript).Output()
+	command := exec.CommandContext(ctx, "powershell.exe", "-NoProfile", "-NonInteractive", "-Command", windowsHardwareIdentityScript)
+	command.Env = hardwareToolEnvironment()
+	output, err := command.Output()
 	if err != nil || strings.TrimSpace(string(output)) == "" {
 		id.DetectionStatus = "unavailable"
 		return id

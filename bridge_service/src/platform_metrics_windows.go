@@ -45,7 +45,9 @@ if (-not $sensors) {
 func mergePlatformMetrics(metrics *HardwareMetrics) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	output, err := exec.CommandContext(ctx, "powershell.exe", "-NoProfile", "-NonInteractive", "-Command", windowsSensorScript).Output()
+	command := exec.CommandContext(ctx, "powershell.exe", "-NoProfile", "-NonInteractive", "-Command", windowsSensorScript)
+	command.Env = hardwareToolEnvironment()
+	output, err := command.Output()
 	if err != nil || strings.TrimSpace(string(output)) == "" {
 		return
 	}

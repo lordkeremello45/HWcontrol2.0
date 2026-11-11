@@ -14,7 +14,9 @@ const macHardwareIdentityCommandTimeout = 1500 * time.Millisecond
 func macHardwareIdentityOutput(name string, args ...string) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), macHardwareIdentityCommandTimeout)
 	defer cancel()
-	return exec.CommandContext(ctx, name, args...).Output()
+	command := exec.CommandContext(ctx, name, args...)
+	command.Env = hardwareToolEnvironment()
+	return command.Output()
 }
 
 func macSysctl(key string) string {

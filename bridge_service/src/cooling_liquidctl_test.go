@@ -146,3 +146,39 @@ func TestStableLiquidctlEnvironmentDoesNotInheritServiceSecrets(t *testing.T) {
 		}
 	}
 }
+
+func TestHardwareToolEnvironmentExcludesSecretsAndUserModulePaths(t *testing.T) {
+	got := hardwareToolEnvironmentFrom([]string{
+		"PATH=/usr/bin",
+		"HOME=/home/admin",
+		"HWCONTROL_KEY=secret",
+		"HWCONTROL_KEY_FILE=/protected/bridge.key",
+		"HWCONTROL_MODEL=/private/model.gguf",
+		"PYTHONPATH=/user/site-packages",
+		"PSModulePath=C:\\Users\\Admin\\Documents\\PowerShell\\Modules",
+		"SYSTEMROOT=C:\\Windows",
+		"WINDIR=C:\\Windows",
+		"PROGRAMFILES=C:\\Program Files",
+		"TMP=C:\\Windows\\Temp",
+	})
+	joined := strings.Join(got, "\n")
+	for _, forbidden := range []string{
+		"HOME=", "HWCONTROL_KEY", "HWCONTROL_MODEL", "PYTHONPATH",
+		"Users\\Admin", "Documents\\PowerShell",
+	} {
+		if strings.Contains(joined, forbidden) {
+			t.Fatalf("hardware tool environment inherited forbidden entry %q: %s", forbidden, joined)
+		}
+	}
+	for _, required := range []string{
+		"PATH=/usr/bin", "SYSTEMROOT=C:\\Windows", "WINDIR=C:\\Windows",
+		"LANG=C", "LC_ALL=C",
+	} {
+		if !strings.Contains(joined, required) {
+			t.Fatalf("hardware tool environment is missing required entry %q: %s", required, joined)
+		}
+	}
+	if !strings.Contains(joined, "PSModulePath=") || !strings.Contains(joined, "System32") {
+		t.Fatalf("PowerShell system module path was not reconstructed: %s", joined)
+	}
+}
