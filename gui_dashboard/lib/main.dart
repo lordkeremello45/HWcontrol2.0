@@ -2880,6 +2880,11 @@ Attach this archive to a support issue only after reviewing it for personal info
                       const SizedBox(height: 18),
                       _buildHardwareIdentityCard(),
                       const SizedBox(height: 18),
+                      LiquidCoolingPanel(
+                        snapshot: _liquidCooling,
+                        translate: _feedbackText,
+                      ),
+                      const SizedBox(height: 18),
                       _buildStorageCard(),
                       const SizedBox(height: 18),
                       _buildGameModeCard(),

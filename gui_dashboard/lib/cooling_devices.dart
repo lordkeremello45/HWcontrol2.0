@@ -109,22 +109,27 @@ class LiquidCoolingSnapshot {
 }
 
 class LiquidCoolingPanel extends StatelessWidget {
-  const LiquidCoolingPanel({super.key, required this.snapshot});
+  const LiquidCoolingPanel({
+    super.key,
+    required this.snapshot,
+    required this.translate,
+  });
 
   final LiquidCoolingSnapshot snapshot;
+  final String Function(String turkish, String english) translate;
 
   String _labelFor(String kind) {
     switch (kind) {
       case 'coolantTemperature':
-        return 'Coolant temperature';
+        return translate('Soğutucu sıcaklığı', 'Coolant temperature');
       case 'pumpRPM':
-        return 'Pump speed';
+        return translate('Pompa hızı', 'Pump speed');
       case 'fanRPM':
-        return 'Fan speed';
+        return translate('Fan hızı', 'Fan speed');
       case 'flowRate':
-        return 'Coolant flow';
+        return translate('Sıvı akışı', 'Coolant flow');
       case 'coolantLevel':
-        return 'Coolant level';
+        return translate('Soğutucu seviyesi', 'Coolant level');
       default:
         return kind;
     }
@@ -133,13 +138,13 @@ class LiquidCoolingPanel extends StatelessWidget {
   String _stateLabel(String state) {
     switch (state) {
       case 'available':
-        return 'Available';
+        return translate('Kullanılabilir', 'Available');
       case 'partial':
-        return 'Partial';
+        return translate('Kısmi', 'Partial');
       case 'stale':
-        return 'Stale';
+        return translate('Eski veri', 'Stale');
       default:
-        return 'Unavailable';
+        return translate('Kullanılamıyor', 'Unavailable');
     }
   }
 
@@ -159,7 +164,7 @@ class LiquidCoolingPanel extends StatelessWidget {
                 const SizedBox(width: 8),
                 const Expanded(
                   child: Text(
-                    'Liquid-cooling telemetry',
+                    translate('Sıvı soğutma telemetrisi', 'Liquid-cooling telemetry'),
                     style: TextStyle(fontWeight: FontWeight.w700),
                   ),
                 ),
@@ -208,7 +213,10 @@ class LiquidCoolingPanel extends StatelessWidget {
             ],
             const SizedBox(height: 4),
             Text(
-              'Read-only adapter. HWcontrol does not initialize, reconfigure or control the detected device.',
+              translate(
+                'Salt okunur adaptör. HWcontrol algılanan aygıtı başlatmaz, yeniden yapılandırmaz veya kontrol etmez.',
+                'Read-only adapter. HWcontrol does not initialize, reconfigure or control the detected device.',
+              ),
               style: theme.textTheme.bodySmall,
             ),
           ],
