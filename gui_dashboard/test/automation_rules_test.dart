@@ -17,3 +17,31 @@ void main() {
     expect(engine.evaluate(<String, dynamic>{'gpuTemperature': 90}), isNull);
   });
 }
+
+
+  test('legacy automation fan targets are migrated to the bridge floor', () {
+    final rule = HardwareAutomationRule.fromJson(<String, dynamic>{
+      'name': 'legacy rule',
+      'sensor': 'cpuTemperature',
+      'threshold': 80,
+      'fan': 0,
+      'enabled': true,
+    });
+
+    expect(rule, isNotNull);
+    expect(rule!.fanPercent, 20);
+    expect(rule.toJson()['fan'], 20);
+  });
+
+  test('engine never returns a fan target below the bridge floor', () {
+    const engine = HardwareAutomationEngine(<HardwareAutomationRule>[
+      HardwareAutomationRule(
+        name: 'legacy in-memory rule',
+        sensor: 'cpuTemperature',
+        threshold: 80,
+        fanPercent: 1,
+      ),
+    ]);
+
+    expect(engine.evaluate(<String, dynamic>{'cpuTemperature': 90}), 20);
+  });

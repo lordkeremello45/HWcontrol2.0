@@ -6,7 +6,13 @@ class HardwareAutomationRule {
   final double fanPercent;
   final bool enabled;
 
-  Map<String, dynamic> toJson() => {'name': name, 'sensor': sensor, 'threshold': threshold, 'fan': fanPercent, 'enabled': enabled};
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'sensor': sensor,
+        'threshold': threshold,
+        'fan': fanPercent.clamp(20, 100).toDouble(),
+        'enabled': enabled,
+      };
 
   static HardwareAutomationRule? fromJson(dynamic value) {
     if (value is! Map) return null;
@@ -18,7 +24,14 @@ class HardwareAutomationRule {
     if (name == null || name.isEmpty || sensor == null || sensor.isEmpty || threshold == null || fan == null) return null;
     if (!threshold.isFinite || !fan.isFinite || fan < 0 || fan > 100) return null;
     if (sensor != 'cpuTemperature' && sensor != 'gpuTemperature') return null;
-    return HardwareAutomationRule(name: name, sensor: sensor, threshold: threshold.clamp(20, 110).toDouble(), fanPercent: fan, enabled: enabled);
+    return HardwareAutomationRule(
+      name: name,
+      sensor: sensor,
+      threshold: threshold.clamp(20, 110).toDouble(),
+      // Migrate legacy 0–19% rules to the bridge's minimum safe command.
+      fanPercent: fan.clamp(20, 100).toDouble(),
+      enabled: enabled,
+    );
   }
 }
 
@@ -38,6 +51,6 @@ class HardwareAutomationEngine {
         target = rule.fanPercent;
       }
     }
-    return target?.clamp(0, 100).toDouble();
+    return target?.clamp(20, 100).toDouble();
   }
 }

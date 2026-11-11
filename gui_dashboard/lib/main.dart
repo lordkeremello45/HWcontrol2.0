@@ -682,8 +682,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final ai = (values['ai'] as num?)?.toDouble();
         if (fan == null || ai == null) continue;
         profiles[entry.key] = {
-          'fan': fan.clamp(0, 100),
-          'ai': ai.clamp(0, 100),
+          'fan': fan.clamp(20, 100).toDouble(),
+          'ai': ai.clamp(0, 100).toDouble(),
         };
       }
       setState(() => _profiles = profiles);
@@ -917,7 +917,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   name: cleanName,
                   sensor: sensor,
                   threshold: t.clamp(20, 110).toDouble(),
-                  fanPercent: f.clamp(0, 100).toDouble(),
+                  fanPercent: f.clamp(20, 100).toDouble(),
                   enabled: initial?.enabled ?? true,
                 ));
               },
@@ -1161,7 +1161,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     // Keep the original baseline when switching directly between games.
     if (!hadActiveSession) {
-      _preGameFanValue = _fanValue.clamp(1, 100).toDouble();
+      _preGameFanValue = _fanValue.clamp(20, 100).toDouble();
       _preGameFanChannelValues
         ..clear()
         ..addEntries(supportedChannels.map((channel) {
@@ -1185,7 +1185,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       profiles: _profiles,
     );
     final selectedTarget = supportedChannels.isEmpty
-        ? target.clamp(1, 100).toDouble()
+        ? target.clamp(20, 100).toDouble()
         : target.clamp(20, 100).toDouble();
 
     var success = true;
@@ -4332,7 +4332,7 @@ Attach this archive to a support issue only after reviewing it for personal info
             _buildSliderControl(
               _tr('fanSpeed'),
               Icons.air,
-              _fanValue.clamp(1, 100).toDouble(),
+              _fanValue.clamp(20, 100).toDouble(),
               (value) => setState(() => _fanValue = value),
               const Color(0xFF64D8CB),
               command: 'Fan Hızı',

@@ -35,7 +35,7 @@ class FanCurve {
 
   /// Returns a sorted, safe curve. Fan demand must not fall as temperature
   /// rises; otherwise a malformed or edited curve could reduce cooling at a
-  /// hotter reading. HWcontrol also refuses zero-percent hardware commands.
+  /// hotter reading. HWcontrol enforces a 20% minimum hardware fan target.
   List<FanCurvePoint> get safetyNormalizedPoints {
     final sorted = points
         .where((point) => point.temperature.isFinite && point.fanPercent.isFinite)
