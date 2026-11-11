@@ -19,7 +19,7 @@ begin
 
    pragma Assert
      (Validate_Fan_Command
-        (Fan => 0, Telemetry_Valid => True, Temperature_C => 60,
+        (Fan => 20, Telemetry_Valid => True, Temperature_C => 60,
          Integrity_Healthy => True, Authorized => True) = Allow);
 
    pragma Assert
@@ -64,6 +64,16 @@ begin
 
    pragma Assert
      (Validate_Raw_Fan_Command
+        (Fan_Percent_Value => 19, Telemetry_Valid => True, Temperature_C => 60,
+         Integrity_Healthy => True, Authorized => True) = Deny);
+
+   pragma Assert
+     (Validate_Raw_Fan_Command
+        (Fan_Percent_Value => 20, Telemetry_Valid => True, Temperature_C => 60,
+         Integrity_Healthy => True, Authorized => True) = Allow);
+
+   pragma Assert
+     (Validate_Raw_Fan_Command
         (Fan_Percent_Value => 101, Telemetry_Valid => True, Temperature_C => 60,
          Integrity_Healthy => True, Authorized => True) = Deny);
 
@@ -81,6 +91,22 @@ begin
    pragma Assert
      (Validate_Raw_Fan_Command_C
         (Fan_Percent_Value => 50,
+         Telemetry_Valid => 1,
+         Temperature_C => 60,
+         Integrity_Healthy => 1,
+         Authorized => 1) = 1);
+
+   pragma Assert
+     (Validate_Raw_Fan_Command_C
+        (Fan_Percent_Value => 19,
+         Telemetry_Valid => 1,
+         Temperature_C => 60,
+         Integrity_Healthy => 1,
+         Authorized => 1) = 0);
+
+   pragma Assert
+     (Validate_Raw_Fan_Command_C
+        (Fan_Percent_Value => 20,
          Telemetry_Valid => 1,
          Temperature_C => 60,
          Integrity_Healthy => 1,

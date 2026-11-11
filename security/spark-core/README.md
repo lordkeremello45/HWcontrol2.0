@@ -1,26 +1,27 @@
 # HWcontrol2.0 SPARK Security Core
 
-This directory contains the isolated Ada/SPARK security boundary for HWcontrol2.0.
+This directory contains an isolated Ada/SPARK policy package for HWcontrol2.0.
 
-## Purpose
+## Purpose and runtime boundary
 
-The core is intentionally small and policy-focused. It does not replace the Go bridge authentication implementation, cryptographic primitives, or the C++ hardware engine.
+The core formally specifies and verifies selected fail-closed policy functions. It does not replace Go bridge authentication, cryptographic primitives or the current Go platform adapters.
 
-It formally specifies and verifies the fail-closed decision that precedes hardware-control execution:
+**Runtime status:** the production Go bridge does not yet dynamically link or invoke the exported SPARK C ABI for every hardware-control command. The bridge currently enforces its own matching validation rules. The SPARK package is a separately built/tested policy boundary until native linking and an end-to-end invocation test are complete on each target OS.
 
-- authorization must be granted;
-- runtime integrity must be healthy;
-- thermal telemetry must be valid;
-- sensor temperature must be inside the accepted sensor domain (-40°C..125°C);
-- temperature must remain below the application critical threshold (95°C);
-- typed fan commands are constrained to 0..100%;
-- raw fan values crossing a foreign-language ABI are explicitly range-checked before allowing control.
+The intended policy gate evaluates:
 
-Unknown, malformed, out-of-domain, or unsafe state produces Deny.
+- authorization;
+- runtime integrity;
+- valid thermal telemetry and sensor domain (-40°C..125°C);
+- temperature below the application critical threshold (95°C);
+- fan command range **20..100%** (aligned with the Go bridge and dashboard);
+- raw command values crossing a foreign-language ABI.
+
+Unknown, malformed, out-of-domain or unsafe state produces Deny.
 
 ## Verification model
 
-The security boundary is deliberately expressed as pure functions with Global => null, making the policy deterministic and free of hidden mutable state.
+The security boundary is expressed as pure functions with `Global => null`, making the policy deterministic and free of hidden mutable state.
 
 The proof obligations cover:
 
@@ -30,36 +31,31 @@ The proof obligations cover:
 4. raw integer fan command validation suitable for a future C ABI;
 5. fail-closed authorization and integrity checks.
 
-The raw-input validator is important for cross-language integration: C/C++/Go callers must not be able to bypass the 0..100 fan range simply because an Ada subtype would reject an invalid value before entering a typed function.
+The raw-input validator is important for cross-language integration: C/C++/Go callers must not be able to bypass the fan range simply because an Ada subtype would reject an invalid value before entering a typed function.
 
 ## Toolchain
 
-The production baseline is GNAT 15.3.0 because HWcontrol2.0 targets macOS 14+. GNATprove 16.1.0 is currently used for formal analysis in CI. The exact compiler/prover compatibility is validated by CI rather than assumed.
+The production baseline is GNAT 15.3.0 because HWcontrol2.0 targets macOS 14+. GNATprove 16.1.0 is currently used for formal analysis in CI. Exact compiler/prover compatibility is validated by CI rather than assumed.
 
-The repository does not depend on Alire for the CI trust path. CI downloads pinned upstream GNAT, GPRbuild, and GNATprove archives and verifies their SHA-256 digests before use. Alire remains supported for developer workflows when a matching toolchain is installed.
+The repository does not depend on Alire for the CI trust path. CI downloads pinned upstream GNAT, GPRbuild and GNATprove archives and verifies SHA-256 digests before use. Alire remains supported for developer workflows when a matching toolchain is installed.
 
 ## Local validation
 
 From this directory:
 
-    alr build
-    alr run
-    alr gnatprove -P security_core.gpr --mode=all --proof-warnings=on --level=2
+```sh
+alr build
+alr run
+alr gnatprove -P security_core.gpr --mode=all --proof-warnings=on --level=2
+```
 
-The production rule is that a security-core change is not accepted unless compilation, runtime tests, and GNATprove analysis pass.
-
-## Integration boundary
-
-The intended next integration step is a narrow C ABI between this core and the Go/native boundary. Cryptographic authentication remains in the existing bridge until a separately reviewed, verified implementation is available; SPARK should not be used as a branding-only replacement for proven cryptographic libraries.
-
+A security-core change is not accepted unless compilation, runtime tests and GNATprove analysis pass.
 
 ## Native boundary
 
-The SPARK package now exports hwcontrol_security_validate_fan_command with a C-compatible ABI. The exported function delegates to the same formally specified Validate_Raw_Fan_Command policy; it does not create a second security policy.
+The SPARK package exports `hwcontrol_security_validate_fan_command` and `hwcontrol_security_validate_hardware_identity` C-compatible entry points. The fan policy constrains the value to 20..100 and requires valid telemetry, a safe temperature, healthy integrity and authorization.
 
-The Rust support layer at security/rust-support/ can call this symbol behind its spark-ffi feature. Rust only carries and validates the ALLOW/DENY result and fails closed for unknown decision values.
-
-The live Go/C++ integration remains intentionally gated until the GNAT/SPARK toolchain and native linking are validated on Windows 10/11, Linux x64, and macOS 14+ Apple Silicon.
+The Rust support crate can call the fan validator behind its `spark-ffi` feature. Rust only carries and validates the ALLOW/DENY result and fails closed for unknown decision values. The production Go bridge does not yet invoke this ABI; the native toolchain and end-to-end path remain explicit integration work.
 
 ## Hardware identity data boundary
 
@@ -70,6 +66,6 @@ The C# Windows collector is an untrusted, read-only metadata source. Its JSON is
 - `Counts_Valid`: CPU/GPU collection sizes and core/device counts are in range;
 - `Status_Valid`: collector status is one of the explicitly supported states.
 
-Any false fact yields `Deny`. The exported C ABI `hwcontrol_security_validate_hardware_identity` additionally requires every flag to be exactly 1; unknown flag values fail closed. These checks validate whether metadata may enter the application data model, not whether the reported hardware identity is true, and they do not authorize hardware control.
+Any false fact yields `Deny`. The exported C ABI requires each flag to be exactly 1; unknown flag values fail closed. These checks validate whether metadata may enter the application data model, not whether the reported hardware identity is true, and they do not authorize hardware control.
 
-The Windows Go adapter currently enforces the same fail-closed contract at runtime after parsing the helper's JSON. **The exported SPARK ABI is specified and tested, but the Go Windows binary does not yet dynamically link or invoke that Ada symbol.** The current Windows GNAT/SPARK toolchain and native linking path are not configured in the release build. Do not describe this as a live Go-to-SPARK call until that link and an end-to-end test are implemented.
+The Windows Go adapter currently applies its own fail-closed input contract after parsing the helper JSON. The exported SPARK ABI is not yet dynamically linked or invoked by the Go Windows binary; do not describe this as a live Go-to-SPARK call until the link and an end-to-end test exist.

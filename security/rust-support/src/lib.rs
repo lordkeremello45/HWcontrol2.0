@@ -36,7 +36,10 @@ impl FanCommand {
         integrity_healthy: bool,
         authorized: bool,
     ) -> Option<Self> {
-        if fan_percent > 100 || temperature_c < -40 || temperature_c > 125 {
+        if !(20..=100).contains(&fan_percent)
+            || temperature_c < -40
+            || temperature_c > 125
+        {
             return None;
         }
 
@@ -100,7 +103,9 @@ mod tests {
 
     #[test]
     fn fan_command_is_bounded() {
-        assert!(FanCommand::new(0, true, 0, true, true).is_some());
+        assert!(FanCommand::new(0, true, 0, true, true).is_none());
+        assert!(FanCommand::new(19, true, 0, true, true).is_none());
+        assert!(FanCommand::new(20, true, 0, true, true).is_some());
         assert!(FanCommand::new(100, true, 125, true, true).is_some());
         assert!(FanCommand::new(101, true, 50, true, true).is_none());
         assert!(FanCommand::new(50, true, -41, true, true).is_none());

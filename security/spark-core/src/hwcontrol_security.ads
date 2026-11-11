@@ -8,8 +8,9 @@ is
    Critical_Temperature : constant := 95;
    Minimum_Sensor_Temperature : constant := -40;
    Maximum_Sensor_Temperature : constant := 125;
+   Minimum_Fan_Percent : constant := 20;
 
-   subtype Fan_Percent is Integer range 0 .. 100;
+   subtype Fan_Percent is Integer range Minimum_Fan_Percent .. 100;
    type Security_Decision is (Allow, Deny);
 
    function Is_Sensor_Temperature_Valid
