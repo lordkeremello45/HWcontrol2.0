@@ -75,7 +75,7 @@ void main() {
       );
     });
 
-    test('clamps stored fan targets to the supported range', () {
+    test('clamps stored fan targets to the safe command range', () {
       expect(
         resolveGameProfileFanTarget(
           processName: 'game.exe',
@@ -90,7 +90,7 @@ void main() {
           assignments: assignments,
           profiles: const {'Performance': {'fan': -5.0}},
         ),
-        1,
+        20,
       );
     });
 
