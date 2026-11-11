@@ -162,10 +162,10 @@ class LiquidCoolingPanel extends StatelessWidget {
               children: [
                 Icon(Icons.water_drop_outlined, color: theme.colorScheme.primary),
                 const SizedBox(width: 8),
-                const Expanded(
+                Expanded(
                   child: Text(
                     translate('Sıvı soğutma telemetrisi', 'Liquid-cooling telemetry'),
-                    style: TextStyle(fontWeight: FontWeight.w700),
+                    style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                 ),
                 Text(
