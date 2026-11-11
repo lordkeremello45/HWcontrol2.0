@@ -346,3 +346,17 @@ func TestHardwareCapabilityIncludesExplicitState(t *testing.T) {
 		})
 	}
 }
+
+func TestEvaluateHardwareHealthDoesNotAdvertisePendingOrPartialIdentity(t *testing.T) {
+	for _, state := range []string{"pending", "partial", "unsupported", "unavailable"} {
+		t.Run(state, func(t *testing.T) {
+			evaluation := evaluateHardwareHealth(HardwareMetrics{
+				DetectionStatus: state,
+				DetectionSource: "test",
+			})
+			if evaluation.Capabilities["hardwareIdentity"].Available {
+				t.Fatalf("hardware identity state %q must not be advertised as available", state)
+			}
+		})
+	}
+}

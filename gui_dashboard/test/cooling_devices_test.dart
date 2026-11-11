@@ -65,8 +65,6 @@ void main() {
     expect(snapshot.backend, 'liquidctl');
     expect(snapshot.devices, isEmpty);
   });
-}
-
 
   test('failed refresh preserves last valid readings as stale', () {
     final snapshot = LiquidCoolingSnapshot.fromJson(<String, dynamic>{
@@ -91,3 +89,4 @@ void main() {
     expect(stale.state, 'stale');
     expect(stale.devices.single.readings.single.value, 2300);
   });
+}

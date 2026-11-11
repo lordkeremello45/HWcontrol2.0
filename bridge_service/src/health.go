@@ -108,7 +108,7 @@ func evaluateHardwareHealth(metrics HardwareMetrics) HardwareHealthEvaluation {
 		"gpuCoreClock":              capability(isFinitePositive(metrics.GPUCoreClockMHz), metrics.SensorSource, "GPU core clock telemetry unavailable"),
 		"gpuMemoryClock":            capability(isFinitePositive(metrics.GPUMemoryClockMHz), metrics.SensorSource, "GPU memory clock telemetry unavailable"),
 		"gpuMemory":                 capability(metrics.GPUMemoryTotalBytes > 0, metrics.SensorSource, "GPU memory capacity unavailable"),
-		"hardwareIdentity":          capability(strings.TrimSpace(metrics.DetectionStatus) != "" && metrics.DetectionStatus != "unavailable", metrics.DetectionSource, "Hardware identity unavailable"),
+		"hardwareIdentity":          capability(metrics.DetectionStatus == "ok", metrics.DetectionSource, "Hardware identity is pending, partial, unsupported or unavailable"),
 		"storage":                   capability(len(metrics.StorageVolumes) > 0, "gopsutil", "No mounted storage volume could be enumerated"),
 		"cpuUtilization":            capability(isFiniteNonNegative(metrics.CPUUsage) && metrics.CPUUsage <= 100, "gopsutil", "CPU utilization telemetry unavailable or invalid"),
 		"memory":                    capability(metrics.MemoryTotalBytes > 0 && isFiniteNonNegative(metrics.MemoryUsage) && metrics.MemoryUsage <= 100, "gopsutil", "System memory telemetry unavailable or invalid"),
