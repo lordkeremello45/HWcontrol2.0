@@ -94,6 +94,25 @@ void main() {
       );
     });
 
+    test('migrates legacy saved targets to the minimum safe command', () {
+      expect(
+        resolveGameProfileFanTarget(
+          processName: 'game.exe',
+          assignments: assignments,
+          profiles: const {'Performance': {'fan': 1.0}},
+        ),
+        20,
+      );
+      expect(
+        resolveGameProfileFanTarget(
+          processName: 'game.exe',
+          assignments: assignments,
+          profiles: const {'Performance': {'fan': 0.0}},
+        ),
+        20,
+      );
+    });
+
     test('falls back when a saved target is not finite', () {
       expect(
         resolveGameProfileFanTarget(
