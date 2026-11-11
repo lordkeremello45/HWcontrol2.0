@@ -306,7 +306,7 @@ func cachedLiquidCoolingStatus() LiquidCoolingStatus {
 	if !runtimeLiquidCoolingStatusCache.initialized {
 		return LiquidCoolingStatus{
 			State: "unavailable", Backend: "liquidctl",
-			Reason: "liquid-cooling telemetry has not been queried yet",
+			Reason:  "liquid-cooling telemetry has not been queried yet",
 			Devices: []LiquidCoolingDevice{},
 		}
 	}

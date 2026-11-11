@@ -100,7 +100,7 @@ func TestAddLiquidCoolingCapabilitiesMapsNormalizedReadingNames(t *testing.T) {
 		State:   "available",
 		Backend: "liquidctl",
 		Devices: []LiquidCoolingDevice{{
-			State:    "available",
+			State: "available",
 			Readings: []CoolingReading{
 				{Kind: "coolantTemperature", Value: 31, Unit: "°C"},
 				{Kind: "pumpRPM", Value: 2400, Unit: "RPM"},

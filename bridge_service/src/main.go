@@ -242,7 +242,6 @@ const (
 	maxRequestBytes   = 64 * 1024
 )
 
-
 func mergePlatformTelemetry(metrics *HardwareMetrics, platform HardwareMetrics) {
 	if metrics == nil {
 		return
