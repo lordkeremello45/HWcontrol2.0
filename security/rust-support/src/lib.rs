@@ -36,10 +36,7 @@ impl FanCommand {
         integrity_healthy: bool,
         authorized: bool,
     ) -> Option<Self> {
-        if !(20..=100).contains(&fan_percent)
-            || temperature_c < -40
-            || temperature_c > 125
-        {
+        if !(20..=100).contains(&fan_percent) || temperature_c < -40 || temperature_c > 125 {
             return None;
         }
 
