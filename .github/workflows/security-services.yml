@@ -37,7 +37,11 @@ jobs:
         run: |
           files="$(gofmt -l src security_guardian)"
           if [ -n "$files" ]; then
+            echo "gofmt produced unformatted files:"
             printf '%s\n' "$files"
+            while IFS= read -r file; do
+              [ -n "$file" ] && gofmt -d "$file"
+            done <<< "$files"
             exit 1
           fi
       - name: Test bridge services

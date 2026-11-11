@@ -623,10 +623,10 @@ func validateCommand(cmd Command) error {
 		return fmt.Errorf("target is only accepted for fan-channel or audio-start commands")
 	}
 	switch action {
-	case "Fan Hızı", "AI İşlem Gücü", "Set Game Mode", "Start Audio Studio":
-		return nil
-	case "Set Fan Channel":
+	case "Fan Hızı", "Set Fan Channel":
 		return validateFanPercent(cmd.Value)
+	case "AI İşlem Gücü", "Set Game Mode", "Start Audio Studio":
+		return nil
 	case "Set Power Mode AC", "Set Power Mode DC":
 		return validatePowerModeRequest(action, cmd.Value)
 	case "Set Power Profile":
