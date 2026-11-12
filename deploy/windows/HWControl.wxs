@@ -78,9 +78,9 @@
         <PermissionEx Sddl="D:P(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;OICI;GRGX;;;LS)" />
       </CreateFolder>
       <File Id="BridgerCanaryFile" Source="$(var.PackageDir)\security\fetch-status\bridger.key" KeyPath="yes">
-      <RemoveFolder Id="RemoveSecurityCanaryDirectory" On="uninstall" />
         <util:PermissionEx User="NT AUTHORITY\LocalService" Read="yes" ReadAttributes="yes" ReadPermission="yes" />
       </File>
+      <RemoveFolder Id="RemoveSecurityCanaryDirectory" On="uninstall" />
     </Component>
 
     <Component Id="SecurityStateComponent" Directory="SECURITY_STATE_DATA" Guid="CDEB4E35-23F2-4E5C-9C32-7F3A6C16EFA9">
