@@ -36,12 +36,15 @@ jobs:
           - platform: Linux x64
             runner: ubuntu-24.04
             sanitizers: ON
+            cmake_extra_args: ""
           - platform: Windows 10/11 x64
             runner: windows-2022
             sanitizers: OFF
+            cmake_extra_args: ""
           - platform: macOS 14+ Apple Silicon
-            runner: macos-14
+            runner: macos-15
             sanitizers: OFF
+            cmake_extra_args: -DCMAKE_OSX_DEPLOYMENT_TARGET=14.0
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 15
     steps:
@@ -54,7 +57,7 @@ jobs:
           cmake -S hw_game_core -B build/game-core
           -DBUILD_TESTING=ON
           -DHWCONTROL_GAME_CORE_ENABLE_SANITIZERS=${{ matrix.sanitizers }}
-          -DCMAKE_BUILD_TYPE=Release
+          ${{ matrix.cmake_extra_args }}
       - name: Build Game Core
         run: cmake --build build/game-core --config Release --parallel 2
       - name: Run Game Core tests
