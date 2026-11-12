@@ -2,9 +2,9 @@
 
 ## Status
 
-**PARTIAL — portable foundation implemented; graphics backends not implemented.**
+**PARTIAL — portable foundation implemented; first Direct3D 12 triangle sample added. Production renderer backends are not implemented.**
 
-This architecture targets Windows 10/11 x64, Linux x64 and macOS 14+ Apple Silicon. Current code provides deterministic backend-selection policy and a backend-neutral render-graph compiler. It does not yet create windows, enumerate GPUs, create graphics devices, compile shaders or submit rendering commands.
+This architecture targets Windows 10/11 x64, Linux x64 and macOS 14+ Apple Silicon. Current code provides deterministic backend-selection policy, a backend-neutral render-graph compiler and a Windows-only Direct3D 12 triangle sample. The sample creates a Win32 window and D3D12 device/swapchain, compiles a minimal HLSL shader at runtime and submits a synchronized triangle frame. It is an isolated bring-up sample, not yet the production GAL, reusable 2D/3D renderer or cross-platform window layer.
 
 Game Core is an independent native product. It must build and run without HWcontrol2.0, the Go bridge, hardware-monitoring services or the Flutter dashboard. Optional HWcontrol integration may consume Game Core telemetry, but the engine must never require HWcontrol to launch.
 
@@ -56,6 +56,27 @@ Graphics Abstraction Layer (GAL)
 ~~~
 
 The GAL normalizes resource identity, pipeline descriptions, command submission, capability reporting and lifetime tracking. It must not erase API-specific synchronization or force all platforms into the least-capable common denominator.
+
+## First native rendering milestone: Direct3D 12 triangle
+
+The Windows-only `hw_game_core_dx12_triangle` sample is the first real graphics-device bring-up target.
+
+- Creates a Win32 window and a D3D12 device using the Windows SDK.
+- Enumerates DXGI adapters with the Windows 10-compatible `IDXGIFactory1` path and falls back to the default adapter if explicit enumeration does not produce a device.
+- Creates a direct command queue, two-buffer flip-discard swapchain, RTV heap, per-frame command allocators, command list and fence.
+- Compiles a minimal HLSL vertex/pixel shader with `D3DCompile`, creates a root signature and graphics PSO, and uploads three vertices.
+- Records PRESENT → RENDER_TARGET → PRESENT transitions, clears, draws and presents with per-frame fence tracking.
+- Links only on Windows against `d3d12`, `dxgi` and `d3dcompiler`; Linux and macOS portable foundation builds do not include Windows headers or libraries.
+
+Build on a Windows machine with the Windows 10/11 SDK and a D3D12-capable GPU:
+
+~~~sh
+cmake -S hw_game_core -B build/game-core -DBUILD_TESTING=ON
+cmake --build build/game-core --config Release --target hw_game_core_dx12_triangle
+./build/game-core/Release/hw_game_core_dx12_triangle.exe
+~~~
+
+This milestone is build-validated by the Windows CI job when that job passes. A successful compile is not a GPU runtime test: actual window presentation, driver behavior, debug-layer cleanliness and hardware compatibility still require a Windows machine with a supported GPU. The sample currently uses a fixed swapchain size; resize handling, device-loss recovery, adapter preference policy and robust runtime diagnostics are follow-up work.
 
 ## Backend selection algorithm
 
@@ -194,7 +215,7 @@ ctest --test-dir build/game-core -C Release --output-on-failure
 
 The root project uses C++17 for existing AI/audio targets. Game Core sets C++20 on its own target only; it does not raise or overwrite the root standard.
 
-CI validates the portable foundation on Windows x64, Linux x64 and an Apple Silicon macOS 15 runner with the deployment target pinned to macOS 14. Sanitizer validation is enabled on Linux. GPU integration tests will be added only when an actual backend and a runner/device capable of exercising it are available.
+CI validates the portable foundation on Windows x64, Linux x64 and an Apple Silicon macOS 15 runner with the deployment target pinned to macOS 14. Sanitizer validation is enabled on Linux. The Windows Game Core CI build compiles the DX12 triangle sample when the Windows SDK is available; CI does not execute it on a physical GPU. Linux and macOS validate the portable foundation only. GPU integration tests will be added only when a runner/device capable of exercising the backend is available.
 
 ## Current implementation boundary
 
