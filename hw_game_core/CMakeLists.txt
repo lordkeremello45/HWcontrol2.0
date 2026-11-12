@@ -17,6 +17,30 @@ add_library(hwcontrol_game_core STATIC
 )
 add_library(HWControl::GameCore ALIAS hwcontrol_game_core)
 
+# The first native renderer sample is intentionally Windows-only. It uses
+# the Windows SDK directly and does not add a cross-platform dependency.
+if(WIN32)
+  option(HWCONTROL_GAME_CORE_BUILD_DX12_TRIANGLE
+    "Build the native Direct3D 12 triangle sample" ON)
+  if(HWCONTROL_GAME_CORE_BUILD_DX12_TRIANGLE)
+    add_executable(hw_game_core_dx12_triangle
+      samples/dx12_triangle/main.cpp
+    )
+    target_link_libraries(hw_game_core_dx12_triangle PRIVATE
+      d3d12 dxgi d3dcompiler
+    )
+    target_compile_features(hw_game_core_dx12_triangle PRIVATE cxx_std_20)
+    set_target_properties(hw_game_core_dx12_triangle PROPERTIES
+      CXX_EXTENSIONS OFF
+    )
+    if(MSVC)
+      target_compile_options(hw_game_core_dx12_triangle PRIVATE
+        /W4 /permissive- /sdl
+      )
+    endif()
+  endif()
+endif()
+
 target_include_directories(hwcontrol_game_core
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
