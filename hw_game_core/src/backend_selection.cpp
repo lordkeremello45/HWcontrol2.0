@@ -122,6 +122,9 @@ BackendSelectionResult select_graphics_backend(
             result.reason = preferred.reason;
             return result;
         }
+        // Preserve the primary preference's failure reason. A later fallback
+        // candidate being absent must not hide a more useful probe failure.
+        result.reason = preferred.reason;
 
         std::size_t priority_count = 0;
         const auto priority = platform_priority(request.platform, priority_count);
@@ -139,7 +142,6 @@ BackendSelectionResult select_graphics_backend(
                 result.reason = BackendSelectionReason::fallback;
                 return result;
             }
-            result.reason = fallback.reason;
         }
 
         result.status = BackendSelectionStatus::no_compatible_backend;
@@ -148,6 +150,7 @@ BackendSelectionResult select_graphics_backend(
 
     std::size_t priority_count = 0;
     const auto priority = platform_priority(request.platform, priority_count);
+    bool has_primary_failure = false;
     for (std::size_t index = 0; index < priority_count; ++index) {
         const auto attempt = attempt_api(
             priority[index], request.platform,
@@ -159,7 +162,10 @@ BackendSelectionResult select_graphics_backend(
             result.reason = BackendSelectionReason::platform_default;
             return result;
         }
-        result.reason = attempt.reason;
+        if (!has_primary_failure) {
+            result.reason = attempt.reason;
+            has_primary_failure = true;
+        }
     }
 
     result.status = BackendSelectionStatus::no_compatible_backend;
