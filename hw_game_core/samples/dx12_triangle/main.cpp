@@ -173,15 +173,15 @@ private:
             debug->EnableDebugLayer();
         }
 #endif
-        ComPtr<IDXGIFactory6> factory;
-        check_hresult(CreateDXGIFactory2(0, IID_PPV_ARGS(&factory)), "CreateDXGIFactory2");
+        // IDXGIFactory1 keeps the sample compatible with older Windows 10
+        // releases; adapter preference APIs are not required for this MVP.
+        ComPtr<IDXGIFactory1> factory;
+        check_hresult(CreateDXGIFactory1(IID_PPV_ARGS(&factory)), "CreateDXGIFactory1");
 
         HRESULT device_result = E_FAIL;
         for (UINT index = 0;; ++index) {
             ComPtr<IDXGIAdapter1> adapter;
-            if (factory->EnumAdapterByGpuPreference(
-                    index, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE,
-                    IID_PPV_ARGS(&adapter)) == DXGI_ERROR_NOT_FOUND) {
+            if (factory->EnumAdapters1(index, &adapter) == DXGI_ERROR_NOT_FOUND) {
                 break;
             }
             DXGI_ADAPTER_DESC1 description{};
