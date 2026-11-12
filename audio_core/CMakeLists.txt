@@ -27,6 +27,32 @@ endif()
 if(WIN32)
   target_compile_definitions(hwcontrol_audio_core PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
   target_link_libraries(hwcontrol_audio_core PRIVATE ole32 winmm)
+
+  # Isolated proof of system-playback capture through the native DSP core.
+  # This intentionally does not reroute or replace the user's playback device.
+  add_executable(hwcontrol_windows_wasapi_loopback_probe
+    tools/windows_wasapi_loopback_probe.cpp
+  )
+  target_include_directories(hwcontrol_windows_wasapi_loopback_probe
+    PRIVATE "${miniaudio_SOURCE_DIR}"
+  )
+  target_link_libraries(hwcontrol_windows_wasapi_loopback_probe
+    PRIVATE HWControl::AudioCore
+  )
+  target_compile_features(hwcontrol_windows_wasapi_loopback_probe PRIVATE cxx_std_17)
+
+  # Diagnostic monitor: capture default playback, process DSP, and play only
+  # to a separately selected endpoint to prevent same-device feedback loops.
+  add_executable(hwcontrol_windows_wasapi_loopback_monitor
+    tools/windows_wasapi_loopback_monitor.cpp
+  )
+  target_include_directories(hwcontrol_windows_wasapi_loopback_monitor
+    PRIVATE "${miniaudio_SOURCE_DIR}"
+  )
+  target_link_libraries(hwcontrol_windows_wasapi_loopback_monitor
+    PRIVATE HWControl::AudioCore
+  )
+  target_compile_features(hwcontrol_windows_wasapi_loopback_monitor PRIVATE cxx_std_17)
 endif()
 set_target_properties(hwcontrol_audio_core PROPERTIES
   CXX_EXTENSIONS OFF
