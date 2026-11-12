@@ -1,0 +1,64 @@
+name: Game Core foundation validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "CMakeLists.txt"
+      - "hw_game_core/**"
+      - "docs/wiki/Architecture-Game-Core.md"
+      - "docs/wiki/ADR-Game-Core-Graphics-Backends.md"
+      - ".github/workflows/game-core-validation.yml"
+  push:
+    branches: [main]
+    paths:
+      - "CMakeLists.txt"
+      - "hw_game_core/**"
+      - "docs/wiki/Architecture-Game-Core.md"
+      - "docs/wiki/ADR-Game-Core-Graphics-Backends.md"
+      - ".github/workflows/game-core-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: game-core-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  portable-foundation:
+    name: ${{ matrix.platform }} foundation build and tests
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: Linux x64
+            runner: ubuntu-24.04
+            sanitizers: ON
+            cmake_extra_args: ""
+          - platform: Windows 10/11 x64
+            runner: windows-2022
+            sanitizers: OFF
+            cmake_extra_args: ""
+          - platform: macOS 14+ Apple Silicon
+            runner: macos-15
+            sanitizers: OFF
+            cmake_extra_args: -DCMAKE_OSX_DEPLOYMENT_TARGET=14.0
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.3.0
+        with:
+          persist-credentials: false
+      - name: Configure Game Core independently
+        run: >
+          cmake -S hw_game_core -B build/game-core
+          -DBUILD_TESTING=ON
+          -DHWCONTROL_GAME_CORE_ENABLE_SANITIZERS=${{ matrix.sanitizers }}
+          ${{ matrix.cmake_extra_args }}
+      - name: Build Game Core
+        run: cmake --build build/game-core --config Release --parallel 2
+      - name: Run Game Core tests
+        run: ctest --test-dir build/game-core -C Release --output-on-failure

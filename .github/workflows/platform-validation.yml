@@ -118,7 +118,7 @@ jobs:
 
   macos:
     name: macOS build and test
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.3.0
@@ -137,7 +137,7 @@ jobs:
           architecture: ARM64
       - name: Build and test native engine
         run: |
-          cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
+          cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF -DCMAKE_OSX_DEPLOYMENT_TARGET=14.0
           cmake --build build --parallel 2
           ctest --test-dir build --output-on-failure
       - name: Test and build bridge

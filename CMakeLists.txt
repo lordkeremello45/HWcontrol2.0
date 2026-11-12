@@ -47,7 +47,6 @@ endif()
 
 find_package(Threads REQUIRED)
 
-
 # Enable CTest explicitly so native regression tests are available to CI and
 # local builds without requiring callers to know the implementation detail.
 include(CTest)
@@ -57,5 +56,12 @@ endif()
 
 add_subdirectory(ai_core)
 add_subdirectory(audio_core)
+
+# Independent Game Core: C++20 is scoped to its own targets; existing AI/audio
+# components retain the root project's C++17 contract.
+option(HWCONTROL_BUILD_GAME_CORE "Build the independent Game Core foundation" ON)
+if(HWCONTROL_BUILD_GAME_CORE)
+  add_subdirectory(hw_game_core)
+endif()
 
 message(STATUS "HWControl 2.0 configuration completed successfully.")
