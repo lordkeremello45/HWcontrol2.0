@@ -417,7 +417,7 @@ int main() {
         window_class.lpfnWndProc = window_proc;
         window_class.hInstance = instance;
         window_class.lpszClassName = class_name;
-        window_class.hCursor = LoadCursorW(nullptr, IDC_ARROW);
+        window_class.hCursor = LoadCursorW(nullptr, MAKEINTRESOURCEW(32512));
         if (RegisterClassExW(&window_class) == 0) {
             throw std::runtime_error("RegisterClassExW failed");
         }
