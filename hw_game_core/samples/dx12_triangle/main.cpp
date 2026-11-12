@@ -8,7 +8,9 @@
 #include <wrl/client.h>
 
 #include <array>
+#include <climits>
 #include <cstdint>
+#include <cstring>
 #include <exception>
 #include <iomanip>
 #include <sstream>
@@ -111,13 +113,12 @@ public:
         check_hresult(command_list_->Reset(allocators_[frame_index].Get(), pipeline_.Get()),
                       "GraphicsCommandList::Reset");
 
-        const D3D12_RESOURCE_BARRIER to_target{
-            D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
-            D3D12_RESOURCE_BARRIER_FLAG_NONE,
-            {.Transition = {render_targets_[frame_index].Get(),
-                            D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
-                            D3D12_RESOURCE_STATE_PRESENT,
-                            D3D12_RESOURCE_STATE_RENDER_TARGET}}};
+        D3D12_RESOURCE_BARRIER to_target{};
+        to_target.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        to_target.Transition.pResource = render_targets_[frame_index].Get();
+        to_target.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        to_target.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+        to_target.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
         command_list_->ResourceBarrier(1, &to_target);
 
         const D3D12_CPU_DESCRIPTOR_HANDLE target =
@@ -134,13 +135,12 @@ public:
         command_list_->IASetVertexBuffers(0, 1, &vertex_view_);
         command_list_->DrawInstanced(3, 1, 0, 0);
 
-        const D3D12_RESOURCE_BARRIER to_present{
-            D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
-            D3D12_RESOURCE_BARRIER_FLAG_NONE,
-            {.Transition = {render_targets_[frame_index].Get(),
-                            D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
-                            D3D12_RESOURCE_STATE_RENDER_TARGET,
-                            D3D12_RESOURCE_STATE_PRESENT}}};
+        D3D12_RESOURCE_BARRIER to_present{};
+        to_present.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        to_present.Transition.pResource = render_targets_[frame_index].Get();
+        to_present.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        to_present.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+        to_present.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
         command_list_->ResourceBarrier(1, &to_present);
         check_hresult(command_list_->Close(), "GraphicsCommandList::Close");
 
@@ -200,10 +200,13 @@ private:
                 nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device_)),
                 "D3D12CreateDevice (default adapter)");
         }
+        D3D12_COMMAND_QUEUE_DESC queue_description{};
+        queue_description.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+        queue_description.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
+        queue_description.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+        queue_description.NodeMask = 0;
         check_hresult(device_->CreateCommandQueue(
-            &D3D12_COMMAND_QUEUE_DESC{D3D12_COMMAND_LIST_TYPE_DIRECT, 0,
-                                      D3D12_COMMAND_QUEUE_FLAG_NONE, 0},
-            IID_PPV_ARGS(&queue_)), "CreateCommandQueue");
+            &queue_description, IID_PPV_ARGS(&queue_)), "CreateCommandQueue");
     }
 
     void create_swap_chain() {
@@ -303,18 +306,34 @@ private:
                                    vertex_shader->GetBufferSize()};
         pipeline_description.PS = {pixel_shader->GetBufferPointer(),
                                    pixel_shader->GetBufferSize()};
-        pipeline_description.RasterizerState = {
-            D3D12_FILL_MODE_SOLID, D3D12_CULL_MODE_NONE, FALSE,
-            D3D12_DEFAULT_DEPTH_BIAS, D3D12_DEFAULT_DEPTH_BIAS_CLAMP,
-            D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS, TRUE, FALSE, FALSE,
-            0, D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF};
-        pipeline_description.BlendState = {
-            FALSE, FALSE,
-            {{FALSE, FALSE, D3D12_BLEND_ONE, D3D12_BLEND_ZERO,
-              D3D12_BLEND_OP_ADD, D3D12_BLEND_ONE, D3D12_BLEND_ZERO,
-              D3D12_BLEND_OP_ADD, D3D12_LOGIC_OP_NOOP,
-              D3D12_COLOR_WRITE_ENABLE_ALL}}};
+        auto& rasterizer = pipeline_description.RasterizerState;
+        rasterizer.FillMode = D3D12_FILL_MODE_SOLID;
+        rasterizer.CullMode = D3D12_CULL_MODE_NONE;
+        rasterizer.FrontCounterClockwise = FALSE;
+        rasterizer.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
+        rasterizer.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
+        rasterizer.SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
+        rasterizer.DepthClipEnable = TRUE;
+        rasterizer.MultisampleEnable = FALSE;
+        rasterizer.AntialiasedLineEnable = FALSE;
+        rasterizer.ForcedSampleCount = 0;
+        rasterizer.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+
+        auto& blend = pipeline_description.BlendState.RenderTarget[0];
+        blend.BlendEnable = FALSE;
+        blend.LogicOpEnable = FALSE;
+        blend.SrcBlend = D3D12_BLEND_ONE;
+        blend.DestBlend = D3D12_BLEND_ZERO;
+        blend.BlendOp = D3D12_BLEND_OP_ADD;
+        blend.SrcBlendAlpha = D3D12_BLEND_ONE;
+        blend.DestBlendAlpha = D3D12_BLEND_ZERO;
+        blend.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+        blend.LogicOp = D3D12_LOGIC_OP_NOOP;
+        blend.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+
         pipeline_description.DepthStencilState.DepthEnable = FALSE;
+        pipeline_description.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+        pipeline_description.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_ALWAYS;
         pipeline_description.DepthStencilState.StencilEnable = FALSE;
         pipeline_description.SampleMask = UINT_MAX;
         pipeline_description.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -328,13 +347,21 @@ private:
 
     void create_vertex_buffer() {
         const UINT64 buffer_size = sizeof(kVertices);
-        const D3D12_HEAP_PROPERTIES heap_properties{
-            D3D12_HEAP_TYPE_UPLOAD, D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
-            D3D12_MEMORY_POOL_UNKNOWN, 1, 1};
-        const D3D12_RESOURCE_DESC buffer_description{
-            D3D12_RESOURCE_DIMENSION_BUFFER, 0, buffer_size, 1, 1,
-            1, DXGI_FORMAT_UNKNOWN, {1, 0}, D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
-            D3D12_RESOURCE_FLAG_NONE};
+        D3D12_HEAP_PROPERTIES heap_properties{};
+        heap_properties.Type = D3D12_HEAP_TYPE_UPLOAD;
+        heap_properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+        heap_properties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+        heap_properties.CreationNodeMask = 1;
+        heap_properties.VisibleNodeMask = 1;
+        D3D12_RESOURCE_DESC buffer_description{};
+        buffer_description.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+        buffer_description.Width = buffer_size;
+        buffer_description.Height = 1;
+        buffer_description.DepthOrArraySize = 1;
+        buffer_description.MipLevels = 1;
+        buffer_description.SampleDesc.Count = 1;
+        buffer_description.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+        buffer_description.Flags = D3D12_RESOURCE_FLAG_NONE;
         check_hresult(device_->CreateCommittedResource(
             &heap_properties, D3D12_HEAP_FLAG_NONE, &buffer_description,
             D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
