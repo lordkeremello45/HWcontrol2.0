@@ -142,23 +142,29 @@ jobs:
       - name: Install and smoke-test DEB
         run: |
           set -euo pipefail
+          require() {
+            if ! "${@:2}"; then
+              echo "DEB smoke-test assertion failed: $1" >&2
+              exit 1
+            fi
+          }
           sudo apt-get install -y "./HWControl-${RELEASE_TAG}-Linux-x64.deb"
-          test "$(dpkg-query -W -f='${Status}' hwcontrol)" = 'install ok installed'
-          test -x /usr/bin/hwcontrol
-          test -x /opt/hwcontrol/bridge-service
-          test -x /opt/hwcontrol/hwcontrol_audio_probe
-          test -x /opt/hwcontrol/ai_engine
-          test -x /opt/hwcontrol/security-guardian
-          test -f /var/lib/hwcontrol/security/canary/bridger.key
+          require "package state is install ok installed" test "$(dpkg-query -W -f='${Status}' hwcontrol)" = 'install ok installed'
+          require "/usr/bin/hwcontrol is executable" test -x /usr/bin/hwcontrol
+          require "bridge-service is executable" test -x /opt/hwcontrol/bridge-service
+          require "audio probe is executable" test -x /opt/hwcontrol/hwcontrol_audio_probe
+          require "AI engine is executable" test -x /opt/hwcontrol/ai_engine
+          require "security guardian is executable" test -x /opt/hwcontrol/security-guardian
+          require "security canary is installed" test -f /var/lib/hwcontrol/security/canary/bridger.key
           ldd /opt/hwcontrol/ai_engine | tee /tmp/hwcontrol-engine-ldd.txt
           if grep -Fq 'not found' /tmp/hwcontrol-engine-ldd.txt; then echo 'Unresolved engine shared-library dependency.' >&2; exit 1; fi
           ldd /opt/hwcontrol/dashboard/hwcontrol_dashboard | tee /tmp/hwcontrol-dashboard-ldd.txt
           if grep -Fq 'not found' /tmp/hwcontrol-dashboard-ldd.txt; then echo 'Unresolved dashboard shared-library dependency.' >&2; exit 1; fi
           sudo dpkg -r hwcontrol
-          test "$(dpkg-query -W -f='${db:Status-Status}' hwcontrol 2>/dev/null || true)" != installed
-          test ! -e /opt/hwcontrol
-          test ! -e /usr/bin/hwcontrol
-          test -f /var/lib/hwcontrol/bridge.key
+          require "package is removed" test "$(dpkg-query -W -f='${db:Status-Status}' hwcontrol 2>/dev/null || true)" != installed
+          require "application directory is removed" test ! -e /opt/hwcontrol
+          require "launcher is removed" test ! -e /usr/bin/hwcontrol
+          require "persistent bridge key is retained" test -f /var/lib/hwcontrol/bridge.key
 
       - name: Generate checksums
         run: |
