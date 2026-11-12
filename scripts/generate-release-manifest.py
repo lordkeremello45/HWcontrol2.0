@@ -13,7 +13,7 @@ REPOSITORY = "lordkeremello45/HWcontrol2.0"
 PLATFORMS = {
     "windows": {
         "suffix": "-windows",
-        "patterns": [r"windows.*x64.*-setup\.exe$", r"windows.*x64.*\.msi$", r"windows.*x64.*\.zip$"],
+        "patterns": [r"windows.*x64.*-setup\.exe$", r"windows.*x64.*\.msi$", r"windows.*x64.*\.zip$", r"windows.*x64.*\.exe$"],
     },
     "macos": {
         "suffix": "-macos",
