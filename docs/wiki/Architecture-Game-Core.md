@@ -172,7 +172,7 @@ ctest --test-dir build/game-core -C Release --output-on-failure
 
 The root project uses C++17 for existing AI/audio targets. Game Core sets C++20 on its own target only; it does not raise or overwrite the root standard.
 
-CI validates the portable foundation on Windows x64, Linux x64 and macOS 14 Apple Silicon. Sanitizer validation is enabled on Linux. GPU integration tests will be added only when an actual backend and a runner/device capable of exercising it are available.
+CI validates the portable foundation on Windows x64, Linux x64 and an Apple Silicon macOS 15 runner with the deployment target pinned to macOS 14. Sanitizer validation is enabled on Linux. GPU integration tests will be added only when an actual backend and a runner/device capable of exercising it are available.
 
 ## Current implementation boundary
 
