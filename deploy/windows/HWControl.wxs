@@ -68,6 +68,7 @@
       </CreateFolder>
       <RemoveFile Id="RemoveBridgeKey" Name="bridge.key" On="uninstall" />
       <RemoveFile Id="RemoveBridgeLog" Name="bridge.log" On="uninstall" />
+      <RemoveFolder Id="RemoveSecurityDirectory" Directory="SECURITY_DATA" On="uninstall" />
       <Environment Id="RemoveHWControlKey" Name="HWCONTROL_KEY" Action="remove" System="yes" />
       <RegistryValue Root="HKLM" Key="Software\HWControl" Name="BridgeDataInstalled" Type="integer" Value="1" KeyPath="yes" />
     </Component>
@@ -77,6 +78,7 @@
         <PermissionEx Sddl="D:P(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;OICI;GRGX;;;LS)" />
       </CreateFolder>
       <File Id="BridgerCanaryFile" Source="$(var.PackageDir)\security\fetch-status\bridger.key" KeyPath="yes">
+      <RemoveFolder Id="RemoveSecurityCanaryDirectory" On="uninstall" />
         <util:PermissionEx User="NT AUTHORITY\LocalService" Read="yes" ReadAttributes="yes" ReadPermission="yes" />
       </File>
     </Component>
@@ -90,6 +92,7 @@
       <RemoveFile Id="RemoveGuardianLogOnUninstall" Name="guardian.log" On="uninstall" />
       <RemoveFile Id="RemoveVerifyStateOnUninstall" Name="verify.state" On="uninstall" />
       <RemoveFile Id="RemoveVerifyKeyOnUninstall" Name="verify.key" On="uninstall" />
+      <RemoveFolder Id="RemoveSecurityStateDirectory" On="uninstall" />
     </Component>
 
     <ComponentGroup Id="ApplicationFiles" Directory="INSTALLFOLDER">
