@@ -13,7 +13,7 @@ int failures = 0;
     do {                                                                              \
         if (!(condition)) {                                                           \
             std::cerr << "FAIL: " << __FILE__ << ':' << __LINE__                      \
-                      << ": " << #condition << '\\n';                                \
+                      << ": " << #condition << '\n';                                \
             ++failures;                                                              \
         }                                                                             \
     } while (false)
@@ -242,9 +242,9 @@ int main() {
     test_render_graph_rejects_invalid_patterns();
 
     if (failures != 0) {
-        std::cerr << failures << " Game Core test(s) failed\\n";
+        std::cerr << failures << " Game Core test(s) failed\n";
         return EXIT_FAILURE;
     }
-    std::cout << "All Game Core foundation tests passed\\n";
+    std::cout << "All Game Core foundation tests passed\n";
     return EXIT_SUCCESS;
 }
