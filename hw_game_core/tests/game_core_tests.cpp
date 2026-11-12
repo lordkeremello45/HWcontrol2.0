@@ -165,6 +165,25 @@ void test_render_graph_determinism_and_write_after_read() {
     CHECK(plan.execution_order[3] == independent);
 }
 
+
+void test_render_graph_write_after_write() {
+    RenderGraph graph;
+    const auto shared = graph.create_resource("shared", true);
+    const auto write_a = graph.add_pass("write-a");
+    const auto read_after_a = graph.add_pass("read-after-a");
+    const auto write_b = graph.add_pass("write-b");
+    CHECK(graph.use(write_a, shared, ResourceAccess::write));
+    CHECK(graph.use(read_after_a, shared, ResourceAccess::read));
+    CHECK(graph.use(write_b, shared, ResourceAccess::write));
+
+    const auto plan = graph.compile();
+    CHECK(plan.valid);
+    CHECK(plan.execution_order.size() == 3);
+    CHECK(plan.execution_order[0] == write_a);
+    CHECK(plan.execution_order[1] == read_after_a);
+    CHECK(plan.execution_order[2] == write_b);
+}
+
 void test_render_graph_rejects_invalid_patterns() {
     {
         RenderGraph graph;
@@ -239,6 +258,7 @@ int main() {
     test_backend_selection();
     test_render_graph_hazards_and_order();
     test_render_graph_determinism_and_write_after_read();
+    test_render_graph_write_after_write();
     test_render_graph_rejects_invalid_patterns();
 
     if (failures != 0) {
