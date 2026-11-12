@@ -185,7 +185,7 @@ jobs:
   macos-publisher-trust:
     name: Verify Developer ID and notarization
     if: ${{ endsWith(inputs.tag, '-macos') }}
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 20
     steps:
       - name: Download macOS release assets
