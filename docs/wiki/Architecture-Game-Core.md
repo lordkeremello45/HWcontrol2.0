@@ -127,6 +127,28 @@ Input Adapter ---> Scene / ECS ---> Simulation
                                         Present
 ~~~
 
+## Data ownership and transfer map
+
+| Data | Producer | Owner / lifetime | Consumer | Boundary rule |
+|---|---|---|---|---|
+| OS/window events | SDL3 or future platform adapter | Platform event pump; copied into engine events | Input system, application lifecycle | Native handles remain inside platform adapters |
+| Input state | Input adapter | Engine input frame; valid for one simulation/render frame | Gameplay and editor | Device-specific codes are normalized; raw device details are optional metadata |
+| World state | Scene / ECS systems | Scene lifetime; authoritative CPU-side state | Simulation, animation, render extraction | Gameplay components do not store D3D12/Vulkan/Metal objects |
+| Render packet | Render extraction stage | Immutable per-frame snapshot | 2D renderer, 3D renderer | Owns stable IDs and CPU-visible values; no backend pointers |
+| Resource description | Asset/resource registry | Asset lifetime plus explicit version | Backend resource manager | Logical resource ID maps to per-device native allocation |
+| Render pass declarations | Renderer modules | One graph compilation | Render Graph compiler | Reads/writes are declared before scheduling; undeclared use is invalid |
+| Render Graph plan | Render Graph compiler | One frame; immutable after compile | Selected backend | Logical dependencies only; backend translates to native barriers/synchronization |
+| GPU command buffers | Backend command recorder | Until queue submission/retirement | Native graphics queue | Never exposed outside the backend boundary |
+| GPU completion token | Backend queue/fence/semaphore | In-flight frame lifetime | Deferred resource deletion, transient allocators, frame pacing | Memory/descriptor reuse requires proven GPU completion |
+| Telemetry/profiling sample | Runtime/backend profiler | Bounded rolling history or exported capture | Editor, diagnostics, optional HWcontrol adapter | Optional, read-only integration; must not block rendering |
+
+Data ownership rules:
+- CPU scene state is authoritative; render packets are immutable snapshots, not shared mutable ECS storage.
+- Resource IDs are logical handles. Native handles and API-specific layouts are private to backend implementations.
+- GPU lifetime is governed by completion tokens, not C++ scope exit or UI/gameplay object lifetime.
+- Asset loading/decoding may run on worker threads, but graphics API upload/submission follows backend-specific thread and queue rules.
+- Profiling and HWcontrol telemetry are observers. They cannot become a required dependency of the render loop.
+
 ## 2D and 3D composition
 
 2D and 3D are separate renderer modules over shared backend device/resource/queue infrastructure. They are not separate engines and do not imply separate GPU devices.
