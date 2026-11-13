@@ -9,6 +9,7 @@ It is a desktop PC utility—not an industrial automation/SCADA product, a seria
 [![Reddit Community](https://img.shields.io/badge/Reddit-HWcontrol2.0%20Community-FF4500?style=for-the-badge&logo=reddit&logoColor=white)](https://www.reddit.com/r/HWcontrol2_0Community/)
 [![GitHub Releases](https://img.shields.io/github/v/release/lordkeremello45/HWcontrol2.0?display_name=tag&style=for-the-badge)](https://github.com/lordkeremello45/HWcontrol2.0/releases)
 [![GitLab Mirror](https://img.shields.io/badge/GitLab-Mirror-FCA326?style=for-the-badge&logo=gitlab&logoColor=white)](https://gitlab.com/lordkeremello45/HWcontrol2.0)
+[![Chess.com](https://img.shields.io/badge/Chess.com-lime-81B64C?logo=chessdotcom&logoColor=white)](https://www.chess.com/member/lordkeremello45_lime)
 [![Codeberg Mirror](https://img.shields.io/badge/Codeberg-Mirror-2185D0?style=for-the-badge&logo=codeberg&logoColor=white)](https://codeberg.org/lordkeremelllo45/HWcontrol2.0)
 [![Hugging Face Mirror](https://img.shields.io/badge/%F0%9F%A4%97-Hugging%20Face%20Mirror-yellow?style=for-the-badge)](https://huggingface.co/lordkeremello45/Hwcontrol2.0)
 
