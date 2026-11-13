@@ -156,13 +156,17 @@ chown root:hwcontrol-security "$canary_dir"
 chmod 0750 "$canary_dir"
 chown hwcontrol-security:hwcontrol-security "$state_dir"
 chmod 0700 "$state_dir"
-if command -v logname >/dev/null 2>&1; then
+# sudo sets SUDO_USER even in non-interactive environments where logname
+# has no controlling terminal. Prefer it so the desktop user can traverse the
+# runtime directory and connect to the root-owned bridge socket.
+user="${SUDO_USER:-}"
+if [ -z "$user" ] && command -v logname >/dev/null 2>&1; then
   user=$(logname 2>/dev/null || true)
-  if [ -n "$user" ] && [ "$user" != root ] && id "$user" >/dev/null 2>&1; then
-    group=$(id -gn "$user")
-    chown root:"$group" "$key_dir"
-    chmod 0750 "$key_dir"
-  fi
+fi
+if [ -n "$user" ] && [ "$user" != root ] && id "$user" >/dev/null 2>&1; then
+  group=$(id -gn "$user")
+  chown root:"$group" "$key_dir"
+  chmod 0750 "$key_dir"
 fi
 if command -v deb-systemd-helper >/dev/null 2>&1; then
   deb-systemd-helper enable hwcontrol-bridge.service hwcontrol-security-guardian.service >/dev/null
