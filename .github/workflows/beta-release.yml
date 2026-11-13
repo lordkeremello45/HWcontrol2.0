@@ -230,11 +230,10 @@ jobs:
           $extension = 'WixToolset.BootstrapperApplications.wixext'
           wix extension add --global "$extension/6.0.2"
           if ($LASTEXITCODE -ne 0) { throw "Failed to install $extension 6.0.2" }
-          $extensions = wix extension list --global
+          wix extension list --global
           if ($LASTEXITCODE -ne 0) { throw 'Failed to inspect the global WiX extension cache' }
-          if (($extensions -join "`n") -notmatch [regex]::Escape("$extension/6.0.2")) {
-            throw "$extension 6.0.2 is not present in the global WiX extension cache"
-          }
+          # The list command's display format is not a stable machine-readable contract.
+          # The pinned extension reference in wix build below is the authoritative check.
           $version = $env:RELEASE_TAG -replace '^v','' -replace '-beta([.-].*)$',''
           wix build deploy/windows/HWControl-Setup.wxs -ext "$extension/6.0.2" -arch x64 -d Version=$version -d MsiPath="$PWD/HWControl-$env:RELEASE_TAG-Windows-x64.msi" -o "HWControl-$env:RELEASE_TAG-Windows-x64-Setup.exe"
           if ($LASTEXITCODE -ne 0) { throw 'WiX Burn bootstrapper build failed' }
