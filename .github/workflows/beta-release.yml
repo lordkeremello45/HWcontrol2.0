@@ -236,7 +236,7 @@ jobs:
             throw "$extension 6.0.2 is not present in the global WiX extension cache"
           }
           $version = $env:RELEASE_TAG -replace '^v','' -replace '-beta([.-].*)$',''
-          wix build deploy/windows/HWControl-Setup.wxs -ext $extension -arch x64 -d Version=$version -d MsiPath="$PWD/HWControl-$env:RELEASE_TAG-Windows-x64.msi" -o "HWControl-$env:RELEASE_TAG-Windows-x64-Setup.exe"
+          wix build deploy/windows/HWControl-Setup.wxs -ext "$extension/6.0.2" -arch x64 -d Version=$version -d MsiPath="$PWD/HWControl-$env:RELEASE_TAG-Windows-x64.msi" -o "HWControl-$env:RELEASE_TAG-Windows-x64-Setup.exe"
           if ($LASTEXITCODE -ne 0) { throw 'WiX Burn bootstrapper build failed' }
           if (-not (Test-Path "HWControl-$env:RELEASE_TAG-Windows-x64-Setup.exe")) { throw 'Setup.exe was not produced' }
       - name: Build unsigned MSIX beta package
