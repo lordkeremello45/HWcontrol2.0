@@ -226,9 +226,362 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
-          wix extension add -g WixToolset.Bal.wixext/6.0.2
+          # WiX 6 renamed the Bal extension package to BootstrapperApplications.
+          $extension = 'WixToolset.BootstrapperApplications.wixext'
+          wix extension add --global "$extension/6.0.2"
+          if ($LASTEXITCODE -ne 0) { throw "Failed to install $extension 6.0.2" }
+          $extensions = wix extension list --global
+          if ($LASTEXITCODE -ne 0) { throw 'Failed to inspect the global WiX extension cache' }
+          if (($extensions -join "`n") -notmatch [regex]::Escape("$extension/6.0.2")) {
+            throw "$extension 6.0.2 is not present in the global WiX extension cache"
+          }
+          $version = $env:RELEASE_TAG -replace '^v','' -replace '-beta([.-].*)
+          if (-not (Test-Path "HWControl-$env:RELEASE_TAG-Windows-x64-Setup.exe")) { throw 'Setup.exe was not produced' }
+      - name: Build unsigned MSIX beta package
+        shell: pwsh
+        working-directory: gui_dashboard
+        run: |
+          $ErrorActionPreference = 'Stop'
           $version = $env:RELEASE_TAG -replace '^v','' -replace '-beta([.-].*)$',''
-          wix build deploy/windows/HWControl-Setup.wxs -ext WixToolset.Bal.wixext -arch x64 -d Version=$version -d MsiPath="$PWD/HWControl-$env:RELEASE_TAG-Windows-x64.msi" -o "HWControl-$env:RELEASE_TAG-Windows-x64-Setup.exe"
+          dart run msix:create `
+            --build-windows false `
+            --display-name 'HWControl' `
+            --publisher-display-name 'HWControl Beta' `
+            --identity-name 'HWControl.Beta' `
+            --publisher 'CN=HWControl Beta' `
+            --version "$version.0" `
+            --architecture x64 `
+            --languages en-us `
+            --install-certificate false `
+            --sign-msix false `
+            --output-path build/msix `
+            --output-name "HWControl-$env:RELEASE_TAG-Windows-x64-MSIX"
+          if ($LASTEXITCODE -ne 0) { throw "MSIX creation failed with exit code $LASTEXITCODE" }
+          $msix = Get-ChildItem build/msix -Filter '*.msix' -File -Recurse | Select-Object -First 1
+          if (-not $msix) { throw 'MSIX beta package was not produced' }
+          Copy-Item $msix.FullName "../$($msix.Name)" -Force
+          Write-Host "MSIX: $($msix.Name)"
+      - name: Generate Windows checksums
+        shell: pwsh
+        run: |
+          $files = @(
+            "HWControl-$env:RELEASE_TAG-Windows-x64-Setup.exe",
+            "HWControl-$env:RELEASE_TAG-Windows-x64.msi",
+            "HWControl-$env:RELEASE_TAG-Windows-x64.zip",
+            "HWControl-$env:RELEASE_TAG-Windows-x64.7z",
+            "HWControl-$env:RELEASE_TAG-Windows-x64-MSIX.msix"
+          )
+          $hashes = foreach ($file in $files) { "$((Get-FileHash $file -Algorithm SHA256).Hash.ToLower())  $file" }
+          $hashes | Set-Content "HWControl-$env:RELEASE_TAG-Windows-x64.sha256"
+          $manifest = "HWControl-$env:RELEASE_TAG-Windows-x64.sha256"
+          $manifestLines = @(Get-Content $manifest)
+          if ($manifestLines.Count -ne $files.Count) { throw 'Windows SHA-256 manifest has an unexpected number of entries' }
+          foreach ($line in $manifestLines) {
+            if ($line -notmatch '^([0-9a-fA-F]{64})  (.+)$') { throw "Malformed SHA-256 manifest entry: $line" }
+            $expectedHash = $Matches[1].ToLowerInvariant()
+            $assetName = $Matches[2]
+            if ($assetName -notin $files) { throw "Unexpected asset in SHA-256 manifest: $assetName" }
+            $actualHash = (Get-FileHash -LiteralPath $assetName -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($actualHash -ne $expectedHash) { throw "SHA-256 mismatch for $assetName" }
+          }
+      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64-Setup.exe
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.zip
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.7z
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64-MSIX.msix
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.sha256
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: beta-windows-x64
+          path: |
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64-Setup.exe
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.msi
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.zip
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.7z
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64-MSIX.msix
+            HWControl-${{ env.RELEASE_TAG }}-Windows-x64.sha256
+
+  linux:
+    needs: prepare-release
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ needs.prepare-release.outputs.source_sha }}
+      - run: sudo apt-get update && sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev zstd dpkg-dev zip unzip
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+        with:
+          go-version-file: bridge_service/go.mod
+          cache: false
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - name: Build and test
+        run: |
+          set -euo pipefail
+          cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF
+          cmake --build build --parallel 2
+          ctest --test-dir build --output-on-failure
+          (cd bridge_service && go vet ./... && go test -count=1 ./... && go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../bridge-service ./src && go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../security-guardian ./security_guardian)
+          (cd gui_dashboard && flutter create --platforms=linux --no-pub . && git restore pubspec.yaml test/widget_test.dart && flutter pub get && flutter analyze && flutter test --no-pub && flutter build linux --release -t lib/installer_main.dart --dart-define=HWCONTROL_RELEASE_TRUST=official)
+      - name: Build DEB and archives
+        run: |
+          set -euo pipefail
+          bash scripts/package-linux.sh "$RELEASE_TAG" build
+      - name: Build and validate portable Linux ZIP
+        run: |
+          set -euo pipefail
+          archive="HWControl-$RELEASE_TAG-Linux-x64.tar.gz"
+          zip_file="HWControl-$RELEASE_TAG-Linux-x64.zip"
+          verify_dir="$(mktemp -d)"
+          trap 'rm -rf -- "$verify_dir"' EXIT
+          tar -xzf "$archive" -C "$verify_dir"
+          root="$(find "$verify_dir" -mindepth 1 -maxdepth 1 -type d -print -quit)"
+          test -n "$root"
+          test -x "$root/ai_engine"
+          test -x "$root/bridge-service"
+          test -x "$root/security-guardian"
+          test -x "$root/dashboard/hwcontrol_dashboard"
+          (cd "$verify_dir" && zip -qr "$GITHUB_WORKSPACE/$zip_file" "$(basename "$root")")
+          unzip -t "$zip_file"
+          unzip -Z1 "$zip_file" | grep -Fq "$(basename "$root")/ai_engine"
+          unzip -Z1 "$zip_file" | grep -Fq "$(basename "$root")/bridge-service"
+      - name: Smoke-test DEB
+        run: |
+          set -euo pipefail
+          sudo dpkg -i "HWControl-$RELEASE_TAG-Linux-x64.deb"
+          systemctl is-enabled hwcontrol-bridge.service
+          for ((attempt = 1; attempt <= 30; attempt++)); do
+            if [[ -S /var/lib/hwcontrol/bridge.sock ]]; then break; fi
+            if ! systemctl is-active --quiet hwcontrol-bridge.service; then break; fi
+            sleep 1
+          done
+          if [[ ! -S /var/lib/hwcontrol/bridge.sock ]]; then
+            echo "Bridge service did not create its Unix socket within 30 seconds." >&2
+            systemctl status hwcontrol-bridge.service --no-pager || true
+            journalctl -u hwcontrol-bridge.service -n 100 --no-pager || true
+            exit 1
+          fi
+          systemctl is-active hwcontrol-bridge.service
+          sudo systemctl stop hwcontrol-security-guardian.service || true
+          sudo systemctl stop hwcontrol-bridge.service
+          sudo dpkg -r hwcontrol
+          test ! -e /opt/hwcontrol
+          test ! -e /usr/bin/hwcontrol
+          sudo rm -rf /var/lib/hwcontrol
+      - name: Generate Linux checksums
+        run: |
+          sha256sum "HWControl-$RELEASE_TAG-Linux-x64.deb" "HWControl-$RELEASE_TAG-Linux-x64.tar.gz" "HWControl-$RELEASE_TAG-Linux-x64.tar.zst" "HWControl-$RELEASE_TAG-Linux-x64.zip" > "HWControl-$RELEASE_TAG-Linux-x64.sha256"
+          sha256sum -c "HWControl-$RELEASE_TAG-Linux-x64.sha256"
+      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.deb
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.gz
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.zst
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.zip
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.sha256
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: beta-linux-x64
+          path: |
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.deb
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.gz
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.tar.zst
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.zip
+            HWControl-${{ env.RELEASE_TAG }}-Linux-x64.sha256
+
+  macos:
+    needs: prepare-release
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ needs.prepare-release.outputs.source_sha }}
+      - run: brew install zstd
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+        with:
+          go-version-file: bridge_service/go.mod
+          cache: false
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: 3.41.9 # Avoid known macOS release AOT crash in Flutter 3.47.x (flutter/flutter#191575).
+          channel: stable
+          architecture: ARM64
+          cache: true
+      - name: Build and test
+        run: |
+          set -euo pipefail
+          cmake -S . -B build -DGGML_NATIVE=OFF -DGGML_CCACHE=OFF -DCMAKE_OSX_DEPLOYMENT_TARGET=14.0
+          cmake --build build --parallel 2
+          ctest --test-dir build --output-on-failure
+          (cd bridge_service && go vet ./... && go test -count=1 ./... && go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../bridge-service ./src && go build -buildvcs=false -trimpath -ldflags='-s -w' -o ../security-guardian ./security_guardian)
+          (cd gui_dashboard && flutter create --platforms=macos --no-pub . && git restore pubspec.yaml test/widget_test.dart && sed -i '' 's/^PRODUCT_NAME = .*/PRODUCT_NAME = HWControl/' macos/Runner/Configs/AppInfo.xcconfig && sed -i '' 's/^PRODUCT_BUNDLE_IDENTIFIER = .*/PRODUCT_BUNDLE_IDENTIFIER = com.hwcontrol.hwcontrol/' macos/Runner/Configs/AppInfo.xcconfig && flutter pub get && flutter analyze && flutter test --no-pub && flutter build macos --release -t lib/installer_main.dart --dart-define=HWCONTROL_RELEASE_TRUST=official)
+      - name: Build PKG and DMG
+        run: |
+          set -euo pipefail
+          tag="$RELEASE_TAG"
+          version="${tag#v}"; version="${version%-beta*}"
+          rm -rf pkg-root dmg-root
+          mkdir -p pkg-root/Applications/HWControl dmg-root
+          cp -R gui_dashboard/build/macos/Build/Products/Release/HWControl.app pkg-root/Applications/HWControl/
+          install -m 0755 build/ai_core/ai_engine pkg-root/Applications/HWControl/ai_engine
+          install -m 0755 build/audio_core/hwcontrol_audio_probe pkg-root/Applications/HWControl/hwcontrol_audio_probe
+          install -m 0755 bridge-service pkg-root/Applications/HWControl/bridge-service
+          install -m 0755 security-guardian pkg-root/Applications/HWControl/security-guardian
+          install -m 0644 deploy/macos/com.hwcontrol.bridge.plist pkg-root/Applications/HWControl/com.hwcontrol.bridge.plist
+          install -m 0644 deploy/macos/com.hwcontrol.security-guardian.plist pkg-root/Applications/HWControl/com.hwcontrol.security-guardian.plist
+          cp README.md SECURITY.md THIRD_PARTY_NOTICES pkg-root/Applications/HWControl/
+          cp -R deploy/macos pkg-root/Applications/HWControl/deploy
+          pkgbuild --root pkg-root --identifier com.hwcontrol.hwcontrol --version "$version" --scripts deploy/macos/pkg-scripts --install-location / "HWControl-${tag}-macOS-AppleSilicon.pkg"
+          cp -R pkg-root/Applications/HWControl/HWControl.app dmg-root/
+          cp "HWControl-${tag}-macOS-AppleSilicon.pkg" dmg-root/
+          hdiutil create -volname HWControl -srcfolder dmg-root -ov -format UDZO "HWControl-${tag}-macOS-AppleSilicon.dmg"
+      - name: Package and validate standalone macOS app bundle
+        run: |
+          set -euo pipefail
+          app_root="pkg-root/Applications/HWControl"
+          app="$app_root/HWControl.app"
+          archive="HWControl-$RELEASE_TAG-macOS-AppleSilicon-app-bundle.zip"
+          test -d "$app/Contents/MacOS"
+          executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Contents/Info.plist")"
+          test -n "$executable"
+          test -x "$app/Contents/MacOS/$executable"
+          test -x "$app_root/bridge-service"
+          test -x "$app_root/security-guardian"
+          ditto -c -k --sequesterRsrc --keepParent "$app_root" "$archive"
+          unzip -t "$archive"
+          unzip -Z1 "$archive" | grep -Fq 'HWControl/HWControl.app/Contents/Info.plist'
+          unzip -Z1 "$archive" | grep -Fq 'HWControl/bridge-service'
+      - name: Smoke-test PKG
+        run: |
+          set -euo pipefail
+          if ! sudo installer -pkg "HWControl-$RELEASE_TAG-macOS-AppleSilicon.pkg" -target /; then
+            sudo cat /tmp/hwcontrol-postinstall.log || true
+            sudo tail -n 120 /var/log/install.log || true
+            exit 1
+          fi
+          test -d /Applications/HWControl/HWControl.app
+          test -x /Applications/HWControl/bridge-service
+          test -x /Applications/HWControl/hwcontrol_audio_probe
+          test -x /Applications/HWControl/ai_engine
+          test -x /Applications/HWControl/security-guardian
+          test -f '/Library/Application Support/HWControl/security/canary/bridger.key'
+          test -f /Library/LaunchDaemons/com.hwcontrol.bridge.plist
+          test -f /Library/LaunchDaemons/com.hwcontrol.security-guardian.plist
+          for ((attempt = 1; attempt <= 30; attempt++)); do
+            if [[ -S '/Library/Application Support/HWControl/bridge.sock' ]]; then break; fi
+            sleep 1
+          done
+          if [[ ! -S '/Library/Application Support/HWControl/bridge.sock' ]]; then
+            sudo cat /tmp/hwcontrol-postinstall.log || true
+            sudo tail -n 120 /var/log/install.log || true
+            exit 1
+          fi
+          sudo launchctl print system/com.hwcontrol.bridge >/dev/null
+          sudo launchctl print system/com.hwcontrol.security-guardian >/dev/null
+          sudo launchctl bootout system /Library/LaunchDaemons/com.hwcontrol.security-guardian.plist || true
+          sudo launchctl bootout system /Library/LaunchDaemons/com.hwcontrol.bridge.plist || true
+          sudo rm -f /Library/LaunchDaemons/com.hwcontrol.bridge.plist /Library/LaunchDaemons/com.hwcontrol.security-guardian.plist
+          sudo rm -rf /Applications/HWControl '/Library/Application Support/HWControl'
+      - name: Generate macOS checksums
+        run: |
+          shasum -a 256 "HWControl-$RELEASE_TAG-macOS-AppleSilicon.pkg" "HWControl-$RELEASE_TAG-macOS-AppleSilicon.dmg" "HWControl-$RELEASE_TAG-macOS-AppleSilicon-app-bundle.zip" > "HWControl-$RELEASE_TAG-macOS-AppleSilicon.sha256"
+          shasum -a 256 -c "HWControl-$RELEASE_TAG-macOS-AppleSilicon.sha256"
+      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.pkg
+            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.dmg
+            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon-app-bundle.zip
+            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.sha256
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: beta-macos-arm64
+          path: |
+            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.pkg
+            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.dmg
+            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon-app-bundle.zip
+            HWControl-${{ env.RELEASE_TAG }}-macOS-AppleSilicon.sha256
+
+  release:
+    if: inputs.publish == true
+    needs: [prepare-release, windows, linux, macos]
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          path: release-assets
+      - name: Verify expected beta matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f "release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64-Setup.exe"
+          test -f "release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64.msi"
+          test -f "release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64.zip"
+          test -f "release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64.7z"
+          test -f "release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64-MSIX.msix"
+          test -f "release-assets/beta-macos-arm64/HWControl-${RELEASE_TAG}-macOS-AppleSilicon.pkg"
+          test -f "release-assets/beta-macos-arm64/HWControl-${RELEASE_TAG}-macOS-AppleSilicon.dmg"
+          test -f "release-assets/beta-macos-arm64/HWControl-${RELEASE_TAG}-macOS-AppleSilicon-app-bundle.zip"
+          test -f "release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.deb"
+          test -f "release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.tar.gz"
+          test -f "release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.tar.zst"
+          test -f "release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.zip"
+          test -f "release-assets/beta-windows-x64/HWControl-${RELEASE_TAG}-Windows-x64.sha256"
+          test -f "release-assets/beta-linux-x64/HWControl-${RELEASE_TAG}-Linux-x64.sha256"
+          test -f "release-assets/beta-macos-arm64/HWControl-${RELEASE_TAG}-macOS-AppleSilicon.sha256"
+      - name: Generate aggregate checksums
+        run: |
+          find release-assets -type f ! -name 'SHA256SUMS' -printf '%f\n' | sort -u | while IFS= read -r name; do
+            file="$(find release-assets -type f -name "$name" -print -quit)"
+            sha256sum "$file" | awk -v name="$name" '{ print $1 "  " name }'
+          done > release-assets/SHA256SUMS
+          while read -r digest name; do
+            file="$(find release-assets -type f -name "$name" -print -quit)"
+            [[ -n "$file" ]] || { echo "Checksum references missing file: $name" >&2; exit 1; }
+            printf '%s  %s\n' "$digest" "$file"
+          done < release-assets/SHA256SUMS | sha256sum -c -
+      - name: Publish beta release
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: HWControl 2.0 ${{ env.RELEASE_TAG }}
+          prerelease: true
+          target_commitish: ${{ needs.prepare-release.outputs.source_sha }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          overwrite_files: true
+          files: |
+            release-assets/beta-windows-x64/*
+            release-assets/beta-macos-arm64/*
+            release-assets/beta-linux-x64/*
+            release-assets/SHA256SUMS
+,''
+          wix build deploy/windows/HWControl-Setup.wxs -ext $extension -arch x64 -d Version=$version -d MsiPath="$PWD/HWControl-$env:RELEASE_TAG-Windows-x64.msi" -o "HWControl-$env:RELEASE_TAG-Windows-x64-Setup.exe"
+          if ($LASTEXITCODE -ne 0) { throw 'WiX Burn bootstrapper build failed' }
           if (-not (Test-Path "HWControl-$env:RELEASE_TAG-Windows-x64-Setup.exe")) { throw 'Setup.exe was not produced' }
       - name: Build unsigned MSIX beta package
         shell: pwsh
