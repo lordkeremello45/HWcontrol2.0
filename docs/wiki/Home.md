@@ -14,7 +14,9 @@ HWcontrol2.0 is an open-source Beta desktop application for hardware monitoring,
 - **GitLab mirror:** https://gitlab.com/lordkeremello45/HWcontrol2.0
 - **Current channel:** Beta
 
-For a consolidated implementation snapshot, see [Current Implementation Status](../CURRENT-IMPLEMENTATION-STATUS.md). The [physical hardware validation matrix](../HARDWARE-VALIDATION-MATRIX.md) remains the authority for device-level evidence.\n\n## Current capabilities
+For a consolidated implementation snapshot, see [Current Implementation Status](../CURRENT-IMPLEMENTATION-STATUS.md). The [physical hardware validation matrix](../HARDWARE-VALIDATION-MATRIX.md) remains the authority for device-level evidence.
+
+## Current capabilities
 
 The dashboard exposes CPU, memory, storage, GPU, fan and battery telemetry where the operating system/driver exposes it. It also includes local telemetry history and CSV export, hardware identity, temperature alerts, Smart Fan curves and automation, Game Mode process detection/profile assignment, Healthy Core thermal-condition indicators, optional local Gemma analysis, a CPU-only benchmark, audio tooling and offline aim practice. Hardware-control commands remain capability-gated. Battery capacity estimates are not battery-life predictions; Healthy Core is not a silicon-wear estimate; AI is advisory only.
 
