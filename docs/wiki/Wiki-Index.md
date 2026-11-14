@@ -1,6 +1,6 @@
 # HWcontrol2.0 Wiki Index
 
-Version-controlled documentation for the current Beta source tree. Feature availability and validation limits are summarized in [Current Implementation Status](../CURRENT-IMPLEMENTATION-STATUS.md).
+Version-controlled documentation for the current Beta source tree. Feature availability and validation limits are summarized in [Current Implementation Status](CURRENT-IMPLEMENTATION-STATUS.md).
 
 ## Home and getting started
 - [Home](Home.md)
@@ -29,7 +29,9 @@ Version-controlled documentation for the current Beta source tree. Feature avail
 - [Local AI](Features-AI-Core.md)
 - [Piper TTS](Features-Accessibility-and-Piper-TTS.md)
 - [Extension Contract](Features-Extension-API.md)
-- [Audio Controller Studio](../AUDIO-CONTROLLER-STUDIO.md)
+- [Offline Aim Trainer](CURRENT-IMPLEMENTATION-STATUS.md#implemented-in-source)
+- [Audio Controller Studio](Audio-Controller-Studio.md)
+- [Audio Controller Studio](Audio-Controller-Studio.md)
 
 ## Architecture
 - [Architecture Overview](Architecture.md)
@@ -83,6 +85,8 @@ Version-controlled documentation for the current Beta source tree. Feature avail
 - [Localization Quality and Turkish Terminology](Localization-Quality-and-Turkish-Terminology.md)
 
 ## Reference
+- [Current Implementation Status](CURRENT-IMPLEMENTATION-STATUS.md)
+- [Physical Hardware Validation Matrix](HARDWARE-VALIDATION-MATRIX.md)
 - [FAQ](FAQ.md)
 - [Roadmap](Roadmap.md)
 - [License](License.md)
