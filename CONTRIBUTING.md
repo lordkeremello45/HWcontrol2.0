@@ -59,7 +59,7 @@ ctest --test-dir build --output-on-failure
 # Go bridge
 cd bridge_service
 go test ./...
-go build ./src
+go build -buildvcs=false -trimpath -o ../bridge-service ./src
 cd ..
 
 # Flutter dashboard
