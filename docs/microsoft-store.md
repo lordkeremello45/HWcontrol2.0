@@ -58,13 +58,13 @@ The Flutter version in `gui_dashboard/pubspec.yaml` is converted to a four-part 
 Example:
 
 ```yaml
-version: 0.2.3
+version: 0.3.1
 ```
 
 becomes:
 
 ```text
-0.2.3.0
+0.3.1.0
 ```
 
 ## 6. Architecture
