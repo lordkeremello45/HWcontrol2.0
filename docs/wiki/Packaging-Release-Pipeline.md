@@ -41,14 +41,18 @@ Any failed platform smoke test, missing required asset, checksum/attestation fai
 
 A macOS `.app` is a directory bundle. `.apt` is not a package extension: APT distribution is a signed repository containing DEB packages and metadata. A generic `.tar.zst` is not an Arch package; native Arch packaging requires `.pkg.tar.zst`.
 
-## Current recovery state — 2026-11-05
+## Historical recovery notes
 
-Root causes found in the prior failed beta jobs:
-- Windows: WiX relative `PackageDir` caused zero harvested files; LocalService could not unprotect the user-scoped DPAPI key; shortcut assertions looked in per-user paths while MSI installed machine-wide shortcuts.
-- Linux: the smoke test checked the bridge socket immediately after systemd reported a `Type=simple` service active.
-- macOS: `postinstall` used `/usr/bin/test`; the guardian LaunchDaemon plist was not copied to the app root; upgrade cleanup handled only the bridge daemon.
+The Windows WiX/DPAPI/shortcut, Linux systemd socket-readiness, and macOS LaunchDaemon packaging issues recorded during the 2026-11-05 recovery work are historical context, not a current CI status report. Their fixes must be evaluated from the latest workflow runs for the exact commit. Do not carry forward a queued/pending status snapshot as current evidence.
 
-Focused fixes and artifact-matrix updates are committed to `main`. **CI is pending; these changes are not yet VERIFIED.** See [current workflow runs](https://github.com/lordkeremello45/HWcontrol2.0/actions).
+## Current release workflows
+
+- `beta-release.yml` is the unified manual Beta workflow. It validates the source version and immutable tag, builds Windows/Linux/macOS package sets, and publishes one cross-platform prerelease when `publish=true`.
+- `automatic-patch-release.yml` dispatches a unified Beta release after a successful main-branch cross-platform package-validation run.
+- `build-selected-release.yml` remains a manual platform-selection dispatcher for platform-specific package workflows.
+- `final-release.yml` is the manual coordinated stable-release gate and requires physical hardware evidence plus platform signing configuration.
+
+Always inspect the latest workflow results and release assets before describing a particular tag as validated.
 
 ## Integrity terminology
 
