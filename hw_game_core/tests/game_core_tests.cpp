@@ -44,7 +44,7 @@ void test_gpu_contracts() {
     CHECK(!is_valid(TextureDesc{}));
 
     CHECK(ResourceHandle{}.valid() == false);
-    CHECK(ResourceHandle{7, 1}.valid());
+    CHECK((ResourceHandle{7, 1}.valid()));
     CHECK(!(ResourceHandle{7, 1} == ResourceHandle{7, 2}));
 
     const auto success = GraphicsResult<int>::success(42);
