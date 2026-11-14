@@ -126,7 +126,7 @@ Do not bypass the safety state. Check diagnostics for the reported anomaly or in
 ## Development
 
 ### How is the project built?
-The main components use C++/CMake for the native engine, Go for the bridge, and Flutter/Dart for the GUI. Repository build and CI workflows are authoritative for exact commands and supported environments.
+The desktop dashboard is Flutter/Dart, the authenticated local hardware bridge and current platform telemetry/control adapters are Go, and separate native helper components use C++/CMake. Supporting components include Ada/SPARK policy code, Rust FFI support, and a Windows-only C# hardware-identity helper. These supporting components are not all wired into every production command path. Repository build and CI workflows are authoritative for exact commands and supported environments.
 
 ### How are tests organized?
 Validation includes C++/CMake/CTest, Go tests, Flutter analysis/tests, platform/package validation, security scanning, and release/package workflows. A successful source build does not prove hardware control works on every device.
@@ -171,3 +171,7 @@ Repository source, tests, CI results, packaged artifacts, and real hardware vali
 ## Where can I see which features are actually available?
 
 Use the [Current Implementation Status](../CURRENT-IMPLEMENTATION-STATUS.md) page. It distinguishes source implementation, partial functionality, unavailable paths and validation still required. A feature listed in the dashboard is not proof that the connected hardware supports it.
+
+
+### Does Performance Mode change the operating system power profile?
+The app-level Quiet/Balanced/Performance presets are separate from OS power settings. A configured power-mode adapter exists for Windows 11 AC/DC modes and Linux power-profiles-daemon. Windows 10 and macOS automatic mode switching are unavailable. Adapter implementation does not prove runtime validation on every machine; see [Performance Mode](Features-Performance-Mode.md).
