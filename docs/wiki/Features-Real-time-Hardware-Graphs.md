@@ -17,4 +17,4 @@ The dashboard keeps a bounded local telemetry history and renders recent hardwar
 - A plotted value is telemetry, not proof that the sensor is calibrated or physically accurate.
 - Physical-device validation and long-session behavior remain separate from Flutter widget tests.
 
-See [Current Implementation Status](CURRENT-IMPLEMENTATION-STATUS.md) for the current feature and validation boundary.
+See [Current Implementation Status](../CURRENT-IMPLEMENTATION-STATUS.md) for the current feature and validation boundary.
