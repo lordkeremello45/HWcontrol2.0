@@ -1,6 +1,6 @@
 # Features
 
-This index reflects the current repository source. A feature being present in source does not mean it is enabled in every package or validated on every device. See [Current Implementation Status](../CURRENT-IMPLEMENTATION-STATUS.md) for the consolidated implementation and validation snapshot.
+This index reflects the current repository source. A feature being present in source does not mean it is enabled in every package or validated on every device. See [Current Implementation Status](CURRENT-IMPLEMENTATION-STATUS.md) for the consolidated implementation and validation snapshot.
 
 ## Monitoring and diagnostics
 
@@ -26,8 +26,8 @@ This index reflects the current repository source. A feature being present in so
 - [Local AI Core](Features-AI-Core.md) — optional local Gemma analysis; advisory only
 - [Accessibility and Offline Piper TTS](Features-Accessibility-and-Piper-TTS.md) — optional user-installed Piper runtime
 - [CPU Benchmark](Features-Benchmark.md) — bounded CPU-only benchmark
-- [Audio Controller Studio](../AUDIO-CONTROLLER-STUDIO.md) — microphone/audio processing; system loopback and per-app routing remain unavailable
-- [Offline Aim Trainer](../CURRENT-IMPLEMENTATION-STATUS.md#implemented-in-source) — local practice only; no game integration or input injection
+- [Audio Controller Studio](Audio-Controller-Studio.md) — microphone/audio processing; system loopback and per-app routing remain unavailable
+- [Offline Aim Trainer](CURRENT-IMPLEMENTATION-STATUS.md#implemented-in-source) — local practice only; no game integration or input injection
 - [Extension API](Features-Extension-API.md) — metadata/capability manifest, not arbitrary executable plugins
 
 ## Architecture and status
