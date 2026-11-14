@@ -79,7 +79,7 @@ TestResults/
 .flutter-plugins-dependencies
 coverage/
 
- # Node.js / Astro generated state
+# Node.js / Astro generated state
 **/node_modules/
 website/dist/
 website/.astro/
