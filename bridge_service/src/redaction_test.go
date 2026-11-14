@@ -6,10 +6,10 @@ import (
 )
 
 func TestRedactSensitiveText(t *testing.T) {
-	input := "HWCONTROL_KEY=super-secret HMAC_SECRET=abc123 Authorization: Bearer token-xyz path=C:\\Users\\Kerem\\HWControl\\log.txt /home/kerem/.config/hwcontrol"
+	input := "HWCONTROL_KEY=super-secret HMAC_SECRET=abc123 Authorization: Bearer token-xyz path=C:\\Users\\Lime\\HWControl\\log.txt /home/lime/.config/hwcontrol"
 	got := redactSensitiveText(input)
 
-	for _, secret := range []string{"super-secret", "abc123", "token-xyz", "Kerem", "kerem"} {
+	for _, secret := range []string{"super-secret", "abc123", "token-xyz", "Lime", "lime"} {
 		if strings.Contains(got, secret) {
 			t.Fatalf("sensitive value leaked: %q in %q", secret, got)
 		}
