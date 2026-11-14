@@ -38,13 +38,18 @@ Stable releases are coordinated by the **Final release — all platforms** workf
 - Per-volume storage usage, free capacity and read/write throughput; device health is reported only when a trusted platform-specific health source is available
 - Temperature history and configurable temperature alerts
 - Hardware-control commands for supported platforms/devices
-- Performance / Balanced / Quiet profile support where available
+- Performance / Balanced / Quiet application presets; separate Windows 11 and Linux OS power-profile adapters with runtime validation pending
 - Game Mode
 - Safety-normalized Smart Fan Curve editor with a nonzero cooling floor, thermal emergency override and capability-gated automatic control
 - Per-channel fan inventory, independent manual targets, local fan profiles, and CPU/GPU/hottest-sensor selection where the platform exposes validated PWM channels
 - Optional read-only liquid-cooling telemetry through an externally installed `liquidctl` CLI (coolant temperature, pump/fan RPM, flow and level only when explicitly reported)
 - Local temperature automation rules
-- Bounded CPU microbenchmark
+- Bounded CPU-only microbenchmark
+- Read-only battery capacity and charge-state panel (hardware validation pending)
+- Healthy Core CPU/GPU thermal-condition indicator; not a silicon-wear or remaining-life estimate
+- Optional local Gemma analysis; advisory only and not required for core monitoring
+- Optional offline Piper text-to-speech integration (runtime/model supplied separately)
+- Audio Controller Studio and offline aim-practice screen (not game-integrated)
 - Local extension metadata/capability contract
 - Local user profiles and fan-curve configuration
 - Secure loopback communication between the dashboard and bridge
@@ -151,9 +156,15 @@ HWcontrol2.0 includes an Ada package using **SPARK** (`security/spark-core/src/h
 
 ## Architecture
 
-Flutter / Dart GUI → Authenticated localhost Go Bridge → Native C++ / CMake Engine → Platform-specific hardware APIs
+```text
+Flutter / Dart desktop GUI
+        ↓ HMAC-authenticated localhost IPC
+Go Bridge — telemetry, hardware identity, capability checks and platform adapters
+        ↓
+Windows / Linux / macOS APIs, drivers and device interfaces
+```
 
-The native engine provides the low-level hardware integration layer; the overall project covers monitoring, control, health, diagnostics, safety and release integrity.
+The Go bridge is the current hardware collection and supported-control boundary. C++/CMake components provide separate local AI, audio and early Game Core functionality; they are not the current shared hardware-control engine. Ada/SPARK and Rust provide selected security-policy and FFI support, but end-to-end SPARK enforcement across every production hardware command is not yet verified.
 
 ## NVIDIA GPU development
 
