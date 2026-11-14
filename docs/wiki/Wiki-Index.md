@@ -1,13 +1,9 @@
-# HWControl 2.0 Wiki Index
+# HWcontrol2.0 Wiki Index
 
-This directory contains the version-controlled source for the project documentation.
+Version-controlled documentation for the current Beta source tree. Feature availability and validation limits are summarized in [Current Implementation Status](../CURRENT-IMPLEMENTATION-STATUS.md).
 
-## 🏠 Home
-
+## Home and getting started
 - [Home](Home.md)
-
-## 🚀 Getting Started
-
 - [Getting Started](Getting-Started.md)
 - [Installation](Getting-Started-Installation.md)
 - [Windows](Getting-Started-Windows.md)
@@ -15,83 +11,81 @@ This directory contains the version-controlled source for the project documentat
 - [macOS](Getting-Started-macOS.md)
 - [Building from Source](Getting-Started-Building-from-Source.md)
 
-## 🖥️ Features
-
-- [Features](Features.md)
+## Features
+- [Feature Index](Features.md)
 - [Hardware Monitoring](Features-Hardware-Monitoring.md)
-- [Liquid Cooling](Features-Liquid-Cooling.md)
-- [CPU & GPU Temperature](Features-CPU-GPU-Temperature.md)
-- [Fan Curve Editor](Features-Fan-Curve-Editor.md)
-- [Real-time Hardware Graphs](Features-Real-time-Hardware-Graphs.md)
-- [Performance / Balanced / Quiet](Features-Performance-Balanced-Quiet.md)
+- [Hardware Detection](Features-Hardware-Detection.md)
+- [CPU and GPU Temperature](Features-CPU-GPU-Temperature.md)
+- [Fan Curves](Features-Fan-Curve-Editor.md)
+- [Advanced Control and Automation](Features-Advanced-Control.md)
+- [Performance / Balanced / Quiet Presets](Features-Performance-Balanced-Quiet.md)
+- [OS Performance Mode](Features-Performance-Mode.md)
 - [Game Mode](Features-Game-Mode.md)
+- [Battery Capacity](Features-Battery-Health.md)
+- [Healthy Core](Features-Healthy-Core.md)
+- [Liquid Cooling](Features-Liquid-Cooling.md)
+- [Telemetry History](Features-Telemetry-History.md)
+- [CPU Benchmark](Features-Benchmark.md)
+- [Local AI](Features-AI-Core.md)
+- [Piper TTS](Features-Accessibility-and-Piper-TTS.md)
+- [Extension Contract](Features-Extension-API.md)
+- [Audio Controller Studio](../AUDIO-CONTROLLER-STUDIO.md)
 
-## 🏗️ Architecture
-
-- [Architecture](Architecture.md)
+## Architecture
+- [Architecture Overview](Architecture.md)
 - [Application Architecture](Architecture-Application.md)
 - [Hardware Abstraction](Architecture-Hardware-Abstraction.md)
 - [Platform-specific Components](Architecture-Platform-specific.md)
 - [Data Flow](Architecture-Data-Flow.md)
-- [Six-Service Architecture](Architecture-Six-Services.md)
+- [Game Core](Architecture-Game-Core.md)
+- [Logical Services](Architecture-Six-Services.md)
+- [Advanced Hardware Capabilities](Advanced-Hardware-Capabilities.md)
+- [Game Core Graphics Backend ADR](ADR-Game-Core-Graphics-Backends.md)
 
-## 📦 Packaging & Distribution
-
-- [Packaging & Distribution](Packaging-and-Distribution.md)
-- [Windows Installer](Packaging-Windows-Installer.md)
-- [macOS Application](Packaging-macOS-Application.md)
-- [Linux Packages](Packaging-Linux-Packages.md)
+## Packaging and distribution
+- [Packaging Overview](Packaging-and-Distribution.md)
 - [Cross-platform CI](Packaging-Cross-platform-CI.md)
+- [Windows Installer](Packaging-Windows-Installer.md)
+- [Linux Packages](Packaging-Linux-Packages.md)
+- [macOS Application](Packaging-macOS-Application.md)
 - [Release Pipeline](Packaging-Release-Pipeline.md)
 
-## 🔐 Security & Signing
-
-- [Security & Signing](Security-and-Signing.md)
+## Security
+- [Security and Signing](Security-and-Signing.md)
 - [Code Signing](Security-Code-Signing.md)
 - [Artifact Attestation](Security-Artifact-Attestation.md)
 - [Release Integrity](Security-Release-Integrity.md)
-- [SignPath](Security-SignPath.md)
+- [SignPath Readiness](Security-SignPath.md)
+- [Vulnerability Management](SECURITY-VULNERABILITY-MANAGEMENT.md)
 
-## 🧪 Testing
-
-- [Testing](Testing.md)
+## Testing
+- [Testing Overview](Testing.md)
 - [Unit Tests](Testing-Unit-Tests.md)
 - [Smoke Tests](Testing-Smoke-Tests.md)
 - [Windows Validation](Testing-Windows-Validation.md)
 - [Linux Validation](Testing-Linux-Validation.md)
 - [macOS Validation](Testing-macOS-Validation.md)
 
-## 🛠️ Troubleshooting
-
+## Troubleshooting
 - [Troubleshooting](Troubleshooting.md)
+- [Hardware Detection](Troubleshooting-Hardware-Detection.md)
 - [Windows](Troubleshooting-Windows.md)
 - [Linux](Troubleshooting-Linux.md)
 - [macOS](Troubleshooting-macOS.md)
-- [Hardware Detection](Troubleshooting-Hardware-Detection.md)
 
-## 👨‍💻 Development
-
+## Development
 - [Development](Development.md)
 - [Development Environment](Development-Environment.md)
 - [Repository Structure](Development-Repository-Structure.md)
 - [CI/CD](Development-CI-CD.md)
 - [Contributing](Development-Contributing.md)
+- [Localization Roadmap](Localization-Roadmap.md)
+- [Localization Quality and Turkish Terminology](Localization-Quality-and-Turkish-Terminology.md)
 
-## ❓ FAQ
-
+## Reference
 - [FAQ](FAQ.md)
-
-## 🗺️ Roadmap
-
 - [Roadmap](Roadmap.md)
-
-## 📚 References
-
-- [Technical References](References.md)
-
-The complete source list is maintained in [docs/REFERENCES.md](https://github.com/lordkeremello45/HWcontrol2.0/blob/main/docs/REFERENCES.md). Third-party license notices are maintained in [THIRD_PARTY_NOTICES.md](https://github.com/lordkeremello45/HWcontrol2.0/blob/main/THIRD_PARTY_NOTICES.md).
-
-## 📜 License
-
 - [License](License.md)
-\n\n## Current implementation status\n\nSee [Current Implementation Status](../CURRENT-IMPLEMENTATION-STATUS.md) for the latest consolidated capability and validation snapshot.\n
+- [References](References.md)
+
+The complete technical source registry is maintained in [docs/REFERENCES.md](https://github.com/lordkeremello45/HWcontrol2.0/blob/main/docs/REFERENCES.md). Third-party notices are maintained in [THIRD_PARTY_NOTICES.md](https://github.com/lordkeremello45/HWcontrol2.0/blob/main/THIRD_PARTY_NOTICES.md).
