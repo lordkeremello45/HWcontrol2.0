@@ -166,3 +166,4 @@ This FAQ distinguishes:
 - Unavailable — not currently supported
 
 Repository source, tests, CI results, packaged artifacts, and real hardware validation remain the authoritative evidence for implementation status.
+\n\n## Where can I see which features are actually available?\n\nUse the [Current Implementation Status](../CURRENT-IMPLEMENTATION-STATUS.md) page. It distinguishes source implementation, partial functionality, unavailable paths and validation still required. A feature listed in the dashboard is not proof that the connected hardware supports it.\n
