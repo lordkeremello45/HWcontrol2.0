@@ -1,4 +1,6 @@
 #include "hw_game_core/graphics/backend_selection.hpp"
+#include "hw_game_core/graphics/device.hpp"
+#include "hw_game_core/graphics/gpu_types.hpp"
 #include "hw_game_core/graphics/render_graph.hpp"
 
 #include <cstdlib>
@@ -24,6 +26,36 @@ BackendCandidate ready(GraphicsApi api, bool compute = false) {
     return BackendCandidate{
         api, BackendProbeStatus::ready, BackendCapabilities{true, true, compute}
     };
+}
+
+void test_gpu_contracts() {
+    const BufferDesc valid_buffer{4096, BufferUsage::vertex | BufferUsage::transfer_destination,
+                                  true, "vertex-buffer"};
+    CHECK(is_valid(valid_buffer));
+    CHECK(has_flag(valid_buffer.usage, BufferUsage::vertex));
+    CHECK(!is_valid(BufferDesc{}));
+
+    const TextureDesc valid_texture{1920, 1080, 1, 1, 1,
+                                    TextureFormat::rgba8_unorm,
+                                    TextureUsage::sampled | TextureUsage::color_attachment,
+                                    "scene-color"};
+    CHECK(is_valid(valid_texture));
+    CHECK(has_flag(valid_texture.usage, TextureUsage::sampled));
+    CHECK(!is_valid(TextureDesc{}));
+
+    CHECK(ResourceHandle{}.valid() == false);
+    CHECK(ResourceHandle{7, 1}.valid());
+    CHECK(!(ResourceHandle{7, 1} == ResourceHandle{7, 2}));
+
+    const auto success = GraphicsResult<int>::success(42);
+    CHECK(success.ok());
+    CHECK(success.value.has_value());
+    CHECK(*success.value == 42);
+    const auto failure = GraphicsResult<int>::failure(
+        GraphicsStatus::device_lost, "device removed");
+    CHECK(!failure.ok());
+    CHECK(!failure.value.has_value());
+    CHECK(failure.status == GraphicsStatus::device_lost);
 }
 
 void test_backend_selection() {
@@ -255,6 +287,7 @@ void test_render_graph_rejects_invalid_patterns() {
 }  // namespace
 
 int main() {
+    test_gpu_contracts();
     test_backend_selection();
     test_render_graph_hazards_and_order();
     test_render_graph_determinism_and_write_after_read();

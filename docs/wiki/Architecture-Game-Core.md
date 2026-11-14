@@ -2,9 +2,9 @@
 
 ## Status
 
-**PARTIAL — portable foundation implemented; first Direct3D 12 triangle sample added. Production renderer backends are not implemented.**
+**PARTIAL — portable foundation, backend-neutral GPU resource/device contracts and a first Direct3D 12 triangle sample are implemented. Production renderer backends are not implemented.**
 
-This architecture targets Windows 10/11 x64, Linux x64 and macOS 14+ Apple Silicon. Current code provides deterministic backend-selection policy, a backend-neutral render-graph compiler and a Windows-only Direct3D 12 triangle sample. The sample creates a Win32 window and D3D12 device/swapchain, compiles a minimal HLSL shader at runtime and submits a synchronized triangle frame. It is an isolated bring-up sample, not yet the production GAL, reusable 2D/3D renderer or cross-platform window layer.
+This architecture targets Windows 10/11 x64, Linux x64 and macOS 14+ Apple Silicon. Current code provides deterministic backend-selection policy, a backend-neutral render-graph compiler, backend-neutral GPU resource descriptors and device/backend interfaces, and a Windows-only Direct3D 12 triangle sample. The sample creates a Win32 window and D3D12 device/swapchain, compiles a minimal HLSL shader at runtime and submits a synchronized triangle frame. It is an isolated bring-up sample, not yet the production GAL, reusable 2D/3D renderer or cross-platform window layer.
 
 Game Core is an independent native product. It must build and run without HWcontrol2.0, the Go bridge, hardware-monitoring services or the Flutter dashboard. Optional HWcontrol integration may consume Game Core telemetry, but the engine must never require HWcontrol to launch.
 
@@ -93,7 +93,7 @@ The current implementation contains a pure policy function. Real backend adapter
 6. For an explicit preference, do not silently switch APIs. Fallback is allowed only when the caller opts in.
 7. Return the selected API and a reason code; otherwise return a typed failure.
 
-Device enumeration is deliberately separate. A future adapter must report API version, vendor/device identity, queue families, presentation support, feature/extension support, memory budget and driver diagnostics before it can become a ready candidate.
+Device enumeration is deliberately separate. A future adapter must report API version, vendor/device identity, queue families, presentation support, feature/extension support, memory budget and driver diagnostics before it can become a ready candidate. The new `device.hpp` and `gpu_types.hpp` define the initial backend-neutral device/resource contract only; they do not implement GPU allocation, command submission or any native backend.
 
 ## Render Graph algorithm
 
