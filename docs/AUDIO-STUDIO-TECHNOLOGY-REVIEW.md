@@ -1,5 +1,8 @@
 # Audio Controller Studio: Technology Review and Completion Plan
 
+> **Research status:** This document records technology evaluation and possible future directions. It is not a feature-completion statement. Only the implemented scope in [Audio Controller Studio](AUDIO-CONTROLLER-STUDIO.md) should be described as available. System loopback, virtual devices, per-application routing, spatial audio, ChatMix and streamer/submix workflows are not currently implemented.
+
+
 **Review date:** 2026-10-16  
 **Repository baseline:** `main` after native audio integration commits on 2026-10-16  
 **Status:** Competitor research complete for the first pass; live native control path and package staging are implemented in source, but CI/runtime validation is pending.
