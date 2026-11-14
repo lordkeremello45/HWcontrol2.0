@@ -1,6 +1,6 @@
-# Hardware Benchmark
+# CPU Benchmark
 
-HWcontrol2.0 includes a bounded CPU microbenchmark for a quick relative performance check.
+HWcontrol2.0 includes a bounded CPU-only microbenchmark for a quick relative performance check.
 
 It intentionally does not claim to be a complete CPU/GPU stress suite. It does not modify:
 
