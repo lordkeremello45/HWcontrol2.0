@@ -87,6 +87,52 @@ void test_vendor_extension_contracts() {
     CHECK(ready_extension.supports(VendorRuntimeFeature::low_latency));
     CHECK(!ready_extension.supports(VendorRuntimeFeature::frame_generation));
     CHECK(!ready_extension.supports(VendorRuntimeFeature::none));
+
+    GraphicsDeviceInfo nvidia_device;
+    nvidia_device.adapter.vendor_id = 0x10DEU;
+    CHECK(validate_vendor_extension_info(
+        GpuVendor::nvidia, nvidia_device, ready_extension) ==
+        VendorExtensionValidation::valid);
+
+    CHECK(validate_vendor_extension_info(
+        GpuVendor::amd, nvidia_device, ready_extension) ==
+        VendorExtensionValidation::vendor_mismatch);
+
+    auto spoofed_vendor = ready_extension;
+    spoofed_vendor.vendor = GpuVendor::amd;
+    CHECK(validate_vendor_extension_info(
+        GpuVendor::nvidia, nvidia_device, spoofed_vendor) ==
+        VendorExtensionValidation::vendor_mismatch);
+
+    auto invalid_state = ready_extension;
+    invalid_state.state = VendorExtensionState::failed;
+    CHECK(validate_vendor_extension_info(
+        GpuVendor::nvidia, nvidia_device, invalid_state) ==
+        VendorExtensionValidation::features_without_ready_state);
+
+    auto empty_ready = ready_extension;
+    empty_ready.available_features = 0U;
+    CHECK(validate_vendor_extension_info(
+        GpuVendor::nvidia, nvidia_device, empty_ready) ==
+        VendorExtensionValidation::empty_ready_features);
+
+    auto unknown_bits = ready_extension;
+    unknown_bits.available_features |= (1U << 31U);
+    CHECK(validate_vendor_extension_info(
+        GpuVendor::nvidia, nvidia_device, unknown_bits) ==
+        VendorExtensionValidation::unknown_feature_bits);
+
+    auto oversized_diagnostic = ready_extension;
+    oversized_diagnostic.diagnostic.assign(
+        max_vendor_diagnostic_bytes + 1U, 'x');
+    CHECK(validate_vendor_extension_info(
+        GpuVendor::nvidia, nvidia_device, oversized_diagnostic) ==
+        VendorExtensionValidation::diagnostic_too_large);
+
+    GraphicsDeviceInfo unknown_device;
+    CHECK(validate_vendor_extension_info(
+        GpuVendor::nvidia, unknown_device, ready_extension) ==
+        VendorExtensionValidation::vendor_mismatch);
 }
 
 void test_backend_selection() {

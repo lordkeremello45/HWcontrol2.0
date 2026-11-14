@@ -288,3 +288,26 @@ Do not route HWVision compute workloads through Game Core's graphics abstraction
 
 **Implementation status:** vendor identification and the optional extension/probe contract are implemented in the portable Game Core API. No NVIDIA DLSS/Reflex SDK adapter, AMD FidelityFX/FSR adapter, Nsight/RGP automation, CUDA/TensorRT integration or ROCm integration is implemented by this change. These require separate SDK-specific modules and supported hardware/driver validation.
 
+
+
+### Vendor extension security boundary
+
+Every optional vendor adapter result must pass
+`validate_vendor_extension_info` before its feature bits are consumed.
+
+- The adapter identity, reported vendor and selected GPU vendor ID must agree.
+- Unknown feature bits are rejected rather than ignored.
+- A feature mask is valid only in the `ready` state; failed, unavailable and
+  unprobed adapters must report no usable features.
+- A `ready` adapter must report at least one known feature.
+- Diagnostics are bounded to 4 KiB so an adapter cannot return unbounded
+  diagnostic payloads through this interface.
+- A vendor ID is only a consistency check. The adapter must still perform
+  real SDK, driver, device and per-feature capability checks before reporting
+  a feature as ready.
+
+This validation protects the engine from inconsistent adapter metadata; it
+does not sandbox native SDK code. Vendor adapters are trusted, version-pinned
+build components. Do not load arbitrary third-party DLLs, shared objects or
+framework bundles into the renderer process. SDK acquisition, license review,
+signature/integrity checks and hardware validation remain release gates.
