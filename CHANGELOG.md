@@ -24,7 +24,7 @@ The project is currently in the Beta channel. Release-specific details should be
 ### Limitations
 - Windows and macOS fan writes remain unavailable.
 - Liquid cooling remains read-only; pump control and leak detection are not implemented.
-- Operating-system power-mode automation is not implemented.
+- Windows 11 AC/DC and Linux system power-profile adapters are implemented in source but still require platform runtime validation; macOS automatic switching is unavailable.
 - Physical hardware coverage and production signing/notarization must be verified separately.
 - C++ Game Core and BSOD Shield are not complete released products; SPARK runtime integration is not yet verified end to end.
 
@@ -32,6 +32,6 @@ The project is currently in the Beta channel. Release-specific details should be
 
 ### [0.2.4] — Beta release line
 
-This entry is retained for historical context only. For the complete v0.2.4 artifact list and release-specific notes, see the [v0.2.4 GitHub Release](https://github.com/lordkeremello45/HWcontrol2.0/releases/tag/v0.2.4). Do not infer current feature status from this release. Do not infer current feature status from the historical v0.2.x release line. See [GitHub Releases](https://github.com/lordkeremello45/HWcontrol2.0/releases) for tag-specific artifacts and notes.
+This entry is retained for historical context only. For the complete v0.2.4 artifact list and release-specific notes, see the [v0.2.4 GitHub Release](https://github.com/lordkeremello45/HWcontrol2.0/releases/tag/v0.2.4). Do not infer current feature status from the historical v0.2.x release line. See [GitHub Releases](https://github.com/lordkeremello45/HWcontrol2.0/releases) for tag-specific artifacts and notes.
 
 [Unreleased]: https://github.com/lordkeremello45/HWcontrol2.0/compare/v0.2.4...HEAD
