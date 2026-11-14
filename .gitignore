@@ -1,98 +1,107 @@
-# Prerequisites
+# Native C/C++ and CMake build products
 *.d
-
-# Compiled Object files
 *.slo
 *.lo
 *.o
 *.obj
-
-# Precompiled Headers
 *.gch
 *.pch
-
-# Linker files
 *.ilk
-
-# Debugger Files
 *.pdb
-
-# Compiled Dynamic libraries
+*.dwo
 *.so
+*.so.*
 *.dylib
 *.dll
-*.so.*
-
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
 *.a
+*.la
+*.lai
 *.lib
-
-# Executables
 *.exe
 *.out
 *.app
 
-# Build directories
+# CMake generated state
 build/
 Build/
 build-*/
-
-# CMake generated files
+cmake-build-*/
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
-Makefile
 install_manifest.txt
 compile_commands.json
-
-# Temporary files
-*.tmp
-*.log
-*.bak
-*.swp
-
-# vcpkg
-vcpkg_installed/
-
-# debug information files
-*.dwo
-
-# test output & cache
 Testing/
-.cache/
-# --- HWControl 2.0 Multi-Language Extension ---
+CMakeUserPresets.json
 
-# Go (Bridge)
-/bridge_service/bin/
-/bridge_service/pkg/
-!/bridge_service/go.mod
+# Native build caches and package staging
+vcpkg_installed/
+_artifacts/
+artifacts/
+dist/
+out/
+
+# Go bridge build outputs and profiling data
+/bridge-service
+/bridge-service.exe
+/security-guardian
+/security-guardian.exe
+/sensor-adapter-check.exe
 *.test
+*.prof
+coverage.out
 
-# Downloaded AI models
+# .NET build and test outputs
+**/bin/
+**/obj/
+TestResults/
+*.user
+*.suo
+
+# Rust build output
+**/target/
+
+# Flutter / Dart generated state
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+.flutter-plugins
+.flutter-plugins-dependencies
+coverage/
+
+# Node.js / Astro generated state
+**/node_modules/
+website/dist/
+website/.astro/
+
+# Downloaded runtime models (model metadata in /models remains trackable)
 /ai_core/models/
+*.gguf
+*.safetensors
+*.onnx
 
-# Python (AI Analyzer)
+# Python tooling caches (not part of the production runtime)
 __pycache__/
 *.py[cod]
 .venv/
 venv/
 .pytest_cache/
 
-# Dart/Flutter (GUI)
-.dart_tool/
-.packages
-.pub-cache/
-.pub/
+# Local secrets and environment overrides
+.env
+.env.*
+!.env.example
+!.env.template
+*.local
 
-# IDE/OS Specifics (Proje genelinde temizlik için)
+# Temporary files and editor/OS state
+*.tmp
+*.log
+*.bak
+*.swp
+.DS_Store
+Thumbs.db
 .vscode/
 .vs/
 .idea/
-.DS_Store
