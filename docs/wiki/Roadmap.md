@@ -30,6 +30,6 @@ The following items are documentation/planning targets rather than promises of a
 - potential SignPath integration;
 - stronger release provenance and verification UX.
 
-The C++ Game Core, BSOD Shield, full SPARK runtime integration, system-wide power-mode automation, liquid-cooling control, and additional platform hardware adapters must not be described as shipped capabilities until their implementation and validation gates are met.
+The C++ Game Core, BSOD Shield, full SPARK runtime integration, universal cross-platform power-mode automation beyond the existing Windows 11/Linux adapters, liquid-cooling control, and additional platform hardware adapters must not be described as shipped capabilities until their implementation and validation gates are met.
 
 The actual release status should always be determined from the repository, current GitHub Actions runs and GitHub Releases.
