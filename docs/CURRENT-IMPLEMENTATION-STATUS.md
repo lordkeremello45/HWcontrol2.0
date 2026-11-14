@@ -56,7 +56,7 @@ Separate native components are not the current hardware-control engine:
 - Physical sensor, fan-control, battery and cooling behavior has not been exhaustively validated across the target hardware matrix.
 - Windows and macOS fan writes are unavailable; Linux PWM support is limited to detected channels that pass all safety preconditions.
 - Liquid cooling remains read-only and depends on a separately installed, supported `liquidctl` CLI.
-- Operating-system power-mode support is platform-specific: Linux has a power-profiles-daemon adapter with readback/rollback checks; Windows/macOS automatic switching is unavailable or not implemented. Quiet/Balanced/Performance application presets must not be interpreted as universal OS power-mode changes.
+- Operating-system power-mode support is platform-specific: Windows 11 has AC/DC configured-mode adapters; Linux has a power-profiles-daemon system-profile adapter. Windows 10 and macOS automatic switching are unavailable. Adapter implementation is present, but platform runtime validation remains pending. Quiet/Balanced/Performance application presets must not be interpreted as universal OS power-mode changes.
 - The C++ Game Core is an early backend/render-graph component, not a complete Direct3D 12 + Vulkan game engine or a released 2D/3D runtime.
 - The BSOD Shield source contains a heartbeat/watchdog primitive; do not describe it as a complete BSOD prevention or recovery product.
 - Ada/SPARK formal policy exists, but full production-path linking and end-to-end invocation from every relevant Go hardware command are not verified.
@@ -66,8 +66,8 @@ Separate native components are not the current hardware-control engine:
 
 | Platform | Project target | Important current limitation |
 |---|---|---|
-| Windows 10/11 x64 | Beta target | Telemetry/identity paths are platform-dependent; fan writes unavailable |
-| Debian/Ubuntu-family Linux x64 | Beta target | Fan writes only for validated hwmon PWM channels |
+| Windows 10/11 x64 | Beta target | Fan writes unavailable; OS power-mode adapter requires Windows 11 APIs and is unavailable on Windows 10 |
+| Debian/Ubuntu-family Linux x64 | Beta target | Fan writes only for validated hwmon PWM channels; OS power profiles require power-profiles-daemon and policy permission |
 | macOS 14+ Apple Silicon | Beta target | Fan writes unavailable; Intel macOS is not a current package target |
 
 A target platform is not a claim that every device, sensor, installer, or control feature has been validated there. See [Physical Hardware Validation Matrix](HARDWARE-VALIDATION-MATRIX.md).
