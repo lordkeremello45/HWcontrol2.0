@@ -35,8 +35,8 @@ Targets: Windows 10/11 x64, Linux x64, macOS 14+ Apple Silicon.
 8. Do not introduce unnecessary asynchronous complexity into existing synchronous workflows.
 9. Optional external executables must use bounded execution time/output, strict output parsing, explicit capability reporting, and must never be assumed present.
 10. Keep read-only telemetry separate from writable controls; never add pump/fan writes without documented device-specific bounds, readback and physical validation.
-9. Never hard-code secrets, tokens, passwords, certificates, private keys, or credentials.
-10. Never weaken security or disable validation merely to make CI pass.
+11. Never hard-code secrets, tokens, passwords, certificates, private keys, or credentials.
+12. Never weaken security or disable validation merely to make CI pass.
 
 ## Validation
 
