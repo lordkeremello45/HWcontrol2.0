@@ -96,4 +96,22 @@ if(BUILD_TESTING)
   endif()
 
   add_test(NAME hw_game_core_unit COMMAND hw_game_core_tests)
+
+  add_executable(hw_game_core_vendor_sdk_tests tests/vendor_sdk_contract_tests.cpp)
+  target_link_libraries(hw_game_core_vendor_sdk_tests PRIVATE HWControl::GameCore)
+  target_compile_features(hw_game_core_vendor_sdk_tests PRIVATE cxx_std_20)
+  set_target_properties(hw_game_core_vendor_sdk_tests PROPERTIES CXX_EXTENSIONS OFF)
+  if(MSVC)
+    target_compile_options(hw_game_core_vendor_sdk_tests PRIVATE /W4 /permissive- /sdl)
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+    target_compile_options(hw_game_core_vendor_sdk_tests PRIVATE
+      -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow
+      -fstack-protector-strong
+    )
+  endif()
+  if(HWCONTROL_GAME_CORE_ENABLE_SANITIZERS)
+    target_compile_options(hw_game_core_vendor_sdk_tests PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
+    target_link_options(hw_game_core_vendor_sdk_tests PRIVATE -fsanitize=address,undefined)
+  endif()
+  add_test(NAME hw_game_core_vendor_sdk_contracts COMMAND hw_game_core_vendor_sdk_tests)
 endif()
