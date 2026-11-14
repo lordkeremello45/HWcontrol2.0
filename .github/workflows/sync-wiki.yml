@@ -103,6 +103,10 @@ jobs:
           cp docs/CURRENT-IMPLEMENTATION-STATUS.md wiki/CURRENT-IMPLEMENTATION-STATUS.md
           cp docs/HARDWARE-VALIDATION-MATRIX.md wiki/HARDWARE-VALIDATION-MATRIX.md
           cp docs/AUDIO-CONTROLLER-STUDIO.md wiki/Audio-Controller-Studio.md
+          find wiki -maxdepth 1 -type f -name '*.md' -print0 | xargs -0 sed -i \
+            -e 's#../CURRENT-IMPLEMENTATION-STATUS.md#CURRENT-IMPLEMENTATION-STATUS.md#g' \
+            -e 's#../HARDWARE-VALIDATION-MATRIX.md#HARDWARE-VALIDATION-MATRIX.md#g' \
+            -e 's#../AUDIO-CONTROLLER-STUDIO.md#Audio-Controller-Studio.md#g'
 
       - name: Commit Wiki changes
         id: commit
