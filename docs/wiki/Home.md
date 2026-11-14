@@ -1,6 +1,6 @@
 # HWControl 2.0 Wiki
 
-HWControl 2.0 is an open-source, cross-platform desktop application for hardware monitoring and controlled hardware interaction.
+HWcontrol2.0 is an open-source Beta desktop application for hardware monitoring, diagnostics and capability-gated control. This wiki describes the current repository implementation and marks partial or unavailable functionality explicitly.
 
 ## Project at a glance
 
@@ -14,11 +14,11 @@ HWControl 2.0 is an open-source, cross-platform desktop application for hardware
 - **GitLab mirror:** https://gitlab.com/lordkeremello45/HWcontrol2.0
 - **Current channel:** Beta
 
-## Current capabilities
+For a consolidated implementation snapshot, see [Current Implementation Status](../CURRENT-IMPLEMENTATION-STATUS.md). The [physical hardware validation matrix](../HARDWARE-VALIDATION-MATRIX.md) remains the authority for device-level evidence.\n\n## Current capabilities
 
-The dashboard exposes CPU, memory, disk, GPU and fan telemetry where the operating system/driver exposes it. It also provides temperature history, configurable temperature alerts, local profiles, hardware-control commands, security status, bridge diagnostics and update checks.
+The dashboard exposes CPU, memory, storage, GPU, fan and battery telemetry where the operating system/driver exposes it. It also includes local telemetry history and CSV export, hardware identity, temperature alerts, Smart Fan curves and automation, Game Mode process detection/profile assignment, Healthy Core thermal-condition indicators, optional local Gemma analysis, a CPU-only benchmark, audio tooling and offline aim practice. Hardware-control commands remain capability-gated. Battery capacity estimates are not battery-life predictions; Healthy Core is not a silicon-wear estimate; AI is advisory only.
 
-Hardware-control availability is capability-driven: if a platform or device does not expose a safe supported control path, the application must remain monitor-only rather than pretending that control is available. An optional externally installed liquidctl CLI can provide read-only coolant/pump/fan telemetry; no pump or AIO control is implied.
+Hardware-control availability is capability-driven: if a platform or device does not expose a safe supported control path, the application must remain monitor-only rather than pretending that control is available. An optional externally installed liquidctl CLI can provide read-only coolant/pump/fan telemetry; no pump or AIO control is implied. Windows and macOS fan writes are unavailable; Linux PWM writes are limited to channels that satisfy the bridge's RPM, writable-path and manual-mode checks.
 
 ## Beta distribution
 
