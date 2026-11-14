@@ -27,6 +27,6 @@ cd bridge_service
 go test ./healthycore
 ```
 
-## Remaining integration work
+## Remaining limitations
 
-This package is a tested calculation boundary, not yet a live dashboard feature. The next integration slice must connect real telemetry and trustworthy error/throttle signals to this API, persist a privacy-conscious local history, expose results in Flutter, and verify platform-specific sensor availability. Do not populate the score with synthetic/sample values or present missing data as healthy. Longer-term wear/lifetime estimation requires validated device-specific models and independent calibration data.
+The dashboard currently derives the indicator from its bounded local CPU/GPU temperature history and available RAM utilization. Trusted vendor health percentages, ECC/error counters and a complete cross-platform source of throttling/error evidence are not yet integrated. RAM health therefore remains unknown rather than receiving a fabricated score. Physical-device validation across the supported hardware matrix remains pending. Do not populate the score with synthetic/sample values or present missing data as healthy. Longer-term wear/lifetime estimation requires validated device-specific models and independent calibration data.
