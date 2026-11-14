@@ -32,4 +32,4 @@ The project is currently in the Beta channel. Release-specific details should be
 
 Older release tags retain their own release notes. Do not infer current feature status from the historical v0.2.x release line. See [GitHub Releases](https://github.com/lordkeremello45/HWcontrol2.0/releases) for tag-specific artifacts and notes.
 
-[Unreleased]: https://github.com/lordkeremello45/HWcontrol2.0/compare/v0.2.4...HEAD
+[Unreleased]: https://github.com/lordkeremello45/HWcontrol2.0/compare
