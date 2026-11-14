@@ -14,7 +14,7 @@ The portable archives contain `HWControl.exe` and the companion bridge, security
 ```text
 Windows build
     ↓
-Flutter Windows build + Go Bridge + native engine
+Flutter Windows build + Go Bridge + C++ AI/audio helpers
     ↓
 WiX MSI
     ↓
@@ -22,7 +22,7 @@ WiX Burn Setup.exe
     ↓
 Install / repair / uninstall
     ↓
-HWControlBridge + security guardian + dashboard + native engine
+HWControlBridge + security guardian + dashboard + required C++ AI/audio helpers
 ```
 
 ## CI failure fixes
