@@ -14,7 +14,7 @@ HWcontrol2.0 is an open-source Beta desktop application for hardware monitoring,
 - **GitLab mirror:** https://gitlab.com/lordkeremello45/HWcontrol2.0
 - **Current channel:** Beta
 
-For a consolidated implementation snapshot, see [Current Implementation Status](../CURRENT-IMPLEMENTATION-STATUS.md). The [physical hardware validation matrix](../HARDWARE-VALIDATION-MATRIX.md) remains the authority for device-level evidence.
+For a consolidated implementation snapshot, see [Current Implementation Status](CURRENT-IMPLEMENTATION-STATUS.md). The [physical hardware validation matrix](HARDWARE-VALIDATION-MATRIX.md) remains the authority for device-level evidence.
 
 ## Current capabilities
 
@@ -99,6 +99,13 @@ See:
 - [Performance / Balanced / Quiet](Features-Performance-Balanced-Quiet)
 - [Performance Mode Research and Implementation Plan](Features-Performance-Mode)
 - [Game Mode](Features-Game-Mode)
+- [Battery Health and Capacity](Features-Battery-Health)
+- [Healthy Core](Features-Healthy-Core)
+- [Liquid Cooling](Features-Liquid-Cooling)
+- [CPU Benchmark](Features-Benchmark)
+- [Local AI Core](Features-AI-Core)
+- [Offline Piper TTS](Features-Accessibility-and-Piper-TTS)
+- [Audio Controller Studio](Audio-Controller-Studio)
 
 ### 🏗️ Architecture
 - [Architecture](Architecture)
