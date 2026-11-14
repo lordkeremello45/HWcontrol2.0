@@ -94,3 +94,4 @@ The complete source list is maintained in [docs/REFERENCES.md](https://github.co
 ## 📜 License
 
 - [License](License.md)
+\n\n## Current implementation status\n\nSee [Current Implementation Status](../CURRENT-IMPLEMENTATION-STATUS.md) for the latest consolidated capability and validation snapshot.\n
