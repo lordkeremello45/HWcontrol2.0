@@ -1,6 +1,6 @@
 # Phase 01 hardening checkpoint
 
-This document records the stabilization boundary for the Phase 01 hardening branch.
+**Historical checkpoint — not the current implementation specification.** This document records the stabilization boundary for the Phase 01 hardening branch. Later bridge protocol and security changes superseded some statements below. For current behavior, use [Current Implementation Status](CURRENT-IMPLEMENTATION-STATUS.md) and [Application Architecture](wiki/Architecture-Application.md).
 
 ## Included
 
@@ -13,6 +13,6 @@ This document records the stabilization boundary for the Phase 01 hardening bran
 
 ## Deliberate boundary
 
-The Bridge command protocol remains compatible with the existing Flutter client. HMAC replay resistance is not introduced in this stabilization patch because changing the signed payload would require a coordinated protocol/version migration; this remains a Security phase item. Current hardware-control commands still fail closed when a control backend is unavailable.
+At the time of this historical checkpoint, HMAC replay resistance was not introduced in that stabilization patch. The current Go bridge protocol has since added authenticated timestamp/nonce handling and replay checks; see the current application architecture and bridge implementation. Current hardware-control commands still fail closed when a control backend is unavailable.
 
 BSOD Shield remains a watchdog/heartbeat mechanism at this stage. Snapshot, safe-apply, rollback, and other recovery actions belong to Phase 06.
