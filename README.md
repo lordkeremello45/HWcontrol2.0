@@ -15,7 +15,9 @@ It is a desktop PC utility—not an industrial automation/SCADA product, a seria
 
 HWcontrol2.0 is an open-source, cross-platform hardware monitoring, control, health and diagnostics platform built around a Flutter/Dart dashboard and an authenticated localhost Go bridge. Hardware collection and validated control adapters currently live in the Go bridge; C++/CMake AI and audio helpers are separate components.
 
-> **Documentation:** The [current implementation status](docs/CURRENT-IMPLEMENTATION-STATUS.md) is the concise source for implemented, partial, unavailable and unverified capabilities. The wiki and platform guides provide detailed procedures.\n\n> **Current channel: Beta.** Hardware support and control capabilities depend on the operating system, drivers, and detected hardware. Unsupported control paths remain monitor-only.
+> **Documentation:** The [current implementation status](docs/CURRENT-IMPLEMENTATION-STATUS.md) is the concise source for implemented, partial, unavailable and unverified capabilities. The wiki and platform guides provide detailed procedures.
+
+> **Current channel: Beta.** Hardware support and control capabilities depend on the operating system, drivers, and detected hardware. Unsupported control paths remain monitor-only.
 
 ## Beta download
 
