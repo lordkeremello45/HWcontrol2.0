@@ -3,8 +3,7 @@ title: "HWcontrol2.0"
 type: software
 message: "If you use HWcontrol2.0 in research, benchmarking, education, or technical work, please cite this project."
 authors:
-  - family-names: "Ademoglu"
-    given-names: "Kerem"
+  - name: "Lime"
     affiliation: "HWcontrol2.0 project"
 repository-code: "https://github.com/lordkeremello45/HWcontrol2.0"
 url: "https://lordkeremello45.github.io/HWcontrol2.0/"
