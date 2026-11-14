@@ -78,7 +78,7 @@ A target platform is not a claim that every device, sensor, installer, or contro
 - HMAC authentication and replay checks do not replace capability checks, authorization, input validation or OS permissions.
 - AI output, extension metadata and hardware identity data are untrusted inputs; none can independently authorize privileged operations.
 - Local telemetry history and diagnostics are stored locally; no automatic telemetry upload is implied.
-- The root desktop project is GPL-3.0. The `website/` source is separately AGPL-3.0-only. See [license details](wiki/License.md).
+- The root desktop project is GPL-3.0. The `website/` source is separately AGPL-3.0-only. See [license details](https://github.com/lordkeremello45/HWcontrol2.0/wiki/License).
 
 ## Release and validation policy
 
@@ -86,8 +86,8 @@ Before describing a release as ready, inspect the current GitHub Actions results
 
 Useful references:
 
-- [README](../README.md)
+- [README](https://github.com/lordkeremello45/HWcontrol2.0/blob/main/README.md)
 - [Hardware validation matrix](HARDWARE-VALIDATION-MATRIX.md)
-- [Product readiness checklist](PRODUCT-READINESS-CHECKLIST.md)
-- [Final release runbook](FINAL-RELEASE-RUNBOOK.md)
-- [Wiki home](wiki/Home.md)
+- [Product readiness checklist](https://github.com/lordkeremello45/HWcontrol2.0/blob/main/docs/PRODUCT-READINESS-CHECKLIST.md)
+- [Final release runbook](https://github.com/lordkeremello45/HWcontrol2.0/blob/main/docs/FINAL-RELEASE-RUNBOOK.md)
+- [Wiki home](https://github.com/lordkeremello45/HWcontrol2.0/wiki/Home)
