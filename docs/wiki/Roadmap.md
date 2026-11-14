@@ -1,4 +1,4 @@
-# Roadmap
+# Roadmap\n\nThis is a forward-looking engineering plan, not a feature-completion checklist. For implemented behavior and current limitations, see [Current Implementation Status](../CURRENT-IMPLEMENTATION-STATUS.md).
 
 The following items are documentation/planning targets rather than promises of a release date.
 
@@ -17,8 +17,8 @@ The following items are documentation/planning targets rather than promises of a
 - **Implemented:** bounded CPU microbenchmark;
 - **Implemented:** local temperature automation rules;
 - **Implemented:** extension metadata/capability contract;
-- richer multi-series hardware graphs;
-- broader hardware-control backends;
+- richer multi-series hardware graphs beyond the current CPU/GPU temperature and CPU utilization views;
+- broader hardware-control backends, beginning with validated Windows vendor/OEM adapters and expanded Linux device coverage;
 - additional package-native formats where maintenance is justified.
 
 ## Trust / distribution
@@ -28,4 +28,4 @@ The following items are documentation/planning targets rather than promises of a
 - potential SignPath integration;
 - stronger release provenance and verification UX.
 
-The actual release status should always be determined from the repository and GitHub Releases.
+The C++ Game Core, BSOD Shield, full SPARK runtime integration, system-wide power-mode automation, liquid-cooling control, and additional platform hardware adapters must not be described as shipped capabilities until their implementation and validation gates are met.\n\nThe actual release status should always be determined from the repository, current GitHub Actions runs and GitHub Releases.
