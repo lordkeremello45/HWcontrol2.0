@@ -14,6 +14,7 @@ Version-controlled documentation for the current Beta source tree. Feature avail
 ## Features
 - [Feature Index](Features.md)
 - [Hardware Monitoring](Features-Hardware-Monitoring.md)
+- [Health, Capability and Safety Diagnostics](Features-Health-Diagnostics.md)
 - [Hardware Detection](Features-Hardware-Detection.md)
 - [CPU and GPU Temperature](Features-CPU-GPU-Temperature.md)
 - [Fan Curves](Features-Fan-Curve-Editor.md)
@@ -30,7 +31,6 @@ Version-controlled documentation for the current Beta source tree. Feature avail
 - [Piper TTS](Features-Accessibility-and-Piper-TTS.md)
 - [Extension Contract](Features-Extension-API.md)
 - [Offline Aim Trainer](CURRENT-IMPLEMENTATION-STATUS.md#implemented-in-source)
-- [Audio Controller Studio](Audio-Controller-Studio.md)
 - [Audio Controller Studio](Audio-Controller-Studio.md)
 
 ## Architecture
