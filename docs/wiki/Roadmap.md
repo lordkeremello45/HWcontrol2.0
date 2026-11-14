@@ -1,6 +1,6 @@
 # Roadmap
 
-This is a forward-looking engineering plan, not a feature-completion checklist. For implemented behavior and current limitations, see [Current Implementation Status](../CURRENT-IMPLEMENTATION-STATUS.md).
+This is a forward-looking engineering plan, not a feature-completion checklist. For implemented behavior and current limitations, see [Current Implementation Status](CURRENT-IMPLEMENTATION-STATUS.md).
 
 The following items are documentation/planning targets rather than promises of a release date.
 
