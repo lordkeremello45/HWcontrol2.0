@@ -2,6 +2,7 @@
 
 #include "hw_game_core/graphics/device.hpp"
 
+#include <cstddef>
 #include <cstdint>
 #include <string>
 

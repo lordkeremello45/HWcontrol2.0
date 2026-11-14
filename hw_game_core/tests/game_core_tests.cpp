@@ -133,6 +133,17 @@ void test_vendor_extension_contracts() {
     CHECK(validate_vendor_extension_info(
         GpuVendor::nvidia, unknown_device, ready_extension) ==
         VendorExtensionValidation::vendor_mismatch);
+
+    auto invalid_enum = ready_extension;
+    invalid_enum.state = static_cast<VendorExtensionState>(255);
+    CHECK(validate_vendor_extension_info(
+        GpuVendor::nvidia, nvidia_device, invalid_enum) ==
+        VendorExtensionValidation::invalid_state);
+
+    auto unknown_mask_for_supports = ready_extension;
+    unknown_mask_for_supports.available_features |= (1U << 31U);
+    CHECK(!unknown_mask_for_supports.supports(
+        VendorRuntimeFeature::upscaling));
 }
 
 void test_backend_selection() {
