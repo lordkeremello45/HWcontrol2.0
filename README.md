@@ -187,7 +187,7 @@ Official references:
 
 ## Development
 
-The repository validates the native engine, Go bridge, Flutter dashboard, packaging paths and release integrity through GitHub Actions.
+The repository validates its C++ native components, Go bridge, Flutter dashboard, packaging paths and release integrity through GitHub Actions.
 
 For contributors:
 
