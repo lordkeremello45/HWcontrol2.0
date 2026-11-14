@@ -205,6 +205,9 @@ If you report a hardware problem, include the OS, architecture, CPU/GPU model, d
 
 ## Community and public engineering
 
+[![HWcontrol2.0 Chess Club](https://img.shields.io/badge/Chess.com-HWcontrol2.0%20Chess%20Club-81B64C?style=for-the-badge&logo=chessdotcom&logoColor=white)](https://www.chess.com/club/hwcontrol2-0-chess)
+
+
 HWcontrol2.0 is developed in the open. The public engineering plan focuses on useful technical documentation and reproducible discussion rather than paid promotion.
 
 - Discord community: [Join HWcontrol2.0 Community](https://discord.gg/nVF6The3Nu)
