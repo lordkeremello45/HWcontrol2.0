@@ -1,0 +1,76 @@
+name: HWVision validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "CMakeLists.txt"
+      - "hwvision/**"
+      - ".github/workflows/hwvision.yml"
+  push:
+    branches: [main]
+    paths:
+      - "CMakeLists.txt"
+      - "hwvision/**"
+      - ".github/workflows/hwvision.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hwvision-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-policy:
+    name: C++17 Game Mode policy (${{ matrix.platform }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: Linux x64
+            runner: ubuntu-24.04
+          - platform: Windows x64
+            runner: windows-2022
+          - platform: macOS Apple Silicon
+            runner: macos-15
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.3.0
+        with:
+          persist-credentials: false
+      - name: Configure native policy
+        run: cmake -S hwvision/native -B build/hwvision -DBUILD_TESTING=ON
+      - name: Build native policy
+        run: cmake --build build/hwvision --config Release --parallel 2
+      - name: Run native policy tests
+        run: ctest --test-dir build/hwvision -C Release --output-on-failure
+
+  flutter:
+    name: Flutter analyze and test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: hwvision
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.3.0
+        with:
+          persist-credentials: false
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Report Flutter version
+        run: flutter --version
+      - name: Resolve dependencies
+        run: flutter pub get
+      - name: Static analysis
+        run: flutter analyze --fatal-infos
+      - name: Unit tests
+        run: flutter test --reporter expanded

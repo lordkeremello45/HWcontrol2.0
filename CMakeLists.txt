@@ -64,4 +64,7 @@ if(HWCONTROL_BUILD_GAME_CORE)
   add_subdirectory(hw_game_core)
 endif()
 
+# HWVision Game Mode policy core is kept on the root C++17 standard.
+add_subdirectory(hwvision/native)
+
 message(STATUS "HWControl 2.0 configuration completed successfully.")
