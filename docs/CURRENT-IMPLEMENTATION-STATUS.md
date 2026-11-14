@@ -56,7 +56,7 @@ Separate native components are not the current hardware-control engine:
 - Physical sensor, fan-control, battery and cooling behavior has not been exhaustively validated across the target hardware matrix.
 - Windows and macOS fan writes are unavailable; Linux PWM support is limited to detected channels that pass all safety preconditions.
 - Liquid cooling remains read-only and depends on a separately installed, supported `liquidctl` CLI.
-- Operating-system power-mode automation is not implemented. Quiet/Balanced/Performance presets must not be interpreted as guaranteed OS power-plan changes.
+- Operating-system power-mode support is platform-specific: Linux has a power-profiles-daemon adapter with readback/rollback checks; Windows/macOS automatic switching is unavailable or not implemented. Quiet/Balanced/Performance application presets must not be interpreted as universal OS power-mode changes.
 - The C++ Game Core is an early backend/render-graph component, not a complete Direct3D 12 + Vulkan game engine or a released 2D/3D runtime.
 - The BSOD Shield source contains a heartbeat/watchdog primitive; do not describe it as a complete BSOD prevention or recovery product.
 - Ada/SPARK formal policy exists, but full production-path linking and end-to-end invocation from every relevant Go hardware command are not verified.
