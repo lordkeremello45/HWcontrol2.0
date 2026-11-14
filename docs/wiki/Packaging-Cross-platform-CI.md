@@ -22,6 +22,6 @@ Cross-platform validation must exercise the native installer and runtime on the 
 - Validate the bridge and security-guardian LaunchDaemons, socket readiness, install/upgrade and uninstall.
 - Installer scripts use the POSIX shell test builtin; both launch daemon plists are copied to the installer app root and both are stopped during upgrade.
 
-## Gate status
+## Evidence and status
 
-The Windows, Linux and macOS recovery changes are committed, but the latest GitHub Actions runs were queued/pending at the time of this update. Do not mark any platform verified until its native install/runtime/uninstall job passes. Physical hardware control is not covered by these package smoke tests.
+Workflow definitions describe intended checks, not the result of a particular run. Before each release, inspect the latest run for the exact source commit and confirm that every required platform job completed successfully. A historical queued/pending snapshot is not current evidence. Even a successful package smoke test does not validate physical sensor accuracy or fan-control behavior; use the [Physical Hardware Validation Matrix](../HARDWARE-VALIDATION-MATRIX.md) for device-level evidence.
