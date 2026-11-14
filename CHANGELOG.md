@@ -34,4 +34,4 @@ The project is currently in the Beta channel. Release-specific details should be
 
 This entry is retained for historical context only. For the complete v0.2.4 artifact list and release-specific notes, see the [v0.2.4 GitHub Release](https://github.com/lordkeremello45/HWcontrol2.0/releases/tag/v0.2.4). Do not infer current feature status from this release. Do not infer current feature status from the historical v0.2.x release line. See [GitHub Releases](https://github.com/lordkeremello45/HWcontrol2.0/releases) for tag-specific artifacts and notes.
 
-[Unreleased]: https://github.com/lordkeremello45/HWcontrol2.0/compare
+[Unreleased]: https://github.com/lordkeremello45/HWcontrol2.0/compare/v0.2.4...HEAD
