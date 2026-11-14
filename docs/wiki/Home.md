@@ -14,7 +14,7 @@ HWcontrol2.0 is an open-source Beta desktop application for hardware monitoring,
 - **GitLab mirror:** https://gitlab.com/lordkeremello45/HWcontrol2.0
 - **Current channel:** Beta
 
-For a consolidated implementation snapshot, see [Current Implementation Status](CURRENT-IMPLEMENTATION-STATUS.md). The [physical hardware validation matrix](HARDWARE-VALIDATION-MATRIX.md) remains the authority for device-level evidence.
+For a consolidated implementation snapshot, see [Current Implementation Status](../CURRENT-IMPLEMENTATION-STATUS.md). The [physical hardware validation matrix](../HARDWARE-VALIDATION-MATRIX.md) remains the authority for device-level evidence.
 
 ## Current capabilities
 
