@@ -170,7 +170,7 @@ Repository source, tests, CI results, packaged artifacts, and real hardware vali
 
 ## Where can I see which features are actually available?
 
-Use the [Current Implementation Status](../CURRENT-IMPLEMENTATION-STATUS.md) page. It distinguishes source implementation, partial functionality, unavailable paths and validation still required. A feature listed in the dashboard is not proof that the connected hardware supports it.
+Use the [Current Implementation Status](CURRENT-IMPLEMENTATION-STATUS.md) page. It distinguishes source implementation, partial functionality, unavailable paths and validation still required. A feature listed in the dashboard is not proof that the connected hardware supports it.
 
 
 ### Does Performance Mode change the operating system power profile?
