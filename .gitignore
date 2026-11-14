@@ -8,7 +8,16 @@
 *.pch
 *.ilk
 *.pdb
+*.idb
+*.exp
+*.lib
 *.dwo
+*.gcda
+*.gcno
+*.profraw
+*.profdata
+*.coverage
+*.dSYM/
 *.so
 *.so.*
 *.dylib
@@ -70,10 +79,13 @@ TestResults/
 .flutter-plugins-dependencies
 coverage/
 
-# Node.js / Astro generated state
+ # Node.js / Astro generated state
 **/node_modules/
 website/dist/
 website/.astro/
+.npm/
+npm-debug.log*
+yarn-debug.log*
 
 # Downloaded runtime models (model metadata in /models remains trackable)
 /ai_core/models/
@@ -102,6 +114,7 @@ venv/
 *.swp
 .DS_Store
 Thumbs.db
+Desktop.ini
 .vscode/
 .vs/
 .idea/
