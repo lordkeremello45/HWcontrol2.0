@@ -4,4 +4,32 @@ All notable changes to HWcontrol2.0 are documented here.
 
 The project is currently in the Beta channel. Release-specific details should be kept aligned with the corresponding GitHub release and tag.
 
-## [Unreleased]\n\n### Added\n- Read-only battery capacity and charge-state telemetry across platform-specific collectors.\n- Healthy Core CPU/GPU thermal-condition assessment with explicit insufficient-data handling.\n- Optional read-only liquid-cooling telemetry through an externally installed liquidctl CLI.\n- Hardware identity discovery with cached, platform-specific collectors.\n- Game Mode process/session detection and local per-game profile assignment.\n- Local telemetry history, CSV export, diagnostics and capability reporting.\n- Optional local Gemma analysis, Piper TTS integration, CPU benchmark, Audio Controller Studio and offline aim-practice screen.\n\n### Improved\n- Capability-gated Linux hwmon fan control with RPM feedback, manual-mode preconditions and PWM readback.\n- Smart Fan curve validation, thermal emergency policy and local automation rules.\n- Bridge authentication, input validation, diagnostics redaction and release-validation workflows.\n- Documentation now distinguishes implemented, partial, unavailable and unverified behavior.\n\n### Limitations\n- Windows and macOS fan writes remain unavailable.\n- Liquid cooling remains read-only; pump control and leak detection are not implemented.\n- Operating-system power-mode automation is not implemented.\n- Physical hardware coverage and production signing/notarization must be verified separately.\n- C++ Game Core and BSOD Shield are not complete released products; SPARK runtime integration is not yet verified end to end.\n\n## Historical release notes\n\nOlder release tags retain their own release notes. Do not infer current feature status from the historical v0.2.x release line. See [GitHub Releases](https://github.com/lordkeremello45/HWcontrol2.0/releases) for tag-specific artifacts and notes.\n\n[Unreleased]: https://github.com/lordkeremello45/HWcontrol2.0/compare/v0.2.4...HEAD
+## [Unreleased]
+
+### Added
+- Read-only battery capacity and charge-state telemetry across platform-specific collectors.
+- Healthy Core CPU/GPU thermal-condition assessment with explicit insufficient-data handling.
+- Optional read-only liquid-cooling telemetry through an externally installed liquidctl CLI.
+- Hardware identity discovery with cached, platform-specific collectors.
+- Game Mode process/session detection and local per-game profile assignment.
+- Local telemetry history, CSV export, diagnostics and capability reporting.
+- Optional local Gemma analysis, Piper TTS integration, CPU benchmark, Audio Controller Studio and offline aim-practice screen.
+
+### Improved
+- Capability-gated Linux hwmon fan control with RPM feedback, manual-mode preconditions and PWM readback.
+- Smart Fan curve validation, thermal emergency policy and local automation rules.
+- Bridge authentication, input validation, diagnostics redaction and release-validation workflows.
+- Documentation now distinguishes implemented, partial, unavailable and unverified behavior.
+
+### Limitations
+- Windows and macOS fan writes remain unavailable.
+- Liquid cooling remains read-only; pump control and leak detection are not implemented.
+- Operating-system power-mode automation is not implemented.
+- Physical hardware coverage and production signing/notarization must be verified separately.
+- C++ Game Core and BSOD Shield are not complete released products; SPARK runtime integration is not yet verified end to end.
+
+## Historical release notes
+
+Older release tags retain their own release notes. Do not infer current feature status from the historical v0.2.x release line. See [GitHub Releases](https://github.com/lordkeremello45/HWcontrol2.0/releases) for tag-specific artifacts and notes.
+
+[Unreleased]: https://github.com/lordkeremello45/HWcontrol2.0/compare/v0.2.4...HEAD
