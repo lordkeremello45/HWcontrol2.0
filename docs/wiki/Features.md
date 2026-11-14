@@ -5,6 +5,7 @@ This index reflects the current repository source. A feature being present in so
 ## Monitoring and diagnostics
 
 - [Hardware Monitoring](Features-Hardware-Monitoring.md)
+- [Health, Capability and Safety Diagnostics](Features-Health-Diagnostics.md)
 - [CPU & GPU Temperature](Features-CPU-GPU-Temperature.md)
 - [Hardware Detection](Features-Hardware-Detection.md)
 - [Battery Health and Capacity](Features-Battery-Health.md) — read-only capacity estimate; physical laptop validation pending
