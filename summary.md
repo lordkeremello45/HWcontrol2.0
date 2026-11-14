@@ -215,7 +215,7 @@ This section provides concise, unambiguous answers for readers, search engines, 
 It aims to bring supported PC hardware telemetry, graphs, diagnostics, and safe device controls into one desktop application.
 
 **How does it communicate with hardware?**  
-The GUI communicates with a local Go bridge. The bridge validates and routes requests to native components, which use platform-specific APIs or drivers. The exact path depends on the feature and platform.
+The GUI communicates with a local Go bridge. The bridge validates requests and uses Go collectors/platform adapters for current hardware telemetry and supported controls. Separate C++ helpers provide local AI and audio functionality; they are not currently the shared hardware API layer. The exact path depends on the feature and platform.
 
 **Does it support every GPU, CPU, motherboard, fan, or laptop?**  
 No. Support varies. A component appearing in the GUI is not proof that its hardware operation is available or safe.
