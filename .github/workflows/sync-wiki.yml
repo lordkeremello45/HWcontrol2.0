@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - "docs/wiki/**"
+      - "docs/CURRENT-IMPLEMENTATION-STATUS.md"
+      - "docs/HARDWARE-VALIDATION-MATRIX.md"
+      - "docs/AUDIO-CONTROLLER-STUDIO.md"
       - ".github/workflows/sync-wiki.yml"
   workflow_dispatch:
 
@@ -97,7 +100,9 @@ jobs:
           set -euo pipefail
           find wiki -maxdepth 1 -type f -name '*.md' -delete
           cp docs/wiki/*.md wiki/
-          if [ -f wiki/Wiki-Index.md ]; then cp wiki/Wiki-Index.md wiki/Home.md; fi
+          cp docs/CURRENT-IMPLEMENTATION-STATUS.md wiki/CURRENT-IMPLEMENTATION-STATUS.md
+          cp docs/HARDWARE-VALIDATION-MATRIX.md wiki/HARDWARE-VALIDATION-MATRIX.md
+          cp docs/AUDIO-CONTROLLER-STUDIO.md wiki/Audio-Controller-Studio.md
 
       - name: Commit Wiki changes
         id: commit
