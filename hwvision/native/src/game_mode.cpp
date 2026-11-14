@@ -69,16 +69,17 @@ GameModePlan evaluate_game_mode(const GameModeConfig& config,const GameModeInput
   plan.recommend_performance_fan_profile=false; plan.telemetry_interval_ms=500;
   plan.diagnostics.emplace_back("Thermal safety gate forced Quiet policy; optional GPU work is disabled."); return plan;
  }
- if(input.thermal_state==ThermalState::unknown) {
+ if(input.thermal_state==ThermalState::unknown ||
+    (!input.telemetry.cpu_temperature_valid && !input.telemetry.gpu_temperature_valid)) {
   plan.status=GameModeStatus::monitoring_only; plan.reason=GameModeReason::telemetry_invalid;
-  plan.diagnostics.emplace_back("Thermal state is unknown; performance actions fail closed."); return plan;
+  plan.diagnostics.emplace_back("No trusted thermal measurement is available; performance actions fail closed."); return plan;
  }
  plan.status=GameModeStatus::active; plan.reduce_hwvision_background_work=true;
  plan.recommend_performance_fan_profile=config.profile==GameProfile::performance;
  plan.telemetry_interval_ms=1000;
- if(input.thermal_state==ThermalState::warm) {
+ if(input.thermal_state==ThermalState::warm && plan.effective_profile==GameProfile::performance) {
   plan.effective_profile=GameProfile::balanced; plan.recommend_performance_fan_profile=false;
-  plan.diagnostics.emplace_back("Warm thermal state reduced the requested profile to Balanced.");
+  plan.diagnostics.emplace_back("Warm thermal state reduced the requested Performance profile to Balanced.");
  }
  if(input.power_source==PowerSource::unknown&&plan.effective_profile==GameProfile::performance) {
   plan.effective_profile=GameProfile::balanced; plan.recommend_performance_fan_profile=false;

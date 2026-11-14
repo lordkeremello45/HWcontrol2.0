@@ -23,6 +23,8 @@ int main(){
  i=active_input();i.telemetry.gpu_temperature_c=95.0;p=evaluate_game_mode(c,i);CHECK(p.status==GameModeStatus::thermal_safe_mode);CHECK(p.effective_profile==GameProfile::quiet);CHECK(!p.recommend_performance_fan_profile);CHECK(p.telemetry_interval_ms==500U);
  i=active_input();i.thermal_state=ThermalState::unknown;p=evaluate_game_mode(c,i);CHECK(p.status==GameModeStatus::monitoring_only);
  i=active_input();i.thermal_state=ThermalState::warm;p=evaluate_game_mode(c,i);CHECK(p.effective_profile==GameProfile::balanced);CHECK(!p.recommend_performance_fan_profile);
+ c.profile=GameProfile::quiet;i=active_input();i.thermal_state=ThermalState::warm;p=evaluate_game_mode(c,i);CHECK(p.effective_profile==GameProfile::quiet);
+ c.profile=GameProfile::performance;i=active_input();i.telemetry.cpu_temperature_valid=false;i.telemetry.gpu_temperature_valid=false;p=evaluate_game_mode(c,i);CHECK(p.status==GameModeStatus::monitoring_only);
  i=active_input();i.power_source=PowerSource::unknown;p=evaluate_game_mode(c,i);CHECK(p.effective_profile==GameProfile::balanced);CHECK(!p.recommend_performance_fan_profile);
  i=active_input();i.telemetry.cpu_usage_valid=true;i.telemetry.cpu_usage_percent=std::numeric_limits<double>::quiet_NaN();p=evaluate_game_mode(c,i);CHECK(p.status==GameModeStatus::invalid_input);CHECK(!p.reduce_hwvision_background_work);
  i=active_input();i.detection=static_cast<GameDetection>(255);p=evaluate_game_mode(c,i);CHECK(p.status==GameModeStatus::invalid_input);
