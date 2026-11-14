@@ -6,16 +6,36 @@
 *.cmd text eol=crlf
 *.ps1 text eol=crlf
 
-# Binary assets.
+# Images and design assets.
 *.png binary
 *.jpg binary
 *.jpeg binary
 *.gif binary
+*.webp binary
 *.ico binary
 *.icns binary
 *.pdf binary
+
+# Fonts and audio/video assets.
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.wav binary
+*.mp3 binary
+*.ogg binary
+*.flac binary
+*.mp4 binary
+*.mov binary
+
+# Archives, installers and package artifacts.
 *.zip binary
 *.7z binary
+*.tar binary
+*.gz binary
+*.zst binary
+*.deb binary
+*.rpm binary
 *.exe binary
 *.msi binary
 *.msix binary
