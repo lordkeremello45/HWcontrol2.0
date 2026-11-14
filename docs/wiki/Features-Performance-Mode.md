@@ -1,6 +1,6 @@
 # Performance Mode — Research and Implementation Plan
 
-**Status: PHASE 4 MACOS CAPABILITY REVIEW COMPLETE; MANUAL GUIDANCE ADDED; AUTOMATION NOT IMPLEMENTED**
+**Status: Windows 11 and Linux adapters implemented; platform runtime validation pending; macOS automation unavailable.**
 
 This document separates HWcontrol2.0's in-app presets from operating-system power modes and hardware fan control. A GUI preset must not be presented as a system-wide performance change unless the relevant platform backend confirms that the OS setting was changed.
 
@@ -9,7 +9,7 @@ This document separates HWcontrol2.0's in-app presets from operating-system powe
 Expose one user-facing preset selector (Quiet, Balanced, Performance), but represent its effects as independent capabilities:
 
 1. **HWcontrol preset** — chooses the application's saved fan target and other settings that HWcontrol actually supports.
-2. **Operating-system power mode** — an optional platform adapter requests a supported OS mode and reads back the resulting configured/effective state.
+2. **Operating-system power mode** — Windows 11 AC/DC and Linux system-profile adapters request supported modes and read back configured/active state; macOS automation is unavailable.
 3. **Hardware cooling** — applies a fan target only when a detected backend explicitly reports fan-control support.
 4. **Vendor GPU controls** — separate, optional integrations; never imply that changing the OS power mode also changes NVIDIA/AMD driver settings.
 
