@@ -241,3 +241,50 @@ CI validates the portable foundation on Windows x64, Linux x64 and an Apple Sili
 - SDL3 Vulkan surface creation: https://wiki.libsdl.org/SDL3/SDL_Vulkan_CreateSurface
 - SDL3 window flags and drawable pixel sizing: https://wiki.libsdl.org/SDL3/SDL_CreateWindow
 - Mesa KosmicKrisp platform requirements: https://docs.mesa3d.org/drivers/kosmickrisp.html
+
+## GPU vendor ecosystem integrations
+
+Game Core is graphics-API-first and vendor-neutral. NVIDIA and AMD integrations are optional extensions layered on top of the selected Direct3D 12 or Vulkan device; they are not mandatory engine dependencies and must never be used to identify the active graphics API.
+
+The portable contract in `graphics/vendor_extensions.hpp` provides:
+
+- PCI vendor identification for NVIDIA, AMD, Intel and Apple.
+- A vendor-extension probe interface implemented only by optional platform/vendor modules.
+- Explicit extension states (`not_probed`, `unavailable`, `ready`, `failed`).
+- Runtime feature reporting for upscaling, frame generation, low latency, ray tracing and GPU debug markers.
+
+A PCI vendor ID is identification metadata, not proof of SDK availability or feature support. Optional features are usable only when the corresponding backend/extension probe reports `ready` and includes that feature. Missing SDKs, unsupported drivers, unsupported devices and failed initialization must remain visible as unavailable/failed states; they must not silently fall back to a different vendor implementation.
+
+### NVIDIA
+
+Potential optional integrations, subject to SDK terms, supported hardware/driver versions and runtime validation:
+
+- DLSS SDK for supported upscaling and frame-generation paths.
+- NVIDIA Reflex SDK for supported low-latency paths.
+- NVIDIA Nsight Graphics as a developer profiling/debugging workflow, not a runtime dependency.
+
+### AMD
+
+Potential optional integrations, subject to SDK terms, supported hardware/driver versions and runtime validation:
+
+- FidelityFX / FSR for supported upscaling and related rendering features.
+- AMD Radeon GPU Profiler (RGP) as a developer profiling workflow, not a runtime dependency.
+
+FSR and other cross-vendor technologies must not be artificially restricted to AMD hardware. Feature availability belongs to the concrete implementation's capability probe, not a vendor-name check.
+
+### Intel and Apple
+
+Intel remains a first-class graphics vendor through the common Direct3D 12/Vulkan paths. Apple GPUs use the native Metal backend. Vendor-specific modules are optional; the portable engine and baseline renderers must continue to work without NVIDIA/AMD SDKs.
+
+### HWVision boundary
+
+HWVision is a separate product and its source tree is not part of this repository. Its future GPU-compute integrations should be designed independently from Game Core's graphics renderer:
+
+- NVIDIA compute: CUDA and, where appropriate, TensorRT.
+- AMD compute: ROCm and supported libraries.
+- Shared product-level compute interface: explicit device discovery, capability checks, memory ownership, asynchronous execution and CPU fallback where feasible.
+
+Do not route HWVision compute workloads through Game Core's graphics abstraction merely because both products use GPUs. A shared, separately versioned GPU capability/telemetry contract may be considered later, but neither product should require the other to start.
+
+**Implementation status:** vendor identification and the optional extension/probe contract are implemented in the portable Game Core API. No NVIDIA DLSS/Reflex SDK adapter, AMD FidelityFX/FSR adapter, Nsight/RGP automation, CUDA/TensorRT integration or ROCm integration is implemented by this change. These require separate SDK-specific modules and supported hardware/driver validation.
+

@@ -2,6 +2,7 @@
 #include "hw_game_core/graphics/device.hpp"
 #include "hw_game_core/graphics/gpu_types.hpp"
 #include "hw_game_core/graphics/render_graph.hpp"
+#include "hw_game_core/graphics/vendor_extensions.hpp"
 
 #include <cstdlib>
 #include <iostream>
@@ -56,6 +57,36 @@ void test_gpu_contracts() {
     CHECK(!failure.ok());
     CHECK(!failure.value.has_value());
     CHECK(failure.status == GraphicsStatus::device_lost);
+}
+
+void test_vendor_extension_contracts() {
+    CHECK(identify_gpu_vendor(0x10DEU) == GpuVendor::nvidia);
+    CHECK(identify_gpu_vendor(0x1002U) == GpuVendor::amd);
+    CHECK(identify_gpu_vendor(0x8086U) == GpuVendor::intel);
+    CHECK(identify_gpu_vendor(0x106BU) == GpuVendor::apple);
+    CHECK(identify_gpu_vendor(0xFFFFU) == GpuVendor::unknown);
+
+    // A matching vendor ID does not imply that optional SDK features exist.
+    VendorExtensionInfo unprobed;
+    unprobed.vendor = GpuVendor::nvidia;
+    CHECK(!unprobed.supports(VendorRuntimeFeature::upscaling));
+
+    VendorExtensionInfo unavailable;
+    unavailable.vendor = GpuVendor::amd;
+    unavailable.state = VendorExtensionState::unavailable;
+    unavailable.available_features = feature_bit(VendorRuntimeFeature::upscaling);
+    CHECK(!unavailable.supports(VendorRuntimeFeature::upscaling));
+
+    VendorExtensionInfo ready_extension;
+    ready_extension.vendor = GpuVendor::nvidia;
+    ready_extension.state = VendorExtensionState::ready;
+    ready_extension.available_features =
+        feature_bit(VendorRuntimeFeature::upscaling) |
+        feature_bit(VendorRuntimeFeature::low_latency);
+    CHECK(ready_extension.supports(VendorRuntimeFeature::upscaling));
+    CHECK(ready_extension.supports(VendorRuntimeFeature::low_latency));
+    CHECK(!ready_extension.supports(VendorRuntimeFeature::frame_generation));
+    CHECK(!ready_extension.supports(VendorRuntimeFeature::none));
 }
 
 void test_backend_selection() {
@@ -289,6 +320,7 @@ void test_render_graph_rejects_invalid_patterns() {
 int main() {
     test_gpu_contracts();
     test_backend_selection();
+    test_vendor_extension_contracts();
     test_render_graph_hazards_and_order();
     test_render_graph_determinism_and_write_after_read();
     test_render_graph_write_after_write();
