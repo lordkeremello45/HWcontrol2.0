@@ -9,6 +9,7 @@ This page documents the current implementation, not merely the target support ma
 - Optional LibreHardwareMonitor WMI namespace for additional sensor readings.
 - C# helper for read-only CPU/GPU/system identity, with a PowerShell fallback.
 - Fan writes remain monitor-only; no validated OEM/EC, NVAPI, ADLX or IGCL write adapter is currently wired into the bridge.
+- Windows 11 configured AC/DC power-mode APIs are implemented with readback and rollback checks; Windows 10 does not expose this adapter path. Runtime validation remains pending.
 - Windows setup/MSI/ZIP/7Z and MSIX preview packaging are defined in release workflows.
 
 Vendor SDKs provide real APIs, but using one requires vendor/device capability discovery, explicit user consent, bounded commands, readback, reset-to-firmware behavior and an actual hardware matrix. SDK availability does not establish HWcontrol integration.
@@ -21,6 +22,7 @@ Vendor SDKs provide real APIs, but using one requires vendor/device capability d
 - Before each write, the bridge rechecks manual mode and validates the PWM value readback.
 - Optional externally installed liquidctl CLI for read-only USB cooling telemetry.
 - systemd service and DEB/portable archive packaging.
+- Optional OS power-profile control through power-profiles-daemon over busctl; one system profile is exposed, not independent AC/DC profiles. Runtime validation requires the service and policy permission.
 
 ## macOS 14+ Apple Silicon
 
@@ -28,6 +30,7 @@ Vendor SDKs provide real APIs, but using one requires vendor/device capability d
 - Hardware identity from `sysctl` and `ioreg`.
 - Shared telemetry collectors only where the OS exposes compatible data.
 - Fan writes remain unavailable pending a documented, supported and physically validated API. Private SMC protocol emulation is not used.
+- Automated OS power-mode switching is unavailable; Performance Lab links to Apple's supported user-facing settings guidance.
 - PKG/DMG/app-bundle release workflows target Apple Silicon.
 
 ## Validation boundary
