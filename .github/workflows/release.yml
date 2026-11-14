@@ -273,14 +273,20 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
-          wix extension add -g WixToolset.Bal.wixext/6.0.2
+          # WiX 6 ships the Burn standard bootstrapper application in this extension.
+          $extension = 'WixToolset.BootstrapperApplications.wixext'
+          wix extension add --global "$extension/6.0.2"
+          if ($LASTEXITCODE -ne 0) { throw "Failed to install $extension 6.0.2" }
+          wix --version
+          if ($LASTEXITCODE -ne 0) { throw 'WiX CLI is unavailable' }
           $versionMatch = [regex]::Match($env:RELEASE_TAG, '^v([0-9]+\.[0-9]+\.[0-9]+)')
           if (-not $versionMatch.Success) { throw "Could not derive numeric setup version from release tag: $env:RELEASE_TAG" }
           $version = $versionMatch.Groups[1].Value
           $msi = "HWControl-$($env:RELEASE_TAG)-Windows-x64.msi"
           $setup = "HWControl-$($env:RELEASE_TAG)-Windows-x64-Setup.exe"
           if (-not (Test-Path $msi)) { throw "Required MSI is missing: $msi" }
-          wix build deploy/windows/HWControl-Setup.wxs -ext WixToolset.Bal.wixext -arch x64 -d Version=$version -d MsiPath=$msi -o $setup
+          wix build deploy/windows/HWControl-Setup.wxs -ext "$extension/6.0.2" -arch x64 -d Version=$version -d MsiPath="$PWD/$msi" -o $setup
+          if ($LASTEXITCODE -ne 0) { throw 'WiX Burn bootstrapper build failed' }
           if (-not (Test-Path $setup)) { throw 'WiX bundle Setup EXE was not produced' }
           if ((Get-Item $setup).Length -lt 4096) { throw 'Setup EXE is unexpectedly small' }
 
