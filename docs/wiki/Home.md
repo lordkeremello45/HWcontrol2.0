@@ -150,7 +150,7 @@ See:
 
 ## Release readiness
 
-The repository validates native, bridge, dashboard and package paths in GitHub Actions. Windows MSI/Setup installation and cleanup are smoke-tested on Windows runners, Linux DEB installation is validated on Ubuntu, and the macOS release path is validated on a native macOS runner.
+GitHub Actions contains native, bridge, dashboard, cross-platform packaging and smoke-test workflows. Check the latest workflow run and release assets before relying on a result; workflow definitions alone do not prove that a particular run passed. CI runners do not replace physical hardware validation.
 
 Publisher trust is a separate layer: Windows Authenticode and macOS Developer ID/notarization are only claimed when the corresponding credentials and verification steps are present and verified for the specific artifact. Checksums and GitHub artifact attestation do not substitute for OS-trusted publisher signing.
 
