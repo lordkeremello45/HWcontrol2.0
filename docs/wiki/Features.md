@@ -22,7 +22,4 @@ Feature status in this wiki is based on the current source tree; planned functio
 - [Healthy Core — CPU/GPU Condition Assessment](Features-Healthy-Core.md) (calculation package implemented; live dashboard integration pending)
 
 - [Advanced Control and Automation](Features-Advanced-Control.md)
-- [Accessibility and Offline Piper TTS](Features-Accessibility-and-Piper-TTS.md)
-- [Hardware Benchmark](Features-Benchmark.md)
 - [Extension API](Features-Extension-API.md)
-- [Accessibility and Offline Piper TTS](Features-Accessibility-and-Piper-TTS.md)
