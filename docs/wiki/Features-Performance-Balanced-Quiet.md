@@ -18,7 +18,7 @@ The current bridge source returns an error when the hardware-control backend is 
 
 ## Operating-system performance modes
 
-These presets do not currently change the operating system's power mode. Cross-platform OS power-mode integration is researched separately and remains **NOT IMPLEMENTED**. See [Performance Mode Research and Implementation Plan](Features-Performance-Mode) for the platform capability matrix and safe implementation requirements.
+These app-level presets do not automatically change the operating system power mode. Separate configured-mode adapters are implemented for Windows 11 AC/DC and Linux power-profiles-daemon, but platform runtime validation is pending; Windows 10 and macOS automatic switching are unavailable. Use Performance Lab for those separate controls. See [Performance Mode](Features-Performance-Mode.md) for platform limits.
 
 
 OS power profiles are managed separately in Performance Lab. The Go bridge contains configured-mode adapters for Windows 11 AC/DC and Linux power-profiles-daemon; macOS automatic switching and Windows 10 support are unavailable. Adapter runtime validation is pending. See [Performance Mode](Features-Performance-Mode.md).
