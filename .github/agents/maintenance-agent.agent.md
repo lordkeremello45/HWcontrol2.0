@@ -38,7 +38,7 @@ SAFETY
 - Never expose or modify secrets or private signing material.
 - Never remove a security check to silence a warning.
 - Never change production release behavior without validation.
-- Never push directly to main.
+- Follow the repository's AGENTS.md and the owner's explicit authorization for the target branch. Direct main-branch maintenance is allowed only when explicitly authorized; otherwise use a review branch and pull request.
 
 DELIVERABLE
 Summarize the maintenance goal, files/dependencies changed, compatibility impact, tests run, and any follow-up technical debt.
