@@ -3,7 +3,9 @@
 #include "hw_game_core/graphics/backend_selection.hpp"
 #include "hw_game_core/graphics/gpu_types.hpp"
 
+#include <memory>
 #include <optional>
+#include <utility>
 #include <string>
 
 namespace hwcontrol::game::graphics {
