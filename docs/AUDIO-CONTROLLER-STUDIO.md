@@ -20,7 +20,7 @@
 
 ## Product goals
 
-A cross-platform audio workstation inside HWcontrol2.0 for microphone processing, system audio, per-application routing where the OS permits it, real-time analysis, profiles, and creator workflows. This is not a claim of feature parity with or superiority over any specific competitor.
+Audio Controller Studio is an experimental local microphone-processing and analysis feature with audio profiles, native capture/playback plumbing and live DSP metrics. It is not currently a system-wide audio mixer or a full audio workstation: system loopback capture, virtual microphone/output devices and per-application routing are not implemented. This is not a claim of feature parity with or superiority over any specific competitor.
 
 ## Architecture
 
