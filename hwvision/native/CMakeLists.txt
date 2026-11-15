@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(HWVisionNative LANGUAGES CXX)
 
+include(cmake/HWVisionDependencies.cmake)
+
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   include(CTest)
 endif()
