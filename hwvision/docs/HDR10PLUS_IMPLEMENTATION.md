@@ -93,9 +93,9 @@ Flutter verification:
 
 ## Local verification evidence
 
-- GCC 14.2: CMake Release build succeeded; CTest 1/1 passed.
-- Clang 17: CMake Release build succeeded; CTest 1/1 passed.
-- GCC AddressSanitizer + UndefinedBehaviorSanitizer: build succeeded; CTest 1/1 passed.
+- GCC 14.2: local mirror of the current hwvision/native CMake targets built successfully; CTest 2/2 passed (Game Mode + HDR10+).
+- Clang 17: same native target mirror built successfully; CTest 2/2 passed.
+- GCC AddressSanitizer + UndefinedBehaviorSanitizer: same native target mirror built successfully; CTest 2/2 passed.
 - Flutter analyze/test were not run locally because Flutter SDK is unavailable in the execution environment.
 - The GitHub combined status endpoint returned no status records for the latest commit; remote Actions completion is not verified here.
 - No physical HDR10+ display/GPU was available. Native passthrough and visual quality remain UNVERIFIED.
