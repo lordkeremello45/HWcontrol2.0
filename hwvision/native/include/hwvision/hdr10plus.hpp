@@ -62,6 +62,7 @@ enum class ValidationError : std::uint8_t {
   invalid_distribution_size,
   invalid_distribution_order,
   invalid_distribution_percentile,
+  invalid_distribution_percentile_index,
   invalid_fraction_bright_pixels,
   invalid_knee_point,
   invalid_bezier_anchor_count,
