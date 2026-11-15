@@ -153,6 +153,7 @@ RenderResult process(const RgbaImage& source, const RenderConfig& config,
   if (!valid_description(config.source) || !valid_description(config.output) ||
       !std::isfinite(config.target_peak_nits) || config.target_peak_nits <= 0.0 ||
       config.target_peak_nits > kMaxPqNits ||
+      config.target_peak_nits > config.output.mastering_peak_nits ||
       static_cast<unsigned int>(config.source.transfer) > static_cast<unsigned int>(TransferFunction::linear) ||
       static_cast<unsigned int>(config.output.transfer) > static_cast<unsigned int>(TransferFunction::linear) ||
       static_cast<unsigned int>(config.source.primaries) > static_cast<unsigned int>(ColorPrimaries::bt2020) ||
