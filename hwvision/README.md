@@ -19,7 +19,7 @@ HDR10+ (SMPTE ST 2094-40 Application #4) is the primary dynamic-HDR format targe
 - CPU reference color-processing primitives for transfer functions, BT.709/BT.2020 primary conversion, luminance shoulder, output bounds and ordered dithering.
 
 **NOT IMPLEMENTED:**
-- T.35/SEI/container bitstream extraction and video decoder integration (FFmpeg package discovery is wired; decoder adapter is not implemented).
+- Media opening, packet decoding and raw T.35/SEI parsing (FFmpeg decoded-frame HDR10+ side-data extraction is implemented conditionally; decoder integration is not).
 - Per-frame metadata delivery and normative ST 2094-40 rendering.
 - Native DXGI/D3D12, Linux DRM/Vulkan or Metal/EDR display adapters (SDK/framework discovery is wired; presentation adapters are not implemented).
 - Flutter ↔ native runtime/ABI integration and real display capability discovery.
@@ -53,6 +53,6 @@ For the Flutter display prototype:
     flutter analyze --fatal-infos
     flutter test
 
-## Optional native dependencies\n\nCMake discovers FFmpeg, OpenColorIO, OpenEXR and Vulkan when installed, and detects the platform graphics SDK/framework. These are optional build-time discoveries only; no third-party binaries are downloaded or bundled, and current runtime targets remain dependency-free. See [DEPENDENCIES.md](docs/DEPENDENCIES.md) for switches, licensing and supply-chain requirements.\n\n## Planned native providers
+## Optional native dependencies\n\nCMake discovers FFmpeg, OpenColorIO, OpenEXR and Vulkan when installed, and detects the platform graphics SDK/framework. FFmpeg's decoded-frame HDR10+ metadata adapter is conditionally compiled when FFmpeg development packages are present; this does not open or decode media. OpenColorIO, OpenEXR and Vulkan remain discovery-only. No third-party binaries are downloaded or bundled. See [DEPENDENCIES.md](docs/DEPENDENCIES.md) for switches, licensing and supply-chain requirements.\n\n## Planned native providers
 
 CPU reference path is mandatory. NVIDIA CUDA/TensorRT and AMD HIP/ROCm will be separate optional providers with explicit SDK/version/driver checks. SDKs are not bundled and no provider is considered ready until a real operation succeeds on compatible hardware.
