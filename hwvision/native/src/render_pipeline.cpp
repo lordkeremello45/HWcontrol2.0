@@ -140,7 +140,7 @@ std::uint8_t quantize_u8(double value, std::uint32_t x, std::uint32_t y,
 }
 
 RenderResult process(const RgbaImage& source, const RenderConfig& config,
-                     RgbaImage& destination) noexcept {
+                     RgbaImage& destination) {
   if (source.width == 0U || source.height == 0U) return {RenderError::invalid_dimensions};
   const std::size_t width = static_cast<std::size_t>(source.width);
   const std::size_t height = static_cast<std::size_t>(source.height);
