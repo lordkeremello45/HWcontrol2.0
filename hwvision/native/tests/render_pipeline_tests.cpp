@@ -60,7 +60,7 @@ int main() {
   CHECK(quantize_u8(1.0, 0U, 0U, false) == 255U);
   CHECK(quantize_u8(-1.0, 0U, 0U, false) == 0U);
   CHECK(quantize_u8(2.0, 0U, 0U, false) == 255U);
-  CHECK(quantize_u8(0.5, 0U, 0U, true) != quantize_u8(0.5, 3U, 3U, true));
+  CHECK(quantize_u8(0.5, 0U, 0U, true) != quantize_u8(0.5, 1U, 0U, true));
 
   return failures == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
