@@ -20,7 +20,7 @@ struct ColorDescription {
 struct RenderConfig {
   ColorDescription source{};
   ColorDescription output{};
-  ToneMapOperator tone_map = ToneMapOperator::reinhard;
+  ToneMapOperator tone_map = ToneMapOperator::exponential_shoulder;
   double target_peak_nits = 100.0;
   bool clamp_output_gamut = true;
 };
