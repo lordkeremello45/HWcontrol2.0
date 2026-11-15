@@ -4,7 +4,7 @@
 
 Prototype: deterministic Game Mode policy, HDR10+ semantic metadata validation and output-route selection are implemented. A first dependency-free C++17 CPU reference color pipeline is now implemented with sRGB, BT.709, linear and ST 2084 PQ transfer functions; BT.709/BT.2020 primaries conversion; a continuous luminance shoulder; bounded output gamut; alpha preservation; and deterministic 4x4 ordered dithering. This is a reference processing primitive, not yet a production video renderer or an end-to-end HDR10+ playback stack.
 
-Native display adapters, codec integration, T.35/SEI parsing, GPU providers, and Flutter-to-native runtime integration remain unimplemented.
+CMake discovery for FFmpeg, OpenColorIO, OpenEXR, Vulkan and platform graphics frameworks is integrated. This is dependency/build-system integration only: native display adapters, codec integration, T.35/SEI parsing, GPU providers, and Flutter-to-native runtime integration remain unimplemented.
 
 ## Data flow
 
@@ -18,7 +18,7 @@ Codec/container adapter (planned) -> bounded T.35/SEI extraction (planned) -> de
 
 ## Modules
 
-- Capability adapters (planned): query HDR/advanced-color, HDR10+, color-space and refresh capabilities through documented platform APIs. Missing or failed queries remain unknown, never supported.
+- Optional dependency discovery (implemented): CMake discovers installed FFmpeg, OpenColorIO, OpenEXR and Vulkan packages plus Windows DXGI/D3D12 or Apple Metal frameworks. Discovery is non-fatal by default, does not fetch binaries, and is not runtime feature support. See `docs/DEPENDENCIES.md`.\n- Capability adapters (planned): query HDR/advanced-color, HDR10+, color-space and refresh capabilities through documented platform APIs. Missing or failed queries remain unknown, never supported.
 - Game Mode policy engine (implemented): deterministic policy for foreground game, power, thermal and telemetry state.
 - HDR10+ metadata model and validator (implemented): C++17 semantic model for ST 2094-40 Application #4 versions 0/1. Validates bounded windows, luminance, MaxSCL, AverageMaxRGB, DistributionMaxRGB, FractionBrightPixels, KneePoint, Bezier anchors and version-dependent optional metadata.
 - HDR output-route selector (implemented): chooses only among verified native HDR10+ passthrough, software metadata-driven HDR tone mapping, HDR10 static fallback, HDR-to-SDR tone mapping and SDR passthrough. It does not itself render pixels.
