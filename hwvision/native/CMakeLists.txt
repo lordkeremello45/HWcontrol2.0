@@ -34,6 +34,14 @@ target_include_directories(hwvision_hdr10plus PUBLIC
 )
 hwvision_apply_hardening(hwvision_hdr10plus)
 
+
+add_library(hwvision_render_pipeline STATIC src/render_pipeline.cpp)
+add_library(HWVision::RenderPipeline ALIAS hwvision_render_pipeline)
+target_include_directories(hwvision_render_pipeline PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+hwvision_apply_hardening(hwvision_render_pipeline)
+
 if(BUILD_TESTING)
   add_executable(hwvision_game_mode_tests tests/game_mode_tests.cpp)
   target_link_libraries(hwvision_game_mode_tests PRIVATE HWVision::GameMode)
@@ -44,4 +52,9 @@ if(BUILD_TESTING)
   target_link_libraries(hwvision_hdr10plus_tests PRIVATE HWVision::Hdr10Plus)
   hwvision_apply_hardening(hwvision_hdr10plus_tests)
   add_test(NAME hwvision_hdr10plus_metadata COMMAND hwvision_hdr10plus_tests)
+
+  add_executable(hwvision_render_pipeline_tests tests/render_pipeline_tests.cpp)
+  target_link_libraries(hwvision_render_pipeline_tests PRIVATE HWVision::RenderPipeline)
+  hwvision_apply_hardening(hwvision_render_pipeline_tests)
+  add_test(NAME hwvision_render_pipeline COMMAND hwvision_render_pipeline_tests)
 endif()
