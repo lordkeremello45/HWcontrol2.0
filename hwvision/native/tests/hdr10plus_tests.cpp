@@ -70,6 +70,9 @@ int main() {
   metadata.distribution.percentages[4] = 2U;
   CHECK(validate(metadata).error == ValidationError::invalid_distribution_order);
   metadata = valid_v1();
+  metadata.distribution.percentages[0] = 2U;
+  CHECK(validate(metadata).error == ValidationError::invalid_distribution_percentile_index);
+  metadata = valid_v1();
   metadata.distribution.percentiles_1e5[5] = 1U;
   CHECK(validate(metadata).error == ValidationError::invalid_distribution_percentile);
   metadata = valid_v1();
