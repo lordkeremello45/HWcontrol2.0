@@ -10,7 +10,7 @@ HWVision is a companion product in the HWcontrol ecosystem, not a replacement fo
 1. **Game Mode Engine (first priority):** game-session-aware policy orchestration, thermal/power safety, low-contention background workload management and reversible recommendations. The Go Bridge currently detects a limited allow-list of game processes and exposes session state; it is not yet a full optimization engine.
 2. **Display / Vision Engine:** adaptive Cinema, Gaming, Everyday and Adaptive modes; display capability discovery; color-managed processing; HDR/EDR; VRR awareness; measurable pixel processing.
 
-The existing Flutter prototype under `hwvision/` is retained as a UI/policy preview. It does not currently process pixels or query native display APIs.
+The Flutter prototype under `hwvision/` remains a UI/policy preview and is not yet connected to the native renderer or native display APIs. The native layer now contains a first CPU reference RGBA processing primitive; it is not yet a video playback or end-to-end display pipeline.
 
 ## 2. Research findings
 
@@ -86,7 +86,9 @@ Fail-closed rules:
 
 ## 5. Display processing algorithm
 
-The display pipeline must be color-managed and explicitly staged:
+**Implemented first slice:** `hwvision/native` now has a CPU reference RGBA primitive for sRGB, BT.709, linear and ST 2084 PQ transfer decode/encode, BT.709/BT.2020 primary conversion through XYZ, a continuous exponential highlight shoulder, optional output-gamut clipping, alpha preservation and deterministic 4x4 ordered quantization dithering. It accepts caller-supplied color descriptions and does not yet decode video, consume ST 2094-40 metadata, or present to a native display. Golden-image and colorimetric conformance tests are still required.
+
+The full display pipeline must remain color-managed and explicitly staged:
 
 1. Identify source transfer function and primaries (e.g. sRGB/BT.709, PQ/BT.2020); unknown source metadata must not be guessed as HDR.
 2. Decode transfer function to linear-light working values.
@@ -110,6 +112,7 @@ Do not call SDR-to-HDR expansion lossless. It cannot recover source information 
 
 ## 7. Verification gates
 
+- CPU renderer unit tests now cover transfer-function round trips, PQ reference points, buffer validation, non-finite pixels, alpha preservation, highlight compression, output peak bounds and ordered dithering. These are initial unit tests, not full colorimetric conformance.
 - Unit tests for policy boundaries, NaN/infinity, stale telemetry, unknown capabilities, battery and thermal overrides.
 - CMake C++17 build and CTest on Windows x64, Linux x64 and macOS 14+ Apple Silicon.
 - Flutter analyze/test for the UI prototype.
