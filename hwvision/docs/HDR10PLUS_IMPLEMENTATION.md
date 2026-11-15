@@ -90,3 +90,14 @@ Flutter verification:
 - Microsoft DisplayWireFormatHdrMetadata — https://learn.microsoft.com/en-us/uwp/api/windows.devices.display.core.displaywireformathdrmetadata
 - Microsoft IDXGISwapChain4::SetHDRMetaData — https://learn.microsoft.com/en-us/windows/win32/api/dxgi1_5/nf-dxgi1_5-idxgiswapchain4-sethdrmetadata
 - FFmpeg AVDynamicHDRPlus data model — https://ffmpeg.org/doxygen/trunk/hdr__dynamic__metadata_8h_source.html
+
+## Local verification evidence
+
+- GCC 14.2: CMake Release build succeeded; CTest 1/1 passed.
+- Clang 17: CMake Release build succeeded; CTest 1/1 passed.
+- GCC AddressSanitizer + UndefinedBehaviorSanitizer: build succeeded; CTest 1/1 passed.
+- Flutter analyze/test were not run locally because Flutter SDK is unavailable in the execution environment.
+- The GitHub combined status endpoint returned no status records for the latest commit; remote Actions completion is not verified here.
+- No physical HDR10+ display/GPU was available. Native passthrough and visual quality remain UNVERIFIED.
+
+These tests cover the semantic metadata model and fallback policy only; they are not official HDR10+ certification vectors. The implementation remains PARTIAL until parser, decoder integration, color pipeline, native platform adapters and physical hardware tests are complete.
