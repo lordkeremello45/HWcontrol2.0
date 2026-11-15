@@ -48,7 +48,7 @@ struct RenderResult {
 // PQ values are decoded to absolute nits; SDR values use reference_white_nits.
 [[nodiscard]] RenderResult process(const RgbaImage& source,
                                    const RenderConfig& config,
-                                   RgbaImage& destination) noexcept;
+                                   RgbaImage& destination);
 
 // Transfer helpers are public to support independent conformance tests.
 [[nodiscard]] double decode_transfer(double value, TransferFunction transfer,
