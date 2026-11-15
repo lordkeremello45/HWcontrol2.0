@@ -14,11 +14,11 @@ Future accelerated flow: Flutter / host application -> authenticated Go Bridge c
 
 HDR10+ metadata flow:
 
-Codec/container adapter (planned) -> bounded T.35/SEI extraction (planned) -> decoded ST 2094-40 model -> semantic validator (implemented) -> metadata-driven renderer (planned) -> native presentation (planned).
+Decoder (planned) -> FFmpeg AVFrame HDR10+ side-data adapter (partial) OR bounded raw T.35/SEI parser (planned) -> decoded ST 2094-40 model -> semantic validator (implemented) -> metadata-driven renderer (planned) -> native presentation (planned).
 
 ## Modules
 
-- Optional dependency discovery (implemented): CMake discovers installed FFmpeg, OpenColorIO, OpenEXR and Vulkan packages plus Windows DXGI/D3D12 or Apple Metal frameworks. Discovery is non-fatal by default, does not fetch binaries, and is not runtime feature support. See `docs/DEPENDENCIES.md`.\n- Capability adapters (planned): query HDR/advanced-color, HDR10+, color-space and refresh capabilities through documented platform APIs. Missing or failed queries remain unknown, never supported.
+- Optional dependency discovery (implemented): CMake discovers installed FFmpeg, OpenColorIO, OpenEXR and Vulkan packages plus Windows DXGI/D3D12 or Apple Metal frameworks. The FFmpeg HDR10+ AVFrame side-data adapter is partial; other libraries remain discovery-only. Discovery is non-fatal by default and does not fetch binaries. See `docs/DEPENDENCIES.md`.\n- Capability adapters (planned): query HDR/advanced-color, HDR10+, color-space and refresh capabilities through documented platform APIs. Missing or failed queries remain unknown, never supported.
 - Game Mode policy engine (implemented): deterministic policy for foreground game, power, thermal and telemetry state.
 - HDR10+ metadata model and validator (implemented): C++17 semantic model for ST 2094-40 Application #4 versions 0/1. Validates bounded windows, luminance, MaxSCL, AverageMaxRGB, DistributionMaxRGB, FractionBrightPixels, KneePoint, Bezier anchors and version-dependent optional metadata.
 - HDR output-route selector (implemented): chooses only among verified native HDR10+ passthrough, software metadata-driven HDR tone mapping, HDR10 static fallback, HDR-to-SDR tone mapping and SDR passthrough. It does not itself render pixels.
@@ -31,7 +31,7 @@ Codec/container adapter (planned) -> bounded T.35/SEI extraction (planned) -> de
 
 ## HDR10+ boundaries
 
-- The semantic metadata validator is not a T.35/SEI bitstream parser.
+- The semantic metadata validator is not a raw T.35/SEI bitstream parser. The FFmpeg adapter only consumes metadata already attached to decoded AVFrame side data.
 - Native passthrough is never inferred from generic HDR support or an OS enum. It requires verification of the complete source-to-display chain.
 - HDR10+ metadata support, native passthrough, HDR10+ ADVANCED and HDR10+ GAMING are separate capability states.
 - HDR10+ ADVANCED and GAMING remain unavailable until their separate technical and licensing conditions are validated.
