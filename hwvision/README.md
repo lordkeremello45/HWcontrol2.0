@@ -6,7 +6,7 @@ HWVision is an independent C++17 image-processing engine and Flutter desktop com
 
 The first engineering priority is the **Game Mode Engine**. A pure, deterministic C++17 policy core is included under native/. It consumes game-session, foreground, power, thermal and validated telemetry state and emits a bounded policy plan. It does not yet execute OS or GPU optimization actions.
 
-The native layer now also contains a first CPU reference color pipeline. It processes explicit RGBA buffers and supports sRGB, BT.709, linear and ST 2084 PQ transfer functions, BT.709/BT.2020 primary conversion, a continuous luminance shoulder, optional output gamut clipping and ordered dithering. It is a low-level reference primitive, not yet integrated with a video decoder, platform display API or Flutter runtime.
+The native CMake build now discovers optional FFmpeg, OpenColorIO, OpenEXR and Vulkan development packages, plus the native DXGI/D3D12 or Metal system frameworks where applicable. Discovery is non-fatal by default, performs no downloads, and does not claim runtime integration; see [dependency policy](docs/DEPENDENCIES.md). The native layer also contains a first CPU reference color pipeline. It processes explicit RGBA buffers and supports sRGB, BT.709, linear and ST 2084 PQ transfer functions, BT.709/BT.2020 primary conversion, a continuous luminance shoulder, optional output gamut clipping and ordered dithering. It is a low-level reference primitive, not yet integrated with a video decoder, platform display API or Flutter runtime.
 
 ### HDR10+ status
 
@@ -19,9 +19,9 @@ HDR10+ (SMPTE ST 2094-40 Application #4) is the primary dynamic-HDR format targe
 - CPU reference color-processing primitives for transfer functions, BT.709/BT.2020 primary conversion, luminance shoulder, output bounds and ordered dithering.
 
 **NOT IMPLEMENTED:**
-- T.35/SEI/container bitstream extraction and video decoder integration.
+- T.35/SEI/container bitstream extraction and video decoder integration (FFmpeg package discovery is wired; decoder adapter is not implemented).
 - Per-frame metadata delivery and normative ST 2094-40 rendering.
-- Native DXGI/D3D12, Linux DRM/Vulkan or Metal/EDR display adapters.
+- Native DXGI/D3D12, Linux DRM/Vulkan or Metal/EDR display adapters (SDK/framework discovery is wired; presentation adapters are not implemented).
 - Flutter ↔ native runtime/ABI integration and real display capability discovery.
 - CUDA/TensorRT and HIP/ROCm acceleration.
 - Verified HDR10+ passthrough on physical devices.
@@ -53,6 +53,6 @@ For the Flutter display prototype:
     flutter analyze --fatal-infos
     flutter test
 
-## Planned native providers
+## Optional native dependencies\n\nCMake discovers FFmpeg, OpenColorIO, OpenEXR and Vulkan when installed, and detects the platform graphics SDK/framework. These are optional build-time discoveries only; no third-party binaries are downloaded or bundled, and current runtime targets remain dependency-free. See [DEPENDENCIES.md](docs/DEPENDENCIES.md) for switches, licensing and supply-chain requirements.\n\n## Planned native providers
 
 CPU reference path is mandatory. NVIDIA CUDA/TensorRT and AMD HIP/ROCm will be separate optional providers with explicit SDK/version/driver checks. SDKs are not bundled and no provider is considered ready until a real operation succeeds on compatible hardware.
