@@ -36,6 +36,12 @@ target_include_directories(hwvision_hdr10plus PUBLIC
 )
 hwvision_apply_hardening(hwvision_hdr10plus)
 
+if(TARGET PkgConfig::HWVISION_FFMPEG)
+  target_sources(hwvision_hdr10plus PRIVATE src/ffmpeg_hdr10plus.cpp)
+  target_link_libraries(hwvision_hdr10plus PUBLIC HWVision::OptionalDependencies)
+  target_compile_definitions(hwvision_hdr10plus PUBLIC HWVISION_HAS_FFMPEG=1)
+endif()
+
 
 add_library(hwvision_render_pipeline STATIC src/render_pipeline.cpp)
 add_library(HWVision::RenderPipeline ALIAS hwvision_render_pipeline)
@@ -54,6 +60,11 @@ if(BUILD_TESTING)
   target_link_libraries(hwvision_hdr10plus_tests PRIVATE HWVision::Hdr10Plus)
   hwvision_apply_hardening(hwvision_hdr10plus_tests)
   add_test(NAME hwvision_hdr10plus_metadata COMMAND hwvision_hdr10plus_tests)
+
+  add_executable(hwvision_ffmpeg_hdr10plus_tests tests/ffmpeg_hdr10plus_tests.cpp)
+  target_link_libraries(hwvision_ffmpeg_hdr10plus_tests PRIVATE HWVision::Hdr10Plus)
+  hwvision_apply_hardening(hwvision_ffmpeg_hdr10plus_tests)
+  add_test(NAME hwvision_ffmpeg_hdr10plus_adapter COMMAND hwvision_ffmpeg_hdr10plus_tests)
 
   add_executable(hwvision_render_pipeline_tests tests/render_pipeline_tests.cpp)
   target_link_libraries(hwvision_render_pipeline_tests PRIVATE HWVision::RenderPipeline)
