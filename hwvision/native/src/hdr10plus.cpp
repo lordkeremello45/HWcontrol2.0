@@ -71,6 +71,13 @@ ValidationResult validate(const Metadata& metadata) noexcept {
       (metadata.application_version == 1U && percentage_count != 9U)) {
     return failure(ValidationError::invalid_distribution_size);
   }
+  constexpr std::array<std::uint8_t, 9> kVersionOnePercentages{
+      1U, 5U, 10U, 25U, 50U, 75U, 90U, 95U, 99U};
+  if (metadata.application_version == 1U &&
+      !std::equal(kVersionOnePercentages.begin(), kVersionOnePercentages.end(),
+                  metadata.distribution.percentages.begin())) {
+    return failure(ValidationError::invalid_distribution_percentile_index);
+  }
   for (std::size_t index = 0U; index < percentage_count; ++index) {
     if (metadata.distribution.percentages[index] > 100U ||
         (index > 0U && metadata.distribution.percentages[index] <
