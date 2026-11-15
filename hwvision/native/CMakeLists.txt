@@ -38,7 +38,7 @@ hwvision_apply_hardening(hwvision_hdr10plus)
 
 if(TARGET PkgConfig::HWVISION_FFMPEG)
   target_sources(hwvision_hdr10plus PRIVATE src/ffmpeg_hdr10plus.cpp)
-  target_link_libraries(hwvision_hdr10plus PUBLIC HWVision::OptionalDependencies)
+  target_link_libraries(hwvision_hdr10plus PUBLIC PkgConfig::HWVISION_FFMPEG)
   target_compile_definitions(hwvision_hdr10plus PUBLIC HWVISION_HAS_FFMPEG=1)
 endif()
 
