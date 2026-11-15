@@ -9,6 +9,10 @@ void main() {
 
       expect(capabilities.platform, 'test-platform');
       expect(capabilities.hdr, CapabilityState.unknown);
+      expect(capabilities.hdr10PlusMetadata, CapabilityState.unknown);
+      expect(capabilities.hdr10PlusPassthrough, CapabilityState.unknown);
+      expect(capabilities.hdr10PlusAdvanced, CapabilityState.unknown);
+      expect(capabilities.hdr10PlusGaming, CapabilityState.unknown);
       expect(capabilities.wideColorGamut, CapabilityState.unknown);
       expect(capabilities.variableRefreshRate, CapabilityState.unknown);
       expect(capabilities.dolbyVision, CapabilityState.unknown);
@@ -19,6 +23,10 @@ void main() {
         displayName: 'Test display',
         platform: 'test',
         hdr: CapabilityState.supported,
+        hdr10PlusMetadata: CapabilityState.supported,
+        hdr10PlusPassthrough: CapabilityState.unsupported,
+        hdr10PlusAdvanced: CapabilityState.unknown,
+        hdr10PlusGaming: CapabilityState.unsupported,
         wideColorGamut: CapabilityState.unsupported,
         variableRefreshRate: CapabilityState.unknown,
         dolbyVision: CapabilityState.unsupported,
@@ -27,6 +35,22 @@ void main() {
       expect(
         capabilities.stateFor(DisplayFeature.hdr),
         CapabilityState.supported,
+      );
+      expect(
+        capabilities.stateFor(DisplayFeature.hdr10PlusMetadata),
+        CapabilityState.supported,
+      );
+      expect(
+        capabilities.stateFor(DisplayFeature.hdr10PlusPassthrough),
+        CapabilityState.unsupported,
+      );
+      expect(
+        capabilities.stateFor(DisplayFeature.hdr10PlusAdvanced),
+        CapabilityState.unknown,
+      );
+      expect(
+        capabilities.stateFor(DisplayFeature.hdr10PlusGaming),
+        CapabilityState.unsupported,
       );
       expect(
         capabilities.stateFor(DisplayFeature.wideColorGamut),
