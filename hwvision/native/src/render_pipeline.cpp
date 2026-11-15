@@ -64,10 +64,11 @@ Vec3 from_xyz(Vec3 xyz, ColorPrimaries primaries) noexcept {
 
 double tone_map_luminance(double luminance_nits, double target_peak_nits) noexcept {
   if (luminance_nits <= 0.0) return 0.0;
-  const double normalized = luminance_nits / target_peak_nits;
-  // Extended Reinhard maps normalized luminance to [0, 1], with a smooth shoulder.
-  return target_peak_nits * (normalized * (1.0 + normalized)) /
-         (1.0 + normalized + normalized * normalized);
+  const double knee = target_peak_nits * 0.75;
+  if (luminance_nits <= knee) return luminance_nits;
+  const double shoulder = target_peak_nits - knee;
+  return knee + shoulder *
+      (1.0 - std::exp(-(luminance_nits - knee) / shoulder));
 }
 }  // namespace
 
@@ -163,10 +164,6 @@ RenderResult process(const RgbaImage& source, const RenderConfig& config,
   result.width = source.width;
   result.height = source.height;
   result.pixels.resize(source.pixels.size());
-  const auto& to_output = config.output.primaries == ColorPrimaries::bt2020
-      ? kXyzToBt2020 : kXyzToBt709;
-  (void)to_output;
-
   for (std::size_t pixel = 0U; pixel < width * height; ++pixel) {
     const std::size_t offset = pixel * 4U;
     for (std::size_t channel = 0U; channel < 4U; ++channel) {
@@ -184,7 +181,7 @@ RenderResult process(const RgbaImage& source, const RenderConfig& config,
     };
     Vec3 xyz = to_xyz(rgb, config.source.primaries);
     const double luminance = std::max(0.0, xyz.g);
-    if (config.tone_map == ToneMapOperator::reinhard && luminance > config.target_peak_nits) {
+    if (config.tone_map == ToneMapOperator::reinhard) {
       const double mapped = tone_map_luminance(luminance, config.target_peak_nits);
       const double scale = mapped / std::max(luminance, kEpsilon);
       xyz.r *= scale;
