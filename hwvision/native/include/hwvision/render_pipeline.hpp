@@ -8,7 +8,7 @@ namespace hwvision::render {
 
 enum class TransferFunction : std::uint8_t { srgb, bt709, st2084_pq, linear };
 enum class ColorPrimaries : std::uint8_t { bt709, bt2020 };
-enum class ToneMapOperator : std::uint8_t { none, reinhard };
+enum class ToneMapOperator : std::uint8_t { none, exponential_shoulder };
 
 struct ColorDescription {
   TransferFunction transfer = TransferFunction::srgb;
