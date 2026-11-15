@@ -47,6 +47,16 @@ int main() {
   CHECK(std::isfinite(output.pixels[0]));
   CHECK(output.pixels[0] >= 0.0F && output.pixels[0] <= 1.0F);
 
+  // A source highlight above the output target is compressed without a hard knee.
+  RgbaImage highlight{1U, 1U, {1.0F, 1.0F, 1.0F, 1.0F}};
+  config.source = {TransferFunction::linear, ColorPrimaries::bt709, 1000.0, 1000.0};
+  config.output = {TransferFunction::linear, ColorPrimaries::bt709, 100.0, 100.0};
+  config.target_peak_nits = 100.0;
+  config.tone_map = ToneMapOperator::reinhard;
+  CHECK(process(highlight, config, output).ok());
+  CHECK(output.pixels[0] <= 1.0F);
+  CHECK(output.pixels[0] > 0.75F);
+
   RgbaImage malformed{1U, 1U, {1.0F, 0.0F, 0.0F}};
   CHECK(process(malformed, config, output).error == RenderError::invalid_buffer_size);
   malformed = {1U, 1U, {1.0F, 0.0F, 0.0F, 1.0F}};
