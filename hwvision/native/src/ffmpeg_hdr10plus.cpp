@@ -6,6 +6,7 @@
 #if defined(HWVISION_HAS_FFMPEG)
 extern "C" {
 #include <libavutil/hdr_dynamic_metadata.h>
+#include <libavutil/mathematics.h>
 }
 #endif
 namespace hwvision::hdr10plus::ffmpeg {
