@@ -9,7 +9,7 @@ namespace {
 int failures = 0;
 void check(bool ok, int line, const char* expression) {
   if (!ok) {
-    std::cerr << "FAIL line " << line << ": " << expression << '\\n';
+    std::cerr << "FAIL line " << line << ": " << expression << '\n';
     ++failures;
   }
 }
