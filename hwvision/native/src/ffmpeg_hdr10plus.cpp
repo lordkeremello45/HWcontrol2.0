@@ -83,14 +83,18 @@ ExtractionResult extract_frame_metadata(
 #if defined(HWVISION_HAS_FFMPEG)
   const auto* side=av_frame_get_side_data(&frame,AV_FRAME_DATA_DYNAMIC_HDR_PLUS);
   if (!side) return fail(ExtractionError::frame_has_no_dynamic_metadata);
-  if (!side->data) return fail(ExtractionError::invalid_side_data);
+  if (!side->data || side->size < sizeof(AVDynamicHDRPlus)) return fail(ExtractionError::invalid_side_data);
   const auto* metadata=reinterpret_cast<const AVDynamicHDRPlus*>(side->data);
   if (metadata->itu_t_t35_country_code != 0xB5U) return fail(ExtractionError::unsupported_country_code);
   if (metadata->application_version > 1U) return fail(ExtractionError::unsupported_application_version);
-  Metadata candidate;
-  if (!convert(*metadata,candidate)) return fail(ExtractionError::invalid_metadata);
-  output=std::move(candidate);
-  return {};
+  try {
+    Metadata candidate;
+    if (!convert(*metadata,candidate)) return fail(ExtractionError::invalid_metadata);
+    output=std::move(candidate);
+    return {};
+  } catch (...) {
+    return fail(ExtractionError::invalid_metadata);
+  }
 #else
   (void)frame; (void)output;
   return fail(ExtractionError::ffmpeg_not_enabled);
