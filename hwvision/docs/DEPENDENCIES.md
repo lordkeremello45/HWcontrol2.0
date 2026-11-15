@@ -6,14 +6,14 @@ HWVision now has opt-in-at-build-time (enabled by default, non-fatal) discovery 
 
 | Dependency | CMake discovery | Intended use | Runtime status |
 |---|---|---|---|
-| FFmpeg | pkg-config: libavcodec, libavformat, libavutil, libswscale | Decode/container and HDR metadata adapter | NOT IMPLEMENTED |
+| FFmpeg | pkg-config: libavcodec, libavformat, libavutil, libswscale | Decoded-frame HDR10+ metadata bridge; future decode/container adapter | PARTIAL |
 | OpenColorIO | OpenColorIO CMake config package | Color-management adapter | NOT IMPLEMENTED |
 | OpenEXR | OpenEXR CMake config package | HDR reference/test assets | NOT IMPLEMENTED |
 | Vulkan | FindVulkan | Linux/Windows GPU backend foundation | NOT IMPLEMENTED |
 | DXGI/D3D12 | Windows SDK import libraries | Windows presentation foundation | NOT IMPLEMENTED |
 | Metal | Apple system frameworks | macOS presentation foundation | NOT IMPLEMENTED |
 
-The discovery target is `HWVision::OptionalDependencies`. It exports feature definitions only when a dependency is found. Existing CPU-only targets do not link this interface target yet, so the baseline remains dependency-free and deterministic.
+The discovery target is `HWVision::OptionalDependencies`. FFmpeg is linked directly to `HWVision::Hdr10Plus` only when its development packages are found; the frame-side-data adapter is then compiled with `HWVISION_HAS_FFMPEG`. OpenColorIO, OpenEXR, Vulkan and platform graphics SDKs are currently discovery-only. The baseline remains buildable without optional packages.
 
 ## Build modes
 
@@ -48,4 +48,4 @@ Individual switches are available: `HWVISION_ENABLE_FFMPEG`, `HWVISION_ENABLE_OP
 
 ## Important implementation boundary
 
-CMake discovery is not feature implementation. It does not provide decoding, T.35/SEI extraction, ST 2094-40 rendering, GPU compute, display capability detection, or presentation. A feature becomes available only after a real adapter is implemented, tested, and connected to the runtime. The dependency interface target is intentionally not linked into current renderer targets until those adapters consume the APIs.
+CMake discovery is not feature implementation. The FFmpeg adapter currently copies and validates HDR10+ metadata already attached to a decoded `AVFrame`; it does not open media, decode packets, parse raw T.35/SEI payloads, render ST 2094-40, or present frames. OpenColorIO transforms, OpenEXR reference-image tests, GPU compute, display capability detection, and platform presentation remain unimplemented. The FFmpeg adapter is conditionally compiled and has a dedicated CTest target.
