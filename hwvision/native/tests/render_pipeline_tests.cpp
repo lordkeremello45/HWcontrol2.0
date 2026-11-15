@@ -65,6 +65,9 @@ int main() {
   malformed.pixels[0] = 1.0F;
   config.target_peak_nits = std::numeric_limits<double>::infinity();
   CHECK(process(malformed, config, output).error == RenderError::invalid_config);
+  config.target_peak_nits = 200.0;
+  config.output.mastering_peak_nits = 100.0;
+  CHECK(process(malformed, config, output).error == RenderError::invalid_config);
 
   CHECK(quantize_u8(0.0, 0U, 0U, false) == 0U);
   CHECK(quantize_u8(1.0, 0U, 0U, false) == 255U);
