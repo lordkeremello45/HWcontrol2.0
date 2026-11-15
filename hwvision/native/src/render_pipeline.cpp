@@ -157,7 +157,7 @@ RenderResult process(const RgbaImage& source, const RenderConfig& config,
       static_cast<unsigned int>(config.output.transfer) > static_cast<unsigned int>(TransferFunction::linear) ||
       static_cast<unsigned int>(config.source.primaries) > static_cast<unsigned int>(ColorPrimaries::bt2020) ||
       static_cast<unsigned int>(config.output.primaries) > static_cast<unsigned int>(ColorPrimaries::bt2020) ||
-      static_cast<unsigned int>(config.tone_map) > static_cast<unsigned int>(ToneMapOperator::reinhard)) {
+      static_cast<unsigned int>(config.tone_map) > static_cast<unsigned int>(ToneMapOperator::exponential_shoulder)) {
     return {RenderError::invalid_config};
   }
 
@@ -182,7 +182,7 @@ RenderResult process(const RgbaImage& source, const RenderConfig& config,
     };
     Vec3 xyz = to_xyz(rgb, config.source.primaries);
     const double luminance = std::max(0.0, xyz.g);
-    if (config.tone_map == ToneMapOperator::reinhard) {
+    if (config.tone_map == ToneMapOperator::exponential_shoulder) {
       const double mapped = tone_map_luminance(luminance, config.target_peak_nits);
       const double scale = mapped / std::max(luminance, kEpsilon);
       xyz.r *= scale;
