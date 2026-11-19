@@ -26,9 +26,13 @@ struct ProcessorConfig {
   float compressorReleaseMs = 100.0F;
   float compressorKneeDb = 6.0F;
   float highPassFrequencyHz = 80.0F;
+  // Replaces isolated single-frame impulses with local interpolation using one
+  // frame of look-ahead. Enabled by default; validate for audible transient loss.
+  float deClickThreshold = 0.18F;
   float limiterCeilingDb = -1.0F;
   bool noiseGateEnabled = false;
   bool highPassEnabled = false;
+  bool deClickEnabled = true;
   bool compressorEnabled = false;
   bool limiterEnabled = true;
   std::array<EqBand, kEqBandCount> eq{{
@@ -90,6 +94,9 @@ class AudioEngine final {
   std::array<Biquad, kEqBandCount> filters_{};
   Biquad highPassFilter_{};
   std::array<float, kChannelCount> compressorEnvelope_{{0.0F, 0.0F}};
+  std::array<float, kChannelCount> deClickPrevious_{{0.0F, 0.0F}};
+  std::array<float, kChannelCount> deClickPending_{{0.0F, 0.0F}};
+  bool deClickPendingValid_ = false;
   double sampleRateHz_ = 48000.0;
   float compressorAttackCoefficient_ = 0.0F;
   float compressorReleaseCoefficient_ = 0.0F;
