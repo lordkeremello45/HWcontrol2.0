@@ -40,7 +40,7 @@ jobs:
           cache: true
 
       - name: Set up WinApp CLI
-        uses: microsoft/setup-WinAppCli@v0.2
+        uses: microsoft/setup-WinAppCli@v0.3
         with:
           version: latest
 
