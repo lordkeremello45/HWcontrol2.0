@@ -6,7 +6,7 @@ BRIDGE_PLIST="/Library/LaunchDaemons/com.hwcontrol.bridge.plist"
 GUARDIAN_PLIST="/Library/LaunchDaemons/com.hwcontrol.security-guardian.plist"
 SYSTEM_SUPPORT_DIR="/Library/Application Support/HWControl"
 CONFIG_DIR="${HOME}/Library/Application Support/HWControl"
-LOG_FILE="/Library/Logs/HWControl/hwcontrol.log"
+LOG_FILE="/tmp/hwcontrol-postinstall.log"
 DRY_RUN=0
 
 for arg in "$@"; do
