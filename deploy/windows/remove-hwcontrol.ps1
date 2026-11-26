@@ -5,7 +5,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$serviceNames = @('HWControlBridge', 'HWControlSecurityGuardian')
+$serviceNames = @('HWControlSecurityGuardian', 'HWControlBridge')
 $paths = @(
     $InstallDir,
     "$env:ProgramData\HWControl",
