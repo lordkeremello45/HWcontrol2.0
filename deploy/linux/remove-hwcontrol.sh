@@ -2,7 +2,10 @@
 set -euo pipefail
 
 INSTALL_DIR="/opt/hwcontrol"
-SERVICE_FILE="/etc/systemd/system/hwcontrol-bridge.service"
+SERVICE_FILES=(
+  "/etc/systemd/system/hwcontrol-bridge.service"
+  "/etc/systemd/system/hwcontrol-security-guardian.service"
+)
 CONFIG_DIR="${HOME}/.config/hwcontrol"
 LOG_FILE="/var/log/hwcontrol.log"
 DRY_RUN=0
@@ -35,10 +38,16 @@ run() {
 }
 
 if command -v systemctl >/dev/null 2>&1; then
-  run systemctl disable --now hwcontrol-bridge.service || true
+  for service in hwcontrol-bridge.service hwcontrol-security-guardian.service; do
+    run systemctl disable --now "$service" || true
+  done
 fi
-run rm -f "$SERVICE_FILE"
-run systemctl daemon-reload || true
+for service_file in "${SERVICE_FILES[@]}"; do
+  run rm -f "$service_file"
+done
+if command -v systemctl >/dev/null 2>&1; then
+  run systemctl daemon-reload || true
+fi
 run rm -rf "$INSTALL_DIR"
 run rm -rf "$CONFIG_DIR"
 run rm -f "$LOG_FILE"
