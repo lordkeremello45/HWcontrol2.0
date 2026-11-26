@@ -5,7 +5,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$serviceName = 'HWControlBridge'
+$serviceNames = @('HWControlBridge', 'HWControlSecurityGuardian')
 $paths = @(
     $InstallDir,
     "$env:ProgramData\HWControl",
@@ -23,10 +23,12 @@ function Invoke-Safe([scriptblock]$Action, [string]$Description) {
     & $Action
 }
 
-$service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
-if ($service) {
-    Invoke-Safe { Stop-Service -Name $serviceName -Force -ErrorAction SilentlyContinue } "Stop-Service $serviceName"
-    Invoke-Safe { sc.exe delete $serviceName | Out-Null } "sc.exe delete $serviceName"
+foreach ($serviceName in $serviceNames) {
+    $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+    if ($service) {
+        Invoke-Safe { Stop-Service -Name $serviceName -Force -ErrorAction SilentlyContinue } "Stop-Service $serviceName"
+        Invoke-Safe { sc.exe delete $serviceName | Out-Null } "sc.exe delete $serviceName"
+    }
 }
 
 foreach ($path in $paths) {
