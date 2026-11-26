@@ -38,7 +38,7 @@ run() {
 }
 
 if command -v systemctl >/dev/null 2>&1; then
-  for service in hwcontrol-bridge.service hwcontrol-security-guardian.service; do
+  for service in hwcontrol-security-guardian.service hwcontrol-bridge.service; do
     run systemctl disable --now "$service" || true
   done
 fi
