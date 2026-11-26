@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_PATH="/Applications/HWControl.app"
-SERVICE_PATH="${HOME}/Library/LaunchAgents/com.hwcontrol.bridge.plist"
+APP_PATH="/Applications/HWControl"
+BRIDGE_PLIST="/Library/LaunchDaemons/com.hwcontrol.bridge.plist"
+GUARDIAN_PLIST="/Library/LaunchDaemons/com.hwcontrol.security-guardian.plist"
+SYSTEM_SUPPORT_DIR="/Library/Application Support/HWControl"
 CONFIG_DIR="${HOME}/Library/Application Support/HWControl"
-LOG_FILE="${HOME}/Library/Logs/HWControl/hwcontrol.log"
+LOG_FILE="/Library/Logs/HWControl/hwcontrol.log"
 DRY_RUN=0
 
 for arg in "$@"; do
@@ -19,24 +21,43 @@ for arg in "$@"; do
 done
 
 if [[ "$DRY_RUN" -eq 0 ]]; then
-  printf 'Yalnizca HWControl uygulamasi, servisi ve ayarlari kaldirilacak. Devam? [y/N] '
+  printf 'Yalnizca HWControl uygulamasi, launch daemon servisleri ve ayarlari kaldirilacak. Devam? [y/N] '
   read -r answer
   [[ "$answer" == "y" || "$answer" == "Y" ]] || { echo 'Iptal edildi.'; exit 0; }
 fi
 
+if [[ "$EUID" -eq 0 ]]; then
+  SUDO=()
+else
+  command -v sudo >/dev/null 2>&1 || {
+    echo 'Sistem LaunchDaemon dosyalarini kaldirmak icin sudo gereklidir.' >&2
+    exit 1
+  }
+  SUDO=(sudo)
+fi
+
 run() {
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    printf '+ %q' "$1"; shift; printf ' %q' "$@"; printf '\n'
+    printf '+'
+    if [[ "${#SUDO[@]}" -gt 0 ]]; then printf ' sudo'; fi
+    printf ' %q' "$@"
+    printf '\n'
   else
-    "$@"
+    "${SUDO[@]}" "$@"
   fi
 }
 
 if command -v launchctl >/dev/null 2>&1; then
-  run launchctl bootout "gui/$(id -u)/com.hwcontrol.bridge" || true
+  run launchctl bootout system "$BRIDGE_PLIST" || true
+  run launchctl bootout system "$GUARDIAN_PLIST" || true
+  run launchctl disable system/com.hwcontrol.bridge || true
+  run launchctl disable system/com.hwcontrol.security-guardian || true
 fi
-run rm -f "$SERVICE_PATH"
+
+run rm -f "$BRIDGE_PLIST"
+run rm -f "$GUARDIAN_PLIST"
 run rm -rf "$APP_PATH"
+run rm -rf "$SYSTEM_SUPPORT_DIR"
 run rm -rf "$CONFIG_DIR"
 run rm -f "$LOG_FILE"
 
