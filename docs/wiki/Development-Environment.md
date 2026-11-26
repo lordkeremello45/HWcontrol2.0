@@ -8,7 +8,7 @@ Install only the toolchains required for the component you are building. CI work
 - CMake 3.16+
 - C++17 compiler for ai_core/audio_core
 - C++20 compiler for hw_game_core
-- Go version declared by bridge_service/go.mod (currently Go 1.22)
+- Go 1.26.11 (pinned by bridge_service/go.mod; security baseline for the bridge toolchain)
 - Flutter/Dart version pinned by the repository CI workflow
 - Platform-native SDK/tooling for the target package
 
