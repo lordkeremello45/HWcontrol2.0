@@ -48,8 +48,8 @@ run() {
 }
 
 if command -v launchctl >/dev/null 2>&1; then
-  run launchctl bootout system "$BRIDGE_PLIST" || true
   run launchctl bootout system "$GUARDIAN_PLIST" || true
+  run launchctl bootout system "$BRIDGE_PLIST" || true
 fi
 
 run rm -f "$BRIDGE_PLIST"
