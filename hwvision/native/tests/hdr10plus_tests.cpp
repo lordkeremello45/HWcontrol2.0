@@ -67,6 +67,9 @@ int main() {
   metadata.distribution.percentages.pop_back();
   CHECK(validate(metadata).error == ValidationError::invalid_distribution_size);
   metadata = valid_v1();
+  // Use application version 0 so this test isolates monotonic ordering;
+  // version 1 has a fixed percentile-index table checked before ordering.
+  metadata.application_version = 0U;
   metadata.distribution.percentages[4] = 2U;
   CHECK(validate(metadata).error == ValidationError::invalid_distribution_order);
   metadata = valid_v1();
