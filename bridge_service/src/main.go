@@ -380,7 +380,7 @@ func collectMetrics() HardwareMetrics {
 
 	mergeBatteryMetrics(&metrics)
 	metrics.FanChannels = hardwareAPI().FanChannels()
-	metrics.HardwareDevices = discoverRuntimeHardwareDevices()
+	metrics.HardwareDevices = attachGPUPlatformSensors(discoverRuntimeHardwareDevices(), metrics, time.Now().UTC())
 	fanControl := hardwareAPI().FanControlInfo()
 	metrics.FanControlSupported = fanControl.Supported
 	metrics.FanControlBackend = fanControl.Backend
