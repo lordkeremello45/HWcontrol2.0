@@ -97,7 +97,10 @@ func normalizeGPUVendor(vendor string) string {
 		return "intel"
 	default:
 		if strings.Contains(normalized, "nvidia") { return "nvidia" }
-		if strings.Contains(normalized, "amd") || strings.Contains(normalized, "ati") { return "amd" }
+		if strings.Contains(normalized, "amd") || strings.Contains(normalized, "ati") ||
+			strings.Contains(normalized, "advanced micro devices") || strings.Contains(normalized, "radeon") {
+			return "amd"
+		}
 		if strings.Contains(normalized, "intel") { return "intel" }
 		return ""
 	}
