@@ -206,6 +206,9 @@ func TestLinuxHardwareActuatorIDsMatchMultipleFanChannelsOnSameParent(t *testing
 				t.Fatal(err)
 			}
 		}
+		if err := os.Symlink(parent, filepath.Join(target, "device")); err != nil {
+			t.Fatal(err)
+		}
 		if err := os.MkdirAll(hwmonRoot, 0755); err != nil {
 			t.Fatal(err)
 		}
