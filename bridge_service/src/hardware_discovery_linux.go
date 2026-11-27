@@ -210,12 +210,12 @@ func collectLinuxHwmonComponents(device *HardwareDevice, hwmon, source string) {
 		})
 	}
 	if len(device.Sensors) > 0 {
-		device.Capabilities = append(device.Capabilities, HardwareCapabilityRef{Name: "sensorRead", Read: true, State: "available", Backend: "linux-hwmon"})
+		appendUniqueHardwareCapability(device, HardwareCapabilityRef{Name: "sensorRead", Read: true, State: "available", Backend: "linux-hwmon"})
 	}
 	if len(device.Actuators) > 0 {
 		for _, actuator := range device.Actuators {
 			if actuator.Writable {
-				device.Capabilities = append(device.Capabilities, HardwareCapabilityRef{Name: "fanPwmWrite", Write: true, State: "available", Backend: "linux-hwmon"})
+				appendUniqueHardwareCapability(device, HardwareCapabilityRef{Name: "fanPwmWrite", Write: true, State: "available", Backend: "linux-hwmon"})
 				break
 			}
 		}
