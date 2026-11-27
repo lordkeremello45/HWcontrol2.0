@@ -123,3 +123,34 @@ func TestDiscoverLinuxHardwareDevicesDeduplicatesCapabilitiesAcrossHwmonEntries(
 		t.Fatalf("expected one deviceDiscovery and one sensorRead capability, got %+v", devices[0].Capabilities)
 	}
 }
+
+func TestDiscoverLinuxHardwareDevicesDropsRemovedHardwareOnNextScan(t *testing.T) {
+	root := t.TempDir()
+	pci := "bus/pci/devices/0000:01:00.0"
+	hwmon := "class/hwmon/hwmon0"
+	writeSysfsFixture(t, root, pci+"/vendor", "0x10de")
+	writeSysfsFixture(t, root, pci+"/device", "0x2684")
+	writeSysfsFixture(t, root, pci+"/class", "0x030000")
+	writeSysfsFixture(t, root, hwmon+"/name", "nvidia")
+	writeSysfsFixture(t, root, hwmon+"/temp1_input", "52000")
+	if err := os.Symlink(filepath.Join(root, pci), filepath.Join(root, hwmon, "device")); err != nil {
+		t.Fatal(err)
+	}
+
+	first := discoverLinuxHardwareDevices(root)
+	if len(first) != 1 || first[0].Identity.DeviceClass != "gpu" {
+		t.Fatalf("expected the initial GPU discovery, got %+v", first)
+	}
+
+	if err := os.RemoveAll(filepath.Join(root, "bus/pci/devices/0000:01:00.0")); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.RemoveAll(filepath.Join(root, hwmon)); err != nil {
+		t.Fatal(err)
+	}
+
+	second := discoverLinuxHardwareDevices(root)
+	if len(second) != 0 {
+		t.Fatalf("removed hardware must not survive a fresh discovery scan: %+v", second)
+	}
+}
