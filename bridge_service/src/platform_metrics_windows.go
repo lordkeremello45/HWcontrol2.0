@@ -65,14 +65,7 @@ func mergePlatformMetrics(metrics *HardwareMetrics) {
 	if json.Unmarshal(output, &sensors) != nil {
 		return
 	}
-	if sensors.HasCPUTemperature && isValidTemperature(sensors.CPUTemperature) && sensors.SensorSource != "" {
-		metrics.CPUTemperature = sensors.CPUTemperature
-		metrics.CPUTemperatureSource = sensors.SensorSource
-	}
-	if sensors.HasGPUTemperature && isValidTemperature(sensors.GPUTemperature) && sensors.SensorSource != "" {
-		metrics.GPUTemperature = sensors.GPUTemperature
-		metrics.GPUTemperatureSource = sensors.SensorSource
-	}
+	applyWindowsTemperatureMetrics(metrics, sensors)
 	if isFiniteNonNegative(sensors.GPUUsage) && sensors.GPUUsage <= 100 && sensors.SensorSource != "" {
 		metrics.GPUUsage = sensors.GPUUsage
 		metrics.GPUUsageSource = sensors.SensorSource
@@ -92,5 +85,19 @@ func mergePlatformMetrics(metrics *HardwareMetrics) {
 	}
 	if sensors.SensorSource != "" {
 		metrics.SensorSource = sensors.SensorSource
+	}
+}
+
+func applyWindowsTemperatureMetrics(metrics *HardwareMetrics, sensors windowsSensorMetrics) {
+	if metrics == nil || sensors.SensorSource == "" {
+		return
+	}
+	if sensors.HasCPUTemperature && isValidTemperature(sensors.CPUTemperature) {
+		metrics.CPUTemperature = sensors.CPUTemperature
+		metrics.CPUTemperatureSource = sensors.SensorSource
+	}
+	if sensors.HasGPUTemperature && isValidTemperature(sensors.GPUTemperature) {
+		metrics.GPUTemperature = sensors.GPUTemperature
+		metrics.GPUTemperatureSource = sensors.SensorSource
 	}
 }
