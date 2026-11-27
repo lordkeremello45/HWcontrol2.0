@@ -261,3 +261,46 @@ func TestWriteLinuxFanTargetVerifiesCommandReadback(t *testing.T) {
 		t.Fatalf("PWM readback = %q, want %q", strings.TrimSpace(string(readback)), expected)
 	}
 }
+
+func TestLinuxFanDiscoveryRejectsInvalidRPMFeedback(t *testing.T) {
+	root := t.TempDir()
+	writeFanFixture(t, root, "hwmon0", "testchip", 1, 1, 100, nil)
+	fanPath := filepath.Join(root, "hwmon0", "fan1_input")
+	if err := os.WriteFile(fanPath, []byte("not-a-number\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	targets := discoverLinuxFanTargets(root, nil)
+	if len(targets) != 1 || targets[0].supported || targets[0].rpmAvailable {
+		t.Fatalf("invalid RPM feedback must keep the channel monitor-only: %+v", targets)
+	}
+	if targets[0].reason == "" {
+		t.Fatal("invalid RPM feedback must explain why control is unavailable")
+	}
+}
+
+func TestWriteLinuxFanTargetRechecksRPMFeedbackBeforeWrite(t *testing.T) {
+	root := t.TempDir()
+	rpm := 1200
+	writeFanFixture(t, root, "hwmon0", "testchip", 1, 1, 140, &rpm)
+	targets := discoverLinuxFanTargets(root, nil)
+	if len(targets) != 1 || !targets[0].supported {
+		t.Fatalf("expected one initially controllable channel, got %+v", targets)
+	}
+	before, err := os.ReadFile(targets[0].pwmPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Remove(targets[0].fanInput); err != nil {
+		t.Fatal(err)
+	}
+	if err := writeLinuxFanTarget(targets[0], 60); err == nil {
+		t.Fatal("PWM write must fail when RPM feedback disappears")
+	}
+	after, err := os.ReadFile(targets[0].pwmPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(after) != string(before) {
+		t.Fatalf("PWM changed without RPM feedback: before=%q after=%q", before, after)
+	}
+}
