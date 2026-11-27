@@ -60,6 +60,7 @@ func TestHardwareDevicesFromIdentityPreservesMultiCPUAndMultiGPUInventory(t *tes
 		GPUs: []HardwareDeviceIdentity{
 			{Vendor: "Intel", DeviceClass: "gpu", ProductID: "VEN_8086&DEV_1234", Model: "Integrated Graphics"},
 			{Vendor: "NVIDIA", DeviceClass: "gpu", ProductID: "VEN_10DE&DEV_2684", Model: "GeForce Example", Driver: "NVIDIA", DriverVersion: "1.0"},
+			{Vendor: "NVIDIA", DeviceClass: "gpu", ProductID: "VEN_10DE&DEV_2684", Model: "GeForce Example", Driver: "NVIDIA", DriverVersion: "1.0"},
 		},
 	}
 	devices := hardwareDevicesFromIdentity(identity)
@@ -77,10 +78,10 @@ func TestHardwareDevicesFromIdentityPreservesMultiCPUAndMultiGPUInventory(t *tes
 			gpuIDs[device.ID] = struct{}{}
 		}
 	}
-	if cpuCount != 2 || gpuCount != 2 {
+	if cpuCount != 2 || gpuCount != 3 {
 		t.Fatalf("multi-device inventory was truncated: CPUs=%d GPUs=%d devices=%+v", cpuCount, gpuCount, devices)
 	}
-	if len(gpuIDs) != 2 {
+	if len(gpuIDs) != 3 {
 		t.Fatalf("distinct PCI GPU identities collapsed: %+v", devices)
 	}
 }
