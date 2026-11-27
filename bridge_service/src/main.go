@@ -227,6 +227,7 @@ type HardwareMetrics struct {
 	FanControlSupported        bool            `json:"fanControlSupported"`
 	FanControlBackend          string          `json:"fanControlBackend"`
 	FanChannels                []FanChannel    `json:"fanChannels"`
+	HardwareDevices            []HardwareDevice `json:"hardwareDevices"`
 	HardwareControlMode        string          `json:"hardwareControlMode"`
 	ThermalSafetyAvailable     bool            `json:"thermalSafetyAvailable"`
 	Battery                    BatteryMetrics  `json:"battery"`
@@ -379,6 +380,7 @@ func collectMetrics() HardwareMetrics {
 
 	mergeBatteryMetrics(&metrics)
 	metrics.FanChannels = hardwareAPI().FanChannels()
+	metrics.HardwareDevices = discoverRuntimeHardwareDevices()
 	fanControl := hardwareAPI().FanControlInfo()
 	metrics.FanControlSupported = fanControl.Supported
 	metrics.FanControlBackend = fanControl.Backend
