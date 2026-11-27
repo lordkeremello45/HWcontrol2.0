@@ -98,3 +98,24 @@ func TestLimitedHardwareOutput(t *testing.T) {
 		t.Fatalf("output was not bounded: overflow=%v output=%q", output.overflow, output.Bytes())
 	}
 }
+
+func TestHardwareDeviceIdentitiesFromCSharpInventoryPreservesAllDevices(t *testing.T) {
+	inventory := csharpHardwareInventory{
+		Cpus: []csharpCPU{
+			{Manufacturer: "GenuineIntel", Model: "Xeon Example"},
+			{Manufacturer: "GenuineIntel", Model: "Xeon Example"},
+		},
+		Gpus: []csharpGPU{
+			{Manufacturer: "Intel", Model: "Integrated Graphics", PciDeviceID: "VEN_8086&DEV_1234"},
+			{Manufacturer: "NVIDIA", Model: "GeForce Example", PciDeviceID: "VEN_10DE&DEV_2684", DriverProvider: "NVIDIA", DriverVersion: "1.0"},
+			{Manufacturer: "NVIDIA", Model: "GeForce Example", PciDeviceID: "VEN_10DE&DEV_2684", DriverProvider: "NVIDIA", DriverVersion: "1.0"},
+		},
+	}
+	cpus, gpus := hardwareDeviceIdentitiesFromCSharpInventory(inventory)
+	if len(cpus) != 2 || len(gpus) != 3 {
+		t.Fatalf("C# inventory was truncated: CPUs=%d GPUs=%d", len(cpus), len(gpus))
+	}
+	if gpus[1].ProductID != "VEN_10DE&DEV_2684" || gpus[2].ProductID != "VEN_10DE&DEV_2684" {
+		t.Fatalf("PCI identities were not preserved: %+v", gpus)
+	}
+}
