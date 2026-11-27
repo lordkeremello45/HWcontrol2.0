@@ -106,3 +106,58 @@ func TestHardwareDeviceModelRejectsDuplicateCapabilitiesPerBackend(t *testing.T)
 		t.Fatal("duplicate capability declaration for the same backend was accepted")
 	}
 }
+
+func TestHardwareDeviceModelRejectsMismatchedSensorKindAndUnit(t *testing.T) {
+	cases := []struct {
+		kind string
+		unit string
+	}{
+		{kind: "temperature", unit: "rpm"},
+		{kind: "utilization", unit: "bytes"},
+		{kind: "memory-used", unit: "percent"},
+		{kind: "clock", unit: "watts"},
+		{kind: "unknown-sensor", unit: "raw"},
+	}
+	for _, testCase := range cases {
+		device := validTestHardwareDevice()
+		device.Sensors[0].Kind = testCase.kind
+		device.Sensors[0].Unit = testCase.unit
+		if err := device.Validate(); err == nil {
+			t.Errorf("accepted invalid sensor kind/unit %q/%q", testCase.kind, testCase.unit)
+		}
+	}
+}
+
+func TestHardwareDeviceModelRejectsOutOfRangeSensorValues(t *testing.T) {
+	cases := []struct {
+		kind string
+		unit string
+		value float64
+	}{
+		{kind: "temperature", unit: "celsius", value: 126},
+		{kind: "temperature", unit: "celsius", value: -21},
+		{kind: "utilization", unit: "percent", value: 100.1},
+		{kind: "fan-speed", unit: "rpm", value: -1},
+		{kind: "power", unit: "watts", value: -0.1},
+	}
+	for _, testCase := range cases {
+		device := validTestHardwareDevice()
+		device.Sensors[0].Kind = testCase.kind
+		device.Sensors[0].Unit = testCase.unit
+		device.Sensors[0].Value = testCase.value
+		if err := device.Validate(); err == nil {
+			t.Errorf("accepted out-of-range %s value %v", testCase.kind, testCase.value)
+		}
+	}
+}
+
+func TestHardwareDeviceModelRejectsUsedMemoryAboveTotal(t *testing.T) {
+	device := validTestHardwareDevice()
+	device.Sensors = []HardwareSensor{
+		{ID: "memory-used", Kind: "memory-used", Unit: "bytes", Value: 2048, Source: "test", ObservedAt: time.Now(), State: "available"},
+		{ID: "memory-total", Kind: "memory-total", Unit: "bytes", Value: 1024, Source: "test", ObservedAt: time.Now(), State: "available"},
+	}
+	if err := device.Validate(); err == nil {
+		t.Fatal("memory-used greater than memory-total was accepted")
+	}
+}
