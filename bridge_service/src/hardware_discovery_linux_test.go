@@ -185,3 +185,50 @@ func TestLinuxHardwareActuatorIDMatchesFanChannelID(t *testing.T) {
 		t.Fatalf("hardware actuator ID %q does not match fan channel ID %q", devices[0].Actuators[0].ID, channels[0].id)
 	}
 }
+
+func TestLinuxHardwareActuatorIDsMatchMultipleFanChannelsOnSameParent(t *testing.T) {
+	root := t.TempDir()
+	hwmonRoot := filepath.Join(root, "class", "hwmon")
+	parent := filepath.Join(root, "devices", "platform", "controller")
+	if err := os.MkdirAll(filepath.Join(parent, "hwmon"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	for index, rpm := range []string{"1000", "1400"} {
+		name := "hwmon" + string(rune('0'+index))
+		target := filepath.Join(parent, "hwmon", name)
+		if err := os.MkdirAll(target, 0755); err != nil {
+			t.Fatal(err)
+		}
+		for file, value := range map[string]string{
+			"name": "nct6775", "fan1_input": rpm, "pwm1": "128", "pwm1_enable": "1",
+		} {
+			if err := os.WriteFile(filepath.Join(target, file), []byte(value+"\n"), 0644); err != nil {
+				t.Fatal(err)
+			}
+		}
+		if err := os.MkdirAll(hwmonRoot, 0755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Symlink(target, filepath.Join(hwmonRoot, name)); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	devices := discoverLinuxHardwareDevices(root)
+	if len(devices) != 1 || len(devices[0].Actuators) != 2 {
+		t.Fatalf("expected two actuators on one parent controller, got %+v", devices)
+	}
+	channels := discoverLinuxFanTargets(hwmonRoot, nil)
+	if len(channels) != 2 {
+		t.Fatalf("expected two independent fan channels, got %+v", channels)
+	}
+	actuatorIDs := map[string]struct{}{}
+	for _, actuator := range devices[0].Actuators {
+		actuatorIDs[actuator.ID] = struct{}{}
+	}
+	for _, channel := range channels {
+		if _, ok := actuatorIDs[channel.id]; !ok {
+			t.Fatalf("fan channel %q has no matching hardware actuator ID: %+v", channel.id, devices[0].Actuators)
+		}
+	}
+}
