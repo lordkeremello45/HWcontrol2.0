@@ -2,7 +2,10 @@
 
 package main
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestApplyWindowsTemperatureMetricsPreservesPresentZeroAndSubzero(t *testing.T) {
 	for _, temperature := range []float64{0, -5} {
@@ -52,4 +55,17 @@ func TestApplyWindowsTemperatureMetricsHandlesNilMetrics(t *testing.T) {
 		CPUTemperature: 50,
 		SensorSource: "test",
 	})
+}
+
+func TestWindowsSensorScriptScopesReadingsToSelectedGPU(t *testing.T) {
+	for _, required := range []string{
+		"GpuNvidia", "GpuAmd", "GpuIntel",
+		"$gpuSensors = @($sensors | Where-Object { $gpuHardwareType -and $_.HardwareType -eq $gpuHardwareType })",
+		"$gpuTempSensor = $gpuSensors | Where-Object",
+		"$gpuLoad = ($gpuSensors | Where-Object",
+	} {
+		if !strings.Contains(windowsSensorScript, required) {
+			t.Fatalf("Windows sensor script is missing GPU-scoped selection %q", required)
+		}
+	}
 }
