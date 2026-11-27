@@ -17,7 +17,7 @@ func discoverRuntimeHardwareDevices() []HardwareDevice {
 }
 
 func hardwareDevicesFromIdentity(identity HardwareIdentity) []HardwareDevice {
-	devices := make([]HardwareDevice, 0, 4)
+	devices := make([]HardwareDevice, 0, 4+len(identity.CPUs)+len(identity.GPUs))
 	if model := safeDiscoveryText(identity.SystemModel); model != "" {
 		vendor := safeDiscoveryText(identity.SystemManufacturer)
 		if vendor == "" {
