@@ -29,7 +29,7 @@ PWM writability is a discovery-time permission/mode observation, not a guarantee
 
 The existing NVIDIA `nvidia-smi`, Linux AMD `amdgpu/sysfs`, Linux Intel DRM sysfs clock/memory/temperature interfaces, and Windows LibreHardwareMonitor/WMI metric collectors are mapped into the discovered GPU record through the shared telemetry adapter. Attribution is deliberately conservative: telemetry is attached only when exactly one discovered GPU matches the reported vendor. Aggregate readings are not assigned when multiple same-vendor GPUs make the target ambiguous. GPU utilization includes an explicit internal source marker so a legitimate 0% reading is distinguishable from an unavailable value. The bridge validates the enriched device model before returning it.
 
-## Windows and macOS scope
+## CPU, memory and motherboard telemetry\n\nCPU utilization and frequency are sourced from gopsutil; CPU temperature is published only when the platform sensor collector supplies a validated reading and source. The bridge emits a CPU device record after platform identity has been collected, so the model/vendor is not guessed from utilization alone. System memory is represented as a separate device with measured used/total byte counts and utilization from gopsutil.\n\nOn Linux, known hwmon drivers are classified conservatively: `coretemp`, `k10temp` and `zenpower` are CPU thermal sources; recognized NCT/IT87/W836 and selected OEM EC drivers are motherboard-controller sources. Their actual temperature, fan RPM and PWM interfaces are retained as sensor/actuator components. Unrecognized hwmon devices remain generic embedded controllers. Motherboard vendor/model metadata is attached only to records already identified as motherboard controllers; it does not manufacture sensor capabilities.\n\n## Windows and macOS scope
 
 The non-Linux adapter converts the existing platform identity result into validated device records. It does not infer sensor readings, fan channels, writable controls, or capability support from a device name. A missing GPU model produces no GPU record. Windows currently receives the single preferred GPU summary exposed by the existing identity contract; complete multi-GPU enumeration needs a richer inventory contract. macOS reports the Apple system/CPU identity where available; Apple GPU records are emitted only when the platform collector supplies a concrete GPU model.
 
@@ -42,12 +42,12 @@ The non-Linux adapter converts the existing platform identity result into valida
 
 ## Tests
 
-Linux tests use temporary synthetic sysfs trees and cover PCI GPU association, temperature/RPM sensor separation, PWM actuator safety, Intel DRM telemetry parsing, conservative vendor attribution, model validation and empty discovery. Non-Linux tests cover identity-to-device conversion, deterministic opaque IDs and the no-invented-GPU rule. These tests do not replace physical hardware validation.
+Linux tests use temporary synthetic sysfs trees and cover PCI GPU association, CPU/motherboard hwmon classification, temperature/RPM sensor separation, PWM actuator safety, Intel DRM telemetry parsing, conservative vendor attribution, model validation and empty discovery. Cross-platform unit tests cover CPU, memory and motherboard identity-to-device mapping. Non-Linux tests cover identity-to-device conversion, deterministic opaque IDs and the no-invented-GPU rule. These tests do not replace physical hardware validation.
 
 Run from `bridge_service`:
 
 ```sh
-gofmt -w src/hardware_discovery_linux.go src/hardware_discovery_linux_test.go src/hardware_discovery_other.go src/hardware_discovery_other_test.go src/hardware_device_telemetry.go src/hardware_device_telemetry_test.go src/platform_metrics_linux.go src/platform_metrics_linux_test.go src/platform_metrics_windows.go src/main.go
+gofmt -w src/hardware_discovery_linux.go src/hardware_discovery_linux_test.go src/hardware_discovery_other.go src/hardware_discovery_other_test.go src/hardware_device_telemetry.go src/hardware_device_telemetry_test.go src/hardware_cpu_telemetry.go src/hardware_cpu_telemetry_test.go src/platform_metrics_linux.go src/platform_metrics_linux_test.go src/platform_metrics_windows.go src/main.go
 go test ./...
 go vet ./...
 ```
