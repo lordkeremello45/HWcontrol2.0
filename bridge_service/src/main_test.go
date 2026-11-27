@@ -816,3 +816,34 @@ func TestMergePlatformTelemetryPreservesZeroAndSubzeroTemperatures(t *testing.T)
 		}
 	}
 }
+
+func TestUpdateThermalSafetyAvailabilityUsesExplicitValidSources(t *testing.T) {
+	cases := []struct {
+		name string
+		cpu float64
+		cpuSource string
+		gpu float64
+		gpuSource string
+		want bool
+	}{
+		{name: "zero CPU temperature", cpu: 0, cpuSource: "cpu-sensor", want: true},
+		{name: "subzero GPU temperature", gpu: -5, gpuSource: "gpu-sensor", want: true},
+		{name: "missing source is unsafe", cpu: 65, want: false},
+		{name: "shared source is not copied", cpu: 65, want: false},
+		{name: "invalid range is unsafe", gpu: 126, gpuSource: "gpu-sensor", want: false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			metrics := HardwareMetrics{
+				CPUTemperature: tc.cpu, CPUTemperatureSource: tc.cpuSource,
+				GPUTemperature: tc.gpu, GPUTemperatureSource: tc.gpuSource,
+				SensorSource: "shared-source",
+			}
+			updateThermalSafetyAvailability(&metrics)
+			if metrics.ThermalSafetyAvailable != tc.want {
+				t.Fatalf("ThermalSafetyAvailable = %v, want %v", metrics.ThermalSafetyAvailable, tc.want)
+			}
+		})
+	}
+	updateThermalSafetyAvailability(nil)
+}
