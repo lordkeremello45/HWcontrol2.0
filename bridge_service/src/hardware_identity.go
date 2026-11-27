@@ -14,6 +14,8 @@ type HardwareIdentity struct {
 	CPUArchitecture    string
 	CPUPhysicalCores   int
 	CPUThreads         int
+	CPUs               []HardwareDeviceIdentity
+	GPUs               []HardwareDeviceIdentity
 	GPUVendor          string
 	GPUModel           string
 	GPUDriver          string
