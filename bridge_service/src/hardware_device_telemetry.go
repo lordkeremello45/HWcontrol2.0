@@ -39,7 +39,7 @@ func attachGPUPlatformSensors(devices []HardwareDevice, metrics HardwareMetrics,
 
 	device := &devices[match]
 	add := func(id, kind, unit string, value float64, sourceName string) {
-		if !isFiniteNonNegative(value) || strings.TrimSpace(sourceName) == "" {
+		if !validHardwareSensorRange(kind, value) || strings.TrimSpace(sourceName) == "" {
 			return
 		}
 		appendUniqueHardwareSensor(device, HardwareSensor{
@@ -48,7 +48,7 @@ func attachGPUPlatformSensors(devices []HardwareDevice, metrics HardwareMetrics,
 		})
 	}
 
-	if metrics.GPUTemperatureSource != "" && isValidTemperature(metrics.GPUTemperature) && metrics.GPUTemperature > 0 {
+	if metrics.GPUTemperatureSource != "" && isValidTemperature(metrics.GPUTemperature) {
 		add("gpu-temperature", "temperature", "celsius", metrics.GPUTemperature, metrics.GPUTemperatureSource)
 	}
 	if metrics.GPUUsageSource != "" && metrics.GPUUsage <= 100 && isFiniteNonNegative(metrics.GPUUsage) {
