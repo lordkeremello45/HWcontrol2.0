@@ -121,6 +121,14 @@ func evaluateHardwareHealth(metrics HardwareMetrics) HardwareHealthEvaluation {
 		"gpuPowerLimitControl":      capability(false, "not-implemented", "GPU power-limit telemetry may be readable, but a validated write backend is not implemented"),
 		"cpuOverclockControl":       capability(false, "not-implemented", "CPU clock/voltage overclocking is not implemented"),
 		"batteryChargeLimitControl": capability(false, "not-implemented", "Battery health is read-only; charging thresholds are not changed"),
+		"cpuClockControl":           capability(false, "not-implemented", "CPU clock writes are not implemented; OS power profiles do not guarantee a fixed clock"),
+		"gpuClockControl":           capability(false, "not-implemented", "GPU core and memory clock writes are not implemented"),
+		"voltageControl":            capability(false, "not-implemented", "CPU/GPU voltage writes are not implemented"),
+		"memoryClockControl":        capability(false, "not-implemented", "System memory timing and clock writes are not implemented"),
+		"rgbControl":                capability(false, "not-implemented", "No validated RGB/ARGB device adapter is implemented"),
+		"pumpControl":               capability(false, "not-implemented", "Liquid-cooling pump writes are not implemented; liquidctl is read-only"),
+		"coolingFanControl":         capability(false, "not-implemented", "Liquid-cooling fan writes are not implemented; liquidctl is read-only"),
+		"coolingProfileControl":     capability(false, "not-implemented", "No validated AIO/custom-loop profile control adapter is implemented"),
 	}
 
 	anomalies := make([]HardwareAnomaly, 0, 6)
