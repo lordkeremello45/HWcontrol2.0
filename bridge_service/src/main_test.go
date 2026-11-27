@@ -847,3 +847,48 @@ func TestUpdateThermalSafetyAvailabilityUsesExplicitValidSources(t *testing.T) {
 	}
 	updateThermalSafetyAvailability(nil)
 }
+
+func TestMergePlatformTelemetryClearsStaleValuesWhenGPUVendorChanges(t *testing.T) {
+	metrics := HardwareMetrics{
+		GPUVendor: "NVIDIA",
+		GPUTemperature: 78, GPUTemperatureSource: "nvidia-smi",
+		GPUUsage: 91, GPUUsageSource: "nvidia-smi",
+		GPUMemoryUsage: 88, GPUPowerLimitWatts: 250, GPUPState: "P0",
+		GPUEncoderUsage: 30, GPUDecoderUsage: 20, GPUName: "NVIDIA GPU",
+		GPUDriver: "NVIDIA Driver", GPUDriverVersion: "1.0",
+		FanPercent: 70, FanPercentSource: "nvidia-smi",
+		PowerWatts: 190, Voltage: 1.1,
+		GPUMemoryUsedBytes: 9000, GPUMemoryTotalBytes: 12000,
+		GPUCoreClockMHz: 2100, GPUMemoryClockMHz: 9000,
+		SensorSource: "nvidia-smi",
+	}
+	platform := HardwareMetrics{
+		GPUVendor: "AMD",
+		GPUUsage: 25, GPUUsageSource: "Linux amdgpu sysfs",
+		GPUTemperature: 55, GPUTemperatureSource: "Linux amdgpu sysfs",
+		SensorSource: "Linux amdgpu sysfs",
+	}
+	mergePlatformTelemetry(&metrics, platform)
+	if metrics.GPUVendor != "AMD" || metrics.GPUUsage != 25 || metrics.GPUTemperature != 55 {
+		t.Fatalf("new AMD telemetry was not applied: %+v", metrics)
+	}
+	if metrics.GPUMemoryUsedBytes != 0 || metrics.GPUMemoryTotalBytes != 0 ||
+		metrics.PowerWatts != 0 || metrics.Voltage != 0 ||
+		metrics.GPUCoreClockMHz != 0 || metrics.GPUMemoryClockMHz != 0 ||
+		metrics.GPUName != "" || metrics.GPUDriver != "" ||
+		metrics.FanPercent != 0 || metrics.GPUPState != "" {
+		t.Fatalf("stale NVIDIA values survived vendor switch: %+v", metrics)
+	}
+}
+
+func TestMergePlatformTelemetryKeepsSameVendorFieldsWhenProviderAliasChanges(t *testing.T) {
+	metrics := HardwareMetrics{
+		GPUVendor: "NVIDIA",
+		GPUTemperature: 64, GPUTemperatureSource: "nvidia-smi",
+		GPUMemoryUsedBytes: 1024,
+	}
+	mergePlatformTelemetry(&metrics, HardwareMetrics{GPUVendor: "GpuNvidia", SensorSource: "LibreHardwareMonitor WMI"})
+	if metrics.GPUTemperature != 64 || metrics.GPUTemperatureSource != "nvidia-smi" || metrics.GPUMemoryUsedBytes != 1024 {
+		t.Fatalf("same-vendor telemetry was unexpectedly cleared: %+v", metrics)
+	}
+}
