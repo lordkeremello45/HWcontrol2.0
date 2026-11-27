@@ -460,6 +460,15 @@ func hasValidThermalSafetyTemperature(value float64, source string) bool {
 	return strings.TrimSpace(source) != "" && isValidTemperature(value)
 }
 
+func updateThermalSafetyAvailability(metrics *HardwareMetrics) {
+	if metrics == nil {
+		return
+	}
+	metrics.ThermalSafetyAvailable =
+		hasValidThermalSafetyTemperature(metrics.CPUTemperature, metrics.CPUTemperatureSource) ||
+			hasValidThermalSafetyTemperature(metrics.GPUTemperature, metrics.GPUTemperatureSource)
+}
+
 // collectHardwareControlSafetyMetrics intentionally avoids the one-second
 // CPU-utilization sampling used by collectMetrics. A multi-channel write must
 // revalidate thermal safety on every command without multiplying that delay by
@@ -516,13 +525,13 @@ func collectHardwareControlSafetyMetrics() HardwareMetrics {
 		for _, sensor := range temperatures {
 			key := strings.ToLower(sensor.SensorKey)
 			if strings.Contains(key, "cpu") || strings.Contains(key, "package") || strings.Contains(key, "core") {
-				if isValidTemperature(sensor.Temperature) && sensor.Temperature > 0 {
+				if isValidTemperature(sensor.Temperature) {
 					metrics.CPUTemperature = sensor.Temperature
 					metrics.CPUTemperatureSource = "gopsutil-host-sensors:" + sensor.SensorKey
 				}
 			}
 			if strings.Contains(key, "gpu") || strings.Contains(key, "graphics") {
-				if isValidTemperature(sensor.Temperature) && sensor.Temperature > 0 {
+				if isValidTemperature(sensor.Temperature) {
 					metrics.GPUTemperature = sensor.Temperature
 					metrics.GPUTemperatureSource = "gopsutil-host-sensors:" + sensor.SensorKey
 				}
@@ -539,12 +548,7 @@ func collectHardwareControlSafetyMetrics() HardwareMetrics {
 	}
 
 	hardwareAPI().CollectPlatformMetrics(&metrics)
-	if metrics.CPUTemperatureSource == "" && metrics.CPUTemperature > 0 && isValidTemperature(metrics.CPUTemperature) && metrics.SensorSource != "" {
-		metrics.CPUTemperatureSource = metrics.SensorSource
-	}
-	if metrics.GPUTemperatureSource == "" && metrics.GPUTemperature > 0 && isValidTemperature(metrics.GPUTemperature) && metrics.SensorSource != "" {
-		metrics.GPUTemperatureSource = metrics.SensorSource
-	}
+	// CPU/GPU source attribution remains explicit; never copy the shared source.
 	if metrics.SensorSource == "" {
 		if metrics.CPUTemperatureSource != "" {
 			metrics.SensorSource = "gopsutil-host-sensors"
@@ -552,9 +556,7 @@ func collectHardwareControlSafetyMetrics() HardwareMetrics {
 			metrics.SensorSource = metrics.GPUTemperatureSource
 		}
 	}
-	metrics.ThermalSafetyAvailable =
-		(metrics.CPUTemperatureSource != "" && isValidTemperature(metrics.CPUTemperature) && metrics.CPUTemperature > 0) ||
-			(metrics.GPUTemperatureSource != "" && isValidTemperature(metrics.GPUTemperature) && metrics.GPUTemperature > 0)
+	updateThermalSafetyAvailability(&metrics)
 	metrics.FanChannels = hardwareAPI().FanChannels()
 	fanControl := hardwareAPI().FanControlInfo()
 	metrics.FanControlSupported = fanControl.Supported
