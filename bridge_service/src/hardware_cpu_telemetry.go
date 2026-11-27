@@ -99,7 +99,9 @@ func attachMemoryPlatformSensors(devices []HardwareDevice, metrics HardwareMetri
 	if metrics.MemoryUsageSource == "" || observedAt.IsZero() {
 		if observedAt.IsZero() { observedAt = time.Now().UTC() }
 	}
-	if metrics.MemoryUsageSource == "" || metrics.MemoryTotalBytes == 0 {
+	if metrics.MemoryUsageSource == "" || metrics.MemoryTotalBytes == 0 ||
+		!isFiniteNonNegative(metrics.MemoryUsage) || metrics.MemoryUsage > 100 ||
+		metrics.MemoryUsedBytes > metrics.MemoryTotalBytes {
 		return devices
 	}
 	hash := sha256.Sum256([]byte("system-memory"))
