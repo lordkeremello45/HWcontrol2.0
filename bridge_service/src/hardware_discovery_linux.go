@@ -139,7 +139,7 @@ func collectLinuxHwmonComponents(device *HardwareDevice, hwmon, source string) {
 		if label == "" {
 			label = base
 		}
-		device.Sensors = append(device.Sensors, HardwareSensor{
+		appendUniqueHardwareSensor(device, HardwareSensor{
 			ID: safeHardwareComponentID(source + "-" + base + "-temperature"), Kind: "temperature", Unit: "celsius",
 			Value: value, Source: "linux-hwmon:" + source + ":" + label, ObservedAt: time.Now().UTC(), State: "available",
 		})
@@ -185,7 +185,7 @@ func collectLinuxHwmonComponents(device *HardwareDevice, hwmon, source string) {
 		} else if enable == "" {
 			reason = "PWM control mode is unavailable"
 		}
-		device.Actuators = append(device.Actuators, HardwareActuator{
+		appendUniqueHardwareActuator(device, HardwareActuator{
 			ID: safeHardwareComponentID(source + "-" + base + "-output"), Kind: "fan-pwm", Unit: "raw-0-255",
 			Minimum: 0, Maximum: 255, Writable: writable, Backend: "linux-hwmon", Reason: reason,
 		})
@@ -201,6 +201,24 @@ func collectLinuxHwmonComponents(device *HardwareDevice, hwmon, source string) {
 			}
 		}
 	}
+}
+
+func appendUniqueHardwareSensor(device *HardwareDevice, sensor HardwareSensor) {
+	for _, existing := range device.Sensors {
+		if existing.ID == sensor.ID {
+			return
+		}
+	}
+	device.Sensors = append(device.Sensors, sensor)
+}
+
+func appendUniqueHardwareActuator(device *HardwareDevice, actuator HardwareActuator) {
+	for _, existing := range device.Actuators {
+		if existing.ID == actuator.ID {
+			return
+		}
+	}
+	device.Actuators = append(device.Actuators, actuator)
 }
 
 func safeHardwareComponentID(value string) string {
