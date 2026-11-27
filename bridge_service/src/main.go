@@ -183,9 +183,11 @@ type HardwareMetrics struct {
 	DetectionStatus            string          `json:"detectionStatus"`
 	SerialsExcluded            bool            `json:"serialsExcluded"`
 	CPUUsage                   float64         `json:"cpuUsage"`
+	CPUUsageSource             string          `json:"-"`
 	CPUPerCoreUsage            []float64       `json:"cpuPerCoreUsage"`
 	CPUCoreCount               int             `json:"cpuCoreCount"`
 	CPUFrequencyMHz            float64         `json:"cpuFrequencyMHz"`
+	CPUFrequencySource          string          `json:"-"`
 	CPUTemperature             float64         `json:"cpuTemperature"`
 	CPUTemperatureSource       string          `json:"cpuTemperatureSource,omitempty"`
 	GPUTemperature             float64         `json:"gpuTemperature"`
@@ -295,11 +297,13 @@ func collectMetrics() HardwareMetrics {
 			total += percentage
 		}
 		metrics.CPUUsage = total / float64(len(percentages))
+		metrics.CPUUsageSource = "gopsutil-cpu"
 		metrics.CPUPerCoreUsage = append([]float64(nil), percentages...)
 	}
 	if infos, err := cpu.Info(); err == nil && len(infos) > 0 {
 		metrics.CPUCoreCount = int(infos[0].Cores)
 		metrics.CPUFrequencyMHz = infos[0].Mhz
+		if isFinitePositive(infos[0].Mhz) { metrics.CPUFrequencySource = "gopsutil-cpu-info" }
 	}
 	if memory, err := mem.VirtualMemory(); err == nil {
 		metrics.MemoryUsage = memory.UsedPercent
@@ -385,7 +389,8 @@ func collectMetrics() HardwareMetrics {
 
 	mergeBatteryMetrics(&metrics)
 	metrics.FanChannels = hardwareAPI().FanChannels()
-	metrics.HardwareDevices = attachGPUPlatformSensors(discoverRuntimeHardwareDevices(), metrics, time.Now().UTC())
+	metrics.HardwareDevices = attachCPUPlatformSensors(discoverRuntimeHardwareDevices(), metrics, time.Now().UTC())
+	metrics.HardwareDevices = attachGPUPlatformSensors(metrics.HardwareDevices, metrics, time.Now().UTC())
 	fanControl := hardwareAPI().FanControlInfo()
 	metrics.FanControlSupported = fanControl.Supported
 	metrics.FanControlBackend = fanControl.Backend
