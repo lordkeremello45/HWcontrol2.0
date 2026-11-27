@@ -83,4 +83,59 @@ func mergePlatformMetrics(metrics *HardwareMetrics) {
 		}
 		return
 	}
+	collectIntelGPUPlatformMetrics("/sys", metrics)
+}
+
+func collectIntelGPUPlatformMetrics(root string, metrics *HardwareMetrics) bool {
+	if metrics == nil {
+		return false
+	}
+	cards, _ := filepath.Glob(filepath.Join(root, "class", "drm", "card[0-9]*"))
+	for _, card := range cards {
+		device := filepath.Join(card, "device")
+		if readFirstLine(filepath.Join(device, "vendor")) != "0x8086" {
+			continue
+		}
+
+		frequencyPaths := []string{
+			filepath.Join(device, "gt", "gt0", "gt_act_freq_mhz"),
+			filepath.Join(device, "gt", "gt0", "rps_act_freq_mhz"),
+			filepath.Join(device, "gt_cur_freq_mhz"),
+			filepath.Join(device, "rps_cur_freq_mhz"),
+		}
+		for _, path := range frequencyPaths {
+			if value, ok := readFloatFile(path); ok && isFinitePositive(value) {
+				metrics.GPUCoreClockMHz = value
+				break
+			}
+		}
+		if value, ok := readUintFile(filepath.Join(device, "mem_info_vram_used")); ok {
+			metrics.GPUMemoryUsedBytes = value
+		}
+		if value, ok := readUintFile(filepath.Join(device, "mem_info_vram_total")); ok {
+			metrics.GPUMemoryTotalBytes = value
+		}
+
+		hwmons, _ := filepath.Glob(filepath.Join(device, "hwmon", "hwmon*"))
+		for _, hwmon := range hwmons {
+			if value, ok := readFloatFile(filepath.Join(hwmon, "temp1_input")); ok {
+				temperature := value / 1000
+				if isValidTemperature(temperature) && temperature > 0 {
+					metrics.GPUTemperature = temperature
+					metrics.GPUTemperatureSource = "Linux Intel DRM sysfs"
+				}
+			}
+			if value, ok := readFloatFile(filepath.Join(hwmon, "power1_average")); ok && isFinitePositive(value) {
+				metrics.PowerWatts = value / 1000000
+			}
+			if value, ok := readFloatFile(filepath.Join(hwmon, "fan1_input")); ok && isFinitePositive(value) {
+				metrics.FanRPM = value
+				metrics.FanRPMSource = "Linux Intel DRM sysfs"
+			}
+		}
+		metrics.GPUVendor = "Intel"
+		metrics.SensorSource = "Linux Intel DRM sysfs"
+		return true
+	}
+	return false
 }
