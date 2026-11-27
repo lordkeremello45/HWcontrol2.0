@@ -136,3 +136,26 @@ At the time this roadmap was added:
 - Linux synthetic sysfs tests are not physical hardware validation.
 - Windows/macOS identity discovery is not Windows/macOS sensor or fan-actuator support.
 - No merge to `main` is authorized by this roadmap.
+
+## Emergency engineering pass — 2026-11-27
+
+The feature branch now explicitly runs the following validation workflows on pushes to
+`feature/complete-engineering-integration`, rather than relying on a future merge to
+`main`:
+
+- Cross-platform package validation (Linux, Windows, and macOS jobs).
+- Go IPC security-boundary fuzzing.
+- GNAT/SPARK build, runtime tests, and GNATprove formal verification.
+- CodeQL analysis.
+- Go vulnerability scanning.
+- OSV dependency scanning.
+
+A Linux regression test was added for the race where a PWM sysfs node disappears
+after discovery but before a fan-control write. The expected behavior is an error,
+never a successful command response.
+
+**Validation state:** these changes have been pushed, but their GitHub Actions runs
+must complete successfully before the tests or workflows can be marked VERIFIED.
+Synthetic sysfs tests do not replace physical fan-controller validation. Hardware
+coverage, signing credentials, notarization, and install/upgrade/uninstall testing
+remain subject to their respective real environments.
