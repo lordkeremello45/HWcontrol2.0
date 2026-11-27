@@ -156,28 +156,27 @@ func discoverLinuxFanTargets(root string, configured []string) []linuxFanTarget 
 		}
 		target.id = linuxFanChannelID(deviceDir, target.name, number, seenIDs)
 
-		if _, err := os.Stat(target.fanInput); err != nil {
+	if data, err := os.ReadFile(target.fanInput); err != nil {
 			target.reason = fmt.Sprintf("matching fan%d_input RPM sensor is unavailable", number)
-		} else if data, err := os.ReadFile(filepath.Join(deviceDir, fmt.Sprintf("pwm%d_enable", number))); err != nil {
-			target.reason = "PWM control mode cannot be read"
-		} else if enable, err := strconv.Atoi(strings.TrimSpace(string(data))); err != nil {
-			target.reason = "PWM control mode is invalid"
-		} else if enable != 1 {
-			target.reason = fmt.Sprintf("PWM is not in manual mode (pwm%d_enable=%d); the application will not switch modes automatically", number, enable)
+		} else if rpm, parseErr := strconv.ParseFloat(strings.TrimSpace(string(data)), 64); parseErr != nil || !isFiniteNonNegative(rpm) {
+			target.reason = fmt.Sprintf("matching fan%d_input RPM sensor is invalid", number)
 		} else {
-			probe, err := os.OpenFile(pwmPath, os.O_WRONLY, 0)
-			if err != nil {
-				target.reason = "PWM control target is not writable by the bridge service"
+			target.fanRPM = rpm
+			target.rpmAvailable = true
+			if modeData, modeErr := os.ReadFile(filepath.Join(deviceDir, fmt.Sprintf("pwm%d_enable", number))); modeErr != nil {
+				target.reason = "PWM control mode cannot be read"
+			} else if enable, parseErr := strconv.Atoi(strings.TrimSpace(string(modeData))); parseErr != nil {
+				target.reason = "PWM control mode is invalid"
+			} else if enable != 1 {
+				target.reason = fmt.Sprintf("PWM is not in manual mode (pwm%d_enable=%d); the application will not switch modes automatically", number, enable)
 			} else {
-				_ = probe.Close()
-				target.supported = true
-			}
-		}
-
-		if data, err := os.ReadFile(target.fanInput); err == nil {
-			if rpm, err := strconv.ParseFloat(strings.TrimSpace(string(data)), 64); err == nil && isFiniteNonNegative(rpm) {
-				target.fanRPM = rpm
-				target.rpmAvailable = true
+				probe, openErr := os.OpenFile(pwmPath, os.O_WRONLY, 0)
+				if openErr != nil {
+					target.reason = "PWM control target is not writable by the bridge service"
+				} else {
+					_ = probe.Close()
+					target.supported = true
+				}
 			}
 		}
 		if data, err := os.ReadFile(pwmPath); err == nil {
@@ -259,6 +258,9 @@ func writeLinuxFanTarget(target linuxFanTarget, percent float64) error {
 	}
 	if strings.TrimSpace(string(mode)) != "1" {
 		return fmt.Errorf("PWM control mode changed; manual control was not applied")
+	}
+	if rpm, ok := readFloatFile(target.fanInput); !ok || !isFiniteNonNegative(rpm) {
+		return fmt.Errorf("matching fan RPM feedback is no longer available; PWM write was not applied")
 	}
 
 	value := int(percent * 255.0 / 100.0)
