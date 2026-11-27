@@ -69,6 +69,7 @@ func (d HardwareDevice) Validate() error {
 		return fmt.Errorf("hardware backend is required")
 	}
 	seen := make(map[string]struct{}, len(d.Sensors)+len(d.Actuators))
+	sensorValues := make(map[string]float64, len(d.Sensors))
 	for _, sensor := range d.Sensors {
 		if !validHardwareChildID(sensor.ID) || strings.TrimSpace(sensor.Kind) == "" ||
 			strings.TrimSpace(sensor.Unit) == "" || strings.TrimSpace(sensor.Source) == "" {
@@ -87,6 +88,13 @@ func (d HardwareDevice) Validate() error {
 		if math.IsNaN(sensor.Value) || math.IsInf(sensor.Value, 0) {
 			return fmt.Errorf("sensor %q requires a finite value", sensor.ID)
 		}
+		if !validHardwareSensorKindUnit(sensor.Kind, sensor.Unit) {
+			return fmt.Errorf("sensor %q has unsupported kind/unit combination %q/%q", sensor.ID, sensor.Kind, sensor.Unit)
+		}
+		if !validHardwareSensorRange(sensor.Kind, sensor.Value) {
+			return fmt.Errorf("sensor %q value %v is outside the valid range for %q", sensor.ID, sensor.Value, sensor.Kind)
+		}
+		sensorValues[sensor.Kind] = sensor.Value
 		if sensor.State == "available" && sensor.ObservedAt.IsZero() {
 			return fmt.Errorf("available sensor %q requires an observation timestamp", sensor.ID)
 		}
@@ -135,7 +143,44 @@ func (d HardwareDevice) Validate() error {
 			return fmt.Errorf("capability %q has invalid state %q", capability.Name, capability.State)
 		}
 	}
+	if used, ok := sensorValues["memory-used"]; ok {
+		if total, hasTotal := sensorValues["memory-total"]; hasTotal && used > total {
+			return fmt.Errorf("memory-used sensor value cannot exceed memory-total")
+		}
+	}
 	return nil
+}
+
+func validHardwareSensorKindUnit(kind, unit string) bool {
+	switch kind {
+	case "temperature":
+		return unit == "celsius"
+	case "fan-speed":
+		return unit == "rpm"
+	case "utilization":
+		return unit == "percent"
+	case "memory-used", "memory-total":
+		return unit == "bytes"
+	case "power":
+		return unit == "watts"
+	case "clock":
+		return unit == "megahertz"
+	default:
+		return false
+	}
+}
+
+func validHardwareSensorRange(kind string, value float64) bool {
+	switch kind {
+	case "temperature":
+		return value >= -20 && value <= 125
+	case "utilization":
+		return value >= 0 && value <= 100
+	case "fan-speed", "memory-used", "memory-total", "power", "clock":
+		return value >= 0
+	default:
+		return false
+	}
 }
 
 func validHardwareChildID(id string) bool {
