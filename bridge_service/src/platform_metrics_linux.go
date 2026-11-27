@@ -122,7 +122,7 @@ func collectIntelGPUPlatformMetrics(root string, metrics *HardwareMetrics) bool 
 		for _, hwmon := range hwmons {
 			if value, ok := readFloatFile(filepath.Join(hwmon, "temp1_input")); ok {
 				temperature := value / 1000
-				if isValidTemperature(temperature) && temperature > 0 {
+				if isValidTemperature(temperature) {
 					metrics.GPUTemperature = temperature
 					metrics.GPUTemperatureSource = "Linux Intel DRM sysfs"
 				}
