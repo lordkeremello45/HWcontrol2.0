@@ -75,7 +75,7 @@ func discoverLinuxHardwareDevices(root string) []HardwareDevice {
 			} else {
 				device := HardwareDevice{
 					ID: deviceID,
-					Identity: HardwareDeviceIdentity{Vendor: "Unknown", DeviceClass: "embedded-controller", Model: name},
+					Identity: linuxHwmonIdentity(name),
 					Backend: "linux-hwmon",
 					Capabilities: nil,
 				}
@@ -103,6 +103,25 @@ func discoverLinuxHardwareDevices(root string) []HardwareDevice {
 		validated = append(validated, device)
 	}
 	return validated
+}
+
+
+func linuxHwmonIdentity(name string) HardwareDeviceIdentity {
+	normalized := strings.ToLower(strings.TrimSpace(name))
+	switch {
+	case normalized == "coretemp":
+		return HardwareDeviceIdentity{Vendor: "Intel", DeviceClass: "cpu", Model: "Intel CPU thermal sensor"}
+	case normalized == "k10temp" || normalized == "zenpower":
+		return HardwareDeviceIdentity{Vendor: "AMD", DeviceClass: "cpu", Model: "AMD CPU thermal sensor"}
+	case normalized == "cpu_thermal" || normalized == "cpu-thermal":
+		return HardwareDeviceIdentity{Vendor: "Unknown", DeviceClass: "cpu", Model: "CPU thermal sensor"}
+	case strings.Contains(normalized, "nct") || strings.Contains(normalized, "it87") ||
+		strings.Contains(normalized, "w836") || strings.Contains(normalized, "asus_ec") ||
+		strings.Contains(normalized, "gigabyte_wmi") || strings.Contains(normalized, "dell_smm"):
+		return HardwareDeviceIdentity{Vendor: "Unknown", DeviceClass: "motherboard-controller", Model: normalized}
+	default:
+		return HardwareDeviceIdentity{Vendor: "Unknown", DeviceClass: "embedded-controller", Model: normalized}
+	}
 }
 
 func linuxHardwareVendor(id string) string {
