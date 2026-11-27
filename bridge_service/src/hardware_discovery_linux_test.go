@@ -235,3 +235,19 @@ func TestLinuxHardwareActuatorIDsMatchMultipleFanChannelsOnSameParent(t *testing
 		}
 	}
 }
+
+func TestLinuxHardwareDiscoveryKeepsInvalidRPMActuatorReadOnly(t *testing.T) {
+	root := t.TempDir()
+	hwmon := "class/hwmon/hwmon0"
+	writeSysfsFixture(t, root, hwmon+"/name", "nct6775")
+	writeSysfsFixture(t, root, hwmon+"/fan1_input", "invalid")
+	writeSysfsFixture(t, root, hwmon+"/pwm1", "128")
+	writeSysfsFixture(t, root, hwmon+"/pwm1_enable", "1")
+	devices := discoverLinuxHardwareDevices(root)
+	if len(devices) != 1 || len(devices[0].Actuators) != 1 {
+		t.Fatalf("expected one actuator record, got %+v", devices)
+	}
+	if devices[0].Actuators[0].Writable {
+		t.Fatal("invalid RPM feedback must keep the hardware actuator read-only")
+	}
+}
