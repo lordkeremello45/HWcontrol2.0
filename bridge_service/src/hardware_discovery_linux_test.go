@@ -260,7 +260,7 @@ func TestDiscoverLinuxHardwareDevicesIgnoresInvalidPWMChannelZero(t *testing.T) 
 	writeSysfsFixture(t, root, hwmon+"/pwm0", "128")
 	writeSysfsFixture(t, root, hwmon+"/pwm0_enable", "1")
 	devices := discoverLinuxHardwareDevices(root)
-	if len(devices) != 0 {
+	if len(devices) != 1 || len(devices[0].Actuators) != 0 {
 		t.Fatalf("invalid PWM channel zero must not produce an actuator: %+v", devices)
 	}
 }
