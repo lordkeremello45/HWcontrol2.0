@@ -61,6 +61,8 @@ func TestNormalizeGPUVendorAcceptsLibreHardwareMonitorNames(t *testing.T) {
 		"GpuNvidia": "nvidia",
 		"GpuAmd": "amd",
 		"GpuIntel": "intel",
+		"Advanced Micro Devices, Inc.": "amd",
+		"AMD Radeon": "amd",
 	}
 	for input, want := range cases {
 		if got := normalizeGPUVendor(input); got != want {
