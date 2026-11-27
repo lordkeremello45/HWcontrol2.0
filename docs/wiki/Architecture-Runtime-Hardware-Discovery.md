@@ -31,7 +31,7 @@ The existing NVIDIA `nvidia-smi`, Linux AMD `amdgpu/sysfs`, Linux Intel DRM sysf
 
 ## CPU, memory and motherboard telemetry
 
-CPU utilization and frequency are sourced from gopsutil; CPU temperature is published only when the platform sensor collector supplies a validated reading and source. The bridge emits a CPU device record after platform identity has been collected, so the model/vendor is not guessed from utilization alone. System memory is represented as a separate device with measured used/total byte counts and utilization from gopsutil.
+CPU utilization and frequency are sourced from gopsutil; CPU temperature is published only when the platform sensor collector supplies a validated reading and source. The fast fan-safety sampling path uses the same canonical temperature range and explicit CPU/GPU source requirement as the normal metrics path; it never promotes the shared generic source to a device-specific source. Windows WMI output carries separate presence flags so an absent sensor (serialized numerically as zero) cannot be confused with a real zero-degree reading. The bridge emits a CPU device record after platform identity has been collected, so the model/vendor is not guessed from utilization alone. System memory is represented as a separate device with measured used/total byte counts and utilization from gopsutil.
 
 On Linux, known hwmon drivers are classified conservatively: `coretemp`, `k10temp` and `zenpower` are CPU thermal sources; recognized NCT/IT87/W836 and selected OEM EC drivers are motherboard-controller sources. Their actual temperature, fan RPM and PWM interfaces are retained as sensor/actuator components. Unrecognized hwmon devices remain generic embedded controllers. Motherboard vendor/model metadata is attached only to records already identified as motherboard controllers; it does not manufacture sensor capabilities.
 
@@ -42,7 +42,8 @@ The non-Linux adapter converts the existing platform identity result into valida
 ## Deliberate limitations
 
 - Intel GPU utilization is not inferred where the kernel does not expose a supported counter through the selected sysfs interface. Vendor SDK telemetry and indexed multi-GPU attribution remain unimplemented.
-- Windows and macOS records are identity-only; native per-device telemetry and actuator adapters are not yet implemented.
+- Windows combines identity discovery with aggregate CPU/GPU telemetry from LibreHardwareMonitor WMI when that provider is installed, plus limited WMI fallback data. The current Windows collector selects a single preferred GPU/sensor set; indexed multi-GPU attribution and native fan actuator control remain unimplemented.
+- macOS discovery currently emits identity-only records. Native per-device sensor and actuator adapters remain unimplemented.
 - Motherboard controller vendor identity is not inferred from a chip name. It is reported as `Unknown` until a validated mapping exists.
 - Sensor labels are descriptive metadata, not stable identifiers. Consumers should key records by opaque device ID and component ID.
 
