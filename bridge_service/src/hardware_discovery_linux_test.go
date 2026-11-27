@@ -68,3 +68,22 @@ func TestDiscoverLinuxHardwareDevicesDoesNotEnablePWMWithoutRPMFeedback(t *testi
 		t.Fatal("PWM without matching RPM feedback was marked writable")
 	}
 }
+
+func TestLinuxHwmonIdentityClassifiesCPUAndMotherboardControllers(t *testing.T) {
+	cases := []struct {
+		name, class, vendor string
+	}{
+		{name: "coretemp", class: "cpu", vendor: "Intel"},
+		{name: "k10temp", class: "cpu", vendor: "AMD"},
+		{name: "zenpower", class: "cpu", vendor: "AMD"},
+		{name: "nct6775", class: "motherboard-controller", vendor: "Unknown"},
+		{name: "it8792", class: "motherboard-controller", vendor: "Unknown"},
+		{name: "acpitz", class: "embedded-controller", vendor: "Unknown"},
+	}
+	for _, testCase := range cases {
+		got := linuxHwmonIdentity(testCase.name)
+		if got.DeviceClass != testCase.class || got.Vendor != testCase.vendor {
+			t.Errorf("linuxHwmonIdentity(%q) = %+v; want class=%q vendor=%q", testCase.name, got, testCase.class, testCase.vendor)
+		}
+	}
+}
