@@ -71,3 +71,26 @@ func appendCPUSensors(device *HardwareDevice, metrics HardwareMetrics, observedA
 	}
 	return *device
 }
+
+func attachMotherboardIdentity(devices []HardwareDevice, metrics HardwareMetrics) []HardwareDevice {
+	vendor := strings.TrimSpace(metrics.MotherboardVendor)
+	model := strings.TrimSpace(metrics.MotherboardModel)
+	if vendor == "" && model == "" {
+		return devices
+	}
+	for i := range devices {
+		if devices[i].Identity.DeviceClass != "motherboard-controller" {
+			continue
+		}
+		if vendor != "" {
+			devices[i].Identity.Vendor = vendor
+		}
+		if model != "" {
+			devices[i].Identity.Model = model + " (" + devices[i].Identity.Model + ")"
+		}
+		if err := devices[i].Validate(); err != nil {
+			continue
+		}
+	}
+	return devices
+}
