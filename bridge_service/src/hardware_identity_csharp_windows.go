@@ -102,25 +102,7 @@ func collectHardwareIdentityWithCSharp() (HardwareIdentity, bool) {
 	id.MotherboardModel = safeHardwareText(inventory.MotherboardModel)
 	id.MotherboardVersion = safeHardwareText(inventory.MotherboardVersion)
 
-	id.CPUs = make([]HardwareDeviceIdentity, 0, len(inventory.Cpus))
-	for _, cpu := range inventory.Cpus {
-		id.CPUs = append(id.CPUs, HardwareDeviceIdentity{
-			Vendor: safeHardwareText(cpu.Manufacturer),
-			DeviceClass: "cpu",
-			Model: safeHardwareText(cpu.Model),
-		})
-	}
-	id.GPUs = make([]HardwareDeviceIdentity, 0, len(inventory.Gpus))
-	for _, gpu := range inventory.Gpus {
-		id.GPUs = append(id.GPUs, HardwareDeviceIdentity{
-			Vendor: safeHardwareText(gpu.Manufacturer),
-			DeviceClass: "gpu",
-			ProductID: safeHardwareText(gpu.PciDeviceID),
-			Model: safeHardwareText(gpu.Model),
-			Driver: safeHardwareText(gpu.DriverProvider),
-			DriverVersion: safeHardwareText(gpu.DriverVersion),
-		})
-	}
+	id.CPUs, id.GPUs = hardwareDeviceIdentitiesFromCSharpInventory(inventory)
 
 	if len(inventory.Cpus) > 0 {
 		cpu := inventory.Cpus[0]
@@ -150,6 +132,30 @@ func collectHardwareIdentityWithCSharp() (HardwareIdentity, bool) {
 		id.DetectionStatus = "partial"
 	}
 	return id, true
+}
+
+
+func hardwareDeviceIdentitiesFromCSharpInventory(inventory csharpHardwareInventory) ([]HardwareDeviceIdentity, []HardwareDeviceIdentity) {
+	cpus := make([]HardwareDeviceIdentity, 0, len(inventory.Cpus))
+	for _, cpu := range inventory.Cpus {
+		cpus = append(cpus, HardwareDeviceIdentity{
+			Vendor: safeHardwareText(cpu.Manufacturer),
+			DeviceClass: "cpu",
+			Model: safeHardwareText(cpu.Model),
+		})
+	}
+	gpus := make([]HardwareDeviceIdentity, 0, len(inventory.Gpus))
+	for _, gpu := range inventory.Gpus {
+		gpus = append(gpus, HardwareDeviceIdentity{
+			Vendor: safeHardwareText(gpu.Manufacturer),
+			DeviceClass: "gpu",
+			ProductID: safeHardwareText(gpu.PciDeviceID),
+			Model: safeHardwareText(gpu.Model),
+			Driver: safeHardwareText(gpu.DriverProvider),
+			DriverVersion: safeHardwareText(gpu.DriverVersion),
+		})
+	}
+	return cpus, gpus
 }
 
 func preferredCSharpGPU(gpus []csharpGPU) csharpGPU {
