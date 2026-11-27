@@ -85,3 +85,16 @@ func TestHardwareDeviceModelRejectsInvalidCapabilityState(t *testing.T) {
 		t.Fatal("unsupported capability with read permission was accepted")
 	}
 }
+
+func TestHardwareDeviceModelRejectsNonFiniteValuesForEverySensorState(t *testing.T) {
+	for _, state := range []string{"stale", "unavailable"} {
+		for _, value := range []float64{math.NaN(), math.Inf(1), math.Inf(-1)} {
+			device := validTestHardwareDevice()
+			device.Sensors[0].State = state
+			device.Sensors[0].Value = value
+			if err := device.Validate(); err == nil {
+				t.Fatalf("non-finite value %v was accepted for sensor state %q", value, state)
+			}
+		}
+	}
+}
