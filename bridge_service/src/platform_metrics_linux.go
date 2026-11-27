@@ -47,6 +47,7 @@ func mergePlatformMetrics(metrics *HardwareMetrics) {
 
 		if value, ok := readFloatFile(filepath.Join(device, "gpu_busy_percent")); ok {
 			metrics.GPUUsage = value
+			metrics.GPUUsageSource = "Linux amdgpu sysfs"
 		}
 		if value, ok := readUintFile(filepath.Join(device, "mem_info_vram_used")); ok {
 			metrics.GPUMemoryUsedBytes = value
