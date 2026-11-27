@@ -892,3 +892,20 @@ func TestMergePlatformTelemetryKeepsSameVendorFieldsWhenProviderAliasChanges(t *
 		t.Fatalf("same-vendor telemetry was unexpectedly cleared: %+v", metrics)
 	}
 }
+
+func TestMergePlatformTelemetryCarriesIntelGPUClockMetrics(t *testing.T) {
+	metrics := HardwareMetrics{}
+	platform := HardwareMetrics{
+		GPUVendor: "Intel",
+		GPUCoreClockMHz: 1350,
+		GPUMemoryClockMHz: 2100,
+		SensorSource: "Linux Intel DRM sysfs",
+	}
+	mergePlatformTelemetry(&metrics, platform)
+	if metrics.GPUCoreClockMHz != 1350 || metrics.GPUMemoryClockMHz != 2100 {
+		t.Fatalf("Intel GPU clock telemetry was not merged: %+v", metrics)
+	}
+	if metrics.GPUVendor != "Intel" || metrics.SensorSource != "Linux Intel DRM sysfs" {
+		t.Fatalf("Intel GPU source identity was not retained: %+v", metrics)
+	}
+}
