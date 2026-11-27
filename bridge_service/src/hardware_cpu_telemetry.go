@@ -94,3 +94,41 @@ func attachMotherboardIdentity(devices []HardwareDevice, metrics HardwareMetrics
 	}
 	return devices
 }
+
+func attachMemoryPlatformSensors(devices []HardwareDevice, metrics HardwareMetrics, observedAt time.Time) []HardwareDevice {
+	if metrics.MemoryUsageSource == "" || observedAt.IsZero() {
+		if observedAt.IsZero() { observedAt = time.Now().UTC() }
+	}
+	if metrics.MemoryUsageSource == "" || metrics.MemoryTotalBytes == 0 {
+		return devices
+	}
+	hash := sha256.Sum256([]byte("system-memory"))
+	device := HardwareDevice{
+		ID: hex.EncodeToString(hash[:8]),
+		Identity: HardwareDeviceIdentity{Vendor: "System", DeviceClass: "memory", Model: "System memory"},
+		Backend: "gopsutil-memory",
+	}
+	add := func(id, kind, unit string, value float64) {
+		if !isFiniteNonNegative(value) { return }
+		appendUniqueHardwareSensor(&device, HardwareSensor{
+			ID: id, Kind: kind, Unit: unit, Value: value,
+			Source: metrics.MemoryUsageSource, ObservedAt: observedAt.UTC(), State: "available",
+		})
+	}
+	add("memory-usage", "utilization", "percent", metrics.MemoryUsage)
+	add("memory-used", "memory-used", "bytes", float64(metrics.MemoryUsedBytes))
+	add("memory-total", "memory-total", "bytes", float64(metrics.MemoryTotalBytes))
+	device.Capabilities = []HardwareCapabilityRef{{
+		Name: "sensorRead", Read: true, State: "available", Backend: "gopsutil-memory",
+	}}
+	if err := device.Validate(); err != nil {
+		return devices
+	}
+	for i := range devices {
+		if devices[i].ID == device.ID {
+			devices[i] = device
+			return devices
+		}
+	}
+	return append(devices, device)
+}
