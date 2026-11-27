@@ -402,15 +402,13 @@ func collectMetrics() HardwareMetrics {
 	} else {
 		metrics.HardwareControlMode = "monitor-only"
 	}
-	if metrics.CPUTemperatureSource == "" && metrics.CPUTemperature > 0 && isValidTemperature(metrics.CPUTemperature) && metrics.SensorSource != "" {
-		metrics.CPUTemperatureSource = metrics.SensorSource
-	}
-	if metrics.GPUTemperatureSource == "" && metrics.GPUTemperature > 0 && isValidTemperature(metrics.GPUTemperature) && metrics.SensorSource != "" {
-		metrics.GPUTemperatureSource = metrics.SensorSource
-	}
+	// Do not infer CPU/GPU temperature provenance from the shared SensorSource.
+	// That field may describe a different device (for example, nvidia-smi), and
+	// copying it into both per-device source fields can misattribute one reading
+	// to another device. Platform collectors must set the specific source.
 	metrics.ThermalSafetyAvailable =
-		(metrics.CPUTemperatureSource != "" && isValidTemperature(metrics.CPUTemperature) && metrics.CPUTemperature > 0) ||
-			(metrics.GPUTemperatureSource != "" && isValidTemperature(metrics.GPUTemperature) && metrics.GPUTemperature > 0)
+		(metrics.CPUTemperatureSource != "" && isValidTemperature(metrics.CPUTemperature)) ||
+			(metrics.GPUTemperatureSource != "" && isValidTemperature(metrics.GPUTemperature))
 	game := collectGameModeState()
 	metrics.GameModeEnabled = game.Enabled
 	metrics.GameDetected = game.GameDetected
