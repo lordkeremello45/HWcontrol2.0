@@ -264,3 +264,78 @@ func TestDiscoverLinuxHardwareDevicesIgnoresInvalidPWMChannelZero(t *testing.T) 
 		t.Fatalf("invalid PWM channel zero must not produce an actuator: %+v", devices)
 	}
 }
+
+
+func TestDiscoverLinuxHardwareDevicesDetectsReappearingHardware(t *testing.T) {
+	root := t.TempDir()
+	pci := "bus/pci/devices/0000:01:00.0"
+	hwmon := "class/hwmon/hwmon0"
+	writeGPU := func() {
+		t.Helper()
+		writeSysfsFixture(t, root, pci+"/vendor", "0x10de")
+		writeSysfsFixture(t, root, pci+"/device", "0x2684")
+		writeSysfsFixture(t, root, pci+"/class", "0x030000")
+		writeSysfsFixture(t, root, hwmon+"/name", "nvidia")
+		writeSysfsFixture(t, root, hwmon+"/temp1_input", "52000")
+		if _, err := os.Lstat(filepath.Join(root, hwmon, "device")); os.IsNotExist(err) {
+			if err := os.Symlink(filepath.Join(root, pci), filepath.Join(root, hwmon, "device")); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+
+	writeGPU()
+	first := discoverLinuxHardwareDevices(root)
+	if len(first) != 1 {
+		t.Fatalf("expected initial GPU discovery, got %+v", first)
+	}
+	firstID := first[0].ID
+
+	if err := os.RemoveAll(filepath.Join(root, pci)); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.RemoveAll(filepath.Join(root, hwmon)); err != nil {
+		t.Fatal(err)
+	}
+	if got := discoverLinuxHardwareDevices(root); len(got) != 0 {
+		t.Fatalf("removed device must be absent before reconnect: %+v", got)
+	}
+
+	writeGPU()
+	reconnected := discoverLinuxHardwareDevices(root)
+	if len(reconnected) != 1 {
+		t.Fatalf("reconnected GPU was not rediscovered: %+v", reconnected)
+	}
+	if reconnected[0].ID != firstID {
+		t.Fatalf("same device identity should retain its opaque ID across reconnect: got %q want %q", reconnected[0].ID, firstID)
+	}
+	if err := reconnected[0].Validate(); err != nil {
+		t.Fatalf("reconnected device failed validation: %v", err)
+	}
+}
+
+func TestDiscoverLinuxHardwareDevicesDropsSensorWhenSysfsReadDisappears(t *testing.T) {
+	root := t.TempDir()
+	hwmon := "class/hwmon/hwmon0"
+	writeSysfsFixture(t, root, hwmon+"/name", "nct6775")
+	writeSysfsFixture(t, root, hwmon+"/temp1_input", "48000")
+
+	first := discoverLinuxHardwareDevices(root)
+	if len(first) != 1 || len(first[0].Sensors) != 1 {
+		t.Fatalf("expected initial temperature sensor, got %+v", first)
+	}
+
+	if err := os.Remove(filepath.Join(root, hwmon, "temp1_input")); err != nil {
+		t.Fatal(err)
+	}
+	second := discoverLinuxHardwareDevices(root)
+	if len(second) != 1 {
+		t.Fatalf("controller identity should remain after sensor disappears, got %+v", second)
+	}
+	if len(second[0].Sensors) != 0 {
+		t.Fatalf("missing sensor must not retain a previous reading: %+v", second[0].Sensors)
+	}
+	if err := second[0].Validate(); err != nil {
+		t.Fatalf("device with disappeared sensor failed validation: %v", err)
+	}
+}
