@@ -2,6 +2,7 @@ package main
 
 import (
 	"testing"
+	"strings"
 	"time"
 )
 
@@ -49,5 +50,29 @@ func TestAttachCPUPlatformSensorsUsesStableOpaqueID(t *testing.T) {
 	second := attachCPUPlatformSensors(nil, metrics, time.Now())
 	if first[0].ID != second[0].ID || len(first[0].ID) != 16 {
 		t.Fatalf("CPU ID is not stable/opaque: %q %q", first[0].ID, second[0].ID)
+	}
+}
+
+func TestAttachMotherboardIdentityEnrichesOnlyMotherboardControllers(t *testing.T) {
+	devices := []HardwareDevice{
+		{
+			ID: "0123456789abcdef",
+			Identity: HardwareDeviceIdentity{Vendor: "Unknown", DeviceClass: "motherboard-controller", Model: "nct6775"},
+			Backend: "linux-hwmon",
+		},
+		{
+			ID: "fedcba9876543210",
+			Identity: HardwareDeviceIdentity{Vendor: "AMD", DeviceClass: "gpu", Model: "GPU"},
+			Backend: "linux-sysfs",
+		},
+	}
+	got := attachMotherboardIdentity(devices, HardwareMetrics{
+		MotherboardVendor: "ASUSTeK", MotherboardModel: "Example Board",
+	})
+	if got[0].Identity.Vendor != "ASUSTeK" || !strings.Contains(got[0].Identity.Model, "Example Board") {
+		t.Fatalf("motherboard controller identity was not enriched: %+v", got[0].Identity)
+	}
+	if got[1].Identity.Vendor != "AMD" || got[1].Identity.Model != "GPU" {
+		t.Fatalf("non-motherboard identity was modified: %+v", got[1].Identity)
 	}
 }
