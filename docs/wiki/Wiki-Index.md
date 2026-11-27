@@ -1,6 +1,6 @@
 # HWcontrol2.0 Wiki Index
 
-Version-controlled documentation for the current Beta source tree. Feature availability and validation limits are summarized in [Current Implementation Status](../CURRENT-IMPLEMENTATION-STATUS.md).
+This page is the complete navigation index for version-controlled documentation. For the consolidated current project state, start with [Project Master Documentation](../PROJECT-MASTER.md). For a short orientation, see [Home](Home.md).
 
 ## Home and getting started
 - [Home](Home.md)
@@ -30,20 +30,22 @@ Version-controlled documentation for the current Beta source tree. Feature avail
 - [Local AI](Features-AI-Core.md)
 - [Piper TTS](Features-Accessibility-and-Piper-TTS.md)
 - [Extension Contract](Features-Extension-API.md)
-- [Offline Aim Trainer](../CURRENT-IMPLEMENTATION-STATUS.md#implemented-in-source)
+- [Offline Aim Trainer](../CURRENT-IMPLEMENTATION-STATUS.md)
 - [Audio Controller Studio](../AUDIO-CONTROLLER-STUDIO.md)
 
-## Architecture
+## Architecture and hardware API
 - [Architecture Overview](Architecture.md)
 - [Application Architecture](Architecture-Application.md)
 - [Hardware Abstraction](Architecture-Hardware-Abstraction.md)
 - [Vendor-neutral Hardware Device Model](Architecture-Hardware-Device-Model.md)
 - [Runtime Hardware Device Discovery](Architecture-Runtime-Hardware-Discovery.md)
+- [Hardware API Contract](Hardware-API-Contract.md)
+- [Vendor Adapter Matrix](Hardware-API-Vendor-Adapter-Matrix.md)
 - [Platform-specific Components](Architecture-Platform-specific.md)
 - [Data Flow](Architecture-Data-Flow.md)
+- [Advanced Hardware Capabilities](Advanced-Hardware-Capabilities.md)
 - [Game Core](Architecture-Game-Core.md)
 - [Logical Services](Architecture-Six-Services.md)
-- [Advanced Hardware Capabilities](Advanced-Hardware-Capabilities.md)
 - [Game Core Graphics Backend ADR](ADR-Game-Core-Graphics-Backends.md)
 
 ## Packaging and distribution
@@ -77,7 +79,7 @@ Version-controlled documentation for the current Beta source tree. Feature avail
 - [Linux](Troubleshooting-Linux.md)
 - [macOS](Troubleshooting-macOS.md)
 
-## Development
+## Development and localization
 - [Development](Development.md)
 - [Development Environment](Development-Environment.md)
 - [Repository Structure](Development-Repository-Structure.md)
@@ -86,12 +88,12 @@ Version-controlled documentation for the current Beta source tree. Feature avail
 - [Localization Roadmap](Localization-Roadmap.md)
 - [Localization Quality and Turkish Terminology](Localization-Quality-and-Turkish-Terminology.md)
 
-## Reference
-- [Current Implementation Status](../CURRENT-IMPLEMENTATION-STATUS.md)
+## Reference and planning
+- [Project Master Documentation](../PROJECT-MASTER.md)
 - [Physical Hardware Validation Matrix](../HARDWARE-VALIDATION-MATRIX.md)
-- [FAQ](FAQ.md)
+- [Product Readiness Checklist](../PRODUCT-READINESS-CHECKLIST.md)
+- [Engineering Completion Roadmap](Engineering-Completion-Roadmap.md)
 - [Roadmap](Roadmap.md)
+- [FAQ](FAQ.md)
 - [License](License.md)
-- [References](References.md)
-
-The complete technical source registry is maintained in [docs/REFERENCES.md](https://github.com/lordkeremello45/HWcontrol2.0/blob/main/docs/REFERENCES.md). Third-party notices are maintained in [THIRD_PARTY_NOTICES.md](https://github.com/lordkeremello45/HWcontrol2.0/blob/main/THIRD_PARTY_NOTICES.md).
+- [Technical References](References.md)
