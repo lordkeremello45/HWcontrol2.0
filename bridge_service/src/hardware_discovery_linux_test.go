@@ -87,3 +87,39 @@ func TestLinuxHwmonIdentityClassifiesCPUAndMotherboardControllers(t *testing.T) 
 		}
 	}
 }
+
+func TestDiscoverLinuxHardwareDevicesDeduplicatesCapabilitiesAcrossHwmonEntries(t *testing.T) {
+	root := t.TempDir()
+	pci := filepath.Join(root, "bus/pci/devices/0000:01:00.0")
+	writeSysfsFixture(t, root, "bus/pci/devices/0000:01:00.0/vendor", "0x10de")
+	writeSysfsFixture(t, root, "bus/pci/devices/0000:01:00.0/device", "0x2684")
+	writeSysfsFixture(t, root, "bus/pci/devices/0000:01:00.0/class", "0x030000")
+	for index, temperature := range []string{"51000", "52000"} {
+		hwmon := filepath.Join(root, "class/hwmon", "hwmon"+string(rune('0'+index)))
+		if err := os.MkdirAll(hwmon, 0755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Symlink(pci, filepath.Join(hwmon, "device")); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(hwmon, "name"), []byte("nvidia"), 0644); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(hwmon, "temp1_input"), []byte(temperature), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	devices := discoverLinuxHardwareDevices(root)
+	if len(devices) != 1 {
+		t.Fatalf("expected both hwmon entries to merge into one GPU, got %d", len(devices))
+	}
+	if len(devices[0].Sensors) != 2 {
+		t.Fatalf("expected both temperature sensors to be retained, got %+v", devices[0].Sensors)
+	}
+	if err := devices[0].Validate(); err != nil {
+		t.Fatalf("merged GPU failed model validation: %v", err)
+	}
+	if len(devices[0].Capabilities) != 2 {
+		t.Fatalf("expected one deviceDiscovery and one sensorRead capability, got %+v", devices[0].Capabilities)
+	}
+}
