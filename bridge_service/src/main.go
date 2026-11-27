@@ -252,11 +252,11 @@ func mergePlatformTelemetry(metrics *HardwareMetrics, platform HardwareMetrics) 
 	if metrics == nil {
 		return
 	}
-	if platform.CPUTemperatureSource != "" && platform.CPUTemperature > 0 {
+	if platform.CPUTemperatureSource != "" && isValidTemperature(platform.CPUTemperature) {
 		metrics.CPUTemperature = platform.CPUTemperature
 		metrics.CPUTemperatureSource = platform.CPUTemperatureSource
 	}
-	if platform.GPUTemperatureSource != "" && platform.GPUTemperature > 0 {
+	if platform.GPUTemperatureSource != "" && isValidTemperature(platform.GPUTemperature) {
 		metrics.GPUTemperature = platform.GPUTemperature
 		metrics.GPUTemperatureSource = platform.GPUTemperatureSource
 	}
@@ -325,7 +325,7 @@ func collectMetrics() HardwareMetrics {
 		for _, sensor := range temperatures {
 			key := strings.ToLower(sensor.SensorKey)
 			if strings.Contains(key, "cpu") || strings.Contains(key, "package") || strings.Contains(key, "core") {
-				if isValidTemperature(sensor.Temperature) && sensor.Temperature > 0 {
+				if isValidTemperature(sensor.Temperature) {
 					metrics.CPUTemperature = sensor.Temperature
 					metrics.CPUTemperatureSource = "gopsutil-host-sensors:" + sensor.SensorKey
 				}
