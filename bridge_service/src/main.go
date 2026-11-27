@@ -742,7 +742,7 @@ func executeHardwareCommand(cmd Command) error {
 		if err := validateFanControlRequest(cmd, metrics); err != nil {
 			return err
 		}
-		if err := setFanControl(cmd.Value); err != nil {
+		if err := hardwareAPI().SetFanPercent(cmd.Value); err != nil {
 			return err
 		}
 		return nil
