@@ -40,7 +40,7 @@ if (-not $sensors) {
   $fanObject = Get-CimInstance -ClassName Win32_Fan | Select-Object -First 1
   $voltageObject = Get-CimInstance -ClassName Win32_VoltageProbe | Select-Object -First 1
   $cpuTemp = if ($acpi) { ($acpi.CurrentTemperature / 10) - 273.15 } else { 0 }
-  $hasCpuTemperature = ($null -ne $acpi)
+  $hasCpuTemperature = ($null -ne $acpi -and $null -ne $acpi.CurrentTemperature)
   $hasGpuTemperature = $false
   $fan = if ($fanObject) { $fanObject.DesiredSpeed } else { 0 }
   $voltage = if ($voltageObject) { $voltageObject.CurrentReading } else { 0 }
