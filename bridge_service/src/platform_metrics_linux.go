@@ -72,15 +72,13 @@ func mergePlatformMetrics(metrics *HardwareMetrics) {
 				metrics.FanRPM = value
 				metrics.FanRPMSource = "Linux amdgpu sysfs"
 			}
+			if value, ok := readFloatFile(filepath.Join(hwmon, "power1_average")); ok && isFinitePositive(value) {
+				metrics.PowerWatts = value / 1000000
+			}
 		}
 
 		metrics.GPUVendor = "AMD"
 		metrics.SensorSource = "Linux amdgpu sysfs"
-		if metrics.GPUName == "" {
-			// uevent gives us a stable PCI identity even when a human-readable
-			// product name is not exposed by the kernel.
-			metrics.GPUName = readFirstLine(filepath.Join(device, "uevent"))
-		}
 		return
 	}
 	collectIntelGPUPlatformMetrics("/sys", metrics)
