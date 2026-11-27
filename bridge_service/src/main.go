@@ -283,6 +283,12 @@ func mergePlatformTelemetry(metrics *HardwareMetrics, platform HardwareMetrics) 
 	if metrics == nil {
 		return
 	}
+	if platform.GPUVendor != "" && metrics.GPUVendor != "" &&
+		normalizeGPUVendor(metrics.GPUVendor) != normalizeGPUVendor(platform.GPUVendor) {
+		// The aggregate snapshot has changed adapters. Clear the previous
+		// vendor's fields before copying any values from the new provider.
+		resetGPUVendorTelemetry(metrics)
+	}
 	if platform.CPUTemperatureSource != "" && isValidTemperature(platform.CPUTemperature) {
 		metrics.CPUTemperature = platform.CPUTemperature
 		metrics.CPUTemperatureSource = platform.CPUTemperatureSource
@@ -312,12 +318,6 @@ func mergePlatformTelemetry(metrics *HardwareMetrics, platform HardwareMetrics) 
 		metrics.Voltage = platform.Voltage
 	}
 	if platform.GPUVendor != "" {
-		if metrics.GPUVendor != "" && normalizeGPUVendor(metrics.GPUVendor) != normalizeGPUVendor(platform.GPUVendor) {
-			// HardwareAPI currently exposes one aggregate GPU snapshot. When the
-			// selected provider changes vendor, never retain fields from the prior
-			// adapter and accidentally attribute them to the new one.
-			resetGPUVendorTelemetry(metrics)
-		}
 		metrics.GPUVendor = platform.GPUVendor
 	}
 	if platform.GPUName != "" {
