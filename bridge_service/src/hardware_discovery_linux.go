@@ -140,7 +140,7 @@ func collectLinuxHwmonComponents(device *HardwareDevice, hwmon, source string) {
 			label = base
 		}
 		device.Sensors = append(device.Sensors, HardwareSensor{
-			ID: safeHardwareComponentID(base + "-temperature"), Kind: "temperature", Unit: "celsius",
+			ID: safeHardwareComponentID(source + "-" + base + "-temperature"), Kind: "temperature", Unit: "celsius",
 			Value: value, Source: "linux-hwmon:" + source + ":" + label, ObservedAt: time.Now().UTC(), State: "available",
 		})
 	}
@@ -156,7 +156,7 @@ func collectLinuxHwmonComponents(device *HardwareDevice, hwmon, source string) {
 			label = base
 		}
 		device.Sensors = append(device.Sensors, HardwareSensor{
-			ID: safeHardwareComponentID(base + "-rpm"), Kind: "fan-speed", Unit: "rpm",
+			ID: safeHardwareComponentID(source + "-" + base + "-rpm"), Kind: "fan-speed", Unit: "rpm",
 			Value: value, Source: "linux-hwmon:" + source + ":" + label, ObservedAt: time.Now().UTC(), State: "available",
 		})
 	}
@@ -186,7 +186,7 @@ func collectLinuxHwmonComponents(device *HardwareDevice, hwmon, source string) {
 			reason = "PWM control mode is unavailable"
 		}
 		device.Actuators = append(device.Actuators, HardwareActuator{
-			ID: safeHardwareComponentID(base + "-output"), Kind: "fan-pwm", Unit: "raw-0-255",
+			ID: safeHardwareComponentID(source + "-" + base + "-output"), Kind: "fan-pwm", Unit: "raw-0-255",
 			Minimum: 0, Maximum: 255, Writable: writable, Backend: "linux-hwmon", Reason: reason,
 		})
 	}
