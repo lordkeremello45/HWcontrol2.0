@@ -20,7 +20,8 @@ The Linux collector currently:
 - Reads hwmon `temp*_input` values as millidegrees Celsius and exposes them as temperature sensors.
 - Reads `fan*_input` values as RPM sensors.
 - Represents `pwm*` outputs as separate fan PWM actuators.
-- Marks a PWM actuator writable only when its control mode is already manual (`pwm*_enable = 1`) and the bridge process can open the target for writing. Discovery never switches a controller into manual mode.
+- Marks a PWM actuator writable only when its control mode is already manual (`pwm*_enable = 1`), the matching `fan*_input` contains a valid finite nonnegative RPM reading, and the bridge process can open the target for writing. Discovery never switches a controller into manual mode.
+- Rechecks the manual-mode flag and a fresh valid RPM reading immediately before every PWM write; loss or corruption of RPM feedback blocks the command.
 - Returns an empty slice when no supported devices are present.
 
 PWM writability is a discovery-time permission/mode observation, not a guarantee that a later write will succeed. The write path must continue to re-check mode, bounds and readback immediately before/after a command.
