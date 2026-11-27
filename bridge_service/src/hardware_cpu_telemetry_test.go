@@ -138,3 +138,25 @@ func TestAttachCPUPlatformSensorsCreatesRecordForSubzeroTelemetryWithoutIdentity
 		t.Fatalf("valid subzero CPU telemetry without identity was dropped: %+v", got)
 	}
 }
+
+func TestHasValidThermalSafetyTemperatureRequiresDeviceScopedSource(t *testing.T) {
+	cases := []struct {
+		name   string
+		value  float64
+		source string
+		want   bool
+	}{
+		{name: "explicit zero Celsius", value: 0, source: "cpu-sensor", want: true},
+		{name: "explicit subzero Celsius", value: -5, source: "gpu-sensor", want: true},
+		{name: "missing source", value: 65, source: "", want: false},
+		{name: "whitespace source", value: 65, source: "  ", want: false},
+		{name: "out of range", value: 126, source: "cpu-sensor", want: false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := hasValidThermalSafetyTemperature(tc.value, tc.source); got != tc.want {
+				t.Fatalf("hasValidThermalSafetyTemperature(%v, %q) = %v, want %v", tc.value, tc.source, got, tc.want)
+			}
+		})
+	}
+}
