@@ -81,7 +81,8 @@ func attachGPUPlatformSensors(devices []HardwareDevice, metrics HardwareMetrics,
 }
 
 func normalizeGPUVendor(vendor string) string {
-	switch strings.ToLower(strings.TrimSpace(vendor)) {
+	normalized := strings.ToLower(strings.TrimSpace(vendor))
+	switch normalized {
 	case "nvidia", "10de", "0x10de":
 		return "nvidia"
 	case "amd", "ati", "1002", "0x1002":
@@ -89,6 +90,9 @@ func normalizeGPUVendor(vendor string) string {
 	case "intel", "8086", "0x8086":
 		return "intel"
 	default:
+		if strings.Contains(normalized, "nvidia") { return "nvidia" }
+		if strings.Contains(normalized, "amd") || strings.Contains(normalized, "ati") { return "amd" }
+		if strings.Contains(normalized, "intel") { return "intel" }
 		return ""
 	}
 }
