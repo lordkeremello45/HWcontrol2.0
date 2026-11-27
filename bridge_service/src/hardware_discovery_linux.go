@@ -204,8 +204,15 @@ func collectLinuxHwmonComponents(device *HardwareDevice, hwmon, source string) {
 		} else if enable == "" {
 			reason = "PWM control mode is unavailable"
 		}
+		channelNumber, _ := strconv.Atoi(number)
+		resolvedHwmon, resolveErr := filepath.EvalSymlinks(hwmon)
+		if resolveErr != nil {
+			resolvedHwmon = hwmon
+		}
+		channelIdentity := canonicalLinuxHwmonDevicePath(resolvedHwmon) + "#" + source
+		channelID := stableLinuxFanChannelID(channelIdentity, channelNumber)
 		appendUniqueHardwareActuator(device, HardwareActuator{
-			ID: safeHardwareComponentID(filepath.Base(hwmon) + "-" + source + "-" + base + "-output"), Kind: "fan-pwm", Unit: "raw-0-255",
+			ID: channelID, Kind: "fan-pwm", Unit: "raw-0-255",
 			Minimum: 0, Maximum: 255, Writable: writable, Backend: "linux-hwmon", Reason: reason,
 		})
 	}
