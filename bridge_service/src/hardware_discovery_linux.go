@@ -5,7 +5,6 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
@@ -49,6 +48,8 @@ func discoverLinuxHardwareDevices(root string) []HardwareDevice {
 		if driver, err := filepath.EvalSymlinks(filepath.Join(entry, "driver")); err == nil {
 			device.Identity.Driver = filepath.Base(driver)
 		}
+		resolvedPCI, resolveErr := filepath.EvalSymlinks(entry)
+		if resolveErr == nil { pciPaths[filepath.Clean(resolvedPCI)] = len(devices) }
 		pciPaths[filepath.Clean(entry)] = len(devices)
 		byKey[device.ID] = len(devices)
 		devices = append(devices, device)
@@ -67,6 +68,7 @@ func discoverLinuxHardwareDevices(root string) []HardwareDevice {
 			// controllers) are represented independently and never guessed
 			// to be a GPU.
 			controllerKey := filepath.Clean(hwmon)
+			if err == nil { controllerKey = filepath.Clean(resolvedDevice) }
 			deviceID := linuxHardwareDeviceID(controllerKey, "hwmon", name, "controller")
 			if index, exists := byKey[deviceID]; exists {
 				targetIndex = index
@@ -221,4 +223,3 @@ func discoverRuntimeHardwareDevices() []HardwareDevice {
 	return discoverLinuxHardwareDevices("/sys")
 }
 
-var _ = fmt.Sprintf
