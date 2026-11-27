@@ -129,3 +129,12 @@ func TestAttachCPUPlatformSensorsPreservesZeroAndSubzeroTemperatures(t *testing.
 		}
 	}
 }
+
+func TestAttachCPUPlatformSensorsCreatesRecordForSubzeroTelemetryWithoutIdentity(t *testing.T) {
+	got := attachCPUPlatformSensors(nil, HardwareMetrics{
+		CPUTemperature: -5, CPUTemperatureSource: "test-temperature",
+	}, time.Now())
+	if len(got) != 1 || len(got[0].Sensors) != 1 || got[0].Sensors[0].Value != -5 {
+		t.Fatalf("valid subzero CPU telemetry without identity was dropped: %+v", got)
+	}
+}
