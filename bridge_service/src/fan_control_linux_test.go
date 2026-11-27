@@ -304,3 +304,25 @@ func TestWriteLinuxFanTargetRechecksRPMFeedbackBeforeWrite(t *testing.T) {
 		t.Fatalf("PWM changed without RPM feedback: before=%q after=%q", before, after)
 	}
 }
+
+func TestWriteLinuxFanTargetFailsWhenPWMNodeDisappearsBeforeWrite(t *testing.T) {
+	root := t.TempDir()
+	rpm := 1350
+	pwmPath := writeFanFixture(t, root, "hwmon0", "testchip", 1, 1, 160, &rpm)
+	targets := discoverLinuxFanTargets(root, nil)
+	if len(targets) != 1 || !targets[0].supported {
+		t.Fatalf("expected one initially controllable channel, got %+v", targets)
+	}
+
+	// Simulate a hot-unplug or driver teardown after discovery but before the
+	// command reaches the sysfs actuator. The bridge must return an error.
+	if err := os.Remove(pwmPath); err != nil {
+		t.Fatalf("remove PWM node: %v", err)
+	}
+	if err := writeLinuxFanTarget(targets[0], 65); err == nil {
+		t.Fatal("write unexpectedly succeeded after the PWM node disappeared")
+	}
+	if _, err := os.Stat(pwmPath); !os.IsNotExist(err) {
+		t.Fatalf("test fixture unexpectedly recreated the removed PWM node: %v", err)
+	}
+}
