@@ -31,7 +31,9 @@ The existing NVIDIA `nvidia-smi`, Linux AMD `amdgpu/sysfs`, Linux Intel DRM sysf
 
 ## CPU, memory and motherboard telemetry
 
-CPU utilization and frequency are sourced from gopsutil; CPU temperature is published only when the platform sensor collector supplies a validated reading and source. The bridge emits a CPU device record after platform identity has been collected, so the model/vendor is not guessed from utilization alone. System memory is represented as a separate device with measured used/total byte counts and utilization from gopsutil.\n\nOn Linux, known hwmon drivers are classified conservatively: `coretemp`, `k10temp` and `zenpower` are CPU thermal sources; recognized NCT/IT87/W836 and selected OEM EC drivers are motherboard-controller sources. Their actual temperature, fan RPM and PWM interfaces are retained as sensor/actuator components. Unrecognized hwmon devices remain generic embedded controllers. Motherboard vendor/model metadata is attached only to records already identified as motherboard controllers; it does not manufacture sensor capabilities.
+CPU utilization and frequency are sourced from gopsutil; CPU temperature is published only when the platform sensor collector supplies a validated reading and source. The bridge emits a CPU device record after platform identity has been collected, so the model/vendor is not guessed from utilization alone. System memory is represented as a separate device with measured used/total byte counts and utilization from gopsutil.
+
+On Linux, known hwmon drivers are classified conservatively: `coretemp`, `k10temp` and `zenpower` are CPU thermal sources; recognized NCT/IT87/W836 and selected OEM EC drivers are motherboard-controller sources. Their actual temperature, fan RPM and PWM interfaces are retained as sensor/actuator components. Unrecognized hwmon devices remain generic embedded controllers. Motherboard vendor/model metadata is attached only to records already identified as motherboard controllers; it does not manufacture sensor capabilities.
 
 ## Windows and macOS scope
 
