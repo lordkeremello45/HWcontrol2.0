@@ -78,7 +78,7 @@ func attachGPUPlatformSensors(devices []HardwareDevice, metrics HardwareMetrics,
 			}
 		}
 		if !hasRead {
-			device.Capabilities = append(device.Capabilities, HardwareCapabilityRef{
+			appendUniqueHardwareCapability(device, HardwareCapabilityRef{
 				Name: "sensorRead", Read: true, State: "available", Backend: source,
 			})
 		}
