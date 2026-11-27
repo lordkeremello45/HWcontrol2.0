@@ -38,7 +38,14 @@ func readFirstLine(path string) string {
 // AMD telemetry uses the kernel's amdgpu/sysfs interfaces, so it works without
 // an additional vendor SDK. NVIDIA is handled by nvidia-smi in main.go.
 func mergePlatformMetrics(metrics *HardwareMetrics) {
-	cards, _ := filepath.Glob("/sys/class/drm/card[0-9]*")
+	mergeLinuxPlatformMetrics("/sys", metrics)
+}
+
+func mergeLinuxPlatformMetrics(root string, metrics *HardwareMetrics) {
+	if metrics == nil {
+		return
+	}
+	cards, _ := filepath.Glob(filepath.Join(root, "class", "drm", "card[0-9]*"))
 	for _, card := range cards {
 		device := filepath.Join(card, "device")
 		if readFirstLine(filepath.Join(device, "vendor")) != "0x1002" {
@@ -60,7 +67,7 @@ func mergePlatformMetrics(metrics *HardwareMetrics) {
 		for _, hwmon := range hwmons {
 			if value, ok := readFloatFile(filepath.Join(hwmon, "temp1_input")); ok {
 				temperature := value / 1000
-				if isValidTemperature(temperature) && temperature > 0 {
+				if isValidTemperature(temperature) {
 					metrics.GPUTemperature = temperature
 					metrics.GPUTemperatureSource = "Linux amdgpu sysfs"
 				}
@@ -78,7 +85,7 @@ func mergePlatformMetrics(metrics *HardwareMetrics) {
 		metrics.SensorSource = "Linux amdgpu sysfs"
 		return
 	}
-	collectIntelGPUPlatformMetrics("/sys", metrics)
+	collectIntelGPUPlatformMetrics(root, metrics)
 }
 
 func collectIntelGPUPlatformMetrics(root string, metrics *HardwareMetrics) bool {
