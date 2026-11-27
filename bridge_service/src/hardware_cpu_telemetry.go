@@ -47,7 +47,7 @@ func attachCPUPlatformSensors(devices []HardwareDevice, metrics HardwareMetrics,
 
 func appendCPUSensors(device *HardwareDevice, metrics HardwareMetrics, observedAt time.Time) HardwareDevice {
 	add := func(id, kind, unit, source string, value float64) {
-		if source == "" || !isFiniteNonNegative(value) {
+		if source == "" || !validHardwareSensorRange(kind, value) {
 			return
 		}
 		appendUniqueHardwareSensor(device, HardwareSensor{
@@ -61,7 +61,7 @@ func appendCPUSensors(device *HardwareDevice, metrics HardwareMetrics, observedA
 	if metrics.CPUFrequencySource != "" && isFinitePositive(metrics.CPUFrequencyMHz) {
 		add("cpu-frequency", "clock", "megahertz", metrics.CPUFrequencySource, metrics.CPUFrequencyMHz)
 	}
-	if metrics.CPUTemperatureSource != "" && metrics.CPUTemperature > 0 && isValidTemperature(metrics.CPUTemperature) {
+	if metrics.CPUTemperatureSource != "" && isValidTemperature(metrics.CPUTemperature) {
 		add("cpu-temperature", "temperature", "celsius", metrics.CPUTemperatureSource, metrics.CPUTemperature)
 	}
 	if len(device.Sensors) > 0 {
