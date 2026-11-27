@@ -1,6 +1,9 @@
 # HWcontrol2.0 Wiki Index
 
-This page is the complete navigation index for version-controlled documentation. For the consolidated current project state, start with [Project Master Documentation](../PROJECT-MASTER.md). For a short orientation, see [Home](Home.md).
+This page is the navigation index for version-controlled engineering documentation. End users should start with the [All-in-One Kurulum, Tanıtım ve Başlangıç Rehberi](../ALL-IN-ONE-KURULUM-TANITIM-BASLANGIC-REHBERI.md). For a short wiki orientation, see [Home](Home.md).
+
+## End-user guide
+- [All-in-One Kurulum, Tanıtım ve Başlangıç Rehberi](../ALL-IN-ONE-KURULUM-TANITIM-BASLANGIC-REHBERI.md)
 
 ## Home and getting started
 - [Home](Home.md)
@@ -89,7 +92,6 @@ This page is the complete navigation index for version-controlled documentation.
 - [Localization Quality and Turkish Terminology](Localization-Quality-and-Turkish-Terminology.md)
 
 ## Reference and planning
-- [Project Master Documentation](../PROJECT-MASTER.md)
 - [Physical Hardware Validation Matrix](../HARDWARE-VALIDATION-MATRIX.md)
 - [Product Readiness Checklist](../PRODUCT-READINESS-CHECKLIST.md)
 - [Engineering Completion Roadmap](Engineering-Completion-Roadmap.md)
