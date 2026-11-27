@@ -1,12 +1,11 @@
 # HWcontrol2.0 Wiki
 
-HWcontrol2.0 is a Beta desktop application for hardware monitoring, diagnostics, and capability-gated control. This wiki documents the repository's actual implementation and explicitly distinguishes implemented, partial, unavailable, and unverified behavior.
+HWcontrol2.0 is a Beta desktop application for hardware monitoring, diagnostics, and capability-gated control. This wiki documents implementation details and engineering procedures.
 
 ## Start here
 
-- **[Project Master Documentation](../PROJECT-MASTER.md)** — canonical overview of architecture, current capabilities, platform boundaries, security, validation, packaging, and release policy.
-- [Wiki Index](Wiki-Index.md) — complete navigation to focused subsystem and platform documents.
-- [Getting Started](Getting-Started.md) — installation and source-build guides.
+- **[All-in-One Kurulum, Tanıtım ve Başlangıç Rehberi](../ALL-IN-ONE-KURULUM-TANITIM-BASLANGIC-REHBERI.md)** — the end-user guide, limited to product introduction, installation and first steps.
+- [Wiki Index](Wiki-Index.md) — navigation to focused subsystem and platform documents.
 - [Features](Features.md) — feature specifications and current limits.
 - [Architecture](Architecture.md) — runtime and hardware architecture.
 - [Development](Development.md) — contributor and CI guidance.
@@ -26,9 +25,8 @@ HWcontrol2.0 is a Beta desktop application for hardware monitoring, diagnostics,
 
 The Go bridge is the active hardware boundary. C++ helpers are not a shared hardware-control engine. Hardware support varies by device, driver, operating system, and permissions.
 
-## Evidence and trust
+## Engineering evidence
 
-- [Current implementation and engineering gates](../PROJECT-MASTER.md)
 - [Physical hardware validation matrix](../HARDWARE-VALIDATION-MATRIX.md)
 - [Engineering completion roadmap](Engineering-Completion-Roadmap.md)
 - [Final release runbook](../FINAL-RELEASE-RUNBOOK.md)
