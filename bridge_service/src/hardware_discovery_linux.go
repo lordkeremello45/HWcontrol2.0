@@ -77,7 +77,7 @@ func discoverLinuxHardwareDevices(root string) []HardwareDevice {
 					ID: deviceID,
 					Identity: HardwareDeviceIdentity{Vendor: "Unknown", DeviceClass: "embedded-controller", Model: name},
 					Backend: "linux-hwmon",
-					Capabilities: []HardwareCapabilityRef{{Name: "sensorRead", Read: true, State: "available", Backend: "linux-hwmon"}},
+					Capabilities: nil,
 				}
 				targetIndex = len(devices)
 				byKey[deviceID] = targetIndex
