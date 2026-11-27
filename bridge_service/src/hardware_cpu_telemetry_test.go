@@ -105,3 +105,15 @@ func TestAttachMemoryPlatformSensorsDoesNotInferWhenUnavailable(t *testing.T) {
 		t.Fatalf("memory telemetry without source marker must not be published: %+v", got)
 	}
 }
+
+func TestAttachMemoryPlatformSensorsRejectsInconsistentCounters(t *testing.T) {
+	cases := []HardwareMetrics{
+		{MemoryUsage: 101, MemoryUsageSource: "gopsutil-memory", MemoryTotalBytes: 100, MemoryUsedBytes: 50},
+		{MemoryUsage: 50, MemoryUsageSource: "gopsutil-memory", MemoryTotalBytes: 100, MemoryUsedBytes: 101},
+	}
+	for _, metrics := range cases {
+		if got := attachMemoryPlatformSensors(nil, metrics, time.Now()); len(got) != 0 {
+			t.Fatalf("inconsistent memory counters must be rejected: %+v", got)
+		}
+	}
+}
