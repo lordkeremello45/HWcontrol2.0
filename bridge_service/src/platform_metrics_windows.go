@@ -27,14 +27,19 @@ const windowsSensorScript = `$ErrorActionPreference = 'SilentlyContinue'
 $sensors = @(Get-CimInstance -Namespace 'root\LibreHardwareMonitor' -ClassName Sensor)
 $cpuTempSensor = $sensors | Where-Object { $_.SensorType -eq 'Temperature' -and $_.Name -match 'CPU|Package|Core' } | Select-Object -First 1
 $cpuTemp = $cpuTempSensor.Value
-$gpu = $sensors | Where-Object { $_.HardwareType -match 'Gpu' } | Select-Object -First 1
-$gpuTempSensor = $sensors | Where-Object { $_.HardwareType -match 'Gpu' -and $_.SensorType -eq 'Temperature' } | Select-Object -First 1
+$gpu = $sensors | Where-Object { $_.HardwareType -match 'GpuNvidia' } | Select-Object -First 1
+if (-not $gpu) { $gpu = $sensors | Where-Object { $_.HardwareType -match 'GpuAmd' } | Select-Object -First 1 }
+if (-not $gpu) { $gpu = $sensors | Where-Object { $_.HardwareType -match 'GpuIntel' } | Select-Object -First 1 }
+if (-not $gpu) { $gpu = $sensors | Where-Object { $_.HardwareType -match 'Gpu' } | Select-Object -First 1 }
+$gpuHardwareType = if ($gpu) { [string]$gpu.HardwareType } else { '' }
+$gpuSensors = @($sensors | Where-Object { $gpuHardwareType -and $_.HardwareType -eq $gpuHardwareType })
+$gpuTempSensor = $gpuSensors | Where-Object { $_.SensorType -eq 'Temperature' } | Select-Object -First 1
 $gpuTemp = $gpuTempSensor.Value
-$gpuLoad = ($sensors | Where-Object { $_.HardwareType -match 'Gpu' -and $_.SensorType -eq 'Load' } | Select-Object -First 1).Value
-$fan = ($sensors | Where-Object { $_.SensorType -eq 'Fan' } | Select-Object -First 1).Value
-$power = ($sensors | Where-Object { $_.SensorType -eq 'Power' -and $_.Name -match 'GPU|Package' } | Select-Object -First 1).Value
-$voltage = ($sensors | Where-Object { $_.SensorType -eq 'Voltage' -and $_.Name -match 'GPU|Core' } | Select-Object -First 1).Value
-$vendor = if ($gpu.HardwareType) { [string]$gpu.HardwareType } else { 'unknown' }
+$gpuLoad = ($gpuSensors | Where-Object { $_.SensorType -eq 'Load' } | Select-Object -First 1).Value
+$fan = ($gpuSensors | Where-Object { $_.SensorType -eq 'Fan' } | Select-Object -First 1).Value
+$power = ($gpuSensors | Where-Object { $_.SensorType -eq 'Power' -and $_.Name -match 'GPU|Package' } | Select-Object -First 1).Value
+$voltage = ($gpuSensors | Where-Object { $_.SensorType -eq 'Voltage' -and $_.Name -match 'GPU|Core' } | Select-Object -First 1).Value
+$vendor = if ($gpuHardwareType) { $gpuHardwareType } else { 'unknown' }
 if (-not $sensors) {
   $acpi = Get-CimInstance -Namespace 'root\wmi' -ClassName MSAcpi_ThermalZoneTemperature | Select-Object -First 1
   $fanObject = Get-CimInstance -ClassName Win32_Fan | Select-Object -First 1
