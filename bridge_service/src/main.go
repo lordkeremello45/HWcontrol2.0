@@ -389,8 +389,7 @@ func collectMetrics() HardwareMetrics {
 
 	mergeBatteryMetrics(&metrics)
 	metrics.FanChannels = hardwareAPI().FanChannels()
-	metrics.HardwareDevices = attachCPUPlatformSensors(discoverRuntimeHardwareDevices(), metrics, time.Now().UTC())
-	metrics.HardwareDevices = attachGPUPlatformSensors(metrics.HardwareDevices, metrics, time.Now().UTC())
+	metrics.HardwareDevices = discoverRuntimeHardwareDevices()
 	fanControl := hardwareAPI().FanControlInfo()
 	metrics.FanControlSupported = fanControl.Supported
 	metrics.FanControlBackend = fanControl.Backend
@@ -429,6 +428,9 @@ func collectMetrics() HardwareMetrics {
 	metrics.CPUArchitecture = identity.CPUArchitecture
 	metrics.CPUPhysicalCores = identity.CPUPhysicalCores
 	metrics.CPUThreads = identity.CPUThreads
+	metrics.HardwareDevices = attachCPUPlatformSensors(metrics.HardwareDevices, metrics, time.Now().UTC())
+	metrics.HardwareDevices = attachMotherboardIdentity(metrics.HardwareDevices, metrics)
+	metrics.HardwareDevices = attachGPUPlatformSensors(metrics.HardwareDevices, metrics, time.Now().UTC())
 	metrics.GPUModel = identity.GPUModel
 	metrics.DetectionSource = identity.DetectionSource
 	metrics.DetectionStatus = identity.DetectionStatus
