@@ -2,7 +2,7 @@ name: CodeQL Security Analysis
 
 on:
   push:
-    branches: [main]
+    branches: [main, "feature/complete-engineering-integration"]
   pull_request:
     branches: [main]
   schedule:
