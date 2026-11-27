@@ -117,3 +117,15 @@ func TestAttachMemoryPlatformSensorsRejectsInconsistentCounters(t *testing.T) {
 		}
 	}
 }
+
+func TestAttachCPUPlatformSensorsPreservesZeroAndSubzeroTemperatures(t *testing.T) {
+	for _, temperature := range []float64{0, -5} {
+		got := attachCPUPlatformSensors(nil, HardwareMetrics{
+			CPUManufacturer: "Intel", CPUModel: "Test CPU",
+			CPUTemperature: temperature, CPUTemperatureSource: "test-temperature",
+		}, time.Now())
+		if len(got) != 1 || len(got[0].Sensors) != 1 || got[0].Sensors[0].Value != temperature {
+			t.Fatalf("valid CPU temperature %v was not preserved: %+v", temperature, got)
+		}
+	}
+}
