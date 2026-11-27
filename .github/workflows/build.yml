@@ -10,8 +10,9 @@ permissions:
   contents: read
 
 concurrency:
-  # Keep main-branch validation runs alive; only superseded PR runs may be cancelled.
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  # Push runs get unique groups so GitHub does not replace queued validations.
+  # Superseded pull-request runs share a PR group and may be cancelled.
+  group: ci-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
