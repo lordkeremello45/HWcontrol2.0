@@ -55,9 +55,6 @@ func mergePlatformMetrics(metrics *HardwareMetrics) {
 		if value, ok := readUintFile(filepath.Join(device, "mem_info_vram_total")); ok {
 			metrics.GPUMemoryTotalBytes = value
 		}
-		if value, ok := readFloatFile(filepath.Join(device, "power1_average")); ok {
-			metrics.PowerWatts = value / 1000000
-		}
 
 		hwmons, _ := filepath.Glob(filepath.Join(device, "hwmon", "hwmon*"))
 		for _, hwmon := range hwmons {
