@@ -26,6 +26,7 @@ func discoverLinuxHardwareDevices(root string) []HardwareDevice {
 	devices := make([]HardwareDevice, 0, len(pciEntries)+len(hwmonEntries))
 	byKey := make(map[string]int)
 	pciPaths := make(map[string]int)
+	seenFanChannelIDs := make(map[string]struct{})
 
 	for _, entry := range pciEntries {
 		vendorID := readFirstLine(filepath.Join(entry, "vendor"))
@@ -84,7 +85,7 @@ func discoverLinuxHardwareDevices(root string) []HardwareDevice {
 				devices = append(devices, device)
 			}
 		}
-		collectLinuxHwmonComponents(&devices[targetIndex], hwmon, name)
+		collectLinuxHwmonComponents(&devices[targetIndex], hwmon, name, seenFanChannelIDs)
 	}
 
 	validated := make([]HardwareDevice, 0, len(devices))
@@ -142,7 +143,7 @@ func linuxHardwareDeviceID(path, vendorID, productID, class string) string {
 	return hex.EncodeToString(sum[:8])
 }
 
-func collectLinuxHwmonComponents(device *HardwareDevice, hwmon, source string) {
+func collectLinuxHwmonComponents(device *HardwareDevice, hwmon, source string, seenFanChannelIDs map[string]struct{}) {
 	entries, _ := filepath.Glob(filepath.Join(hwmon, "temp*_input"))
 	for _, input := range entries {
 		base := strings.TrimSuffix(filepath.Base(input), "_input")
@@ -205,12 +206,7 @@ func collectLinuxHwmonComponents(device *HardwareDevice, hwmon, source string) {
 			reason = "PWM control mode is unavailable"
 		}
 		channelNumber, _ := strconv.Atoi(number)
-		resolvedHwmon, resolveErr := filepath.EvalSymlinks(hwmon)
-		if resolveErr != nil {
-			resolvedHwmon = hwmon
-		}
-		channelIdentity := canonicalLinuxHwmonDevicePath(resolvedHwmon) + "#" + source
-		channelID := stableLinuxFanChannelID(channelIdentity, channelNumber)
+		channelID := linuxFanChannelID(hwmon, source, channelNumber, seenFanChannelIDs)
 		appendUniqueHardwareActuator(device, HardwareActuator{
 			ID: channelID, Kind: "fan-pwm", Unit: "raw-0-255",
 			Minimum: 0, Maximum: 255, Writable: writable, Backend: "linux-hwmon", Reason: reason,
