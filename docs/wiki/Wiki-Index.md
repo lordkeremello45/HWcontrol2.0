@@ -37,6 +37,7 @@ Version-controlled documentation for the current Beta source tree. Feature avail
 - [Architecture Overview](Architecture.md)
 - [Application Architecture](Architecture-Application.md)
 - [Hardware Abstraction](Architecture-Hardware-Abstraction.md)
+- [Vendor-neutral Hardware Device Model](Architecture-Hardware-Device-Model.md)
 - [Platform-specific Components](Architecture-Platform-specific.md)
 - [Data Flow](Architecture-Data-Flow.md)
 - [Game Core](Architecture-Game-Core.md)
