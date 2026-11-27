@@ -71,8 +71,12 @@ func hardwareDevicesFromIdentity(identity HardwareIdentity) []HardwareDevice {
 			continue
 		}
 		discriminator := safeDiscoveryText(gpu.ProductID)
-		if discriminator == "" && len(gpuInventory) > 1 {
-			discriminator = "gpu-" + strconv.Itoa(index)
+		if len(gpuInventory) > 1 {
+			instanceKey := "gpu-" + strconv.Itoa(index)
+			if discriminator != "" {
+				instanceKey += "-" + discriminator
+			}
+			discriminator = instanceKey
 		}
 		device := newIdentityOnlyDeviceWithDiscriminator(vendor, "gpu", model, "platform-identity", discriminator)
 		device.Identity.ProductID = safeDiscoveryText(gpu.ProductID)
