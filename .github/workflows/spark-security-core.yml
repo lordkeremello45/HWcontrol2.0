@@ -2,7 +2,7 @@ name: SPARK security core
 
 on:
   push:
-    branches: [main]
+    branches: [main, "feature/complete-engineering-integration"]
     paths:
       - "security/spark-core/**"
       - ".github/workflows/spark-security-core.yml"
