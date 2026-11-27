@@ -2,7 +2,7 @@ name: Security boundary fuzzing
 
 on:
   push:
-    branches: [main]
+    branches: [main, "feature/complete-engineering-integration"]
     paths:
       - "bridge_service/src/**"
       - ".github/workflows/security-fuzz.yml"
