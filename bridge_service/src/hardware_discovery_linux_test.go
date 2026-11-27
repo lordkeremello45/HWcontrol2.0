@@ -168,7 +168,7 @@ func TestLinuxHardwareActuatorIDMatchesFanChannelID(t *testing.T) {
 		"pwm1": "128",
 		"pwm1_enable": "1",
 	} {
-		if err := os.WriteFile(filepath.Join(hwmon, name), []byte(value+"\\n"), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(hwmon, name), []byte(value+"\n"), 0644); err != nil {
 			t.Fatal(err)
 		}
 	}
