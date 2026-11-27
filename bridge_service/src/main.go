@@ -307,6 +307,12 @@ func mergePlatformTelemetry(metrics *HardwareMetrics, platform HardwareMetrics) 
 	if platform.GPUMemoryTotalBytes > 0 {
 		metrics.GPUMemoryTotalBytes = platform.GPUMemoryTotalBytes
 	}
+	if isFinitePositive(platform.GPUCoreClockMHz) {
+		metrics.GPUCoreClockMHz = platform.GPUCoreClockMHz
+	}
+	if isFinitePositive(platform.GPUMemoryClockMHz) {
+		metrics.GPUMemoryClockMHz = platform.GPUMemoryClockMHz
+	}
 	if platform.PowerWatts > 0 {
 		metrics.PowerWatts = platform.PowerWatts
 	}
