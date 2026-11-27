@@ -155,7 +155,7 @@ func collectLinuxHwmonComponents(device *HardwareDevice, hwmon, source string) {
 		if label == "" {
 			label = base
 		}
-		device.Sensors = append(device.Sensors, HardwareSensor{
+		appendUniqueHardwareSensor(device, HardwareSensor{
 			ID: safeHardwareComponentID(source + "-" + base + "-rpm"), Kind: "fan-speed", Unit: "rpm",
 			Value: value, Source: "linux-hwmon:" + source + ":" + label, ObservedAt: time.Now().UTC(), State: "available",
 		})
