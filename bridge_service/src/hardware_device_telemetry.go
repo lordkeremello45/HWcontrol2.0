@@ -45,8 +45,8 @@ func attachGPUPlatformSensors(devices []HardwareDevice, metrics HardwareMetrics,
 	if metrics.GPUTemperatureSource != "" && isValidTemperature(metrics.GPUTemperature) && metrics.GPUTemperature > 0 {
 		add("gpu-temperature", "temperature", "celsius", metrics.GPUTemperature, metrics.GPUTemperatureSource)
 	}
-	if metrics.GPUUsage <= 100 && isFiniteNonNegative(metrics.GPUUsage) {
-		add("gpu-utilization", "utilization", "percent", metrics.GPUUsage, source)
+	if metrics.GPUUsageSource != "" && metrics.GPUUsage <= 100 && isFiniteNonNegative(metrics.GPUUsage) {
+		add("gpu-utilization", "utilization", "percent", metrics.GPUUsage, metrics.GPUUsageSource)
 	}
 	if metrics.GPUMemoryUsedBytes > 0 {
 		add("gpu-memory-used", "memory-used", "bytes", float64(metrics.GPUMemoryUsedBytes), source)
