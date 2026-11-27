@@ -18,14 +18,18 @@ type windowsSensorMetrics struct {
 	PowerWatts     float64 `json:"powerWatts"`
 	Voltage        float64 `json:"voltage"`
 	GPUVendor      string  `json:"gpuVendor"`
-	SensorSource   string  `json:"sensorSource"`
+	SensorSource       string  `json:"sensorSource"`
+	HasCPUTemperature  bool    `json:"hasCpuTemperature"`
+	HasGPUTemperature  bool    `json:"hasGpuTemperature"`
 }
 
 const windowsSensorScript = `$ErrorActionPreference = 'SilentlyContinue'
 $sensors = @(Get-CimInstance -Namespace 'root\LibreHardwareMonitor' -ClassName Sensor)
-$cpuTemp = ($sensors | Where-Object { $_.SensorType -eq 'Temperature' -and $_.Name -match 'CPU|Package|Core' } | Select-Object -First 1).Value
-$gpu = ($sensors | Where-Object { $_.HardwareType -match 'Gpu' } | Select-Object -First 1)
-$gpuTemp = ($sensors | Where-Object { $_.HardwareType -match 'Gpu' -and $_.SensorType -eq 'Temperature' } | Select-Object -First 1).Value
+$cpuTempSensor = $sensors | Where-Object { $_.SensorType -eq 'Temperature' -and $_.Name -match 'CPU|Package|Core' } | Select-Object -First 1
+$cpuTemp = $cpuTempSensor.Value
+$gpu = $sensors | Where-Object { $_.HardwareType -match 'Gpu' } | Select-Object -First 1
+$gpuTempSensor = $sensors | Where-Object { $_.HardwareType -match 'Gpu' -and $_.SensorType -eq 'Temperature' } | Select-Object -First 1
+$gpuTemp = $gpuTempSensor.Value
 $gpuLoad = ($sensors | Where-Object { $_.HardwareType -match 'Gpu' -and $_.SensorType -eq 'Load' } | Select-Object -First 1).Value
 $fan = ($sensors | Where-Object { $_.SensorType -eq 'Fan' } | Select-Object -First 1).Value
 $power = ($sensors | Where-Object { $_.SensorType -eq 'Power' -and $_.Name -match 'GPU|Package' } | Select-Object -First 1).Value
@@ -36,11 +40,17 @@ if (-not $sensors) {
   $fanObject = Get-CimInstance -ClassName Win32_Fan | Select-Object -First 1
   $voltageObject = Get-CimInstance -ClassName Win32_VoltageProbe | Select-Object -First 1
   $cpuTemp = if ($acpi) { ($acpi.CurrentTemperature / 10) - 273.15 } else { 0 }
+  $hasCpuTemperature = ($null -ne $acpi)
+  $hasGpuTemperature = $false
   $fan = if ($fanObject) { $fanObject.DesiredSpeed } else { 0 }
   $voltage = if ($voltageObject) { $voltageObject.CurrentReading } else { 0 }
   $vendor = 'WMI fallback'
 }
-[pscustomobject]@{ cpuTemperature=[double]$cpuTemp; gpuTemperature=[double]$gpuTemp; gpuUsage=[double]$gpuLoad; fanRpm=[double]$fan; powerWatts=[double]$power; voltage=[double]$voltage; gpuVendor=$vendor; sensorSource=$(if ($sensors) { 'LibreHardwareMonitor WMI' } else { 'Windows WMI fallback' }) } | ConvertTo-Json -Compress`
+if ($sensors) {
+  $hasCpuTemperature = ($null -ne $cpuTempSensor -and $null -ne $cpuTempSensor.Value)
+  $hasGpuTemperature = ($null -ne $gpuTempSensor -and $null -ne $gpuTempSensor.Value)
+}
+[pscustomobject]@{ cpuTemperature=[double]$cpuTemp; gpuTemperature=[double]$gpuTemp; hasCpuTemperature=[bool]$hasCpuTemperature; hasGpuTemperature=[bool]$hasGpuTemperature; gpuUsage=[double]$gpuLoad; fanRpm=[double]$fan; powerWatts=[double]$power; voltage=[double]$voltage; gpuVendor=$vendor; sensorSource=$(if ($sensors) { 'LibreHardwareMonitor WMI' } else { 'Windows WMI fallback' }) } | ConvertTo-Json -Compress`
 
 func mergePlatformMetrics(metrics *HardwareMetrics) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -55,11 +65,11 @@ func mergePlatformMetrics(metrics *HardwareMetrics) {
 	if json.Unmarshal(output, &sensors) != nil {
 		return
 	}
-	if sensors.CPUTemperature > 0 && isValidTemperature(sensors.CPUTemperature) {
+	if sensors.HasCPUTemperature && isValidTemperature(sensors.CPUTemperature) && sensors.SensorSource != "" {
 		metrics.CPUTemperature = sensors.CPUTemperature
 		metrics.CPUTemperatureSource = sensors.SensorSource
 	}
-	if sensors.GPUTemperature > 0 && isValidTemperature(sensors.GPUTemperature) {
+	if sensors.HasGPUTemperature && isValidTemperature(sensors.GPUTemperature) && sensors.SensorSource != "" {
 		metrics.GPUTemperature = sensors.GPUTemperature
 		metrics.GPUTemperatureSource = sensors.SensorSource
 	}
