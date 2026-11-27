@@ -11,7 +11,7 @@ func TestAttachGPUPlatformSensorsAttachesToSingleMatchingGPU(t *testing.T) {
 	}
 	observed := time.Date(2026, 11, 27, 12, 0, 0, 0, time.UTC)
 	metrics := HardwareMetrics{
-		GPUVendor: "NVIDIA", SensorSource: "nvidia-smi",
+		GPUVendor: "NVIDIA", SensorSource: "nvidia-smi", GPUUsageSource: "nvidia-smi",
 		GPUTemperature: 62, GPUTemperatureSource: "nvidia-smi",
 		GPUUsage: 0, GPUMemoryUsedBytes: 1024, GPUMemoryTotalBytes: 4096,
 		PowerWatts: 80, GPUCoreClockMHz: 1800,
@@ -53,5 +53,18 @@ func TestAttachGPUPlatformSensorsIgnoresUnknownVendorAndMissingSource(t *testing
 	}, time.Now())
 	if len(got[0].Sensors) != 0 {
 		t.Fatalf("telemetry without a trusted vendor/source was attached: %+v", got[0].Sensors)
+	}
+}
+
+func TestNormalizeGPUVendorAcceptsLibreHardwareMonitorNames(t *testing.T) {
+	cases := map[string]string{
+		"GpuNvidia": "nvidia",
+		"GpuAmd": "amd",
+		"GpuIntel": "intel",
+	}
+	for input, want := range cases {
+		if got := normalizeGPUVendor(input); got != want {
+			t.Fatalf("normalizeGPUVendor(%q) = %q, want %q", input, got, want)
+		}
 	}
 }
