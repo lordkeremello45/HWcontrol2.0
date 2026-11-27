@@ -183,10 +183,11 @@ func collectLinuxHwmonComponents(device *HardwareDevice, hwmon, source string, s
 	pwmEntries, _ := filepath.Glob(filepath.Join(hwmon, "pwm[0-9]*"))
 	for _, pwm := range pwmEntries {
 		base := filepath.Base(pwm)
-		number := strings.TrimPrefix(base, "pwm")
-		if _, err := strconv.Atoi(number); err != nil {
+		channelNumber, validNumber := parseLinuxPWMNumber(pwm)
+		if !validNumber {
 			continue
 		}
+		number := strconv.Itoa(channelNumber)
 		enable := readFirstLine(filepath.Join(hwmon, base+"_enable"))
 		writable := false
 		reason := "manual PWM mode is not active; discovery will not change it"
@@ -205,7 +206,6 @@ func collectLinuxHwmonComponents(device *HardwareDevice, hwmon, source string, s
 		} else if enable == "" {
 			reason = "PWM control mode is unavailable"
 		}
-		channelNumber, _ := strconv.Atoi(number)
 		channelID := linuxFanChannelID(hwmon, source, channelNumber, seenFanChannelIDs)
 		appendUniqueHardwareActuator(device, HardwareActuator{
 			ID: channelID, Kind: "fan-pwm", Unit: "raw-0-255",
