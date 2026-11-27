@@ -63,8 +63,9 @@ func mergePlatformMetrics(metrics *HardwareMetrics) {
 		metrics.GPUTemperature = sensors.GPUTemperature
 		metrics.GPUTemperatureSource = sensors.SensorSource
 	}
-	if sensors.GPUUsage > 0 {
+	if isFiniteNonNegative(sensors.GPUUsage) && sensors.GPUUsage <= 100 && sensors.SensorSource != "" {
 		metrics.GPUUsage = sensors.GPUUsage
+		metrics.GPUUsageSource = sensors.SensorSource
 	}
 	if isFinitePositive(sensors.FanRPM) {
 		metrics.FanRPM = sensors.FanRPM
