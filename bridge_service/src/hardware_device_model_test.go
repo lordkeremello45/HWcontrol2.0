@@ -161,3 +161,27 @@ func TestHardwareDeviceModelRejectsUsedMemoryAboveTotal(t *testing.T) {
 		t.Fatal("memory-used greater than memory-total was accepted")
 	}
 }
+
+func TestHardwareDeviceModelRejectsInvalidFanActuatorUnitsAndBounds(t *testing.T) {
+	cases := []struct {
+		kind string
+		unit string
+		minimum float64
+		maximum float64
+	}{
+		{kind: "fan-pwm", unit: "percent", minimum: 0, maximum: 100},
+		{kind: "fan-pwm", unit: "raw-0-255", minimum: 0, maximum: 256},
+		{kind: "fan-speed", unit: "percent", minimum: 0, maximum: 101},
+		{kind: "fan-speed", unit: "celsius", minimum: 0, maximum: 80},
+	}
+	for _, testCase := range cases {
+		device := validTestHardwareDevice()
+		device.Actuators[0].Kind = testCase.kind
+		device.Actuators[0].Unit = testCase.unit
+		device.Actuators[0].Minimum = testCase.minimum
+		device.Actuators[0].Maximum = testCase.maximum
+		if err := device.Validate(); err == nil {
+			t.Errorf("accepted invalid actuator %q/%q bounds [%v,%v]", testCase.kind, testCase.unit, testCase.minimum, testCase.maximum)
+		}
+	}
+}
