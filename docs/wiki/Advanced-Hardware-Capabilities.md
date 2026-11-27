@@ -8,7 +8,8 @@
 - Linux fan control requires a matching RPM input, a writable PWM attribute and an already-active manual mode.
 - Each PWM write rechecks the manual-mode state and reads back the requested PWM command value.
 - The bridge and dashboard enforce a 20% minimum manual/curve fan target; this is a project safety policy, not a promise that every fan starts reliably at 20%.
-- Optional liquidctl telemetry is read-only and capability-gated.
+- Optional liquidctl telemetry is read-only and capability-gated
+- `Get Health` explicitly reports CPU/GPU clock writes, voltage writes, system-memory clock writes, RGB/ARGB control, pump control, liquid-cooling fan control and cooling-profile control as `unsupported` until validated adapters exist..
 
 ## Explicitly unavailable or partial
 
