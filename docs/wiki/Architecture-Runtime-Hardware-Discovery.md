@@ -3,7 +3,7 @@
 ## Status
 
 - Linux sysfs discovery: implemented in source; CI validation pending.
-- Windows and macOS runtime device discovery: not implemented by this collector. The platform fallback intentionally returns an empty inventory rather than fabricated devices.
+- Windows and macOS identity discovery: implemented using the existing Windows C# / CIM identity collector and macOS sysctl/ioreg identity collector. These adapters currently emit identity-only system, motherboard, CPU and detected GPU records; per-device sensor and actuator collection remains unimplemented.
 - Physical hardware coverage: unverified until tested on representative NVIDIA, AMD, Intel and motherboard/controller systems.
 
 ## Runtime contract
@@ -25,17 +25,17 @@ The Linux collector currently:
 
 PWM writability is a discovery-time permission/mode observation, not a guarantee that a later write will succeed. The write path must continue to re-check mode, bounds and readback immediately before/after a command.
 
-## Deliberate limitations
+## Windows and macOS scope\n\nThe non-Linux adapter converts the existing platform identity result into validated device records. It does not infer sensor readings, fan channels, writable controls, or capability support from a device name. A missing GPU model produces no GPU record. Windows currently receives the single preferred GPU summary exposed by the existing identity contract; complete multi-GPU enumeration needs a richer inventory contract. macOS reports the Apple system/CPU identity where available; Apple GPU records are emitted only when the platform collector supplies a concrete GPU model.\n\n## Deliberate limitations
 
 - NVIDIA `nvidia-smi` telemetry continues through the existing metrics collector; it is not yet merged into per-device sensor records.
 - AMD/Intel per-device utilization and vendor SDK telemetry are not yet normalized into this inventory.
-- Windows CIM/WMI and macOS identity collectors do not yet implement per-device runtime discovery.
+- Windows and macOS records are identity-only; native per-device telemetry and actuator adapters are not yet implemented.
 - Motherboard controller vendor identity is not inferred from a chip name. It is reported as `Unknown` until a validated mapping exists.
 - Sensor labels are descriptive metadata, not stable identifiers. Consumers should key records by opaque device ID and component ID.
 
 ## Tests
 
-Linux tests use temporary synthetic sysfs trees and cover PCI GPU association, temperature/RPM sensor separation, PWM actuator safety, model validation and empty discovery. They do not replace physical hardware validation.
+Linux tests use temporary synthetic sysfs trees and cover PCI GPU association, temperature/RPM sensor separation, PWM actuator safety, model validation and empty discovery. Non-Linux tests cover identity-to-device conversion, deterministic opaque IDs and the no-invented-GPU rule. These tests do not replace physical hardware validation.
 
 Run from `bridge_service`:
 
