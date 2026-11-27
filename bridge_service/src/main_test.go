@@ -799,3 +799,20 @@ func TestDecodeCommandStrictRejectsMultipleJSONValues(t *testing.T) {
 		t.Fatal("multiple JSON values were accepted")
 	}
 }
+
+func TestMergePlatformTelemetryPreservesZeroAndSubzeroTemperatures(t *testing.T) {
+	for _, temperature := range []float64{0, -5} {
+		metrics := HardwareMetrics{}
+		platform := HardwareMetrics{
+			CPUTemperature: temperature, CPUTemperatureSource: "cpu-test",
+			GPUTemperature: temperature, GPUTemperatureSource: "gpu-test",
+		}
+		mergePlatformTelemetry(&metrics, platform)
+		if metrics.CPUTemperature != temperature || metrics.CPUTemperatureSource != "cpu-test" {
+			t.Fatalf("CPU temperature %v was not merged: %+v", temperature, metrics)
+		}
+		if metrics.GPUTemperature != temperature || metrics.GPUTemperatureSource != "gpu-test" {
+			t.Fatalf("GPU temperature %v was not merged: %+v", temperature, metrics)
+		}
+	}
+}
