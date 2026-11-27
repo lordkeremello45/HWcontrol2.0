@@ -98,3 +98,11 @@ func TestHardwareDeviceModelRejectsNonFiniteValuesForEverySensorState(t *testing
 		}
 	}
 }
+
+func TestHardwareDeviceModelRejectsDuplicateCapabilitiesPerBackend(t *testing.T) {
+	device := validTestHardwareDevice()
+	device.Capabilities = append(device.Capabilities, device.Capabilities[0])
+	if err := device.Validate(); err == nil {
+		t.Fatal("duplicate capability declaration for the same backend was accepted")
+	}
+}
