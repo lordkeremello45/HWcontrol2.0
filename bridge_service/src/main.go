@@ -205,6 +205,8 @@ type HardwareMetrics struct {
 	FanRPM                     float64         `json:"fanRpm"`
 	FanRPMSource               string          `json:"fanRpmSource,omitempty"`
 	MemoryUsage                float64         `json:"memoryUsage"`
+	MemoryUsageSource           string          `json:"-"`
+	MemoryUsedBytes             uint64          `json:"memoryUsedBytes"`
 	MemoryTotalBytes           uint64          `json:"memoryTotalBytes"`
 	DiskUsage                  float64         `json:"diskUsage"`
 	DiskTotalBytes             uint64          `json:"diskTotalBytes"`
@@ -307,6 +309,8 @@ func collectMetrics() HardwareMetrics {
 	}
 	if memory, err := mem.VirtualMemory(); err == nil {
 		metrics.MemoryUsage = memory.UsedPercent
+		metrics.MemoryUsageSource = "gopsutil-memory"
+		metrics.MemoryUsedBytes = memory.Used
 		metrics.MemoryTotalBytes = memory.Total
 	}
 	if usage, err := disk.Usage("/"); err == nil {
@@ -429,6 +433,7 @@ func collectMetrics() HardwareMetrics {
 	metrics.CPUPhysicalCores = identity.CPUPhysicalCores
 	metrics.CPUThreads = identity.CPUThreads
 	metrics.HardwareDevices = attachCPUPlatformSensors(metrics.HardwareDevices, metrics, time.Now().UTC())
+	metrics.HardwareDevices = attachMemoryPlatformSensors(metrics.HardwareDevices, metrics, time.Now().UTC())
 	metrics.HardwareDevices = attachMotherboardIdentity(metrics.HardwareDevices, metrics)
 	metrics.HardwareDevices = attachGPUPlatformSensors(metrics.HardwareDevices, metrics, time.Now().UTC())
 	metrics.GPUModel = identity.GPUModel
