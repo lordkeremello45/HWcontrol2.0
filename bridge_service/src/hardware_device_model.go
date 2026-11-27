@@ -81,8 +81,14 @@ func (d HardwareDevice) Validate() error {
 		if sensor.State != "available" && sensor.State != "stale" && sensor.State != "unavailable" {
 			return fmt.Errorf("sensor %q has invalid state %q", sensor.ID, sensor.State)
 		}
-		if sensor.State == "available" && (math.IsNaN(sensor.Value) || math.IsInf(sensor.Value, 0) || sensor.ObservedAt.IsZero()) {
-			return fmt.Errorf("available sensor %q requires a finite value and observation timestamp", sensor.ID)
+		// Every state still carries a JSON number. Reject NaN and infinities
+		// unconditionally because encoding/json cannot serialize them and one
+		// malformed stale/unavailable sensor would fail the entire metrics response.
+		if math.IsNaN(sensor.Value) || math.IsInf(sensor.Value, 0) {
+			return fmt.Errorf("sensor %q requires a finite value", sensor.ID)
+		}
+		if sensor.State == "available" && sensor.ObservedAt.IsZero() {
+			return fmt.Errorf("available sensor %q requires an observation timestamp", sensor.ID)
 		}
 	}
 	for _, actuator := range d.Actuators {
