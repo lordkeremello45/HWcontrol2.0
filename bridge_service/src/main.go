@@ -248,6 +248,37 @@ const (
 	maxRequestBytes   = 64 * 1024
 )
 
+func resetGPUVendorTelemetry(metrics *HardwareMetrics) {
+	metrics.GPUTemperature = 0
+	metrics.GPUTemperatureSource = ""
+	metrics.GPUUsage = 0
+	metrics.GPUUsageSource = ""
+	metrics.GPUMemoryUsage = 0
+	metrics.GPUPowerLimitWatts = 0
+	metrics.GPUPState = ""
+	metrics.GPUEncoderUsage = 0
+	metrics.GPUDecoderUsage = 0
+	metrics.GPUName = ""
+	metrics.GPUDriver = ""
+	metrics.GPUDriverProvider = ""
+	metrics.GPUDriverVersion = ""
+	metrics.GPUDriverStatus = ""
+	metrics.GPUDriverSource = ""
+	metrics.GPUDriverAction = ""
+	metrics.GPUDriverReason = ""
+	metrics.FanPercent = 0
+	metrics.FanPercentSource = ""
+	metrics.FanRPM = 0
+	metrics.FanRPMSource = ""
+	metrics.PowerWatts = 0
+	metrics.Voltage = 0
+	metrics.GPUMemoryUsedBytes = 0
+	metrics.GPUMemoryTotalBytes = 0
+	metrics.GPUCoreClockMHz = 0
+	metrics.GPUMemoryClockMHz = 0
+	metrics.SensorSource = ""
+}
+
 func mergePlatformTelemetry(metrics *HardwareMetrics, platform HardwareMetrics) {
 	if metrics == nil {
 		return
@@ -281,6 +312,12 @@ func mergePlatformTelemetry(metrics *HardwareMetrics, platform HardwareMetrics) 
 		metrics.Voltage = platform.Voltage
 	}
 	if platform.GPUVendor != "" {
+		if metrics.GPUVendor != "" && normalizeGPUVendor(metrics.GPUVendor) != normalizeGPUVendor(platform.GPUVendor) {
+			// HardwareAPI currently exposes one aggregate GPU snapshot. When the
+			// selected provider changes vendor, never retain fields from the prior
+			// adapter and accidentally attribute them to the new one.
+			resetGPUVendorTelemetry(metrics)
+		}
 		metrics.GPUVendor = platform.GPUVendor
 	}
 	if platform.GPUName != "" {
