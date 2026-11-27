@@ -65,7 +65,7 @@ func appendCPUSensors(device *HardwareDevice, metrics HardwareMetrics, observedA
 		add("cpu-temperature", "temperature", "celsius", metrics.CPUTemperatureSource, metrics.CPUTemperature)
 	}
 	if len(device.Sensors) > 0 {
-		device.Capabilities = append(device.Capabilities, HardwareCapabilityRef{
+		appendUniqueHardwareCapability(device, HardwareCapabilityRef{
 			Name: "sensorRead", Read: true, State: "available", Backend: "platform-metrics",
 		})
 	}
