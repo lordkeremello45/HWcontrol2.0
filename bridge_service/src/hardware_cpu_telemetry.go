@@ -50,7 +50,7 @@ func appendCPUSensors(device *HardwareDevice, metrics HardwareMetrics, observedA
 		if source == "" || !isFiniteNonNegative(value) {
 			return
 		}
-		appendUniqueHardwareSensor(&device, HardwareSensor{
+		appendUniqueHardwareSensor(device, HardwareSensor{
 			ID: id, Kind: kind, Unit: unit, Value: value,
 			Source: source, ObservedAt: observedAt.UTC(), State: "available",
 		})
