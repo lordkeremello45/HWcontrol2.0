@@ -76,3 +76,32 @@ func TestAttachMotherboardIdentityEnrichesOnlyMotherboardControllers(t *testing.
 		t.Fatalf("non-motherboard identity was modified: %+v", got[1].Identity)
 	}
 }
+
+func TestAttachMemoryPlatformSensorsUsesMeasuredBytes(t *testing.T) {
+	metrics := HardwareMetrics{
+		MemoryUsage: 37.5, MemoryUsageSource: "gopsutil-memory",
+		MemoryUsedBytes: 3000, MemoryTotalBytes: 8000,
+	}
+	got := attachMemoryPlatformSensors(nil, metrics, time.Now())
+	if len(got) != 1 || got[0].Identity.DeviceClass != "memory" {
+		t.Fatalf("expected one memory device: %+v", got)
+	}
+	if len(got[0].Sensors) != 3 {
+		t.Fatalf("expected usage, used and total sensors: %+v", got[0].Sensors)
+	}
+	if got[0].Sensors[1].Value != 3000 || got[0].Sensors[2].Value != 8000 {
+		t.Fatalf("memory byte readings were not preserved: %+v", got[0].Sensors)
+	}
+	if err := got[0].Validate(); err != nil {
+		t.Fatalf("memory device validation failed: %v", err)
+	}
+}
+
+func TestAttachMemoryPlatformSensorsDoesNotInferWhenUnavailable(t *testing.T) {
+	got := attachMemoryPlatformSensors(nil, HardwareMetrics{
+		MemoryUsage: 50, MemoryTotalBytes: 8192,
+	}, time.Now())
+	if len(got) != 0 {
+		t.Fatalf("memory telemetry without source marker must not be published: %+v", got)
+	}
+}
