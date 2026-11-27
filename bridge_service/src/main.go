@@ -333,7 +333,7 @@ func collectMetrics() HardwareMetrics {
 	}()
 	go func() {
 		defer collectors.Done()
-		mergePlatformMetrics(&platformMetrics)
+		hardwareAPI().CollectPlatformMetrics(&platformMetrics)
 	}()
 	collectors.Wait()
 	output := nvidiaOutput
@@ -378,8 +378,8 @@ func collectMetrics() HardwareMetrics {
 	mergePlatformTelemetry(&metrics, platformMetrics)
 
 	mergeBatteryMetrics(&metrics)
-	metrics.FanChannels = listFanChannels()
-	fanControl := detectFanControl()
+	metrics.FanChannels = hardwareAPI().FanChannels()
+	fanControl := hardwareAPI().FanControlInfo()
 	metrics.FanControlSupported = fanControl.Supported
 	metrics.FanControlBackend = fanControl.Backend
 	if fanControl.Supported || anyControllableFanChannel(metrics.FanChannels) {
@@ -514,7 +514,7 @@ func collectHardwareControlSafetyMetrics() HardwareMetrics {
 		}
 	}
 
-	mergePlatformMetrics(&metrics)
+	hardwareAPI().CollectPlatformMetrics(&metrics)
 	if metrics.CPUTemperatureSource == "" && metrics.CPUTemperature > 0 && isValidTemperature(metrics.CPUTemperature) && metrics.SensorSource != "" {
 		metrics.CPUTemperatureSource = metrics.SensorSource
 	}
@@ -531,8 +531,8 @@ func collectHardwareControlSafetyMetrics() HardwareMetrics {
 	metrics.ThermalSafetyAvailable =
 		(metrics.CPUTemperatureSource != "" && isValidTemperature(metrics.CPUTemperature) && metrics.CPUTemperature > 0) ||
 			(metrics.GPUTemperatureSource != "" && isValidTemperature(metrics.GPUTemperature) && metrics.GPUTemperature > 0)
-	metrics.FanChannels = listFanChannels()
-	fanControl := detectFanControl()
+	metrics.FanChannels = hardwareAPI().FanChannels()
+	fanControl := hardwareAPI().FanControlInfo()
 	metrics.FanControlSupported = fanControl.Supported
 	metrics.FanControlBackend = fanControl.Backend
 	return metrics
@@ -751,7 +751,7 @@ func executeHardwareCommand(cmd Command) error {
 			return fmt.Errorf("hardware control blocked: security panic mode active")
 		}
 		channelPresent := false
-		for _, channel := range listFanChannels() {
+		for _, channel := range hardwareAPI().FanChannels() {
 			if channel.ID == cmd.Target && channel.Supported {
 				channelPresent = true
 				break
@@ -764,7 +764,7 @@ func executeHardwareCommand(cmd Command) error {
 		if err := validateFanChannelControlRequest(cmd, metrics); err != nil {
 			return err
 		}
-		return setFanControlChannel(cmd.Target, cmd.Value)
+		return hardwareAPI().SetFanChannel(cmd.Target, cmd.Value)
 	case "AI İşlem Gücü":
 		if panicModeActive() {
 			return fmt.Errorf("hardware control blocked: security panic mode active")
@@ -1621,7 +1621,7 @@ func handleConnection(conn net.Conn, secret string) {
 				Status:  "SUCCESS",
 				Message: "Fan channel capabilities retrieved",
 				Data: map[string]any{
-					"channels":  listFanChannels(),
+					"channels":  hardwareAPI().FanChannels(),
 					"localOnly": true,
 				},
 			}); err != nil {
