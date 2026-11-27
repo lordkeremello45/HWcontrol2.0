@@ -154,3 +154,34 @@ func TestDiscoverLinuxHardwareDevicesDropsRemovedHardwareOnNextScan(t *testing.T
 		t.Fatalf("removed hardware must not survive a fresh discovery scan: %+v", second)
 	}
 }
+
+func TestLinuxHardwareActuatorIDMatchesFanChannelID(t *testing.T) {
+	root := t.TempDir()
+	hwmonRoot := filepath.Join(root, "class", "hwmon")
+	hwmon := filepath.Join(hwmonRoot, "hwmon0")
+	if err := os.MkdirAll(hwmon, 0755); err != nil {
+		t.Fatal(err)
+	}
+	for name, value := range map[string]string{
+		"name": "nct6775",
+		"fan1_input": "1200",
+		"pwm1": "128",
+		"pwm1_enable": "1",
+	} {
+		if err := os.WriteFile(filepath.Join(hwmon, name), []byte(value+"\\n"), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	devices := discoverLinuxHardwareDevices(root)
+	if len(devices) != 1 || len(devices[0].Actuators) != 1 {
+		t.Fatalf("expected one discovered hardware actuator, got %+v", devices)
+	}
+	channels := discoverLinuxFanTargets(hwmonRoot, nil)
+	if len(channels) != 1 {
+		t.Fatalf("expected one fan control channel, got %+v", channels)
+	}
+	if devices[0].Actuators[0].ID != channels[0].id {
+		t.Fatalf("hardware actuator ID %q does not match fan channel ID %q", devices[0].Actuators[0].ID, channels[0].id)
+	}
+}
