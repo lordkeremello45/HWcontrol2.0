@@ -187,13 +187,16 @@ func TestEvaluateHardwareHealthDoesNotAdvertiseUnimplementedWriteControls(t *tes
 		CPUTemperature: 50, GPUTemperature: 55, ThermalSafetyAvailable: true,
 		FanControlSupported: false, FanControlBackend: "monitor-only",
 	})
-	for _, key := range []string{"gpuPowerLimitControl", "cpuOverclockControl", "batteryChargeLimitControl"} {
+	for _, key := range []string{"gpuPowerLimitControl", "cpuOverclockControl", "batteryChargeLimitControl", "cpuClockControl", "gpuClockControl", "voltageControl", "memoryClockControl", "rgbControl", "pumpControl", "coolingFanControl", "coolingProfileControl"} {
 		capability := evaluation.Capabilities[key]
 		if capability.Available {
 			t.Errorf("unsupported capability %q was advertised as available", key)
 		}
 		if capability.Reason == "" {
 			t.Errorf("unsupported capability %q has no explanation", key)
+		}
+		if capability.State != "unsupported" {
+			t.Errorf("unsupported capability %q state = %q, want unsupported", key, capability.State)
 		}
 	}
 	if evaluation.Capabilities["fanCurveAutomation"].Available {
