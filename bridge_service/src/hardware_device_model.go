@@ -113,6 +113,9 @@ func (d HardwareDevice) Validate() error {
 			actuator.Minimum > actuator.Maximum {
 			return fmt.Errorf("actuator %q has invalid bounds", actuator.ID)
 		}
+		if !validHardwareActuatorKindUnitBounds(actuator.Kind, actuator.Unit, actuator.Minimum, actuator.Maximum) {
+			return fmt.Errorf("actuator %q has unsupported kind/unit or bounds %q/%q", actuator.ID, actuator.Kind, actuator.Unit)
+		}
 		if actuator.Writable && actuator.Reason != "" {
 			return fmt.Errorf("writable actuator %q cannot have an unavailable reason", actuator.ID)
 		}
@@ -178,6 +181,20 @@ func validHardwareSensorRange(kind string, value float64) bool {
 		return value >= 0 && value <= 100
 	case "fan-speed", "memory-used", "memory-total", "power", "clock":
 		return value >= 0
+	default:
+		return false
+	}
+}
+
+func validHardwareActuatorKindUnitBounds(kind, unit string, minimum, maximum float64) bool {
+	switch kind {
+	case "fan-pwm":
+		return unit == "raw-0-255" && minimum >= 0 && maximum <= 255
+	case "fan-speed":
+		if unit == "percent" {
+			return minimum >= 0 && maximum <= 100
+		}
+		return unit == "rpm" && minimum >= 0
 	default:
 		return false
 	}
