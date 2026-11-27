@@ -68,3 +68,18 @@ func TestNormalizeGPUVendorAcceptsLibreHardwareMonitorNames(t *testing.T) {
 		}
 	}
 }
+
+func TestAttachGPUPlatformSensorsPreservesZeroAndSubzeroTemperatures(t *testing.T) {
+	for _, temperature := range []float64{0, -5} {
+		devices := []HardwareDevice{
+			{ID: "0123456789abcdef", Identity: HardwareDeviceIdentity{Vendor: "NVIDIA", DeviceClass: "gpu"}, Backend: "linux-sysfs"},
+		}
+		got := attachGPUPlatformSensors(devices, HardwareMetrics{
+			GPUVendor: "NVIDIA", SensorSource: "test",
+			GPUTemperature: temperature, GPUTemperatureSource: "test-temperature",
+		}, time.Now())
+		if len(got[0].Sensors) != 1 || got[0].Sensors[0].Value != temperature {
+			t.Fatalf("valid GPU temperature %v was not preserved: %+v", temperature, got[0].Sensors)
+		}
+	}
+}
