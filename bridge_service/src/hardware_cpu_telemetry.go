@@ -17,7 +17,7 @@ func attachCPUPlatformSensors(devices []HardwareDevice, metrics HardwareMetrics,
 	vendor := strings.TrimSpace(metrics.CPUManufacturer)
 	model := strings.TrimSpace(metrics.CPUModel)
 	hasTelemetry := metrics.CPUUsageSource != "" || metrics.CPUFrequencySource != "" ||
-		(metrics.CPUTemperatureSource != "" && isValidTemperature(metrics.CPUTemperature) && metrics.CPUTemperature > 0)
+		(metrics.CPUTemperatureSource != "" && isValidTemperature(metrics.CPUTemperature))
 	if !hasTelemetry && vendor == "" && model == "" {
 		return devices
 	}
