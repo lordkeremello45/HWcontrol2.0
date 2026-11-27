@@ -170,7 +170,10 @@ func collectLinuxHwmonComponents(device *HardwareDevice, hwmon, source string) {
 		enable := readFirstLine(filepath.Join(hwmon, base+"_enable"))
 		writable := false
 		reason := "manual PWM mode is not active; discovery will not change it"
-		if enable == "1" {
+		fanInput := filepath.Join(hwmon, "fan"+number+"_input")
+		if _, err := os.Stat(fanInput); err != nil {
+			reason = "matching fan RPM sensor is unavailable"
+		} else if enable == "1" {
 			file, err := os.OpenFile(pwm, os.O_WRONLY, 0)
 			if err == nil {
 				writable = true
