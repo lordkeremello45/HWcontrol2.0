@@ -5,6 +5,7 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"strconv"
 	"strings"
 )
 
@@ -31,33 +32,71 @@ func hardwareDevicesFromIdentity(identity HardwareIdentity) []HardwareDevice {
 		}
 		devices = append(devices, newIdentityOnlyDevice(vendor, "motherboard", model, "platform-identity"))
 	}
-	if model := safeDiscoveryText(identity.CPUModel); model != "" {
-		vendor := safeDiscoveryText(identity.CPUManufacturer)
-		if vendor == "" {
-			vendor = "Unknown"
-		}
-		devices = append(devices, newIdentityOnlyDevice(vendor, "cpu", model, "platform-identity"))
+	cpuInventory := identity.CPUs
+	if len(cpuInventory) == 0 && safeDiscoveryText(identity.CPUModel) != "" {
+		cpuInventory = []HardwareDeviceIdentity{{
+			Vendor: identity.CPUManufacturer, DeviceClass: "cpu", Model: identity.CPUModel,
+		}}
 	}
-	if model := safeDiscoveryText(identity.GPUModel); model != "" {
-		vendor := safeDiscoveryText(identity.GPUVendor)
+	for index, cpu := range cpuInventory {
+		vendor := safeDiscoveryText(cpu.Vendor)
 		if vendor == "" {
 			vendor = "Unknown"
 		}
-		device := newIdentityOnlyDevice(vendor, "gpu", model, "platform-identity")
-		device.Identity.Driver = safeDiscoveryText(identity.GPUDriver)
-		device.Identity.DriverVersion = safeDiscoveryText(identity.GPUDriverVersion)
+		model := safeDiscoveryText(cpu.Model)
+		if model == "" {
+			continue
+		}
+		discriminator := ""
+		if len(cpuInventory) > 1 {
+			discriminator = "cpu-" + strconv.Itoa(index)
+		}
+		devices = append(devices, newIdentityOnlyDeviceWithDiscriminator(vendor, "cpu", model, "platform-identity", discriminator))
+	}
+
+	gpuInventory := identity.GPUs
+	if len(gpuInventory) == 0 && safeDiscoveryText(identity.GPUModel) != "" {
+		gpuInventory = []HardwareDeviceIdentity{{
+			Vendor: identity.GPUVendor, DeviceClass: "gpu", Model: identity.GPUModel,
+			Driver: identity.GPUDriver, DriverVersion: identity.GPUDriverVersion,
+		}}
+	}
+	for index, gpu := range gpuInventory {
+		vendor := safeDiscoveryText(gpu.Vendor)
+		if vendor == "" {
+			vendor = "Unknown"
+		}
+		model := safeDiscoveryText(gpu.Model)
+		if model == "" {
+			continue
+		}
+		discriminator := safeDiscoveryText(gpu.ProductID)
+		if discriminator == "" && len(gpuInventory) > 1 {
+			discriminator = "gpu-" + strconv.Itoa(index)
+		}
+		device := newIdentityOnlyDeviceWithDiscriminator(vendor, "gpu", model, "platform-identity", discriminator)
+		device.Identity.ProductID = safeDiscoveryText(gpu.ProductID)
+		device.Identity.Driver = safeDiscoveryText(gpu.Driver)
+		device.Identity.DriverVersion = safeDiscoveryText(gpu.DriverVersion)
 		devices = append(devices, device)
 	}
 	return deduplicateAndValidateHardwareDevices(devices)
 }
 
 func newIdentityOnlyDevice(vendor, class, model, backend string) HardwareDevice {
-	identityKey := strings.Join([]string{
+	return newIdentityOnlyDeviceWithDiscriminator(vendor, class, model, backend, "")
+}
+
+func newIdentityOnlyDeviceWithDiscriminator(vendor, class, model, backend, discriminator string) HardwareDevice {
+	identityParts := []string{
 		strings.ToLower(strings.TrimSpace(vendor)),
 		strings.ToLower(strings.TrimSpace(class)),
 		strings.ToLower(strings.TrimSpace(model)),
-	}, "|")
-	sum := sha256.Sum256([]byte(identityKey))
+	}
+	if strings.TrimSpace(discriminator) != "" {
+		identityParts = append(identityParts, strings.ToLower(strings.TrimSpace(discriminator)))
+	}
+	sum := sha256.Sum256([]byte(strings.Join(identityParts, "|")))
 	return HardwareDevice{
 		ID: hex.EncodeToString(sum[:8]),
 		Identity: HardwareDeviceIdentity{
