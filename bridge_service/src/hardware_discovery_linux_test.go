@@ -54,3 +54,17 @@ func TestDiscoverLinuxHardwareDevicesKeepsPWMAsSeparateActuator(t *testing.T) {
 func TestDiscoverLinuxHardwareDevicesReturnsEmptyWithoutHardware(t *testing.T) {
 	if got := discoverLinuxHardwareDevices(t.TempDir()); len(got) != 0 { t.Fatalf("expected empty discovery result, got %+v", got) }
 }
+
+func TestDiscoverLinuxHardwareDevicesDoesNotEnablePWMWithoutRPMFeedback(t *testing.T) {
+	root := t.TempDir()
+	writeSysfsFixture(t, root, "class/hwmon/hwmon2/name", "nct6798")
+	writeSysfsFixture(t, root, "class/hwmon/hwmon2/pwm1", "128")
+	writeSysfsFixture(t, root, "class/hwmon/hwmon2/pwm1_enable", "1")
+	devices := discoverLinuxHardwareDevices(root)
+	if len(devices) != 1 || len(devices[0].Actuators) != 1 {
+		t.Fatalf("expected one monitor-only PWM actuator, got %+v", devices)
+	}
+	if devices[0].Actuators[0].Writable {
+		t.Fatal("PWM without matching RPM feedback was marked writable")
+	}
+}
