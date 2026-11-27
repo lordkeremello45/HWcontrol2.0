@@ -41,3 +41,33 @@ func TestCollectIntelGPUPlatformMetricsDoesNotInventMissingDevices(t *testing.T)
 		t.Fatalf("empty sysfs tree changed metrics: %+v", metrics)
 	}
 }
+
+func TestMergeLinuxPlatformMetricsPreservesZeroAndSubzeroGPUTemperatures(t *testing.T) {
+	for _, temperatureMilliC := range []string{"0", "-5000"} {
+		root := t.TempDir()
+		base := "class/drm/card0/device"
+		writeSysfsFixture(t, root, base+"/vendor", "0x8086")
+		writeSysfsFixture(t, root, base+"/hwmon/hwmon0/temp1_input", temperatureMilliC)
+		metrics := HardwareMetrics{}
+		mergeLinuxPlatformMetrics(root, &metrics)
+		want := 0.0
+		if temperatureMilliC == "-5000" {
+			want = -5
+		}
+		if metrics.GPUTemperature != want || metrics.GPUTemperatureSource == "" {
+			t.Fatalf("temperature %s mC was not retained: %+v", temperatureMilliC, metrics)
+		}
+	}
+}
+
+func TestMergeLinuxPlatformMetricsPreservesAMDZeroTemperature(t *testing.T) {
+	root := t.TempDir()
+	base := "class/drm/card0/device"
+	writeSysfsFixture(t, root, base+"/vendor", "0x1002")
+	writeSysfsFixture(t, root, base+"/hwmon/hwmon0/temp1_input", "0")
+	metrics := HardwareMetrics{}
+	mergeLinuxPlatformMetrics(root, &metrics)
+	if metrics.GPUVendor != "AMD" || metrics.GPUTemperature != 0 || metrics.GPUTemperatureSource == "" {
+		t.Fatalf("AMD zero-degree reading was not retained: %+v", metrics)
+	}
+}
