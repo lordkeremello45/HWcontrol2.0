@@ -407,8 +407,8 @@ func collectMetrics() HardwareMetrics {
 	// copying it into both per-device source fields can misattribute one reading
 	// to another device. Platform collectors must set the specific source.
 	metrics.ThermalSafetyAvailable =
-		(metrics.CPUTemperatureSource != "" && isValidTemperature(metrics.CPUTemperature)) ||
-			(metrics.GPUTemperatureSource != "" && isValidTemperature(metrics.GPUTemperature))
+		hasValidThermalSafetyTemperature(metrics.CPUTemperature, metrics.CPUTemperatureSource) ||
+			hasValidThermalSafetyTemperature(metrics.GPUTemperature, metrics.GPUTemperatureSource)
 	game := collectGameModeState()
 	metrics.GameModeEnabled = game.Enabled
 	metrics.GameDetected = game.GameDetected
@@ -451,6 +451,13 @@ func collectMetrics() HardwareMetrics {
 	metrics.MetricsCollectedAt = time.Now().UTC().Format(time.RFC3339Nano)
 	recordSensorHistory(metrics)
 	return metrics
+}
+
+// hasValidThermalSafetyTemperature requires an explicitly device-scoped source.
+// A shared SensorSource is intentionally not accepted because it may belong to
+// a different device and must never be used as a substitute.
+func hasValidThermalSafetyTemperature(value float64, source string) bool {
+	return strings.TrimSpace(source) != "" && isValidTemperature(value)
 }
 
 // collectHardwareControlSafetyMetrics intentionally avoids the one-second
