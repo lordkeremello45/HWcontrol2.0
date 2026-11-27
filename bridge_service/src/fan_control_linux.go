@@ -45,6 +45,24 @@ func stableLinuxFanChannelID(devicePath string, pwmNumber int) string {
 	return hex.EncodeToString(sum[:8])
 }
 
+func linuxFanChannelID(hwmonPath, name string, pwmNumber int, seen map[string]struct{}) string {
+	resolvedPath, err := filepath.EvalSymlinks(hwmonPath)
+	if err != nil {
+		resolvedPath = hwmonPath
+	}
+	resolvedPath = filepath.Clean(resolvedPath)
+	identityPath := canonicalLinuxHwmonDevicePath(resolvedPath) + "#" + name
+	id := stableLinuxFanChannelID(identityPath, pwmNumber)
+	if _, exists := seen[id]; exists {
+		// Keep multiple hwmon interfaces on one parent device independently addressable.
+		id = stableLinuxFanChannelID(resolvedPath+"#"+name, pwmNumber)
+	}
+	if seen != nil {
+		seen[id] = struct{}{}
+	}
+	return id
+}
+
 func parseLinuxPWMNumber(pwmPath string) (int, bool) {
 	base := filepath.Base(pwmPath)
 	if !strings.HasPrefix(base, "pwm") {
@@ -126,10 +144,6 @@ func discoverLinuxFanTargets(root string, configured []string) []linuxFanTarget 
 			continue
 		}
 		deviceDir := filepath.Dir(pwmPath)
-		idPath, err := filepath.EvalSymlinks(deviceDir)
-		if err != nil {
-			idPath = deviceDir
-		}
 		target := linuxFanTarget{
 			pwmPath:  pwmPath,
 			fanInput: filepath.Join(deviceDir, fmt.Sprintf("fan%d_input", number)),
@@ -140,14 +154,7 @@ func discoverLinuxFanTargets(root string, configured []string) []linuxFanTarget 
 				target.name = value
 			}
 		}
-		identityPath := canonicalLinuxHwmonDevicePath(idPath) + "#" + target.name
-		target.id = stableLinuxFanChannelID(identityPath, number)
-		if _, exists := seenIDs[target.id]; exists {
-			// Rare drivers may expose two hwmon interfaces for one parent device;
-			// retain unique command identities rather than crossing the channels.
-			target.id = stableLinuxFanChannelID(idPath+"#"+target.name, number)
-		}
-		seenIDs[target.id] = struct{}{}
+		target.id = linuxFanChannelID(deviceDir, target.name, number, seenIDs)
 
 		if _, err := os.Stat(target.fanInput); err != nil {
 			target.reason = fmt.Sprintf("matching fan%d_input RPM sensor is unavailable", number)
