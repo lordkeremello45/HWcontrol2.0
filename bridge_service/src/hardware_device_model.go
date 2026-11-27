@@ -112,10 +112,16 @@ func (d HardwareDevice) Validate() error {
 			return fmt.Errorf("non-writable actuator %q must explain why", actuator.ID)
 		}
 	}
+	seenCapabilities := make(map[string]struct{}, len(d.Capabilities))
 	for _, capability := range d.Capabilities {
 		if strings.TrimSpace(capability.Name) == "" || strings.TrimSpace(capability.Backend) == "" {
 			return fmt.Errorf("capability name and backend are required")
 		}
+		capabilityKey := capability.Name + "\x00" + capability.Backend
+		if _, exists := seenCapabilities[capabilityKey]; exists {
+			return fmt.Errorf("duplicate hardware capability %q for backend %q", capability.Name, capability.Backend)
+		}
+		seenCapabilities[capabilityKey] = struct{}{}
 		switch capability.State {
 		case "available":
 			if !capability.Read && !capability.Write {
@@ -143,4 +149,13 @@ func validHardwareChildID(id string) bool {
 		}
 	}
 	return true
+}
+
+func appendUniqueHardwareCapability(device *HardwareDevice, capability HardwareCapabilityRef) {
+	for _, existing := range device.Capabilities {
+		if existing.Name == capability.Name && existing.Backend == capability.Backend {
+			return
+		}
+	}
+	device.Capabilities = append(device.Capabilities, capability)
 }
