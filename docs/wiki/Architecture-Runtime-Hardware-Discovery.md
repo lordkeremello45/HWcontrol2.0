@@ -47,7 +47,7 @@ Linux tests use temporary synthetic sysfs trees and cover PCI GPU association, t
 Run from `bridge_service`:
 
 ```sh
-gofmt -w src/hardware_discovery_linux.go src/hardware_discovery_linux_test.go src/hardware_discovery_other.go src/main.go
+gofmt -w src/hardware_discovery_linux.go src/hardware_discovery_linux_test.go src/hardware_discovery_other.go src/hardware_discovery_other_test.go src/hardware_device_telemetry.go src/hardware_device_telemetry_test.go src/platform_metrics_linux.go src/platform_metrics_linux_test.go src/platform_metrics_windows.go src/main.go
 go test ./...
 go vet ./...
 ```
