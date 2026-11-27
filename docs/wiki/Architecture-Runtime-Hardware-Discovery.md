@@ -25,17 +25,24 @@ The Linux collector currently:
 
 PWM writability is a discovery-time permission/mode observation, not a guarantee that a later write will succeed. The write path must continue to re-check mode, bounds and readback immediately before/after a command.
 
-## Vendor telemetry normalization\n\nThe existing NVIDIA `nvidia-smi`, Linux AMD `amdgpu/sysfs`, and Windows LibreHardwareMonitor/WMI metric collectors are mapped into the discovered GPU record through the shared telemetry adapter. Attribution is deliberately conservative: telemetry is attached only when exactly one discovered GPU matches the reported vendor. Aggregate readings are not assigned when multiple same-vendor GPUs make the target ambiguous. GPU utilization includes an explicit internal source marker so a legitimate 0% reading is distinguishable from an unavailable value. The bridge validates the enriched device model before returning it.\n\n## Windows and macOS scope\n\nThe non-Linux adapter converts the existing platform identity result into validated device records. It does not infer sensor readings, fan channels, writable controls, or capability support from a device name. A missing GPU model produces no GPU record. Windows currently receives the single preferred GPU summary exposed by the existing identity contract; complete multi-GPU enumeration needs a richer inventory contract. macOS reports the Apple system/CPU identity where available; Apple GPU records are emitted only when the platform collector supplies a concrete GPU model.\n\n## Deliberate limitations
+## Vendor telemetry normalization
 
-- Intel per-device vendor telemetry and multi-GPU indexed attribution are not yet implemented.
-- Intel per-device utilization and vendor SDK telemetry are not yet normalized into this inventory.
+The existing NVIDIA `nvidia-smi`, Linux AMD `amdgpu/sysfs`, Linux Intel DRM sysfs clock/memory/temperature interfaces, and Windows LibreHardwareMonitor/WMI metric collectors are mapped into the discovered GPU record through the shared telemetry adapter. Attribution is deliberately conservative: telemetry is attached only when exactly one discovered GPU matches the reported vendor. Aggregate readings are not assigned when multiple same-vendor GPUs make the target ambiguous. GPU utilization includes an explicit internal source marker so a legitimate 0% reading is distinguishable from an unavailable value. The bridge validates the enriched device model before returning it.
+
+## Windows and macOS scope
+
+The non-Linux adapter converts the existing platform identity result into validated device records. It does not infer sensor readings, fan channels, writable controls, or capability support from a device name. A missing GPU model produces no GPU record. Windows currently receives the single preferred GPU summary exposed by the existing identity contract; complete multi-GPU enumeration needs a richer inventory contract. macOS reports the Apple system/CPU identity where available; Apple GPU records are emitted only when the platform collector supplies a concrete GPU model.
+
+## Deliberate limitations
+
+- Intel GPU utilization is not inferred where the kernel does not expose a supported counter through the selected sysfs interface. Vendor SDK telemetry and indexed multi-GPU attribution remain unimplemented.
 - Windows and macOS records are identity-only; native per-device telemetry and actuator adapters are not yet implemented.
 - Motherboard controller vendor identity is not inferred from a chip name. It is reported as `Unknown` until a validated mapping exists.
 - Sensor labels are descriptive metadata, not stable identifiers. Consumers should key records by opaque device ID and component ID.
 
 ## Tests
 
-Linux tests use temporary synthetic sysfs trees and cover PCI GPU association, temperature/RPM sensor separation, PWM actuator safety, model validation and empty discovery. Non-Linux tests cover identity-to-device conversion, deterministic opaque IDs and the no-invented-GPU rule. These tests do not replace physical hardware validation.
+Linux tests use temporary synthetic sysfs trees and cover PCI GPU association, temperature/RPM sensor separation, PWM actuator safety, Intel DRM telemetry parsing, conservative vendor attribution, model validation and empty discovery. Non-Linux tests cover identity-to-device conversion, deterministic opaque IDs and the no-invented-GPU rule. These tests do not replace physical hardware validation.
 
 Run from `bridge_service`:
 
