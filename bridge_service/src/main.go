@@ -192,6 +192,7 @@ type HardwareMetrics struct {
 	GPUTemperatureSource       string          `json:"gpuTemperatureSource,omitempty"`
 	MetricsCollectedAt         string          `json:"metricsCollectedAt"`
 	GPUUsage                   float64         `json:"gpuUsage"`
+	GPUUsageSource             string          `json:"-"`
 	GPUMemoryUsage             float64         `json:"gpuMemoryUsage"`
 	GPUPowerLimitWatts         float64         `json:"gpuPowerLimitWatts"`
 	GPUPState                  string          `json:"gpuPState"`
@@ -255,8 +256,9 @@ func mergePlatformTelemetry(metrics *HardwareMetrics, platform HardwareMetrics) 
 		metrics.GPUTemperature = platform.GPUTemperature
 		metrics.GPUTemperatureSource = platform.GPUTemperatureSource
 	}
-	if platform.GPUUsage > 0 {
+	if platform.GPUUsageSource != "" {
 		metrics.GPUUsage = platform.GPUUsage
+		metrics.GPUUsageSource = platform.GPUUsageSource
 	}
 	if platform.GPUMemoryUsedBytes > 0 {
 		metrics.GPUMemoryUsedBytes = platform.GPUMemoryUsedBytes
@@ -349,7 +351,10 @@ func collectMetrics() HardwareMetrics {
 					metrics.GPUTemperature = value
 					metrics.GPUTemperatureSource = "nvidia-smi"
 				}
-				metrics.GPUUsage, _ = strconv.ParseFloat(strings.TrimSpace(parts[3]), 64)
+				if value, parseErr := strconv.ParseFloat(strings.TrimSpace(parts[3]), 64); parseErr == nil && isFiniteNonNegative(value) && value <= 100 {
+					metrics.GPUUsage = value
+					metrics.GPUUsageSource = "nvidia-smi"
+				}
 				metrics.GPUMemoryUsage, _ = strconv.ParseFloat(strings.TrimSpace(parts[4]), 64)
 				if value, parseErr := strconv.ParseFloat(strings.TrimSpace(parts[5]), 64); parseErr == nil && isFiniteNonNegative(value) && value <= 100 {
 					metrics.FanPercent = value
