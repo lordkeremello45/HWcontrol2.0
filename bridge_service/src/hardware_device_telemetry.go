@@ -14,7 +14,14 @@ func attachGPUPlatformSensors(devices []HardwareDevice, metrics HardwareMetrics,
 		observedAt = time.Now().UTC()
 	}
 	vendor := normalizeGPUVendor(metrics.GPUVendor)
-	if vendor == "" || strings.TrimSpace(metrics.SensorSource) == "" {
+	source := strings.TrimSpace(metrics.SensorSource)
+	if source == "" {
+		source = strings.TrimSpace(metrics.GPUTemperatureSource)
+	}
+	if source == "" {
+		source = strings.TrimSpace(metrics.GPUUsageSource)
+	}
+	if vendor == "" || source == "" {
 		return devices
 	}
 
@@ -31,7 +38,6 @@ func attachGPUPlatformSensors(devices []HardwareDevice, metrics HardwareMetrics,
 	}
 
 	device := &devices[match]
-	source := strings.TrimSpace(metrics.SensorSource)
 	add := func(id, kind, unit string, value float64, sourceName string) {
 		if !isFiniteNonNegative(value) || strings.TrimSpace(sourceName) == "" {
 			return
